@@ -8,11 +8,11 @@ from crafting.world.items import Item, Tool, ItemStack
 ### Item ###
 
 def test_item_init():
-    Item(id=12, name='stone', max_stack=64)
+    Item(12, name='stone', max_stack=64)
 
 @pytest.fixture
 def stone():
-    return Item(id=12, name='stone', max_stack=64)
+    return Item(12, name='stone', max_stack=64)
 
 def test_item_str(stone):
     expected_item_name = 'Stone(12)'
@@ -23,14 +23,13 @@ def test_item_str(stone):
 ### ItemStack ###
 
 def test_itemstack_init(stone):
-    stone8 = ItemStack(stone, 8)
+    ItemStack(stone, 8)
 
 def test_itemstack_add(stone):
-
     # Simple add
     stone8 = ItemStack(stone, 8)
     stone32 = ItemStack(stone, 32)
-    
+
     added_stacks = stone8 + stone32
     stacks_sizes = list(map(lambda x: x.size, added_stacks))
     expected_stack_sizes = [40]
@@ -41,7 +40,7 @@ def test_itemstack_add(stone):
     # Overflowed add
     stone32 = ItemStack(stone, 32)
     stone35 = ItemStack(stone, 35)
-    
+
     added_stacks = stone32 + stone35
     stacks_sizes = list(map(lambda x: x.size, added_stacks))
     expected_stack_sizes = [64, 3]
@@ -52,7 +51,7 @@ def test_itemstack_add(stone):
     # Correcting add
     stone8 = ItemStack(stone, 8)
     stone127 = ItemStack(stone, 127)
-    
+
     added_stacks = stone8 + stone127
     stacks_sizes = list(map(lambda x: x.size, added_stacks))
     expected_stack_sizes = [64, 64, 7]
@@ -64,7 +63,7 @@ def test_itemstack_sub(stone):
     # Simple sub
     stone8 = ItemStack(stone, 8)
     stone32 = ItemStack(stone, 32)
-    
+
     sub_stacks = stone32 - stone8
     stacks_sizes = list(map(lambda x: x.size, sub_stacks))
     expected_stack_sizes = [24]
@@ -86,14 +85,14 @@ def test_itemstack_sub(stone):
     # Not enough Error
     stone32 = ItemStack(stone, 32)
     stone48 = ItemStack(stone, 48)
-    
+
     with pytest.raises(ValueError, match="Not enough in initial stack to remove"):
         sub_stacks = stone32 - stone48
 
 ### Tool ###
 
 def test_tool_init():
-    wooden_pickaxe = Tool(18, 'wooden_pickaxe', {'durability': 59, 'speed':2})
+    Tool(18, 'wooden_pickaxe', {'durability': 59, 'speed':2})
 
 @pytest.fixture
 def wooden_pickaxe():
@@ -106,7 +105,6 @@ def test_tool_change(wooden_pickaxe):
         raise ValueError("Durability parameter was not changed effectively")
 
 def test_tool_str(wooden_pickaxe):
-    expected_name = f'Wooden_pickaxe({wooden_pickaxe.id})[{wooden_pickaxe.durability}, {wooden_pickaxe.speed}]'
+    expected_name = 'Wooden_pickaxe(18)[59, 2]'
     if str(wooden_pickaxe) != expected_name:
         raise ValueError(f"Tool name was: {str(wooden_pickaxe)}\nInstead of: {expected_name}")
-
