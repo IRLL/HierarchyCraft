@@ -12,7 +12,7 @@ class Item():
 
     """ Item are to represent objects that could be present in an inventory
 
-    Args:
+    Attributes:
         item_id (int): Unique item identification number.
         name (str): Item name.
         max_stack (int): Maximum number of this item per stack.
@@ -20,6 +20,14 @@ class Item():
     """
 
     def __init__(self, item_id: int, name: str, max_stack: int=1):
+        """ Item are to represent objects that could be present in an inventory
+
+        Args:
+            item_id: Unique item identification number.
+            name: Item name.
+            max_stack: Maximum number of this item per stack.
+
+        """
         self.item_id = item_id
         self.name = name
         self.max_stack = max_stack
@@ -32,16 +40,22 @@ class Tool(Item):
 
     """ Tool are to represent special objects that takes a whole inventory slot.
 
-    Tool are special objects with additional proprieties taking a whole inventory slot.
-
-    Args:
+    Attributes:
         item_id (int): Unique item identification number.
         name (str): Item name.
-        params (dict): (Optional) Additional tool attributes.
+        **params: (Optional) Additional tool attributes.
 
     """
 
     def __init__(self, item_id: int, name: str, params: dict=None):
+        """ Tool are to represent special objects that takes a whole inventory slot.
+
+        Args:
+            item_id: Unique item identification number.
+            name: Item name.
+            params: (Optional) Additional tool attributes.
+
+        """
         super().__init__(item_id, name, max_stack=1)
         self.params = list(params.keys())
         for param, param_value in params.items():
@@ -56,13 +70,23 @@ class ItemStack(Item):
 
     """ ItemStack are to represent stackable objects that could be present in an inventory.
 
-    Args:
-        item (Item): Item object that will be stacked.
-        size (int): Initial stack value.
+    Attributes:
+        item (:obj:`Item`): Item object that will be stacked.
+        item_id (int): Unique item identification number.
+        name (str): Item name.
+        max_stack (int): Maximum number of this item per stack.
+        size (int): Number of items in stack.
 
     """
 
     def __init__(self, item: Item, size:int):
+        """ ItemStack are to represent stackable objects that could be present in an inventory.
+
+        Args:
+            item: Item object that will be stacked.
+            size: Initial stack value.
+
+        """
         super().__init__(item.item_id, item.name, item.max_stack)
         self.item = item
         self.size = size
