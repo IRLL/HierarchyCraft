@@ -1,6 +1,13 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
+""" Recipe are to represent transformations of items.
+
+Recipes are initiated using an input-output design
+but they can also affect and be affected by the Zone in which the craft is done.
+
+"""
+
 from typing import List
 import numpy as np
 
