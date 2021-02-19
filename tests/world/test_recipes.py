@@ -14,7 +14,6 @@ def forest():
     return Zone(
         zone_id=0,
         name='forest',
-        properties={'has_crafting': False, 'has_furnace': False},
         items={}
     )
 
@@ -97,7 +96,7 @@ def test_recipe_craft_zone(forest, all_items, plank, recipe_crafting_table):
     inv = Inventory(all_items)
     inv.add_stacks([ItemStack(plank, 9)])
 
-    assert not forest.properties['has_crafting']
+    assert 'has_crafting' not in forest.properties
 
     success = recipe_crafting_table.craft(inv, forest)
     print(inv, success, forest.properties['has_crafting'])

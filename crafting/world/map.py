@@ -44,7 +44,7 @@ class Zone():
         self.zone_id = zone_id
         self.name = name
         self.items = items
-        self.properties = properties
+        self.properties = properties if properties is not None else {}
 
     def __str__(self):
         return f"{self.name.capitalize()}({self.zone_id})"

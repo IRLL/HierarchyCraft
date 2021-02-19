@@ -37,5 +37,5 @@ def test_zone_str(forest):
 
 def test_zone_repr(forest):
     print(repr(forest))
-    if repr(forest) != "Forest(0){'has_crafting': False, 'has_furnace': False}{}":
+    if repr(forest) != "Forest(0){'has_crafting': False, 'has_furnace': False}":
         raise ValueError("Unexpected repr")
