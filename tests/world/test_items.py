@@ -47,6 +47,12 @@ def test_tool_change(wooden_pickaxe):
         raise ValueError("Durability parameter was not changed effectively")
 
 def test_tool_str(wooden_pickaxe):
-    expected_name = 'Wooden_pickaxe(18)[59, 2]'
+    expected_name = 'Wooden_pickaxe(18)'
     if str(wooden_pickaxe) != expected_name:
         raise ValueError(f"Tool name was: {str(wooden_pickaxe)}\nInstead of: {expected_name}")
+
+def test_tool_repr(wooden_pickaxe):
+    expected_name = 'Wooden_pickaxe(18)[59, 2]'
+    if repr(wooden_pickaxe) != expected_name:
+        raise ValueError(f"Tool name was: {repr(wooden_pickaxe)}\nInstead of: {expected_name}")
+

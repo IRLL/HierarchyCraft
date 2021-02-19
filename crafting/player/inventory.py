@@ -43,7 +43,7 @@ class Inventory():
 
         self.item_id_to_slot = np.vectorize(item_id_to_slot)
 
-    def _stacks_ind_size(self, stacks):
+    def stacks_ind_and_size(self, stacks):
         stack_ids = np.array([stack.item_id for stack in stacks])
         stack_ind = self.item_id_to_slot(stack_ids)
         stack_sizes = np.array([stack.size for stack in stacks])
@@ -59,7 +59,7 @@ class Inventory():
             True if successful, False otherwise.
 
         """
-        stack_ind, stack_sizes = self._stacks_ind_size(stacks)
+        stack_ind, stack_sizes = self.stacks_ind_and_size(stacks)
         self.content[stack_ind] += stack_sizes
         return True
 
@@ -76,7 +76,7 @@ class Inventory():
             ValueError: If content does not have enough to remove.
 
         """
-        stack_ind, stack_sizes = self._stacks_ind_size(stacks)
+        stack_ind, stack_sizes = self.stacks_ind_and_size(stacks)
 
         if np.any(self.content[stack_ind] < stack_sizes):
             raise ValueError("Not enough in content to remove")

@@ -61,6 +61,9 @@ class Tool(Item):
         for param, param_value in params.items():
             setattr(self, param, param_value)
 
+    def __str__(self):
+        return f"{self.name.capitalize()}({self.item_id})"
+
     def __repr__(self):
         params = [getattr(self, param) for param in self.params]
         return f"{self.name.capitalize()}({self.item_id}){params}"
@@ -79,7 +82,7 @@ class ItemStack(Item):
 
     """
 
-    def __init__(self, item: Item, size:int):
+    def __init__(self, item: Item, size:int=1):
         """ ItemStack are to represent stackable objects that could be present in an inventory.
 
         Args:
