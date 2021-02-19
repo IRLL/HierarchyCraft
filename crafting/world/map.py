@@ -21,13 +21,13 @@ class Zone():
     Attributes:
         zone_id (int): Unique zone identification number.
         name (str): Zone name.
-        properties (dict): Dictionary of properties.
         items (dict): Dictionary associating an item_id
             with the tools needed to gather it and how efficient it is.
+        properties (dict): Dictionary of properties.
 
     """
 
-    def __init__(self, zone_id: int, name: str, properties: dict, items: dict):
+    def __init__(self, zone_id: int, name: str, items: dict, properties: dict=None):
         """ Zones are to represent abstract places in the world.
 
         Zone have specific properties that can change how items can be gathered
@@ -36,9 +36,10 @@ class Zone():
         Args:
             zone_id: Unique zone identification number.
             name: Zone name.
-            properties: List of all properties names.
             items: Dictionary associating an item_id
                 with the tools needed to gather it and how efficient it is.
+            properties: List of all properties names.
+
         """
         self.zone_id = zone_id
         self.name = name
@@ -49,7 +50,7 @@ class Zone():
         return f"{self.name.capitalize()}({self.zone_id})"
 
     def __repr__(self):
-        return f"{self.name.capitalize()}({self.zone_id}){self.properties}{self.items}"
+        return f"{self.name.capitalize()}({self.zone_id}){self.properties}"
 
 class Map():
 

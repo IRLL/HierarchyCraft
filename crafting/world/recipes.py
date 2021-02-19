@@ -33,8 +33,8 @@ class Recipe():
 
     def __init__(self,
                  recipe_id: int,
-                 inputs: List[ItemStack],
-                 outputs: List[ItemStack],
+                 inputs: List[ItemStack]=None,
+                 outputs: List[ItemStack]=None,
                  needed_properties: dict=None,
                  added_properties: dict=None):
 
@@ -133,3 +133,12 @@ class Recipe():
                 zone.properties[property_name] = value
 
         return True
+
+    def __repr__(self):
+        prefix = f"{self.inputs}->"
+        suffix = ""
+        if self.outputs is not None:
+            suffix += f"{self.outputs}"
+        if self.added_properties is not None:
+            suffix += f"{self.added_properties}"
+        return prefix + suffix
