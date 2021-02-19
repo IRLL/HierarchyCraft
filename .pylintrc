@@ -61,7 +61,10 @@ confidence=
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
 disable=print-statement,
+        unused-wildcard-import,
+        wildcard-import,
         redefined-outer-name,
+        too-many-arguments,
         too-few-public-methods,
         parameter-unpacking,
         unpacking-in-except,
