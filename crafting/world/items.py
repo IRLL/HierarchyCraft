@@ -7,8 +7,6 @@ Here are defined abstract classes for items, tools and item-stacks
 
 """
 
-from typing import List
-
 
 class Item():
 
@@ -69,57 +67,5 @@ class ItemStack(Item):
         self.item = item
         self.size = size
 
-    def add(self, size: int) -> List[Item]:
-        """ Add new elements to the stack
-
-        If the total is more that the stack capability,
-        multiple stacks will be resulted.
-
-        Args:
-            size (int): Number of elemets to add to the stack.
-
-        Return:
-            (list): List of resulted stacks.
-
-        """
-        new_size = self.size + size
-        if new_size <= self.max_stack:
-            new_stacks = [ItemStack(self.item, new_size)]
-        else:
-            new_stack = ItemStack(self.item, 0)
-            new_stacks = new_stack.add(new_size - self.max_stack)
-            new_stacks = [ItemStack(self.item, self.max_stack)] + new_stacks
-        return new_stacks
-
-    def sub(self, size: int) -> List[Item]:
-        """ Remove elements from the stack
-
-        If the removed size is exactly that the stack size,
-        no stacks will be resulted.
-
-        Args:
-            size (int): Number of elements to add to the stack.
-
-        Return:
-            (list): List of resulted stacks.
-
-        """
-        if self.size == size:
-            return []
-        elif self.size > size:
-            return [ItemStack(self.item, self.size - size)]
-        else:
-            raise ValueError("Not enough in initial stack to remove")
-
-    def __add__(self, other: Item) -> List[Item]:
-        assert isinstance(other, ItemStack)
-        assert self.item_id == other.item_id
-        return self.add(other.size)
-
-    def __sub__(self, other: Item) -> List[Item]:
-        assert isinstance(other, ItemStack)
-        assert self.item_id == other.item_id
-        return self.sub(other.size)
-
     def __repr__(self) -> str:
-        return f"{self.size} {self.name.capitalize()}({self.item_id})"
+        return f"{self.name.capitalize()}({self.item_id})[{self.size}]"

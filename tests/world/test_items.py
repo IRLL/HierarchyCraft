@@ -23,71 +23,13 @@ def test_item_str(stone):
 ### ItemStack ###
 
 def test_itemstack_init(stone):
-    ItemStack(stone, 8)
+    stack = ItemStack(stone, 8)
 
-def test_itemstack_add(stone):
-    # Simple add
-    stone8 = ItemStack(stone, 8)
-    stone32 = ItemStack(stone, 32)
+    if stack.item_id != stone.item_id:
+        raise ValueError("Wrong item_id")
 
-    added_stacks = stone8 + stone32
-    stacks_sizes = list(map(lambda x: x.size, added_stacks))
-    expected_stack_sizes = [40]
-
-    if stacks_sizes != expected_stack_sizes:
-        raise ValueError(f"Stack sizes are:\n{stacks_sizes}\nInstead of:\n{expected_stack_sizes}")
-
-    # Overflowed add
-    stone32 = ItemStack(stone, 32)
-    stone35 = ItemStack(stone, 35)
-
-    added_stacks = stone32 + stone35
-    stacks_sizes = list(map(lambda x: x.size, added_stacks))
-    expected_stack_sizes = [64, 3]
-
-    if stacks_sizes != expected_stack_sizes:
-        raise ValueError(f"Stack sizes are:\n{stacks_sizes}\nInstead of:\n{expected_stack_sizes}")
-
-    # Correcting add
-    stone8 = ItemStack(stone, 8)
-    stone127 = ItemStack(stone, 127)
-
-    added_stacks = stone8 + stone127
-    stacks_sizes = list(map(lambda x: x.size, added_stacks))
-    expected_stack_sizes = [64, 64, 7]
-
-    if stacks_sizes != expected_stack_sizes:
-        raise ValueError(f"Stack sizes are:\n{stacks_sizes}\nInstead of:\n{expected_stack_sizes}")
-
-def test_itemstack_sub(stone):
-    # Simple sub
-    stone8 = ItemStack(stone, 8)
-    stone32 = ItemStack(stone, 32)
-
-    sub_stacks = stone32 - stone8
-    stacks_sizes = list(map(lambda x: x.size, sub_stacks))
-    expected_stack_sizes = [24]
-
-    if stacks_sizes != expected_stack_sizes:
-        raise ValueError(f"Stack sizes are:\n{stacks_sizes}\nInstead of:\n{expected_stack_sizes}")
-
-    # Zero stack output
-    stone32 = ItemStack(stone, 32)
-    stone32_2 = ItemStack(stone, 32)
-
-    sub_stacks = stone32 - stone32_2
-    stacks_sizes = list(map(lambda x: x.size, sub_stacks))
-    expected_stack_sizes = []
-
-    if stacks_sizes != expected_stack_sizes:
-        raise ValueError(f"Stack sizes are:\n{stacks_sizes}\nInstead of:\n{expected_stack_sizes}")
-
-    # Not enough Error
-    stone32 = ItemStack(stone, 32)
-    stone48 = ItemStack(stone, 48)
-
-    with pytest.raises(ValueError, match="Not enough in initial stack to remove"):
-        sub_stacks = stone32 - stone48
+    if stack.size != 8:
+        raise ValueError("Wrong size")
 
 ### Tool ###
 
