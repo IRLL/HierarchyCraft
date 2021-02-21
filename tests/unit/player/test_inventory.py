@@ -66,30 +66,3 @@ def test_inventory_sub_array(inv):
     inv = inv - np.array([8, 0, 21])
     if not np.all(inv.content == [15-8, 0, 33-21]):
         raise ValueError('Unexpected content after __sub__')
-
-# def test_inv():
-#     inv = Inventory(4)
-#     stone8 = ItemStack(stone, 8)
-#     stone63 = ItemStack(stone, 63)
-#     wooden_pickaxe = Tool(18, 'wooden_pickaxe', {'durability': 32})
-
-#     print(inv.size, inv)
-#     inv.add(stone8)
-#     print(inv.size, inv)
-#     inv.add(stone63)
-#     print(inv.size, inv)
-#     inv.add(stone63)
-#     print(inv.size, inv)
-#     inv.add(wooden_pickaxe)
-#     print(inv.size, inv)
-#     inv.add(wooden_pickaxe) # Full
-#     print(inv.size, inv)
-#     inv.add(stone63) # Fill stack
-#     print(inv.size, inv)
-#     inv.remove(stone8)
-#     print(inv.size, inv)
-#     inv.remove(stone63)
-#     print(inv.size, inv)
-#     inv.remove(wooden_pickaxe)
-#     print(inv.size, inv)
-#     assert False
