@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 
 from crafting.world.items import Item, Tool, ItemStack
-from crafting.world.map import Zone
+from crafting.world.zones import Zone
 from crafting.player.inventory import Inventory
 from crafting.world.recipes import Recipe
 

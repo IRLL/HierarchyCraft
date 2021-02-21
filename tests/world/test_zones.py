@@ -2,7 +2,7 @@
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
 import pytest
-from crafting.world.map import Zone
+from crafting.world.zones import Zone
 
 def test_zone_init():
     forest = Zone(

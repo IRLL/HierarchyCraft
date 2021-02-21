@@ -12,7 +12,7 @@ from typing import List
 import numpy as np
 
 from crafting.world.items import ItemStack
-from crafting.world.map import Zone
+from crafting.world.zones import Zone
 from crafting.player.inventory import Inventory
 
 class Recipe():
