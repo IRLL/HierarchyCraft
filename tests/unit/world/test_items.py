@@ -2,7 +2,6 @@
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
 import pytest
-from copy import copy
 from crafting.world.items import Item, Tool, ItemStack
 
 ### Item ###
@@ -34,25 +33,22 @@ def test_itemstack_init(stone):
 ### Tool ###
 
 def test_tool_init():
-    Tool(18, 'wooden_pickaxe', {'durability': 59, 'speed':2})
+    Tool(18, 'wooden_pickaxe')
 
 @pytest.fixture
 def wooden_pickaxe():
-    return Tool(18, 'wooden_pickaxe', {'durability': 59, 'speed':2})
+    return Tool(18, 'wooden_pickaxe')
 
-def test_tool_change(wooden_pickaxe):
-    initial_durability = copy(wooden_pickaxe.durability)
-    wooden_pickaxe.durability -= 1
-    if wooden_pickaxe.durability != initial_durability - 1:
-        raise ValueError("Durability parameter was not changed effectively")
+def test_tool_use(wooden_pickaxe, stone):
+    findings = wooden_pickaxe.use(stone)
+
+    if findings[0].item_id != stone.item_id:
+        raise ValueError('Unexpected finding item_id')
+
+    if findings[0].size != 1:
+        raise ValueError('Unexpected finding size')
 
 def test_tool_str(wooden_pickaxe):
     expected_name = 'Wooden_pickaxe(18)'
     if str(wooden_pickaxe) != expected_name:
         raise ValueError(f"Tool name was: {str(wooden_pickaxe)}\nInstead of: {expected_name}")
-
-def test_tool_repr(wooden_pickaxe):
-    expected_name = 'Wooden_pickaxe(18)[59, 2]'
-    if repr(wooden_pickaxe) != expected_name:
-        raise ValueError(f"Tool name was: {repr(wooden_pickaxe)}\nInstead of: {expected_name}")
-

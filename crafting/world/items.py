@@ -7,6 +7,7 @@ Here are defined abstract classes for items, tools and item-stacks
 
 """
 
+from typing import List
 
 class Item():
 
@@ -36,39 +37,6 @@ class Item():
         return f"{self.name.capitalize()}({self.item_id})"
 
 
-class Tool(Item):
-
-    """ Tool are to represent special objects that takes a whole inventory slot.
-
-    Attributes:
-        item_id (int): Unique item identification number.
-        name (str): Item name.
-        **params: (Optional) Additional tool attributes.
-
-    """
-
-    def __init__(self, item_id: int, name: str, params: dict=None):
-        """ Tool are to represent special objects that takes a whole inventory slot.
-
-        Args:
-            item_id: Unique item identification number.
-            name: Item name.
-            params: (Optional) Additional tool attributes.
-
-        """
-        super().__init__(item_id, name, max_stack=1)
-        self.params = list(params.keys())
-        for param, param_value in params.items():
-            setattr(self, param, param_value)
-
-    def __str__(self):
-        return f"{self.name.capitalize()}({self.item_id})"
-
-    def __repr__(self):
-        params = [getattr(self, param) for param in self.params]
-        return f"{self.name.capitalize()}({self.item_id}){params}"
-
-
 class ItemStack(Item):
 
     """ ItemStack are to represent stackable objects that could be present in an inventory.
@@ -96,3 +64,29 @@ class ItemStack(Item):
 
     def __repr__(self) -> str:
         return f"{self.name.capitalize()}({self.item_id})[{self.size}]"
+
+
+class Tool(Item):
+
+    """ Tool are to represent special usable items.
+
+    Attributes:
+        item_id (int): Unique item identification number.
+        name (str): Tool name.
+        max_stack (int): Maximum number of tools per stack.
+
+    """
+
+    def use(self, item:Item=None) -> List[ItemStack]:
+        """ Use the tool on the (optional) given item.
+
+        Args:
+            item: Item to use the tool on.
+
+        Returns:
+            The list of found item stacks.
+
+        """
+        if item is not None:
+            return [ItemStack(item)]
+        return []

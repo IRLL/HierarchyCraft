@@ -35,11 +35,11 @@ def stick():
 
 @pytest.fixture
 def wooden_pickaxe():
-    return Tool(18, 'wooden_pickaxe', {'durability': 59, 'speed':2})
+    return Tool(18, 'wooden_pickaxe')
 
 @pytest.fixture
 def stone_pickaxe():
-    return Tool(274, 'stone_pickaxe', {'durability': 131, 'speed': 4})
+    return Tool(274, 'stone_pickaxe')
 
 @pytest.fixture
 def all_items(dirt, plank, stone, stick, wooden_pickaxe, stone_pickaxe):
