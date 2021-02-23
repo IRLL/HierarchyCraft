@@ -23,7 +23,7 @@ def iron_pickaxe():
     return McTool(257, 'iron_pickaxe', durability=151, speed=6)
 
 def test_use(wooden_pickaxe, iron_pickaxe,stone, cobblestone):
-    expected_stack_sizes = (1, 4)
+    expected_stack_sizes = (2, 5)
     for i, pickaxe in enumerate((wooden_pickaxe, iron_pickaxe)):
         initial_durability = copy(pickaxe.durability)
         findings = pickaxe.use(stone)

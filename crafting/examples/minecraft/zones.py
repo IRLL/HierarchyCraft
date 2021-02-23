@@ -7,7 +7,7 @@ Abstract zones to simulate simply a Minecraft environment.
 
 """
 
-from crafting.world.map import Zone
+from crafting.world.zones import Zone
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.tools import *
 
@@ -16,13 +16,14 @@ FOREST = Zone(0, 'forest',
     {
         WOOD.item_id: [AIR] + AXES,
         DIRT.item_id: [AIR],
-        COBBLESTONE.item_id: PICKAXES
+        STONE.item_id: PICKAXES,
     }
 )
 
 RIVER = Zone(1, 'river',
     {
         DIRT.item_id: [AIR],
+        STONE.item_id: PICKAXES,
         REEDS.item_id: [AIR]
     }
 )
@@ -30,6 +31,7 @@ RIVER = Zone(1, 'river',
 MEADOW = Zone(2, 'meadow',
     {
         DIRT.item_id: [AIR],
+        STONE.item_id: PICKAXES,
         LEATHER.item_id: SWORDS,
         EGG.item_id: [AIR]
     }
@@ -38,7 +40,7 @@ MEADOW = Zone(2, 'meadow',
 UNDERGROUND = Zone(3, 'underground',
     {
         DIRT.item_id: [AIR],
-        COBBLESTONE.item_id: PICKAXES,
+        STONE.item_id: PICKAXES,
         IRON_ORE.item_id: PICKAXES[1:],
         GOLD_ORE.item_id: PICKAXES[2:],
     }
@@ -47,11 +49,11 @@ UNDERGROUND = Zone(3, 'underground',
 BEDROCK = Zone(4, 'bedrock',
     {
         DIRT.item_id: [AIR],
-        COBBLESTONE.item_id: PICKAXES,
+        STONE.item_id: PICKAXES,
         IRON_ORE.item_id: PICKAXES[1:],
         GOLD_ORE.item_id: PICKAXES[2:],
-        DIAMOND.item_id: PICKAXES[2:],
-        REDSTONE.item_id: PICKAXES[2:],
+        DIAMOND_ORE.item_id: PICKAXES[2:],
+        REDSTONE_ORE.item_id: PICKAXES[2:],
         OBSIDIAN.item_id: [DIAMOND_PICKAXE],
     }
 )

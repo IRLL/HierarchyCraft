@@ -7,10 +7,11 @@ All used minecraft tools
 
 """
 
-import numpy as np
+from numpy import inf
+
 from crafting.examples.minecraft.abc import McTool
 
-AIR = McTool(0, 'air', durability=np.inf, speed=1)
+AIR = McTool(0, 'air', durability=inf, speed=1)
 WOODEN_PICKAXE = McTool(270, 'wooden_pickaxe', durability=59, speed=2)
 WOODEN_AXE = McTool(271, 'wooden_axe', durability=59, speed=2)
 WOODEN_SWORD = McTool(268, 'wooden_sword', durability=59, speed=2)
@@ -43,23 +44,7 @@ SWORDS = [
     GOLD_SWORD, DIAMOND_SWORD
 ]
 
-MC_TOOLS = [
-    WOODEN_PICKAXE,
-    WOODEN_AXE,
-    WOODEN_SWORD,
-    STONE_PICKAXE,
-    STONE_AXE,
-    STONE_SWORD,
-    IRON_PICKAXE,
-    IRON_AXE,
-    IRON_SWORD,
-    GOLD_PICKAXE,
-    GOLD_AXE,
-    GOLD_SWORD,
-    DIAMOND_PICKAXE,
-    DIAMOND_AXE,
-    DIAMOND_SWORD,
-]
+MC_TOOLS = [AIR] + PICKAXES + AXES + SWORDS
 
 if __name__ == "__main__":
     print('Tools:', str(MC_TOOLS))
