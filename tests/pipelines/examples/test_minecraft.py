@@ -58,8 +58,8 @@ def test_obtain_getting_wood():
         _, _, done, _ = env(env.action('get', WOOD.item_id))
 
     print(env.player.inventory)
-    if env.player.inventory.content[5] != 100:
-        raise ValueError('Unexpected number of wood got after 100 steps (AIR)')
+    if env.player.inventory.content[5] != 268:
+        raise ValueError('Unexpected number of wood got after 100 steps (IRON AXE)')
 
 def test_obtain_enchant_table():
     env = MineCraftingEnv(max_step=500, verbose=1)

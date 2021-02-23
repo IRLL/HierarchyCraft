@@ -64,21 +64,29 @@ class McTool(Tool):
     def __init__(self, item_id:int, name:str, durability:int, speed:int, max_stack:int=1):
         super().__init__(item_id, name, max_stack)
         self.durability = durability
+        self._durability = durability
         self.speed = speed
 
     def use(self, item:Union[Block, Loot, Item]=None):
-        if self.durability > 0 and isinstance(item, Block):
+        if self._durability > 0 and isinstance(item, Block):
             stack_size = min(self.durability, 1+int(self.speed / item.hardness))
-            self.durability -= stack_size
+            self._durability -= stack_size
             findings = [
                 ItemStack(item_dropped, stack_size)
                 for item_dropped in item.items_dropped
             ]
             return findings
-        if self.durability > 0 and isinstance(item, Loot):
-            self.durability -= 1
+        if self._durability > 0 and isinstance(item, Loot):
+            self._durability -= 1
             return [ItemStack(item, item.stack_size)]
         return []
+
+    @property
+    def is_broken(self):
+        return not self._durability > 0
+
+    def reset(self):
+        self._durability = self.durability
 
 class McPlayer(Player):
 
@@ -104,3 +112,10 @@ class McPlayer(Player):
                 usable_tools_speed = np.array([tool.speed for tool in usable_tools])
                 return usable_tools[np.argmax(usable_tools_speed)]
         return self.hand
+
+    def search_for(self, item: Item, tool: McTool) -> int:
+        n_items_found = super().search_for(item, tool)
+        if tool.is_broken:
+            self.inventory.remove_stacks([ItemStack(tool)])
+            tool.reset()
+        return n_items_found
