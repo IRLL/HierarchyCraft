@@ -4,7 +4,7 @@
 import pytest
 import numpy as np
 
-from crafting.world.items import Item, Tool, ItemStack
+from crafting.world.items import Item, ItemStack
 from crafting.player.inventory import Inventory
 
 @pytest.fixture
