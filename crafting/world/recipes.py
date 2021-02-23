@@ -57,8 +57,10 @@ class Recipe():
         self.inputs = inputs
         self.outputs = outputs
 
-        self.needed_properties = needed_properties
-        self.added_properties = added_properties
+        self.needed_properties = needed_properties \
+            if needed_properties is not None else {}
+        self.added_properties = added_properties \
+            if added_properties is not None else {}
 
         self._operation = None
 
@@ -134,11 +136,20 @@ class Recipe():
 
         return True
 
+    def __call__(self, inventory: Inventory, zone: Zone):
+        return self.craft(inventory, zone)
+
     def __repr__(self):
-        prefix = f"{self.inputs}->"
-        suffix = ""
+        inputs = self.inputs if len(self.inputs) > 1 else self.inputs[0]
+        inputs_msg = f"{inputs}"
+        if self.needed_properties is not None and len(self.needed_properties) > 0:
+            inputs_msg += f"{self.needed_properties}"
+        outputs_msg = ""
         if self.outputs is not None:
-            suffix += f"{self.outputs}"
-        if self.added_properties is not None:
-            suffix += f"{self.added_properties}"
-        return prefix + suffix
+            if len(self.outputs) == 1:
+                outputs_msg += f"{self.outputs[0]}"
+            elif len(self.outputs) > 1:
+                outputs_msg += f"{self.outputs}"
+        if self.added_properties is not None and len(self.added_properties) > 0:
+            outputs_msg += f"{self.added_properties}"
+        return outputs_msg + ' <- ' + inputs_msg
