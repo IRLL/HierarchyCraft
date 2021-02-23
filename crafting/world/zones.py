@@ -40,7 +40,7 @@ class Zone():
         Args:
             zone_id: Unique zone identification number.
             name: Zone name.
-            items: Dictionary mapping an item_id to 
+            items: Dictionary mapping an item_id to
                 the tools needed to gather it.
             properties: List of all properties names.
 
@@ -50,7 +50,7 @@ class Zone():
         self.items = items
         self.properties = properties if properties is not None else {}
 
-    def search_for(self, item:Item, tool:Tool) -> List[ItemStack]:
+    def search_for(self, item:Item, tool:Tool=None) -> List[ItemStack]:
         """ Searches for the given item using a tool
 
         Args:
@@ -62,7 +62,11 @@ class Zone():
 
         """
         if item.item_id in self.items:
-            if tool in self.items[item.item_id]:
+            usable_tools = self.items[item.item_id]
+            if usable_tools is None:
+                return [ItemStack(item)]
+            usable_tools_ids = [usable_tool.item_id for usable_tool in usable_tools]
+            if tool is not None and tool.item_id in usable_tools_ids:
                 return tool.use(item)
         return []
 
