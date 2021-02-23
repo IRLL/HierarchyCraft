@@ -3,7 +3,7 @@
 
 """ Inventory """
 
-from typing import Tuple, List
+from typing import Tuple, List, Union
 
 import numpy as np
 
@@ -95,4 +95,13 @@ class Inventory():
     def __repr__(self):
         non_empty_items = self.content != 0
         items_in_inv = np.array(self.items)[non_empty_items]
-        return f'Inventory{items_in_inv}{self.content[non_empty_items]}'
+        content = self.content[non_empty_items]
+        return str([f'{quantity} {name}' for name, quantity in zip(items_in_inv, content)])
+
+    def __contains__(self, item: Union[Item, ItemStack]):
+        wanted_size = item.size if isinstance(item, ItemStack) else 1
+
+        item_slot = self.item_id_to_slot(item.item_id)
+        size = self.content[item_slot]
+
+        return size >= wanted_size
