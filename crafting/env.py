@@ -13,6 +13,7 @@ from crafting.world.world import World
 from crafting.player.player import Player
 
 class CraftingEnv(gym.Env):
+    metadata = {'render.modes': ['human', 'rgb_array', 'ansi']}
 
     def __init__(self, world: World, player: Player, max_step: int=500, verbose: int=0):
         self.world = deepcopy(world)
@@ -140,7 +141,13 @@ class CraftingEnv(gym.Env):
         return self.get_observation()
 
     def render(self, mode='human'):
-        print(self.player)
+        if mode == 'rgb_array':
+            raise NotImplementedError # return RGB frame suitable for video
+        if mode == 'human':
+            raise NotImplementedError # for human interaction
+        if mode == 'ansi':
+            return str(self.player)
+        super().render(mode=mode) # just raise an exception
 
     def __call__(self, action):
         return self.step(action)

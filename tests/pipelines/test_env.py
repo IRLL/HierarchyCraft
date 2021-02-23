@@ -93,14 +93,14 @@ def test_env_obtain_stone(world, player):
     print(env.world.zones)
     print(env.observation_legend)
 
-    env.render()
+    print(env.render('ansi'))
     observation, _, _, _ = env(env.action('get', WOOD.item_id)) #(Success)
 
     print(observation)
     expected_obs = [0, 1, 0, 0, 0, 0, 0, 1, 0, 0]
     if np.any(observation != expected_obs):
         raise ValueError('Unexpected observation')
-    env.render()
+    print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('get', DIRT.item_id)) #(Fail)
 
@@ -108,7 +108,7 @@ def test_env_obtain_stone(world, player):
     expected_obs = [0, 1, 0, 0, 0, 0, 0, 1, 0, 0]
     if np.any(observation != expected_obs):
         raise ValueError('Unexpected observation')
-    env.render()
+    print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('craft', WOOD_PLANK.item_id)) #(Success)
 
@@ -116,7 +116,7 @@ def test_env_obtain_stone(world, player):
     expected_obs = [0, 0, 0, 4, 0, 0, 0, 1, 0, 0]
     if np.any(observation != expected_obs):
         raise ValueError('Unexpected observation')
-    env.render()
+    print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('craft', WOOD_PLANK.item_id)) #(Fail)
 
@@ -124,7 +124,7 @@ def test_env_obtain_stone(world, player):
     expected_obs = [0, 0, 0, 4, 0, 0, 0, 1, 0, 0]
     if np.any(observation != expected_obs):
         raise ValueError('Unexpected observation')
-    env.render()
+    print(env.render('ansi'))
 
     for _ in range(2):
         observation, _, _, _ = env(env.action('get', WOOD.item_id))
@@ -134,7 +134,7 @@ def test_env_obtain_stone(world, player):
     expected_obs = [0, 0, 0, 12, 0, 0, 0, 1, 0, 0]
     if np.any(observation != expected_obs):
         raise ValueError('Unexpected observation')
-    env.render()
+    print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('move', UNDERGROUND.zone_id))
 
@@ -142,7 +142,7 @@ def test_env_obtain_stone(world, player):
     expected_obs = [0, 0, 0, 12, 0, 0, 0, 0, 1, 0]
     if np.any(observation != expected_obs):
         raise ValueError('Unexpected observation')
-    env.render()
+    print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('craft', R_WOODEN_PICKAXE.recipe_id)) #(Fail)
 
@@ -150,7 +150,7 @@ def test_env_obtain_stone(world, player):
     expected_obs = [0, 0, 0, 12, 0, 0, 0, 0, 1, 0]
     if np.any(observation != expected_obs):
         raise ValueError('Unexpected observation')
-    env.render()
+    print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('craft', R_CRAFTING_TABLE.recipe_id)) #(Success)
 
@@ -158,7 +158,7 @@ def test_env_obtain_stone(world, player):
     expected_obs = [0, 0, 0, 8, 0, 0, 0, 0, 1, 1]
     if np.any(observation != expected_obs):
         raise ValueError('Unexpected observation')
-    env.render()
+    print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('get', STONE.item_id)) #(Fail)
 
@@ -166,7 +166,7 @@ def test_env_obtain_stone(world, player):
     expected_obs = [0, 0, 0, 8, 0, 0, 0, 0, 1, 1]
     if np.any(observation != expected_obs):
         raise ValueError('Unexpected observation')
-    env.render()
+    print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('craft', R_STICK.recipe_id)) #(Success)
     observation, _, _, _ = env(env.action('craft', R_WOODEN_PICKAXE.recipe_id)) #(Success)
@@ -175,7 +175,7 @@ def test_env_obtain_stone(world, player):
     expected_obs = [0, 0, 0, 3, 2, 0, 1, 0, 1, 1]
     if np.any(observation != expected_obs):
         raise ValueError('Unexpected observation')
-    env.render()
+    print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('get', STONE.item_id)) #(Success)
 
@@ -183,7 +183,7 @@ def test_env_obtain_stone(world, player):
     expected_obs = [0, 0, 1, 3, 2, 0, 1, 0, 1, 1]
     if np.any(observation != expected_obs):
         raise ValueError('Unexpected observation')
-    env.render()
+    print(env.render('ansi'))
 
 def test_env_zone_consistency(world, player):
     env = CraftingEnv(world, player, max_step=50, verbose=1)
