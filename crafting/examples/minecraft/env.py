@@ -11,6 +11,7 @@ from crafting.env import CraftingEnv
 
 from crafting.examples.minecraft.abc import McPlayer
 from crafting.examples.minecraft.world import McWorld
+from crafting.examples.minecraft.rendering import create_window, update_rendering
 
 class MineCraftingEnv(CraftingEnv):
 
@@ -19,9 +20,17 @@ class MineCraftingEnv(CraftingEnv):
     def __init__(self, max_step: int=500, verbose: int=0):
         world = McWorld()
         player = McPlayer(world)
+        self.render_variables = None
         super().__init__(
             world=world,
             player=player,
             max_step=max_step,
             verbose=verbose
         )
+
+    def render(self, mode='human'):
+        if mode != 'human':
+            return super().render(mode)
+        if self.render_variables is None:
+            self.render_variables = create_window()
+        update_rendering(*self.render_variables, fps=60)

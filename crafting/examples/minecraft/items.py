@@ -66,6 +66,19 @@ MC_CRAFT_ITEMS = [
     ENCHANTING_TABLE
 ]
 
+MC_FOUDABLE_ITEMS = [
+    DIRT,
+    STONE,
+    GOLD_ORE,
+    IRON_ORE,
+    WOOD,
+    DIAMOND_ORE,
+    OBSIDIAN,
+    REDSTONE_ORE,
+    REEDS,
+    LEATHER,
+]
+
 MC_ITEMS = MC_BLOCKS + MC_BASE_ITEMS + MC_CRAFT_ITEMS
 
 if __name__ == "__main__":

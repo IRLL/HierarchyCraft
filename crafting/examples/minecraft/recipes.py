@@ -25,27 +25,17 @@ R_STICK = Recipe(280,
 R_HAND = [R_WOOD_PLANK, R_STICK]
 
 # Smelting
-R_IRON_INGOT_WOOD = Recipe(265017,
-    inputs=[ItemStack(IRON_ORE, 3), ItemStack(WOOD, 2)],
-    outputs=[ItemStack(IRON_INGOT, 3)],
-    needed_properties={'has_furnace': True}
-)
-R_IRON_INGOT_PLANK = Recipe(265005,
+R_IRON_INGOT_PLANK = Recipe(265,
     inputs=[ItemStack(IRON_ORE, 3), ItemStack(WOOD_PLANK, 2)],
     outputs=[ItemStack(IRON_INGOT, 3)],
     needed_properties={'has_furnace': True}
 )
-R_GOLD_INGOT_WOOD = Recipe(266017,
-    inputs=[ItemStack(GOLD_ORE, 3), ItemStack(WOOD, 2)],
-    outputs=[ItemStack(GOLD_INGOT, 3)],
-    needed_properties={'has_furnace': True}
-)
-R_GOLD_INGOT_PLANK = Recipe(266005,
+R_GOLD_INGOT_PLANK = Recipe(266,
     inputs=[ItemStack(GOLD_ORE, 3), ItemStack(WOOD_PLANK, 2)],
     outputs=[ItemStack(GOLD_INGOT, 3)],
     needed_properties={'has_furnace': True}
 )
-R_SMELTING = [R_IRON_INGOT_WOOD, R_IRON_INGOT_PLANK, R_GOLD_INGOT_WOOD, R_GOLD_INGOT_PLANK]
+R_SMELTING = [R_IRON_INGOT_PLANK, R_GOLD_INGOT_PLANK]
 
 # Zone modifiers
 R_CRAFTING_TABLE = Recipe(58,

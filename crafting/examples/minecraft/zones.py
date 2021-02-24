@@ -20,10 +20,9 @@ FOREST = Zone(0, 'forest',
     }
 )
 
-RIVER = Zone(1, 'river',
+SWAMP = Zone(1, 'swamp',
     {
         DIRT.item_id: [AIR],
-        STONE.item_id: PICKAXES,
         REEDS.item_id: [AIR]
     }
 )
@@ -60,7 +59,7 @@ BEDROCK = Zone(4, 'bedrock',
 
 MC_ZONES = [
     FOREST,
-    RIVER,
+    SWAMP,
     MEADOW,
     UNDERGROUND,
     BEDROCK,
