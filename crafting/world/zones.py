@@ -74,4 +74,7 @@ class Zone():
         return f"{self.name.capitalize()}({self.zone_id})"
 
     def __repr__(self):
-        return f"{self.name.capitalize()}({self.zone_id}){self.properties}"
+        name = f"{self.name.capitalize()}({self.zone_id})"
+        if len(self.properties) > 0:
+            name += str(self.properties)
+        return name

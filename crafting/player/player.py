@@ -10,7 +10,7 @@ from crafting.player.inventory import Inventory
 
 class Player():
 
-    """ Player are an inventory and a zone combined that can perform actions.
+    """ Player are entities with an inventory positioned in a zone.
 
     Attributes:
         inventory (:obj:`Inventory`): Player inventory.
@@ -79,8 +79,12 @@ class Player():
         Args:
             zone: The zone to move to.
 
+        Returns:
+            True if succeded, False otherwise.
+
         """
         self.zone = zone
+        return True
 
     def __repr__(self):
         name = self.name.capitalize() + ':'

@@ -96,9 +96,10 @@ class CraftingEnv(gym.Env):
         if 0 <= action - start_index < self.world.n_zones:
             zone_slot = action - start_index
             zone = self.world.zones[zone_slot]
-            self.player.move_to(zone)
+            success = self.player.move_to(zone)
             if self.verbose > 0:
-                print(f'Moved to {zone}')
+                status_msg = f'{Fore.GREEN}SUCCEDED' if success else f'{Fore.RED}FAILED'
+                print(f'{status_msg}{Style.RESET_ALL} at moving to {zone}')
 
         # Synchronise world zone with player zone
         zone_slot = self.world.zone_id_to_slot[self.player.zone.zone_id]

@@ -6,13 +6,17 @@
 """
 
 import os
+import numpy as np
 
 import pygame
 import pygame_menu
 
-from crafting.examples.minecraft.items import MC_FOUDABLE_ITEMS
+from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.recipes import MC_RECIPES
 from crafting.examples.minecraft.zones import MC_ZONES
+
+from crafting.examples.minecraft.abc import McPlayer
+from crafting.player.inventory import Inventory
 
 
 def on_button_click(action_type, identification):
@@ -111,18 +115,65 @@ def make_menus(window_width: int, window_height: int):
 
 class InventoryWidget():
 
-    def __init__(self, background, position, shape):
+    def __init__(self, inventory: Inventory, background, position, shape):
         self.background = background
-        self.position = position
+        self.position = np.array(position)
         self.shape = shape
+        self.inventory = inventory
 
-    def update(self, events):
-        pass
+        self.resources_path = os.path.join('crafting', 'examples', 'minecraft', 'images')
+
+        font_path = os.path.join(self.resources_path, 'minecraft_font.ttf')
+        self.font = pygame.font.Font(font_path, int(0.1 * self.shape[1]))
+
+        self.item_images_per_id = {
+           item_id: self._load_image(item_id)
+           for item_id in self.inventory.items_ids
+           if item_id != 0
+        }
+
+    def _load_image(self, item_id):
+        image_path = os.path.join(self.resources_path, 'items', f'{item_id}.png')
+        image = pygame.image.load(image_path).convert_alpha()
+
+        image_shape = image.get_size()
+        scale_ratio = int(0.09 * self.shape[0]) / image_shape[0]
+        new_shape = (int(image_shape[0] * scale_ratio), int(image_shape[1] * scale_ratio))
+        return pygame.transform.scale(image, new_shape)
+
+    def update(self, inventory: Inventory=None):
+        self.inventory = inventory
 
     def draw(self, surface):
         surface.blit(self.background, self.position)
 
-def create_window():
+        non_empty_items = np.logical_and(
+            self.inventory.content != 0,
+            np.not_equal(self.inventory.items_ids, 0)
+        )
+
+        items_in_inv = np.array(self.inventory.items)[non_empty_items]
+        content = self.inventory.content[non_empty_items]
+
+        offset = np.array([int(0.029 * self.shape[0]), int(0.155* self.shape[1])])
+        x_step = y_step = int(0.108 * self.shape[0])
+        font_offset = np.array([int(0.85 * x_step), int(0.9 * y_step)])
+
+        content_position = self.position + offset
+        for i, (item, quantity) in enumerate(zip(items_in_inv, content)):
+            x_offset = (i % 9) * x_step
+            y_offset = (i // 9) * y_step
+            item_position = content_position + np.array([x_offset, y_offset])
+            surface.blit(self.item_images_per_id[item.item_id], item_position)
+            if quantity > 1:
+                text_position = item_position + font_offset
+                text = self.font.render(str(quantity), False, 'white')
+                text_rect = text.get_rect()
+                text_rect.right = text_position[0]
+                text_rect.bottom = text_position[1]
+                surface.blit(text, text_rect)
+
+def create_window(inventory):
     os.environ['SDL_VIDEO_CENTERED'] = '1'
 
     window_shape = (int(16/9 * 600), 720)
@@ -146,11 +197,11 @@ def create_window():
     background = pygame.transform.scale(background, new_shape) # Rescale background
 
     position = (int(0.15 * window_shape[0]), int(0.15 * window_shape[0]))
-    inv_widget = InventoryWidget(background, position, new_shape)
+    inv_widget = InventoryWidget(inventory, background, position, new_shape)
 
     return clock, screen, menus, inv_widget
 
-def update_rendering(clock, screen, menus, inv_widget, fps=60):
+def update_rendering(player: McPlayer, clock, screen, menus, inv_widget, fps:float=60):
     # Tick
     clock.tick(fps)
 
@@ -163,7 +214,7 @@ def update_rendering(clock, screen, menus, inv_widget, fps=60):
         if event.type == pygame.QUIT:
             exit()
 
-    inv_widget.update(events)
+    inv_widget.update(player.inventory)
     inv_widget.draw(screen)
 
     action = None
@@ -178,16 +229,23 @@ def update_rendering(clock, screen, menus, inv_widget, fps=60):
     pygame.display.update()
     return action
 
-def get_human_action(clock, screen, menus, inv_widget, fps=60):
+def get_human_action(*args):
     action_chosen = False
-    pygame.time.delay(100)
     while not action_chosen:
-        action = update_rendering(clock, screen, menus, inv_widget, fps)
+        action = update_rendering(*args)
         action_chosen = action is not None
     return action
 
 
 if __name__ == '__main__':
-    clock, screen, menus, inv_widget = create_window()
-    while True:
-        print(get_human_action(clock, screen, menus, inv_widget))
+    from crafting.examples import MineCraftingEnv
+    env = MineCraftingEnv(verbose=1)
+
+    done = False
+    while not done:
+        env.render()
+        action = get_human_action(env.player, *env.render_variables)
+        action_id = env.action(*action)
+        observation, reward, done, infos = env(action_id)
+        print(env.render(mode='ansi'))
+        print(f" Reward: {reward}, Infos:{infos}")
