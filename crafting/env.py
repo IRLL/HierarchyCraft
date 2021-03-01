@@ -110,11 +110,18 @@ class CraftingEnv(gym.Env):
 
         # Infos
         infos = {
-            'env_step': self.steps
+            'env_step': self.steps,
+            'action_is_legal': self.get_action_is_legal()
         }
 
         self.steps += 1
         return self.get_observation(), reward, done, infos
+    
+    def get_action_is_legal(self) -> np.ndarray:
+        can_get = np.array([self.player.can_get(item) for item in self.world.foundable_items])
+        can_craft = np.array([self.player.can_craft(recipe) for recipe in self.world.recipes])
+        can_move = np.array([self.player.can_move_to(zone) for zone in self.world.zones])
+        return np.concatenate((can_get, can_craft, can_move))
 
     def get_observation(self) -> np.ndarray:
         one_hot_zone = np.zeros(self.world.n_zones, np.float32)

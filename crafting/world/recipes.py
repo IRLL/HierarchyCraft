@@ -112,6 +112,19 @@ class Recipe():
                 return False
         return True
 
+    def can_craft(self, inventory: Inventory, zone: Zone) -> bool:
+        """ Check if the craft can be performed
+
+        Args:
+            inventory: Inventory to transform.
+            zone: Zone in which the crafting is done.
+
+        Return:
+            True if the craft can be performed, False otherwise.
+
+        """
+        return self.has_properties(zone) and self.has_enought(inventory)
+
     def craft(self, inventory: Inventory, zone: Zone) -> bool:
         """ Use the recipe using an inventory in a zone
 
@@ -123,9 +136,7 @@ class Recipe():
             True if successful, False otherwise
 
         """
-        if not self.has_enought(inventory):
-            return False
-        if not self.has_properties(zone):
+        if not self.can_craft(inventory, zone):
             return False
 
         inventory += self._operation

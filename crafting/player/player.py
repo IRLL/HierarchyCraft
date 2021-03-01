@@ -42,7 +42,21 @@ class Player():
             True if succeded, False otherwise.
 
         """
-        return recipe(self.inventory, self.zone)
+        if self.can_craft(recipe):
+            return recipe(self.inventory, self.zone)
+        return False
+
+    def can_craft(self, recipe: Recipe) -> bool:
+        """ Check if the recipe can be performed
+
+        Args:
+            recipe: Recipe to be tested.
+
+        Return:
+            True if the recipe can be used, False otherwise.
+
+        """
+        return recipe.can_craft(self.inventory, self.zone)
 
     def choose_tool(self, item: Item) -> Tool:
         """ Choose a tool to search for an item.
@@ -67,13 +81,26 @@ class Player():
             Number of items found.
 
         """
-        findings = self.zone.search_for(item, tool)
-        if len(findings) > 0:
-            self.inventory.add_stacks(findings)
-            return sum([stack.size for stack in findings])
+        if self.can_get(item):
+            findings = self.zone.search_for(item, tool)
+            if len(findings) > 0:
+                self.inventory.add_stacks(findings)
+                return sum([stack.size for stack in findings])
         return 0
 
-    def move_to(self, zone: Zone):
+    def can_get(self, item: Item) -> bool:
+        """ Check if the item can be found
+
+        Args:
+            item: The item to look for.
+
+        Returns:
+            True if the item can be found, False otherwise.
+
+        """
+        return item.item_id in self.zone.items
+
+    def move_to(self, zone: Zone) -> bool:
         """ Move to a given new zone
 
         Args:
@@ -83,8 +110,22 @@ class Player():
             True if succeded, False otherwise.
 
         """
-        self.zone = zone
-        return True
+        if self.can_move_to(zone):
+            self.zone = zone
+            return True
+        return False
+
+    def can_move_to(self, zone: Zone) -> bool:
+        """ Check if the player can move to the zone
+
+        Args:
+            zone: The zone we want to access.
+
+        Returns:
+            True if the zone can be accessed, False otherwise.
+
+        """
+        return zone.zone_id != self.zone.zone_id
 
     def __repr__(self):
         name = self.name.capitalize() + ':'
