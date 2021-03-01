@@ -32,5 +32,5 @@ class MineCraftingEnv(CraftingEnv):
         if mode != 'human':
             return super().render(mode)
         if self.render_variables is None:
-            self.render_variables = create_window(self.player.inventory)
-        update_rendering(self.player, *self.render_variables, fps=frame_per_sec)
+            self.render_variables = create_window(self)
+        update_rendering(self, *self.render_variables, fps=frame_per_sec)
