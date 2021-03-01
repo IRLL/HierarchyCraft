@@ -77,4 +77,6 @@ class Zone():
         name = f"{self.name.capitalize()}({self.zone_id})"
         if len(self.properties) > 0:
             name += str(self.properties)
+        if len(self.items) > 0:
+            name += str(list(self.items.keys()))
         return name

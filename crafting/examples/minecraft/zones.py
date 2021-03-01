@@ -1,7 +1,7 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
-""" Minecraft Map
+""" Minecraft Zones
 
 Abstract zones to simulate simply a Minecraft environment.
 
@@ -12,6 +12,7 @@ from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.tools import *
 
 # Zones
+#: FOREST
 FOREST = Zone(0, 'forest',
     {
         WOOD.item_id: [AIR] + AXES,
@@ -20,6 +21,7 @@ FOREST = Zone(0, 'forest',
     }
 )
 
+#: SWAMP
 SWAMP = Zone(1, 'swamp',
     {
         DIRT.item_id: [AIR],
@@ -27,6 +29,7 @@ SWAMP = Zone(1, 'swamp',
     }
 )
 
+#: MEADOW
 MEADOW = Zone(2, 'meadow',
     {
         DIRT.item_id: [AIR],
@@ -36,6 +39,7 @@ MEADOW = Zone(2, 'meadow',
     }
 )
 
+#: UNDERGROUND
 UNDERGROUND = Zone(3, 'underground',
     {
         DIRT.item_id: [AIR],
@@ -45,6 +49,7 @@ UNDERGROUND = Zone(3, 'underground',
     }
 )
 
+#: BEDROCK
 BEDROCK = Zone(4, 'bedrock',
     {
         DIRT.item_id: [AIR],

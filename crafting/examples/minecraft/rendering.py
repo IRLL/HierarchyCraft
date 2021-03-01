@@ -10,6 +10,7 @@ from typing import List, Tuple
 import numpy as np
 
 import pygame
+from pygame.surface import Surface
 import pygame_menu
 
 from crafting.examples.minecraft.items import *
@@ -26,7 +27,7 @@ def load_and_scale(
     canevas_shape: Tuple[int],
     size_ratio: float,
     relative_to: str='width'
-    ) -> pygame.surface.Surface:
+    ) -> Surface:
     """ Load and rescales an image using pygame.
 
     Load and rescales an image relatively to canevas_shape preserving aspect ratio.
@@ -87,7 +88,7 @@ class InventoryWidget():
     def update(self, inventory: Inventory=None):
         self.inventory = inventory
 
-    def draw(self, surface):
+    def draw(self, surface: Surface):
         surface.blit(self.background, self.position)
 
         non_empty_items = np.logical_and(
