@@ -5,6 +5,7 @@ Online documentation
 --------------------
 
 .. figure:: docs/_static/images/doc_index.png
+   :align: center
    :alt: Online documentation
    :target: https://crafting.readthedocs.io/en/latest/index.html
 

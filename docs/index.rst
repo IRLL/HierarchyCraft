@@ -7,6 +7,7 @@ Welcome to Crafting's documentation!
 
 .. figure:: _static/images/HumanDemo.gif
    :alt: Human Demonstration
+   :align: center
 
    Here is a Human demonstration.
 
