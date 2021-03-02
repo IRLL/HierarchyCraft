@@ -1,20 +1,19 @@
-.. Crafting documentation master file, created by
-   sphinx-quickstart on Mon Mar  1 14:53:16 2021.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. Crafting a gym-environment to simultate inventory managment
+   Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
+
 
 Welcome to Crafting's documentation!
 ====================================
 
+.. figure:: _static/images/HumanDemo.gif
+   :alt: Human Demonstration
+
+   Here is a Human demonstration.
+
 .. toctree::
    :maxdepth: 3
-   :caption: Contents:
+   :caption: API Documentation:
 
-   crafting
-
-Indices and tables
-==================
+   crafting/index
 
 * :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
