@@ -3,6 +3,7 @@ Crafting - A gym environment for inventory management
 
 .. image:: https://img.shields.io/github/license/MathisFederico/Crafting?style=plastic
    :alt: Licence - GPLv3
+   :target: https://www.gnu.org/licenses/
 
 Online documentation
 --------------------
