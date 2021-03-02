@@ -23,3 +23,9 @@ jobs:
         pip install pytest
         pip install pytest-cov
         pytest --cov=crafting --cov-report=xml tests/unit
+    - uses: actions/checkout@master
+    - name: Upload coverage-report to codacy
+      uses: codacy/codacy-coverage-reporter-action@master
+      with:
+        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        coverage-reports: cobertura.xml
