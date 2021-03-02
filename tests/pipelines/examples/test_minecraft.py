@@ -84,7 +84,7 @@ def test_obtain_enchant_table():
     env(env.action('move', MEADOW.zone_id))
     env(env.action('get', LEATHER.item_id))
 
-    env(env.action('move', RIVER.zone_id))
+    env(env.action('move', SWAMP.zone_id))
     env(env.action('get', REEDS.item_id))
 
     env(env.action('move', BEDROCK.zone_id))

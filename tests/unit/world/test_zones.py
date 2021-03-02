@@ -33,7 +33,7 @@ def test_zone_str(forest):
 
 def test_zone_repr(forest):
     print(repr(forest))
-    if repr(forest) != "Forest(0){'has_crafting': False, 'has_furnace': False}":
+    if repr(forest) != "Forest(0){'has_crafting': False, 'has_furnace': False}[1]":
         raise ValueError("Unexpected repr")
 
 def test_zone_search_for(forest, air, stone, wooden_pickaxe):
