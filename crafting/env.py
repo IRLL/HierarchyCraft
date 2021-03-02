@@ -3,7 +3,6 @@
 
 from typing import Tuple
 from copy import deepcopy
-from colorama import Fore, Style
 
 import gym
 import numpy as np
@@ -78,8 +77,8 @@ class CraftingEnv(gym.Env):
             tool = self.player.choose_tool(item)
             n_found = self.player.search_for(item, tool)
             if self.verbose > 0:
-                status_msg = f'{Fore.GREEN}SUCCEDED' if n_found > 0 else f'{Fore.RED}FAILED'
-                print(f'{status_msg}{Style.RESET_ALL} at getting {item}[{n_found}] with {tool}')
+                status_msg = 'SUCCEDED' if n_found > 0 else 'FAILED'
+                print(f'{status_msg} at getting {item}[{n_found}] with {tool}')
 
         # Craft a recipe
         start_index = self.world.n_foundable_items
@@ -88,8 +87,8 @@ class CraftingEnv(gym.Env):
             recipe = self.world.recipes[recipe_slot]
             success = self.player.craft(recipe)
             if self.verbose > 0:
-                status_msg = f'{Fore.GREEN}SUCCEDED' if success else f'{Fore.RED}FAILED'
-                print(f'{status_msg}{Style.RESET_ALL} at crafting {recipe}')
+                status_msg = 'SUCCEDED' if success else 'FAILED'
+                print(f'{status_msg} at crafting {recipe}')
 
         # Change zone
         start_index = self.world.n_foundable_items + self.world.n_recipes
@@ -98,8 +97,8 @@ class CraftingEnv(gym.Env):
             zone = self.world.zones[zone_slot]
             success = self.player.move_to(zone)
             if self.verbose > 0:
-                status_msg = f'{Fore.GREEN}SUCCEDED' if success else f'{Fore.RED}FAILED'
-                print(f'{status_msg}{Style.RESET_ALL} at moving to {zone}')
+                status_msg = 'SUCCEDED' if success else 'FAILED'
+                print(f'{status_msg} at moving to {zone}')
 
         # Synchronise world zone with player zone
         zone_slot = self.world.zone_id_to_slot[self.player.zone.zone_id]
