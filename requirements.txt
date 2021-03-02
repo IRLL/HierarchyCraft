@@ -1,4 +1,5 @@
 gym
+colorama == 0.4.4
 numpy
 pygame >= 2.0.1
 pygame_menu >= 4.0.0
