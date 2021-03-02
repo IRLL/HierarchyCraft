@@ -1,3 +1,3 @@
-Crafting - A gym environment for inventory managment
-====================================================
+Crafting - A gym environment for inventory management
+=====================================================
 

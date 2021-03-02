@@ -15,6 +15,11 @@ def get_version():
     return version_file.read().strip()
 VERSION = get_version()
 
+def get_requirements():
+    requirements_file = open('requirements.txt')
+    return requirements_file.readlines()
+REQUIREMENTS = get_requirements()
+
 setup(
     name="crafting",
     version=VERSION,
@@ -26,12 +31,7 @@ setup(
     url="https://github.com/MathisFederico/Crafting",
     packages=find_packages(exclude=("tests", "docs")),
     include_package_data=True,
-    install_requires=[
-        'numpy',
-        'gym',
-        'pygame >= 2.0.1',
-        'pygame_menu >= 4.0.0',
-    ],
+    install_requires=REQUIREMENTS,
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
