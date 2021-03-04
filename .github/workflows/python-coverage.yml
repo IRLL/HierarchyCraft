@@ -3,7 +3,7 @@
 
 name: Python coverage
 
-on: ["push", "merge"]
+on: ["push"]
 
 jobs:
   build:
