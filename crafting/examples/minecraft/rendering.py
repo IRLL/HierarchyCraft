@@ -207,7 +207,7 @@ def make_menus(ressources_path: str, window_shape: tuple):
         title='Search',
         height=items_menu_height,
         width=items_menu_width,
-        menu_position=(0, 0),
+        position=(0, 0),
         theme=pygame_menu.themes.THEME_BLUE,
     )
 
@@ -236,7 +236,7 @@ def make_menus(ressources_path: str, window_shape: tuple):
         width=recipes_menu_width,
         rows=1,
         columns=len(MC_RECIPES),
-        menu_position=(0, 100),
+        position=(0, 100),
         column_max_width=int(0.08 * window_shape[0]),
         theme=pygame_menu.themes.THEME_ORANGE
     )
@@ -264,7 +264,7 @@ def make_menus(ressources_path: str, window_shape: tuple):
         title='Move',
         height=zones_menu_height,
         width=zones_menu_width,
-        menu_position=(100, 0),
+        position=(100, 0),
         theme=pygame_menu.themes.THEME_GREEN,
     )
 
