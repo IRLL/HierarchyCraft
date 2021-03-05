@@ -1,4 +1,4 @@
 gym
 numpy
 pygame >= 2.0.1
-pygame_menu
+git+https://github.com/ppizarror/pygame-menu
