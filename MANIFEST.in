@@ -1,2 +1,4 @@
-include crafting/examples/minecraft/ressources/**.png
+include crafting/examples/minecraft/ressources/*.png
+include crafting/examples/minecraft/ressources/items/*.png
+include crafting/examples/minecraft/ressources/zones/*.png
 include crafting/examples/minecraft/ressources/*.ttf
