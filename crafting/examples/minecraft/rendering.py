@@ -13,6 +13,7 @@ import pygame
 from pygame.surface import Surface
 import pygame_menu
 
+import crafting.examples.minecraft
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.recipes import MC_RECIPES
 from crafting.examples.minecraft.zones import MC_ZONES
@@ -292,7 +293,9 @@ def create_window(env: CraftingEnv):
     os.environ['SDL_VIDEO_CENTERED'] = '1'
 
     window_shape = (int(16/9 * 600), 720)
-    ressources_path = os.path.join('crafting', 'examples', 'minecraft', 'ressources')
+
+    mc_dir = os.path.dirname(crafting.examples.minecraft.__file__)
+    ressources_path = os.path.join(mc_dir, 'resources')
 
     pygame.init()
     clock = pygame.time.Clock()
