@@ -1,9 +1,7 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
-"""
-
-"""
+""" Rendering of the MineCrafting environment """
 
 import os
 from typing import List, Tuple

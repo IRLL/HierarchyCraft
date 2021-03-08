@@ -72,6 +72,7 @@ MC_CRAFT_ITEMS = [
 
 MC_FOUDABLE_ITEMS = [
     DIRT,
+    EGG,
     STONE,
     GOLD_ORE,
     IRON_ORE,
