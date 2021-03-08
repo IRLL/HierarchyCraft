@@ -1,7 +1,7 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
-from typing import Tuple
+from typing import Tuple, List, Union
 from copy import deepcopy
 
 import gym
@@ -10,16 +10,20 @@ from gym.spaces import Discrete, Box
 
 from crafting.world.world import World
 from crafting.player.player import Player
+from crafting.tasks.task import Task, TaskList
 
 class CraftingEnv(gym.Env):
     metadata = {'render.modes': ['human', 'ansi']}
 
-    def __init__(self, world: World, player: Player, max_step: int=500, verbose: int=0):
+    def __init__(self, world: World, player: Player, max_step: int=500, verbose: int=0,
+            tasks: List[Union[str, Task]]=None):
         self.world = deepcopy(world)
         self.inital_world = deepcopy(world)
 
         self.player = deepcopy(player)
         self.inital_player = deepcopy(player)
+
+        self.tasks = TaskList(tasks)
 
         self.max_step = max_step
         self.steps = 1
@@ -68,7 +72,7 @@ class CraftingEnv(gym.Env):
         return action_id
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
-        reward = 0
+        previous_observation = self.get_observation()
 
         # Get an item
         if action < self.world.n_foundable_items:
@@ -104,8 +108,14 @@ class CraftingEnv(gym.Env):
         zone_slot = self.world.zone_id_to_slot[self.player.zone.zone_id]
         self.world.zones[zone_slot] = self.player.zone
 
+        # Obtain new observation
+        observation = self.get_observation()
+
+        # Tasks
+        reward, task_done = self.tasks(observation, previous_observation, action)
+
         # Termination
-        done = self.steps >= self.max_step
+        done = self.steps >= self.max_step or task_done
 
         # Infos
         infos = {
@@ -114,15 +124,17 @@ class CraftingEnv(gym.Env):
         }
 
         self.steps += 1
-        return self.get_observation(), reward, done, infos
-    
+        return observation, reward, done, infos
+
     def get_action_is_legal(self) -> np.ndarray:
+        """ Return the legal actions """
         can_get = np.array([self.player.can_get(item) for item in self.world.foundable_items])
         can_craft = np.array([self.player.can_craft(recipe) for recipe in self.world.recipes])
         can_move = np.array([self.player.can_move_to(zone) for zone in self.world.zones])
         return np.concatenate((can_get, can_craft, can_move))
 
     def get_observation(self) -> np.ndarray:
+        """ Return the current observation """
         one_hot_zone = np.zeros(self.world.n_zones, np.float32)
         zone_slot = self.world.zone_id_to_slot[self.player.zone.zone_id]
         one_hot_zone[zone_slot] = 1
