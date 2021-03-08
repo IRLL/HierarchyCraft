@@ -1,0 +1,6 @@
+pytest
+pytest-mock
+pytest-check
+pytest-pspec
+pylint
+pylint-pytest
