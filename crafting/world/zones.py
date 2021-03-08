@@ -1,11 +1,10 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
-""" Map and Zone
+""" Zone
 
-Defining Zone and Map to give an abstract way of doing spacialization.
+Gives an abstract way of doing spacialization.
 The Zones have special properties for finding or crafting items.
-The Map give a graph joinning all Zones.
 
 """
 
