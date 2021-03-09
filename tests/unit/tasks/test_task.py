@@ -7,35 +7,41 @@
 import pytest
 import pytest_check as check
 
+import numpy as np
+
 from crafting.tasks.task import Task, TaskList
+
+
+class DummyWorld:
+    """DummyWorld"""
+
+    def __init__(self):
+        self.n_items = 7
+        self.n_actions = 5
+
 
 class TestTask:
     """ Task """
 
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.world = DummyWorld()
+        self.previous_observation = np.ones(10)
+        self.observation = 2 * np.ones(10)
+        self.action = 2
+
     def test_init(self):
         """ should instanciate correctly. """
-        task = Task('task_name', 'world')
+        task = Task('task_name', self.world)
         check.equal(task.name, 'task_name')
-        check.equal(task.world, 'world')
-
-    def test_reward_raise(self):
-        """ should raise Error if reward called without subclassing. """
-        with pytest.raises(NotImplementedError):
-            task = Task('task_name', 'world')
-            task.reward('observation', 'previous_observation', 'action')
-
-    def test_reward_done(self):
-        """ should never be done by default. """
-        task = Task('task_name', 'world')
-        done = task.done('observation', 'previous_observation', 'action')
-        check.is_false(done)
+        check.equal(task.world, self.world)
 
     def test_call(self, mocker):
         """ should call `done` and `reward` on call. """
         mocker.patch('crafting.tasks.task.Task.reward', lambda *args:1)
         mocker.patch('crafting.tasks.task.Task.done', lambda *args:True)
-        task = Task('task_name', 'world')
-        reward, done = task('observation', 'previous_observation', 'action')
+        task = Task('task_name', self.world)
+        reward, done = task(self.observation, self.previous_observation, self.action)
 
         check.equal(reward, 1)
         check.is_true(done)
@@ -47,12 +53,19 @@ class TestTaskList:
     @pytest.fixture(autouse=True)
     def setup(self):
         """ Setup dummy tasks """
-        self.task_observe_123 = Task('obs_123', 'world')
-        self.task_observe_123.reward = lambda obs, prev_obs, act: 2.1 * int(obs == '123')
-        self.task_prev_observe_312 = Task('prev_obs_312', 'world')
-        self.task_prev_observe_312.reward = lambda obs, prev_obs, act: 3.4 * int(prev_obs == '312')
-        self.task_action_observe_213 = Task('action_213', 'world')
-        self.task_action_observe_213.reward = lambda obs, prev_obs, act: 4.7 * int(act == '213')
+        self.world = DummyWorld()
+        self.previous_observation = np.ones(10)
+        self.observation = 2 * np.ones(10)
+        self.action = 2
+        self.task_observe_123 = Task('obs_123', self.world)
+        self.task_observe_123.reward = \
+            lambda obs, prev_obs, act: 2.1 * np.all(obs == 2 * np.ones(10))
+        self.task_prev_observe_312 = Task('prev_obs_312', self.world)
+        self.task_prev_observe_312.reward = \
+            lambda obs, prev_obs, act: 3.4 * np.all(prev_obs == np.ones(10))
+        self.task_action_observe_213 = Task('action_213', self.world)
+        self.task_action_observe_213.reward = \
+            lambda obs, prev_obs, act: 4.7 * (act == 2)
         self.tasks = [
             self.task_observe_123,
             self.task_prev_observe_312,
@@ -72,7 +85,7 @@ class TestTaskList:
     def test_call_none_task(self):
         """ should return (0, False) if tasks is None. """
         tasks = TaskList(None)
-        reward, done = tasks('obs', 'prev_obs', 'action')
+        reward, done = tasks(self.observation, self.previous_observation, self.action)
         check.equal(reward, 0)
         check.is_false(done)
 
@@ -91,7 +104,7 @@ class TestTaskList:
             lambda *args: True
         )
         tasks = TaskList(self.tasks)
-        reward, done = tasks('123', '312', '213')
+        reward, done = tasks(self.observation, self.previous_observation, self.action)
         check.equal(reward, 10.2)
         check.is_true(done)
 
@@ -100,9 +113,10 @@ class TestTaskListGetTaskWeight:
 
     def setup(self):
         """ Setup dummy tasks """
-        self.task_observe_123 = Task('obs_123', 'world')
-        self.task_prev_observe_312 = Task('prev_obs_312', 'world')
-        self.task_action_observe_213 = Task('action_213', 'world')
+        self.world = DummyWorld()
+        self.task_observe_123 = Task('obs_123', self.world)
+        self.task_prev_observe_312 = Task('prev_obs_312', self.world)
+        self.task_action_observe_213 = Task('action_213', self.world)
         self.tasks = [
             self.task_observe_123,
             self.task_prev_observe_312,
@@ -152,9 +166,10 @@ class TestTaskListGetTaskCanEnd:
 
     def setup(self):
         """ Setup dummy tasks """
-        self.task_observe_123 = Task('obs_123', 'world')
-        self.task_prev_observe_312 = Task('prev_obs_312', 'world')
-        self.task_action_observe_213 = Task('action_213', 'world')
+        self.world = DummyWorld()
+        self.task_observe_123 = Task('obs_123', self.world)
+        self.task_prev_observe_312 = Task('prev_obs_312', self.world)
+        self.task_action_observe_213 = Task('action_213', self.world)
         self.tasks = [
             self.task_observe_123,
             self.task_prev_observe_312,
@@ -192,11 +207,11 @@ class TestTaskListGetTaskCanEnd:
             check.equal(value, expected)
 
     def test_none(self):
-        """ should assign True to all if tasks_can_end is None."""
+        """ should assign False to all if tasks_can_end is None."""
         self.tasklist = TaskList(self.tasks)
         for i, task in enumerate(self.tasklist.tasks):
             value = self.tasklist._get_task_can_end(task, i)
-            check.is_true(value)
+            check.is_false(value)
 
 
 class TestTaskListStackDones:

@@ -66,3 +66,5 @@ class World():
 
         self.zone_properties = list(self.zone_properties)
         self.n_zone_properties = len(self.zone_properties)
+
+        self.n_actions = self.n_foundable_items + self.n_recipes + self.n_zones

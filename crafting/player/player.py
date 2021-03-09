@@ -31,6 +31,7 @@ class Player():
         self.inventory = inventory
         self.zone = zone
         self.name = name
+        self.score = 0
 
     def craft(self, recipe: Recipe) -> bool:
         """ Use a recipe

@@ -16,14 +16,21 @@ class CraftingEnv(gym.Env):
     metadata = {'render.modes': ['human', 'ansi']}
 
     def __init__(self, world: World, player: Player, max_step: int=500, verbose: int=0,
-            tasks: List[Union[str, Task]]=None):
+            tasks: List[Union[str, Task]]=None,
+            tasks_weights: Union[list, dict]=None,
+            tasks_can_end: Union[list, dict]=None
+        ):
         self.world = deepcopy(world)
         self.inital_world = deepcopy(world)
 
         self.player = deepcopy(player)
         self.inital_player = deepcopy(player)
 
-        self.tasks = TaskList(tasks)
+        self.tasks = TaskList(
+            tasks=tasks,
+            tasks_weights=tasks_weights,
+            tasks_can_end=tasks_can_end
+        )
 
         self.max_step = max_step
         self.steps = 1
@@ -113,6 +120,7 @@ class CraftingEnv(gym.Env):
 
         # Tasks
         reward, task_done = self.tasks(observation, previous_observation, action)
+        self.player.score += reward
 
         # Termination
         done = self.steps >= self.max_step or task_done

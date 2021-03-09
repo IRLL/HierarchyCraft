@@ -56,12 +56,12 @@ class InventoryWidget():
 
     def __init__(self,
         inventory: Inventory,
-        ressources_path:str,
+        resources_path:str,
         position: Tuple[int],
         window_shape: Tuple[int]
     ):
         self.inventory = inventory
-        self.resources_path = ressources_path
+        self.resources_path = resources_path
 
         self.background = self._load_background(window_shape)
         self.shape = self.background.get_size()
@@ -121,15 +121,15 @@ class InventoryWidget():
 class ZoneWidget():
 
     def __init__(self,
-        zones: List[Zone],
-        properties: List[str],
-        ressources_path: str,
-        position: Tuple[int],
-        window_shape: Tuple[int]
-    ):
+            zones: List[Zone],
+            properties: List[str],
+            resources_path: str,
+            position: Tuple[int],
+            window_shape: Tuple[int]
+        ):
         self.zone = zones[0]
         self.position = np.array(position)
-        self.resources_path = ressources_path
+        self.resources_path = resources_path
 
         self.zones_images = {
             zone.zone_id: self._load_zone_image(zone.zone_id, window_shape)
@@ -184,7 +184,28 @@ class ZoneWidget():
                 n_active_props += 1
 
 
-def make_menus(ressources_path: str, window_shape: tuple):
+class ScoreWidget():
+
+    def __init__(self,
+            resources_path: str,
+            position: Tuple[int],
+            font_size: int
+        ):
+        self.position = position
+        font_path = os.path.join(resources_path, 'minecraft_font.ttf')
+        self.font = pygame.font.Font(font_path, font_size)
+        self.reward = 0
+        self.score = 0
+
+    def update(self, score: float):
+        self.score = score
+
+    def draw(self, surface):
+        score_name_img = self.font.render(f"SCORE {self.score:.2f}", False, '#c95149')
+        surface.blit(score_name_img, self.position)
+
+
+def make_menus(resources_path: str, window_shape: tuple):
 
     def on_button_click(action_type, identification):
         return action_type, identification
@@ -210,7 +231,7 @@ def make_menus(ressources_path: str, window_shape: tuple):
         theme=pygame_menu.themes.THEME_BLUE,
     )
 
-    items_images_path = os.path.join(ressources_path, 'items')
+    items_images_path = os.path.join(resources_path, 'items')
     for item in MC_FOUDABLE_ITEMS:
         image_path = os.path.join(items_images_path, f"{item.item_id}.png")
         image = pygame_menu.baseimage.BaseImage(image_path).scale(0.5, 0.5)
@@ -240,7 +261,7 @@ def make_menus(ressources_path: str, window_shape: tuple):
         theme=pygame_menu.themes.THEME_ORANGE
     )
 
-    recipes_images_path = os.path.join(ressources_path, 'items')
+    recipes_images_path = os.path.join(resources_path, 'items')
     for recipe in MC_RECIPES:
         image_path = os.path.join(recipes_images_path, f"{recipe.recipe_id}.png")
         image = pygame_menu.baseimage.BaseImage(image_path).scale(0.5, 0.5)
@@ -267,7 +288,7 @@ def make_menus(ressources_path: str, window_shape: tuple):
         theme=pygame_menu.themes.THEME_GREEN,
     )
 
-    zones_images_path = os.path.join(ressources_path, 'zones')
+    zones_images_path = os.path.join(resources_path, 'zones')
     for zone in MC_ZONES:
         image_path = os.path.join(zones_images_path, f"{zone.zone_id}.png")
         image = pygame_menu.baseimage.BaseImage(image_path).scale(0.2, 0.2)
@@ -293,7 +314,7 @@ def create_window(env: CraftingEnv):
     window_shape = (int(16/9 * 600), 720)
 
     mc_dir = os.path.dirname(crafting.examples.minecraft.__file__)
-    ressources_path = os.path.join(mc_dir, 'resources')
+    resources_path = os.path.join(mc_dir, 'resources')
 
     pygame.init()
     clock = pygame.time.Clock()
@@ -303,13 +324,13 @@ def create_window(env: CraftingEnv):
     pygame.display.set_caption('MineCrafting')
 
     # Create menu
-    menus, id_to_action = make_menus(ressources_path, window_shape)
+    menus, id_to_action = make_menus(resources_path, window_shape)
 
     # Create inventory widget
     position = (int(0.15 * window_shape[0]), int(0.15 * window_shape[0]))
     inv_widget = InventoryWidget(
         env.player.inventory,
-        ressources_path,
+        resources_path,
         position,
         window_shape
     )
@@ -319,14 +340,23 @@ def create_window(env: CraftingEnv):
     zone_widget = ZoneWidget(
         env.world.zones,
         env.world.zone_properties,
-        ressources_path,
+        resources_path,
         position,
         window_shape
     )
 
-    return clock, screen, menus, inv_widget, zone_widget, id_to_action
+    position = (int(0.17 * window_shape[0]), int(0.01 * window_shape[0]))
+    font_size = int(0.06 * window_shape[0])
+    score_widget = ScoreWidget(
+        resources_path,
+        position,
+        font_size,
+    )
 
-def update_rendering(env: CraftingEnv, clock, screen, menus, inv_widget, zone_widget, id_to_action, fps:float=60):
+    return clock, screen, menus, inv_widget, zone_widget, score_widget, id_to_action
+
+def update_rendering(env: CraftingEnv, clock, screen, menus,
+    inv_widget, zone_widget, score_widget, id_to_action, fps:float=60):
     # Tick
     clock.tick(fps)
 
@@ -344,6 +374,9 @@ def update_rendering(env: CraftingEnv, clock, screen, menus, inv_widget, zone_wi
 
     zone_widget.update(env.player.zone)
     zone_widget.draw(screen)
+
+    score_widget.update(env.player.score)
+    score_widget.draw(screen)
 
     action = None
     action_is_legal = env.get_action_is_legal()
@@ -380,7 +413,7 @@ def get_human_action(*args):
 
 if __name__ == '__main__':
     from crafting.examples import MineCraftingEnv
-    env = MineCraftingEnv(verbose=1)
+    env = MineCraftingEnv(verbose=1, tasks=['obtain_diamond'], tasks_can_end=[True])
 
     done = False
     while not done:
