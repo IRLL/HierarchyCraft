@@ -10,7 +10,8 @@ Crafting environment adapted to the Minecraft inventory
 
 from typing import List, Union
 
-from crafting import CraftingEnv, Task
+from crafting.env import CraftingEnv
+from crafting.tasks.task import Task
 
 from crafting.examples.minecraft.abc import McPlayer
 from crafting.examples.minecraft.world import McWorld

@@ -4,7 +4,6 @@
 
 """ Task to defines objectives """
 
-from abc import abstractmethod
 from typing import List, Union, Dict
 
 import numpy as np
