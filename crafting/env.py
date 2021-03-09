@@ -18,7 +18,8 @@ class CraftingEnv(gym.Env):
     def __init__(self, world: World, player: Player, max_step: int=500, verbose: int=0,
             tasks: List[Union[str, Task]]=None,
             tasks_weights: Union[list, dict]=None,
-            tasks_can_end: Union[list, dict]=None
+            tasks_can_end: Union[list, dict]=None,
+            fail_penalty: float=0.1
         ):
         self.world = deepcopy(world)
         self.inital_world = deepcopy(world)
@@ -31,6 +32,7 @@ class CraftingEnv(gym.Env):
             tasks_weights=tasks_weights,
             tasks_can_end=tasks_can_end
         )
+        self.fail_penalty = fail_penalty
 
         self.max_step = max_step
         self.steps = 1
@@ -87,8 +89,9 @@ class CraftingEnv(gym.Env):
             item = self.world.foundable_items[item_slot]
             tool = self.player.choose_tool(item)
             n_found = self.player.search_for(item, tool)
+            success = n_found > 0
             if self.verbose > 0:
-                status_msg = 'SUCCEDED' if n_found > 0 else 'FAILED'
+                status_msg = 'SUCCEDED' if success else 'FAILED'
                 print(f'{status_msg} at getting {item}[{n_found}] with {tool}')
 
         # Craft a recipe
@@ -120,6 +123,8 @@ class CraftingEnv(gym.Env):
 
         # Tasks
         reward, task_done = self.tasks(observation, previous_observation, action)
+        if not success:
+            reward -= self.fail_penalty
         self.player.score += reward
 
         # Termination
