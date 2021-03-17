@@ -6,7 +6,7 @@ from copy import deepcopy
 
 import gym
 import numpy as np
-from gym.spaces import Discrete, Box
+from gym import spaces
 
 from crafting.world.world import World
 from crafting.player.player import Player
@@ -15,7 +15,9 @@ from crafting.tasks.task import Task, TaskList
 class CraftingEnv(gym.Env):
     metadata = {'render.modes': ['human', 'ansi']}
 
-    def __init__(self, world: World, player: Player, max_step: int=500, verbose: int=0,
+    def __init__(self, world: World, player: Player,
+            max_step: int=500, verbose: int=0,
+            observe_legal_actions: bool=False,
             tasks: List[Union[str, Task]]=None,
             tasks_weights: Union[list, dict]=None,
             tasks_can_end: Union[list, dict]=None,
@@ -37,10 +39,11 @@ class CraftingEnv(gym.Env):
         self.max_step = max_step
         self.steps = 1
         self.verbose = verbose
+        self.observe_legal_actions = observe_legal_actions
 
         # Action space
         # (get_item or use_recipe or move_to_zone)
-        self.action_space = Discrete(
+        self.action_space = spaces.Discrete(
             self.world.n_foundable_items +\
             self.world.n_recipes +\
             self.world.n_zones
@@ -48,7 +51,7 @@ class CraftingEnv(gym.Env):
 
         # Observation space
         # (n_stacks_per_item, inv_filled_proportion, one_hot_zone)
-        self.observation_space = Box(
+        self.observation_space = spaces.Box(
             low=np.array(
                 [0 for _ in range(self.world.n_items)] +\
                 [0 for _ in range(self.world.n_zones)] +\
@@ -61,6 +64,12 @@ class CraftingEnv(gym.Env):
             ),
             dtype=np.float32
         )
+
+        if self.observe_legal_actions:
+            self.legal_actions_space = spaces.MultiBinary(self.action_space.n)
+            self.observation_space = spaces.Tuple(
+                (self.observation_space, self.legal_actions_space)
+            )
 
         self.observation_legend = np.concatenate((
             [str(item) for item in self.world.items],
@@ -163,6 +172,9 @@ class CraftingEnv(gym.Env):
             (inventory_content, one_hot_zone, zone_properties),
             axis=-1
         )
+
+        if self.observe_legal_actions:
+            observation = (observation, self.get_action_is_legal())
 
         return observation
 
