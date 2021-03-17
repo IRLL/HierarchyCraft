@@ -82,14 +82,14 @@ class Player():
             Number of items found.
 
         """
-        if self.can_get(item):
+        if self.can_get(item, tool):
             findings = self.zone.search_for(item, tool)
             if len(findings) > 0:
                 self.inventory.add_stacks(findings)
                 return sum([stack.size for stack in findings])
         return 0
 
-    def can_get(self, item: Item) -> bool:
+    def can_get(self, item: Item, tool: Tool) -> bool:
         """ Check if the item can be found
 
         Args:
@@ -99,7 +99,19 @@ class Player():
             True if the item can be found, False otherwise.
 
         """
-        return item.item_id in self.zone.items
+
+        if not item.item_id in self.zone.items:
+            return False
+
+        usable_tools = self.zone.items[item.item_id]
+        if usable_tools is None:
+            return True
+
+        usable_tools_ids = [usable_tool.item_id for usable_tool in usable_tools]
+        if tool is not None and tool.item_id in usable_tools_ids:
+            return True
+
+        return False
 
     def move_to(self, zone: Zone) -> bool:
         """ Move to a given new zone

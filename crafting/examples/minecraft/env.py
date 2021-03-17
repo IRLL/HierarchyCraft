@@ -48,7 +48,7 @@ class MineCraftingEnv(CraftingEnv):
             f'task should be str or Task instances but was {type(task)}'
         )
 
-    def render(self, mode='human', frame_per_sec=60):
+    def render(self, mode='human'):
         if mode != 'human':
             return super().render(mode)
         if self.render_variables is None:

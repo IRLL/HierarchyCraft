@@ -64,8 +64,7 @@ class Zone():
             usable_tools = self.items[item.item_id]
             if usable_tools is None:
                 return [ItemStack(item)]
-            usable_tools_ids = [usable_tool.item_id for usable_tool in usable_tools]
-            if tool is not None and tool.item_id in usable_tools_ids:
+            if tool is not None:
                 return tool.use(item)
         return []
 
