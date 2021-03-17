@@ -43,4 +43,4 @@ def test_zone_search_for(forest, air, stone, wooden_pickaxe):
 
     findings_with_air = forest.search_for(stone, air)
     if len(findings_with_air) > 0:
-        raise ValueError('Unexpected findings with air')
+        raise ValueError(f'Unexpected findings with air: {findings_with_air}')

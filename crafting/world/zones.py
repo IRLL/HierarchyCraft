@@ -61,11 +61,18 @@ class Zone():
 
         """
         if item.item_id in self.items:
+
             usable_tools = self.items[item.item_id]
+
+            # If no tool is needed, just gather items
             if usable_tools is None:
                 return [ItemStack(item)]
-            if tool is not None:
+
+            # If a tool is needed, gather items relative to used tool
+            usable_tools_ids = [usable_tool.item_id for usable_tool in usable_tools]
+            if tool is not None and tool.item_id in usable_tools_ids:
                 return tool.use(item)
+
         return []
 
     def __str__(self):
