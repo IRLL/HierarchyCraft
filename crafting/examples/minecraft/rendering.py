@@ -413,11 +413,13 @@ def get_human_action(*args):
 
 if __name__ == '__main__':
     from crafting.examples import MineCraftingEnv
-    env = MineCraftingEnv(verbose=1, tasks=['obtain_diamond'], tasks_can_end=[True])
+    env = MineCraftingEnv(verbose=1, max_step=30, tasks=['obtain_diamond'], tasks_can_end=[True])
 
-    done = False
-    while not done:
-        env.render()
-        action = get_human_action(env, *env.render_variables)
-        action_id = env.action(*action)
-        observation, reward, done, infos = env(action_id)
+    for _ in range(2):
+        observation = env.reset()
+        done = False
+        while not done:
+            env.render()
+            action = get_human_action(env, *env.render_variables)
+            action_id = env.action(*action)
+            observation, reward, done, infos = env(action_id)

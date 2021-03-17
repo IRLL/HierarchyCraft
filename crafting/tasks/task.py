@@ -27,6 +27,8 @@ class Task():
         self.items_end_task_at = np.inf * np.ones(self.world.n_items, dtype=np.int32)
         self.action_end_task = np.zeros(self.world.n_actions, dtype=bool)
 
+        self.reset()
+
     def add_achivement_getitem(self, item_id, value, end_task=False):
         """ Makes getting `item_id` an achievement with reward `value`. """
         item_slot = self.world.item_id_to_slot[item_id]
@@ -66,6 +68,10 @@ class Task():
         item_done = np.any(observation[:self.world.n_items] >= self.items_end_task_at)
         action_done = self.action_end_task[action]
         return item_done or action_done
+
+    def reset(self):
+        """ Reset the task. """
+        self.achievements_items_done = np.zeros(self.world.n_items, dtype=bool)
 
     def __call__(self, observation, previous_observation, action):
         reward = self.reward(observation, previous_observation, action)
@@ -118,6 +124,11 @@ class TaskList():
         if self.early_stopping == "any":
             return any(dones)
         raise ValueError(f'Unknown value for early_stopping: {self.early_stopping}')
+
+    def reset(self):
+        """ Reset all tasks for a new episode. """
+        for task in self.tasks:
+            task.reset()
 
     def __call__(self, observation, previous_observation, action):
         if self.tasks is None:

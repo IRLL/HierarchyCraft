@@ -187,6 +187,7 @@ class CraftingEnv(gym.Env):
         self.steps = 0
         self.player = deepcopy(self.inital_player)
         self.world = deepcopy(self.inital_world)
+        self.tasks.reset()
 
         observation = self.get_observation()
         if self.observe_legal_actions:
