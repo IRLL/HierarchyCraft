@@ -25,6 +25,7 @@ class MineCraftingEnv(CraftingEnv):
         player = McPlayer(world)
         self.render_variables = None
         tasks = kwargs.pop('tasks')
+        self.frame_per_sec = kwargs.pop('fps', 60)
 
         if tasks is not None:
             tasks = [self._get_tasks(task, world) for task in tasks]
@@ -52,4 +53,4 @@ class MineCraftingEnv(CraftingEnv):
             return super().render(mode)
         if self.render_variables is None:
             self.render_variables = create_window(self)
-        update_rendering(self, *self.render_variables, fps=frame_per_sec)
+        update_rendering(self, *self.render_variables, fps=self.frame_per_sec)
