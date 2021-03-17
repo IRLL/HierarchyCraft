@@ -22,7 +22,8 @@ class CraftingEnv(gym.Env):
             tasks_weights: Union[list, dict]=None,
             tasks_can_end: Union[list, dict]=None,
             fail_penalty: float=0.1,
-            timestep_penalty: float=0.01
+            timestep_penalty: float=0.01,
+            moving_penalty: float=0.1,
         ):
         self.world = deepcopy(world)
         self.inital_world = deepcopy(world)
@@ -38,6 +39,7 @@ class CraftingEnv(gym.Env):
 
         self.fail_penalty = fail_penalty
         self.timestep_penalty = timestep_penalty
+        self.moving_penalty = moving_penalty
 
         self.max_step = max_step
         self.steps = 1
@@ -94,6 +96,7 @@ class CraftingEnv(gym.Env):
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
         previous_observation = self.get_observation()
+        reward = 0
 
         # Get an item
         if action < self.world.n_foundable_items:
@@ -122,6 +125,7 @@ class CraftingEnv(gym.Env):
             zone_slot = action - start_index
             zone = self.world.zones[zone_slot]
             success = self.player.move_to(zone)
+            reward -= self.moving_penalty
             if self.verbose > 0:
                 status_msg = 'SUCCEDED' if success else 'FAILED'
                 print(f'{status_msg} at moving to {zone}')
@@ -134,8 +138,8 @@ class CraftingEnv(gym.Env):
         observation = self.get_observation()
 
         # Tasks
-        reward, task_done = self.tasks(observation, previous_observation, action)
-
+        task_reward, task_done = self.tasks(observation, previous_observation, action)
+        reward += task_reward
         reward -= self.timestep_penalty
         if not success:
             reward -= self.fail_penalty
