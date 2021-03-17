@@ -8,8 +8,6 @@ Crafting environment adapted to the Minecraft inventory
 
 """
 
-from typing import List, Union
-
 from crafting.env import CraftingEnv
 from crafting.tasks.task import Task
 
@@ -22,24 +20,20 @@ class MineCraftingEnv(CraftingEnv):
 
     """ MineCrafting Environment """
 
-    def __init__(self, max_step: int=500, verbose: int=0,
-            tasks: List[str]=None,
-            tasks_weights: Union[list, dict]=None,
-            tasks_can_end: Union[list, dict]=None
-        ):
+    def __init__(self, **kwargs):
         world = McWorld()
         player = McPlayer(world)
         self.render_variables = None
+        tasks = kwargs.pop('tasks')
+
         if tasks is not None:
             tasks = [self._get_tasks(task, world) for task in tasks]
+
         super().__init__(
             world=world,
             player=player,
-            max_step=max_step,
-            verbose=verbose,
             tasks=tasks,
-            tasks_weights=tasks_weights,
-            tasks_can_end=tasks_can_end
+            **kwargs
         )
 
     @staticmethod
