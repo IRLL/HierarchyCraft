@@ -24,7 +24,7 @@ class MineCraftingEnv(CraftingEnv):
         world = McWorld()
         player = McPlayer(world)
         self.render_variables = None
-        tasks = kwargs.pop('tasks')
+        tasks = kwargs.pop('tasks', None)
         self.frame_per_sec = kwargs.pop('fps', 60)
 
         if tasks is not None:
