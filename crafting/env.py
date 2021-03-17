@@ -21,7 +21,8 @@ class CraftingEnv(gym.Env):
             tasks: List[Union[str, Task]]=None,
             tasks_weights: Union[list, dict]=None,
             tasks_can_end: Union[list, dict]=None,
-            fail_penalty: float=0.1
+            fail_penalty: float=0.1,
+            timestep_penalty: float=0.01
         ):
         self.world = deepcopy(world)
         self.inital_world = deepcopy(world)
@@ -34,7 +35,9 @@ class CraftingEnv(gym.Env):
             tasks_weights=tasks_weights,
             tasks_can_end=tasks_can_end
         )
+
         self.fail_penalty = fail_penalty
+        self.timestep_penalty = timestep_penalty
 
         self.max_step = max_step
         self.steps = 1
@@ -132,8 +135,11 @@ class CraftingEnv(gym.Env):
 
         # Tasks
         reward, task_done = self.tasks(observation, previous_observation, action)
+
+        reward -= self.timestep_penalty
         if not success:
             reward -= self.fail_penalty
+
         self.player.score += reward
 
         # Termination
