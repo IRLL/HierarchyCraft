@@ -17,7 +17,7 @@ class TaskObtainDiamond(Task):
         self.add_achivement_getitem(DIAMOND.item_id, 100, end_task=True)
 
         if self.use_reward_shaping:
-            self.add_achivement_getitem(WOOD.item_id, 1)
+            self.add_achivement_getitem(WOOD.item_id, 1.01)
             self.add_achivement_getitem(WOOD_PLANK.item_id, 1)
             self.add_achivement_getitem(WOODEN_PICKAXE.item_id, 1)
             self.add_achivement_getitem(STONE_PICKAXE.item_id, 3)
