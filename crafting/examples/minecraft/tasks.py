@@ -14,7 +14,7 @@ class TaskObtainDiamond(Task):
     def __init__(self, world:World, use_reward_shaping=True):
         super().__init__('obtain_diamond', world)
         self.use_reward_shaping = use_reward_shaping
-        self.add_achivement_getitem(DIAMOND.item_id, 100, end_task=True)
+        self.add_achivement_getitem(DIAMOND.item_id, 10, end_task=True)
 
         if self.use_reward_shaping:
             self.add_achivement_getitem(WOOD.item_id, 1.01)
