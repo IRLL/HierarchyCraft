@@ -140,12 +140,17 @@ class CraftingEnv(gym.Env):
         done = self.steps >= self.max_step or task_done
 
         # Infos
+        action_is_legal = self.get_action_is_legal()
         infos = {
             'env_step': self.steps,
-            'action_is_legal': self.get_action_is_legal()
+            'action_is_legal': action_is_legal
         }
 
         self.steps += 1
+
+        if self.observe_legal_actions:
+            observation = (observation, action_is_legal)
+
         return observation, reward, done, infos
 
     def get_action_is_legal(self) -> np.ndarray:
@@ -172,9 +177,6 @@ class CraftingEnv(gym.Env):
             (inventory_content, one_hot_zone, zone_properties),
             axis=-1
         )
-
-        if self.observe_legal_actions:
-            observation = (observation, self.get_action_is_legal())
 
         return observation
 
