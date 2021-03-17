@@ -184,7 +184,12 @@ class CraftingEnv(gym.Env):
         self.steps = 0
         self.player = deepcopy(self.inital_player)
         self.world = deepcopy(self.inital_world)
-        return self.get_observation()
+
+        observation = self.get_observation()
+        if self.observe_legal_actions:
+            observation = (observation, self.get_action_is_legal())
+
+        return observation
 
     def render(self, mode='human'):
         if mode == 'human': # for human interaction
