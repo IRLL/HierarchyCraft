@@ -17,12 +17,13 @@ class TaskObtainDiamond(Task):
         self.add_achivement_getitem(DIAMOND.item_id, 10, end_task=True)
 
         if self.use_reward_shaping:
-            self.add_achivement_getitem(WOOD.item_id, 1.01)
+            self.add_achivement_getitem(WOOD.item_id, 1)
             self.add_achivement_getitem(WOOD_PLANK.item_id, 1)
             self.add_achivement_getitem(WOODEN_PICKAXE.item_id, 1)
-            self.add_achivement_getitem(STONE_PICKAXE.item_id, 3)
+            self.add_achivement_getitem(COBBLESTONE.item_id, 1)
+            self.add_achivement_getitem(STONE_PICKAXE.item_id, 2)
             self.add_achivement_getitem(IRON_INGOT.item_id, 3)
-            self.add_achivement_getitem(IRON_PICKAXE.item_id, 5)
+            self.add_achivement_getitem(IRON_PICKAXE.item_id, 6)
 
 TASKS = {
     'obtain_diamond': TaskObtainDiamond

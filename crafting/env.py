@@ -10,7 +10,7 @@ from gym import spaces
 
 from crafting.world.world import World
 from crafting.player.player import Player
-from crafting.tasks.task import Task, TaskList
+from crafting.task import Task, TaskList
 
 class CraftingEnv(gym.Env):
     metadata = {'render.modes': ['human', 'ansi']}
@@ -82,17 +82,8 @@ class CraftingEnv(gym.Env):
             [str(prop) for prop in self.world.zone_properties]
         ))
 
-    def action(self, action_type, identification) -> int:
-        action_id = 0
-        if action_type == 'get':
-            action_id += self.world.foundable_items_id_to_slot[identification]
-        elif action_type == 'craft':
-            action_id = self.world.n_foundable_items
-            action_id += self.world.recipes_id_to_slot[identification]
-        elif action_type == 'move':
-            action_id = self.world.n_foundable_items + self.world.n_recipes
-            action_id += self.world.zone_id_to_slot[identification]
-        return action_id
+    def action(self, *args) -> int:
+        return self.world.action(*args)
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
         previous_observation = self.get_observation()
