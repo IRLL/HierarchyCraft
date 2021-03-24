@@ -9,7 +9,7 @@ import pytest_check as check
 
 import numpy as np
 
-from crafting.tasks.task import Task, TaskList
+from crafting.task import Task, TaskList
 
 
 class DummyWorld:
@@ -38,8 +38,8 @@ class TestTask:
 
     def test_call(self, mocker):
         """ should call `done` and `reward` on call. """
-        mocker.patch('crafting.tasks.task.Task.reward', lambda *args:1)
-        mocker.patch('crafting.tasks.task.Task.done', lambda *args:True)
+        mocker.patch('crafting.task.Task.reward', lambda *args:1)
+        mocker.patch('crafting.task.Task.done', lambda *args:True)
         task = Task('task_name', self.world)
         reward, done = task(self.observation, self.previous_observation, self.action)
 
@@ -92,15 +92,15 @@ class TestTaskList:
     def test_call(self, mocker):
         """ should return accumulated rewards and done on call. """
         mocker.patch(
-            'crafting.tasks.task.TaskList._get_task_weight',
+            'crafting.task.TaskList._get_task_weight',
             lambda *args: 1
         )
         mocker.patch(
-            'crafting.tasks.task.TaskList._get_task_can_end',
+            'crafting.task.TaskList._get_task_can_end',
             lambda *args: True
         )
         mocker.patch(
-            'crafting.tasks.task.TaskList._stack_dones',
+            'crafting.task.TaskList._stack_dones',
             lambda *args: True
         )
         tasks = TaskList(self.tasks)

@@ -90,14 +90,13 @@ class TaskList():
             early_stopping: str='all'
         ):
 
-        if tasks is not None:
-            for task in tasks:
-                if not isinstance(task, Task):
-                    raise TypeError(
-                        f'tasks must be subclassed from :class:`crafting.Task` but was {type(task)}'
-                    )
+        self.tasks = tasks if tasks is not None else []
+        for task in self.tasks:
+            if not isinstance(task, Task):
+                raise TypeError(
+                    f'tasks must be subclassed from :class:`crafting.Task` but was {type(task)}'
+                )
 
-        self.tasks = tasks
         self.tasks_weights = tasks_weights
         self.tasks_can_end = tasks_can_end
         self.early_stopping = early_stopping

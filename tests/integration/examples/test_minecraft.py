@@ -91,8 +91,8 @@ def test_obtain_enchant_table():
     for _ in range(2):
         env(env.action('get', IRON_ORE.item_id))
 
-    env(env.action('craft', R_FURNACE.recipe_id))
     env(env.action('craft', R_CRAFTING_TABLE.recipe_id))
+    env(env.action('craft', R_FURNACE.recipe_id))
 
     env(env.action('craft', R_IRON_INGOT_PLANK.recipe_id))
     env(env.action('craft', R_IRON_PICKAXE.recipe_id))
