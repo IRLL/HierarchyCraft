@@ -50,7 +50,8 @@ R_CRAFTING_TABLE = Recipe(58,
 #: Recipe of FURNACE (enable 'has_furnace' zone property)
 R_FURNACE = Recipe(61,
     inputs=[ItemStack(COBBLESTONE, 8)],
-    added_properties={'has_furnace': True}
+    added_properties={'has_furnace': True},
+    needed_properties={'has_crafting': True}
 )
 R_ZONE = [R_CRAFTING_TABLE, R_FURNACE]
 
