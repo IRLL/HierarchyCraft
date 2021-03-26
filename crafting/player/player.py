@@ -100,15 +100,12 @@ class Player():
 
         """
 
-        if not item.item_id in self.zone.items:
+        if not item in self.zone.items:
             return False
 
-        usable_tools = self.zone.items[item.item_id]
-        if usable_tools is None:
-            return True
-
-        usable_tools_ids = [usable_tool.item_id for usable_tool in usable_tools]
-        if tool is not None and tool.item_id in usable_tools_ids:
+        required_tools = item.required_tools
+        tool_in_required = tool is not None and tool in required_tools
+        if required_tools is None or tool_in_required:
             return True
 
         return False

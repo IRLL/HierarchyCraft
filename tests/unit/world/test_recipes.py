@@ -19,19 +19,19 @@ def forest():
 
 @pytest.fixture
 def dirt():
-    return Item(3, name='dirt', max_stack=64)
+    return Item(3, name='dirt')
 
 @pytest.fixture
 def plank():
-    return Item(5, name='plank', max_stack=64)
+    return Item(5, name='plank')
 
 @pytest.fixture
 def stone():
-    return Item(12, name='stone', max_stack=64)
+    return Item(12, name='stone')
 
 @pytest.fixture
 def stick():
-    return Item(280, name='stick', max_stack=64)
+    return Item(280, name='stick')
 
 @pytest.fixture
 def wooden_pickaxe():

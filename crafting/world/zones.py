@@ -60,17 +60,15 @@ class Zone():
             The found item stacks.
 
         """
-        if item.item_id in self.items:
-
-            usable_tools = self.items[item.item_id]
+        if item in self.items:
+            required_tools = item.required_tools
 
             # If no tool is needed, just gather items
-            if usable_tools is None:
+            if required_tools is None:
                 return [ItemStack(item)]
 
             # If a tool is needed, gather items relative to used tool
-            usable_tools_ids = [usable_tool.item_id for usable_tool in usable_tools]
-            if tool is not None and tool.item_id in usable_tools_ids:
+            if tool is not None and tool in required_tools:
                 return tool.use(item)
 
         return []
@@ -83,5 +81,5 @@ class Zone():
         if len(self.properties) > 0:
             name += str(self.properties)
         if len(self.items) > 0:
-            name += str(list(self.items.keys()))
+            name += str(list(self.items))
         return name

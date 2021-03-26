@@ -1,19 +1,12 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
+# pylint: disable=missing-function-docstring, protected-access
 
-import pytest
 from copy import copy
+import pytest
 
 from crafting.examples.minecraft.abc import McTool, Block, ItemStack
 from crafting.examples.minecraft.abc import McPlayer
-
-@pytest.fixture
-def cobblestone():
-    return Block(4, 'cobblestone', hardness=2)
-
-@pytest.fixture
-def stone(cobblestone):
-    return Block(1, 'stone', hardness=1.5, drops=[cobblestone])
 
 @pytest.fixture
 def wooden_pickaxe():
@@ -22,6 +15,17 @@ def wooden_pickaxe():
 @pytest.fixture
 def iron_pickaxe():
     return McTool(257, 'iron_pickaxe', durability=151, speed=6)
+
+@pytest.fixture
+def cobblestone():
+    return Block(4, 'cobblestone', hardness=2)
+
+@pytest.fixture
+def stone(cobblestone, wooden_pickaxe, iron_pickaxe):
+    return Block(1, 'stone', hardness=1.5,
+        drops=[cobblestone],
+        required_tools=[wooden_pickaxe, iron_pickaxe]
+    )
 
 def test_use(wooden_pickaxe, iron_pickaxe, stone, cobblestone):
     expected_stack_sizes = (2, 5)
@@ -52,14 +56,21 @@ def test_broken_tool():
 
     WOODEN_PICKAXE._durability = 2
     player.inventory.add_stacks([ItemStack(WOODEN_PICKAXE)])
+    print(f'WOODEN_PICKAXE durability: {WOODEN_PICKAXE._durability}')
 
-    player.search_for(STONE, WOODEN_PICKAXE)
+    n_items_found = player.search_for(STONE, WOODEN_PICKAXE)
+    if n_items_found == 0:
+        raise ValueError('Pickaxe should have found items')
 
+    print(f'WOODEN_PICKAXE durability: {WOODEN_PICKAXE._durability}')
     if WOODEN_PICKAXE.is_broken:
         raise ValueError('Pickaxe is not supposed to be broken yet')
 
-    player.search_for(STONE, WOODEN_PICKAXE)
+    n_items_found = player.search_for(STONE, WOODEN_PICKAXE)
+    if n_items_found == 0:
+        raise ValueError('Pickaxe should have found items')
+
     slot = player.inventory.item_id_to_slot(WOODEN_PICKAXE.item_id)
-    print(player.inventory, WOODEN_PICKAXE._durability)
+    print(f'WOODEN_PICKAXE durability: {WOODEN_PICKAXE._durability}')
     if player.inventory.content[slot] > 0:
         raise ValueError('Pickaxe supposed to be removed from inventory')

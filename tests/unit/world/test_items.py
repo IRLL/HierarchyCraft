@@ -7,11 +7,11 @@ from crafting.world.items import Item, Tool, ItemStack
 ### Item ###
 
 def test_item_init():
-    Item(12, name='stone', max_stack=64)
+    Item(12, name='stone')
 
 @pytest.fixture
 def stone():
-    return Item(12, name='stone', max_stack=64)
+    return Item(12, name='stone')
 
 def test_item_str(stone):
     expected_item_name = 'Stone(12)'

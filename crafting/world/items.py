@@ -8,6 +8,7 @@ Here are defined abstract classes for items, tools and item-stacks
 """
 
 from typing import List
+from operator import index
 
 class Item():
 
@@ -20,18 +21,31 @@ class Item():
 
     """
 
-    def __init__(self, item_id: int, name: str, max_stack: int=1):
+    def __init__(self, item_id: int, name: str, required_tools: list=None):
         """ Item are to represent objects that could be present in an inventory
 
         Args:
             item_id: Unique item identification number.
             name: Item name.
-            max_stack: Maximum number of this item per stack.
+            required_tools: List of tools that can be used to gather the item.
+                If None (Default), the item can be gathered without requirement.
 
         """
         self.item_id = item_id
         self.name = name
-        self.max_stack = max_stack
+        self.required_tools = required_tools
+
+    def __eq__(self, item):
+        if isinstance(item, Item):
+            return self.item_id == item.item_id
+        try:
+            # Accept any int-like thing
+            return self.item_id == index(item)
+        except TypeError:
+            return NotImplemented
+
+    def __hash__(self):
+        return self.item_id
 
     def __repr__(self):
         return f"{self.name.capitalize()}({self.item_id})"
@@ -45,7 +59,8 @@ class ItemStack(Item):
         item (:obj:`Item`): Item object that will be stacked.
         item_id (int): Unique item identification number.
         name (str): Item name.
-        max_stack (int): Maximum number of this item per stack.
+        required_tools: List of tools that can be used to gather the item.
+            If None (Default), the item can be gathered without requirement.
         size (int): Number of items in stack.
 
     """
@@ -58,7 +73,7 @@ class ItemStack(Item):
             size: Initial stack value.
 
         """
-        super().__init__(item.item_id, item.name, item.max_stack)
+        super().__init__(item.item_id, item.name, item.required_tools)
         self.item = item
         self.size = size
 

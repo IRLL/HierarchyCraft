@@ -14,13 +14,13 @@ from crafting.world.zones import Zone
 from crafting.player.inventory import Inventory
 from crafting.player.player import Player
 
-AIR = Tool(0, 'air')
 WOODEN_PICKAXE = Tool(18, 'wooden_pickaxe')
-DIRT = Item(3, 'dirt', max_stack=64)
-WOOD = Item(14, 'wood', max_stack=64)
-STICK = Item(280, name='stick', max_stack=64)
-WOOD_PLANK = Item(5, name='plank', max_stack=64)
-STONE = Item(1, 'stone', max_stack=64)
+AIR = Tool(0, 'air')
+DIRT = Item(3, 'dirt', required_tools=[AIR])
+WOOD = Item(17, 'wood', required_tools=[AIR])
+STICK = Item(280, 'stick')
+WOOD_PLANK = Item(5, 'plank')
+STONE = Item(1, 'stone', required_tools=[WOODEN_PICKAXE])
 
 R_WOOD_PLANK = Recipe(
     recipe_id=5,
@@ -55,15 +55,8 @@ R_WOODEN_PICKAXE = Recipe(
 ITEMS = [DIRT, WOOD, STONE, WOOD_PLANK, STICK, AIR, WOODEN_PICKAXE]
 RECIPES = [R_WOOD_PLANK, R_CRAFTING_TABLE, R_STICK, R_WOODEN_PICKAXE]
 
-FOREST = Zone(0, 'forest', {
-        DIRT.item_id: [AIR],
-        WOOD.item_id: None
-})
-
-UNDERGROUND = Zone(1, 'underground', {
-    STONE.item_id: [WOODEN_PICKAXE],
-    DIRT.item_id: [AIR]
-})
+FOREST = Zone(0, 'forest', [WOOD])
+UNDERGROUND = Zone(1, 'underground', [STONE, DIRT])
 
 
 @pytest.fixture
@@ -79,7 +72,7 @@ class DummyPlayer(Player):
     def choose_tool(self, item):
         if WOODEN_PICKAXE in self.inventory:
             return WOODEN_PICKAXE
-        return None
+        return AIR
 
 @pytest.fixture
 def player(inv):
@@ -99,7 +92,8 @@ def test_env_obtain_stone(world, player):
     print(observation)
     expected_obs = [0, 1, 0, 0, 0, 0, 0, 1, 0, 0]
     if np.any(observation != expected_obs):
-        raise ValueError('Unexpected observation')
+        raise ValueError(f'Unexpected observation {observation}'
+            f'\nInstead of {expected_obs}')
     print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('get', DIRT.item_id)) #(Fail)
@@ -107,7 +101,8 @@ def test_env_obtain_stone(world, player):
     print(observation)
     expected_obs = [0, 1, 0, 0, 0, 0, 0, 1, 0, 0]
     if np.any(observation != expected_obs):
-        raise ValueError('Unexpected observation')
+        raise ValueError(f'Unexpected observation {observation}'
+            f'\nInstead of {expected_obs}')
     print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('craft', WOOD_PLANK.item_id)) #(Success)
@@ -115,7 +110,8 @@ def test_env_obtain_stone(world, player):
     print(observation)
     expected_obs = [0, 0, 0, 4, 0, 0, 0, 1, 0, 0]
     if np.any(observation != expected_obs):
-        raise ValueError('Unexpected observation')
+        raise ValueError(f'Unexpected observation {observation}'
+            f'\nInstead of {expected_obs}')
     print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('craft', WOOD_PLANK.item_id)) #(Fail)
@@ -123,7 +119,8 @@ def test_env_obtain_stone(world, player):
     print(observation)
     expected_obs = [0, 0, 0, 4, 0, 0, 0, 1, 0, 0]
     if np.any(observation != expected_obs):
-        raise ValueError('Unexpected observation')
+        raise ValueError(f'Unexpected observation {observation}'
+            f'\nInstead of {expected_obs}')
     print(env.render('ansi'))
 
     for _ in range(2):
@@ -133,7 +130,8 @@ def test_env_obtain_stone(world, player):
     print(observation)
     expected_obs = [0, 0, 0, 12, 0, 0, 0, 1, 0, 0]
     if np.any(observation != expected_obs):
-        raise ValueError('Unexpected observation')
+        raise ValueError(f'Unexpected observation {observation}'
+            f'\nInstead of {expected_obs}')
     print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('move', UNDERGROUND.zone_id))
@@ -141,7 +139,8 @@ def test_env_obtain_stone(world, player):
     print(observation)
     expected_obs = [0, 0, 0, 12, 0, 0, 0, 0, 1, 0]
     if np.any(observation != expected_obs):
-        raise ValueError('Unexpected observation')
+        raise ValueError(f'Unexpected observation {observation}'
+            f'\nInstead of {expected_obs}')
     print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('craft', R_WOODEN_PICKAXE.recipe_id)) #(Fail)
@@ -149,7 +148,8 @@ def test_env_obtain_stone(world, player):
     print(observation)
     expected_obs = [0, 0, 0, 12, 0, 0, 0, 0, 1, 0]
     if np.any(observation != expected_obs):
-        raise ValueError('Unexpected observation')
+        raise ValueError(f'Unexpected observation {observation}'
+            f'\nInstead of {expected_obs}')
     print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('craft', R_CRAFTING_TABLE.recipe_id)) #(Success)
@@ -157,7 +157,8 @@ def test_env_obtain_stone(world, player):
     print(observation)
     expected_obs = [0, 0, 0, 8, 0, 0, 0, 0, 1, 1]
     if np.any(observation != expected_obs):
-        raise ValueError('Unexpected observation')
+        raise ValueError(f'Unexpected observation {observation}'
+            f'\nInstead of {expected_obs}')
     print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('get', STONE.item_id)) #(Fail)
@@ -165,7 +166,8 @@ def test_env_obtain_stone(world, player):
     print(observation)
     expected_obs = [0, 0, 0, 8, 0, 0, 0, 0, 1, 1]
     if np.any(observation != expected_obs):
-        raise ValueError('Unexpected observation')
+        raise ValueError(f'Unexpected observation {observation}'
+            f'\nInstead of {expected_obs}')
     print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('craft', R_STICK.recipe_id)) #(Success)
@@ -174,7 +176,8 @@ def test_env_obtain_stone(world, player):
     print(observation)
     expected_obs = [0, 0, 0, 3, 2, 0, 1, 0, 1, 1]
     if np.any(observation != expected_obs):
-        raise ValueError('Unexpected observation')
+        raise ValueError(f'Unexpected observation {observation}'
+            f'\nInstead of {expected_obs}')
     print(env.render('ansi'))
 
     observation, _, _, _ = env(env.action('get', STONE.item_id)) #(Success)
@@ -182,7 +185,8 @@ def test_env_obtain_stone(world, player):
     print(observation)
     expected_obs = [0, 0, 1, 3, 2, 0, 1, 0, 1, 1]
     if np.any(observation != expected_obs):
-        raise ValueError('Unexpected observation')
+        raise ValueError(f'Unexpected observation {observation}'
+            f'\nInstead of {expected_obs}')
     print(env.render('ansi'))
 
 def test_env_zone_consistency(world, player):

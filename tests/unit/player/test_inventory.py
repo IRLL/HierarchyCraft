@@ -9,9 +9,9 @@ from crafting.player.inventory import Inventory
 
 @pytest.fixture
 def items():
-    dirt = Item(3, name='dirt', max_stack=64)
-    plank = Item(5, name='plank', max_stack=64)
-    stone = Item(12, name='stone', max_stack=64)
+    dirt = Item(3, name='dirt')
+    plank = Item(5, name='plank')
+    stone = Item(12, name='stone')
     return (dirt, plank, stone)
 
 def test_inventory_init(items):

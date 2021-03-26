@@ -34,8 +34,8 @@ class World():
         # Foundable items
         self.foundable_items_ids = set()
         for zone in zones:
-            for item_id in zone.items.keys():
-                self.foundable_items_ids.add(item_id)
+            for item in zone.items:
+                self.foundable_items_ids.add(item.item_id)
 
         self.foundable_items = [
             self.item_from_id[item_id]

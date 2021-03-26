@@ -45,3 +45,14 @@ ALL_GET_OPTIONS = {
     WOOD_PLANK.item_id: GET_WOOD_PLANK,
     STICK.item_id: GET_STICK,
 }
+
+if __name__ == "__main__":
+    for item in MC_FOUDABLE_ITEMS:
+        zones_id_needed = []
+        for zone in MC_ZONES:
+            if item.item_id in zone.items:
+                zones_id_needed.append(zone.zone_id)
+        print(f'{item}: {[str(MC_WORLD.zone_from_id[zone_id]) for zone_id in zones_id_needed]}')
+
+    for r in MC_RECIPES:
+        print(r)

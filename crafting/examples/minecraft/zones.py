@@ -12,55 +12,15 @@ from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.tools import *
 
 # Zones
-#: FOREST
-FOREST = Zone(0, 'forest',
-    {
-        WOOD.item_id: [AIR] + AXES,
-        DIRT.item_id: [AIR],
-        STONE.item_id: PICKAXES,
-    }
-)
 
-#: SWAMP
-SWAMP = Zone(1, 'swamp',
-    {
-        DIRT.item_id: [AIR],
-        REEDS.item_id: [AIR]
-    }
-)
-
-#: MEADOW
-MEADOW = Zone(2, 'meadow',
-    {
-        DIRT.item_id: [AIR],
-        STONE.item_id: PICKAXES,
-        LEATHER.item_id: SWORDS,
-        EGG.item_id: [AIR]
-    }
-)
-
-#: UNDERGROUND
+FOREST = Zone(0, 'forest', [WOOD, DIRT, STONE]) #: FOREST
+SWAMP = Zone(1, 'swamp', [DIRT, REEDS]) #: SWAMP
+MEADOW = Zone(2, 'meadow', [DIRT, STONE, LEATHER, EGG]) #: MEADOW
 UNDERGROUND = Zone(3, 'underground',
-    {
-        DIRT.item_id: [AIR],
-        STONE.item_id: PICKAXES,
-        IRON_ORE.item_id: PICKAXES[1:],
-        GOLD_ORE.item_id: PICKAXES[2:],
-    }
-)
-
-#: BEDROCK
+    [DIRT, STONE, IRON_ORE, GOLD_ORE]) #: UNDERGROUND
 BEDROCK = Zone(4, 'bedrock',
-    {
-        DIRT.item_id: [AIR],
-        STONE.item_id: PICKAXES,
-        IRON_ORE.item_id: PICKAXES[1:],
-        GOLD_ORE.item_id: PICKAXES[2:],
-        DIAMOND_ORE.item_id: PICKAXES[2:],
-        REDSTONE_ORE.item_id: PICKAXES[2:],
-        OBSIDIAN.item_id: [DIAMOND_PICKAXE],
-    }
-)
+    [DIRT, STONE, IRON_ORE, GOLD_ORE,
+     DIAMOND_ORE, REDSTONE_ORE, OBSIDIAN]) #: BEDROCK
 
 MC_ZONES = [
     FOREST,

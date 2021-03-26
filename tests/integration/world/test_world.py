@@ -18,31 +18,31 @@ def wooden_pickaxe():
 
 @pytest.fixture
 def dirt():
-    return Item(3, 'dirt', max_stack=64)
+    return Item(3, 'dirt')
 
 @pytest.fixture
-def wood():
-    return Item(14, 'wood', max_stack=64)
+def wood(air, wooden_pickaxe):
+    return Item(14, 'wood', required_tools=[air, wooden_pickaxe])
 
 @pytest.fixture
 def stick():
-    return Item(280, name='stick', max_stack=64)
+    return Item(280, name='stick')
 
 @pytest.fixture
 def plank():
-    return Item(5, name='plank', max_stack=64)
+    return Item(5, name='plank')
 
 @pytest.fixture
-def stone():
-    return Item(1, 'stone', max_stack=64)
+def stone(wooden_pickaxe):
+    return Item(1, 'stone', required_tools=[wooden_pickaxe])
 
 @pytest.fixture
-def forest(wood, air):
-    return Zone(0, 'forest', items={wood.item_id: [air]})
+def forest(wood):
+    return Zone(0, 'forest', items=[wood])
 
 @pytest.fixture
-def underground(stone, wooden_pickaxe, air, dirt):
-    return Zone(1, 'underground', items={stone.item_id: [wooden_pickaxe], dirt.item_id: [air]})
+def underground(stone, dirt):
+    return Zone(1, 'underground', items=[stone, dirt])
 
 @pytest.fixture
 def recipe_wooden_pickaxe(plank, stick, wooden_pickaxe):

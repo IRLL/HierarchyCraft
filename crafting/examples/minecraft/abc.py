@@ -28,8 +28,10 @@ class Block(Item):
 
     """
 
-    def __init__(self, item_id: int, name: str, hardness:float, drops:List[Item]=None):
-        super().__init__(item_id, name, max_stack=64)
+    def __init__(self, item_id: int, name: str,
+            hardness:float, required_tools:list=None, drops:List[Item]=None
+        ):
+        super().__init__(item_id, name, required_tools)
         self.hardness = hardness
         self.items_dropped = [self] if drops is None else drops
 
@@ -44,8 +46,8 @@ class Loot(Item):
 
     """
 
-    def __init__(self, item_id: int, name: str, stack_size: int=1):
-        super().__init__(item_id, name, max_stack=64)
+    def __init__(self, item_id: int, name: str, required_tools:list=None, stack_size: int=1):
+        super().__init__(item_id, name, required_tools)
         self.stack_size = stack_size
 
 class McTool(Tool):
@@ -61,8 +63,8 @@ class McTool(Tool):
 
     """
 
-    def __init__(self, item_id:int, name:str, durability:int, speed:int, max_stack:int=1):
-        super().__init__(item_id, name, max_stack)
+    def __init__(self, item_id:int, name:str, durability:int, speed:int):
+        super().__init__(item_id, name)
         self.durability = durability
         self._durability = durability
         self.speed = speed
@@ -102,8 +104,8 @@ class McPlayer(Player):
         )
 
     def choose_tool(self, item:Item) -> Tool:
-        if item.item_id in self.zone.items:
-            usable_tools = np.array(self.zone.items[item.item_id])
+        if item in self.zone.items:
+            usable_tools = np.array(item.required_tools)
             tools_id = np.array([tool.item_id for tool in usable_tools])
             tools_slots = self.inventory.item_id_to_slot(tools_id)
             tools_quantities = self.inventory.content[tools_slots]
