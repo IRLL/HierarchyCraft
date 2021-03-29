@@ -1,4 +1,4 @@
 [report]
 show_missing = True
 omit =
-    crafting/examples/minecraft/rendering.py
+    crafting/examples/minecraft/*

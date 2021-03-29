@@ -1,54 +1,78 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
+# pylint: disable=attribute-defined-outside-init
+
+""" Item and subclasses tests """
 
 import pytest
+import pytest_check as check
 from crafting.world.items import Item, Tool, ItemStack
 
-### Item ###
-
-def test_item_init():
-    Item(12, name='stone')
-
 @pytest.fixture
-def stone():
-    return Item(12, name='stone')
+def item():
+    """Dummy item"""
+    return Item(12, name='item_name')
 
-def test_item_str(stone):
-    expected_item_name = 'Stone(12)'
-    if str(stone) != expected_item_name:
-        raise ValueError(f"\nName is {str(stone)}\nInstead of {expected_item_name}")
+class TestItem:
+    """ Item """
+
+    @pytest.fixture(autouse=True)
+    def setup(self, item):
+        """ Setup reused variables. """
+        self.item = item
+
+    def test_init(self):
+        """ should instanciate attributes correctly. """
+        check.equal(self.item.item_id, 12)
+        check.equal(self.item.name, 'item_name')
+
+    def test_str(self):
+        """ should be converted to str correctly. """
+        expected_item_name = 'Item_name(12)'
+        check.equal(str(self.item), expected_item_name)
 
 
-### ItemStack ###
+class TestItemStack:
+    """ ItemStack """
 
-def test_itemstack_init(stone):
-    stack = ItemStack(stone, 8)
+    @pytest.fixture(autouse=True)
+    def setup(self, item):
+        """ Setup reused variables. """
+        self.item = item
 
-    if stack.item_id != stone.item_id:
-        raise ValueError("Wrong item_id")
+    def test_init(self):
+        """ should instanciate correctly. """
+        stack = ItemStack(self.item, 8)
+        check.equal(stack.item_id, self.item.item_id)
+        check.equal(stack.size, 8)
 
-    if stack.size != 8:
-        raise ValueError("Wrong size")
 
-### Tool ###
+class TestTool:
+    """ Tool """
 
-def test_tool_init():
-    Tool(18, 'wooden_pickaxe')
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        """ Setup reused variables. """
+        self.tool_id = 18
+        self.tool_name = 'tool_name'
+        self.tool = Tool(self.tool_id, self.tool_name)
 
-@pytest.fixture
-def wooden_pickaxe():
-    return Tool(18, 'wooden_pickaxe')
+    def test_init(self):
+        """ should instanciate correctly. """
+        check.equal(self.tool.item_id, self.tool_id)
+        check.equal(self.tool.name, self.tool_name)
 
-def test_tool_use(wooden_pickaxe, stone):
-    findings = wooden_pickaxe.use(stone)
+    def test_use_item(self, item):
+        """ should find item on use on item. """
+        findings = self.tool.use(item)
+        check.equal(findings[0].item_id, item.item_id)
+        check.equal(findings[0].size, 1)
 
-    if findings[0].item_id != stone.item_id:
-        raise ValueError('Unexpected finding item_id')
+    def test_use_none(self):
+        """ should find nothing on use on None. """
+        findings = self.tool.use(None)
+        check.equal(findings, [])
 
-    if findings[0].size != 1:
-        raise ValueError('Unexpected finding size')
-
-def test_tool_str(wooden_pickaxe):
-    expected_name = 'Wooden_pickaxe(18)'
-    if str(wooden_pickaxe) != expected_name:
-        raise ValueError(f"Tool name was: {str(wooden_pickaxe)}\nInstead of: {expected_name}")
+    def test_str(self):
+        """ should be converted to str correctly. """
+        check.equal(str(self.tool), f'{self.tool_name.capitalize()}({self.tool_id})')
