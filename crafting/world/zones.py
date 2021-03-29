@@ -30,7 +30,7 @@ class Zone():
 
     """
 
-    def __init__(self, zone_id: int, name: str, items: Dict[int, Item], properties: dict=None):
+    def __init__(self, zone_id: int, name: str, items: List[Item], properties: dict=None):
         """ Zones are to represent abstract places in the world.
 
         Zone have specific properties that can change how items can be gathered
@@ -39,8 +39,7 @@ class Zone():
         Args:
             zone_id: Unique zone identification number.
             name: Zone name.
-            items: Dictionary mapping an item_id to
-                the tools needed to gather it.
+            items: List of all available items.
             properties: List of all properties names.
 
         """
