@@ -26,10 +26,10 @@ class CraftingEnv(gym.Env):
             moving_penalty: float=0.1,
         ):
         self.world = deepcopy(world)
-        self.inital_world = deepcopy(world)
+        self.initial_world = deepcopy(world)
 
         self.player = deepcopy(player)
-        self.inital_player = deepcopy(player)
+        self.initial_player = deepcopy(player)
 
         self.tasks = TaskList(
             tasks=tasks,
