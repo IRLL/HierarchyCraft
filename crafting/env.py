@@ -186,8 +186,8 @@ class CraftingEnv(gym.Env):
 
     def reset(self) -> np.ndarray:
         self.steps = 0
-        self.player = deepcopy(self.inital_player)
-        self.world = deepcopy(self.inital_world)
+        self.player = deepcopy(self.initial_player)
+        self.world = deepcopy(self.initial_world)
         self.tasks.reset()
 
         observation = self.get_observation()
