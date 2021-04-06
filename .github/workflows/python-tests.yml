@@ -3,7 +3,7 @@
 
 name: Python tests
 
-on: ["push", "merge"]
+on: ["push"]
 
 jobs:
   build:
