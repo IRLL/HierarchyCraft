@@ -34,6 +34,8 @@ class Item():
         self.item_id = item_id
         self.name = name
         self.required_tools = required_tools
+        if isinstance(self.required_tools, (list, tuple)) and len(self.required_tools) == 0:
+            self.required_tools = None
 
     def __eq__(self, item):
         if isinstance(item, Item):

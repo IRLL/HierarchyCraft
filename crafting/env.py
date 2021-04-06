@@ -26,10 +26,10 @@ class CraftingEnv(gym.Env):
             moving_penalty: float=0.1,
         ):
         self.world = deepcopy(world)
-        self.inital_world = deepcopy(world)
+        self.initial_world = deepcopy(world)
 
         self.player = deepcopy(player)
-        self.inital_player = deepcopy(player)
+        self.initial_player = deepcopy(player)
 
         self.tasks = TaskList(
             tasks=tasks,
@@ -186,8 +186,8 @@ class CraftingEnv(gym.Env):
 
     def reset(self) -> np.ndarray:
         self.steps = 0
-        self.player = deepcopy(self.inital_player)
-        self.world = deepcopy(self.inital_world)
+        self.player = deepcopy(self.initial_player)
+        self.world = deepcopy(self.initial_world)
         self.tasks.reset()
 
         observation = self.get_observation()
