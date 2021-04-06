@@ -26,6 +26,20 @@ R_STICK = Recipe(280,
 )
 R_HAND = [R_WOOD_PLANK, R_STICK]
 
+# Zone modifiers
+#: Recipe of CRAFTING_TABLE (enable 'has_crafting' zone property)
+R_CRAFTING_TABLE = Recipe(58,
+    inputs=[ItemStack(WOOD_PLANK, 4)],
+    added_properties={'has_crafting': True}
+)
+#: Recipe of FURNACE (enable 'has_furnace' zone property)
+R_FURNACE = Recipe(61,
+    inputs=[ItemStack(COBBLESTONE, 8)],
+    added_properties={'has_furnace': True},
+    needed_properties={'has_crafting': True}
+)
+R_ZONE = [R_CRAFTING_TABLE, R_FURNACE]
+
 # Smelting
 #: Recipe of IRON_INGOT using PLANK
 R_IRON_INGOT_PLANK = Recipe(265,
@@ -40,20 +54,6 @@ R_GOLD_INGOT_PLANK = Recipe(266,
     needed_properties={'has_furnace': True}
 )
 R_SMELTING = [R_IRON_INGOT_PLANK, R_GOLD_INGOT_PLANK]
-
-# Zone modifiers
-#: Recipe of CRAFTING_TABLE (enable 'has_crafting' zone property)
-R_CRAFTING_TABLE = Recipe(58,
-    inputs=[ItemStack(WOOD_PLANK, 4)],
-    added_properties={'has_crafting': True}
-)
-#: Recipe of FURNACE (enable 'has_furnace' zone property)
-R_FURNACE = Recipe(61,
-    inputs=[ItemStack(COBBLESTONE, 8)],
-    added_properties={'has_furnace': True},
-    needed_properties={'has_crafting': True}
-)
-R_ZONE = [R_CRAFTING_TABLE, R_FURNACE]
 
 # Wooden Tools
 #: Recipe of WOODEN_PICKAXE

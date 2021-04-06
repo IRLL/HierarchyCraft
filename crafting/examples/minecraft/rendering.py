@@ -232,7 +232,7 @@ def make_menus(resources_path: str, window_shape: tuple):
     )
 
     items_images_path = os.path.join(resources_path, 'items')
-    for item in MC_FOUDABLE_ITEMS:
+    for item in MC_SEARCHABLE_ITEMS:
         image_path = os.path.join(items_images_path, f"{item.item_id}.png")
         image = pygame_menu.baseimage.BaseImage(image_path).scale(0.5, 0.5)
 
