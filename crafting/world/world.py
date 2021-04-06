@@ -90,3 +90,21 @@ class World():
         one_hot_zones = observation[n_items:n_items + n_zones]
         zone_slot = np.where(one_hot_zones)[0][0]
         return self.zones[zone_slot].zone_id
+
+    def __str__(self):
+        world_str = "\nItems"
+        for item in self.items:
+            requitements_txt = ""
+            if item.required_tools is not None:
+                requitements_txt = f"<- {item.required_tools}"        
+            world_str += f"\n  {item}{requitements_txt}"
+
+        world_str += "\nZones"
+        for zone in self.zones:
+            world_str += "\n  " + repr(zone)
+
+        world_str += "\nRecipes"
+        for recipe in self.recipes:
+            world_str += "\n  " + str(recipe)
+
+        return world_str
