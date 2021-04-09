@@ -7,7 +7,7 @@ Crafting environment adapted to the Minecraft inventory
 
 """
 
-from typing import List, Tuple, Union, Dict
+from typing import List, Tuple, Dict
 
 import numpy as np
 
@@ -25,23 +25,45 @@ class RandomCraftingEnv(CraftingEnv):
 
     """ Random Crafting Environment """
 
-    def __init__(self,
-            n_items:int, n_tools:int,
-            n_foundables:int,
-            n_required_tools:List[float],
-            n_inputs_per_craft:List[float],
-            n_zones:int=1, **kwargs
-        ):
-        tasks = kwargs.pop('tasks', None)
+    def __init__(self, n_items:int, n_tools:int, n_foundables:int,
+            n_required_tools:List[float], n_inputs_per_craft:List[float],
+            n_zones:int=1, **kwargs):
+        """ Random Crafting Environment.
+
+        Args:
+            n_items: Total number of items to generate.
+            n_tools: Number of random tools to generate.
+            n_foundables: Number of random foundable items to generate.
+            n_required_tools: List of probabilities of having x requirements where x is the index.
+            n_inputs_per_craft: List of probabilities of having x+1 inputs where x is the index.
+            n_zones: Number of random zones to generate.
+
+        Kwargs:
+            max_step: The maximum number of steps until done.
+            verbose: Verbosity level. {0: quiet, 1: print actions results}.
+            observe_legal_actions: If True, add legal actions to observations.
+            tasks: List of tasks.
+            tasks_weights: Weight of tasks used for reward.
+            tasks_can_end: Whether task can end the environment.
+            tasks_early_stopping: If 'all', all task that can end have to be done to stop the
+                environment. If 'any', any task that can end will stop the environment when done.
+            fail_penalty: Reward penalty for each non-successful action.
+            timestep_penalty: Reward penalty for each timestep.
+            moving_penalty: Reward penalty for moving to an other zone.
+
+        """
 
         world, initial_zone = self.build_world(
-            n_items=n_items, n_tools=n_tools,
+            n_items=n_items,
+            n_tools=n_tools,
             n_foundables=n_foundables,
+            n_zones=n_zones,
             n_required_tools=n_required_tools,
             n_inputs_per_craft=n_inputs_per_craft,
             n_zones=n_zones
         )
 
+        tasks = kwargs.pop('tasks', None)
         player = Player(Inventory(world.items), initial_zone)
         super().__init__(
             world=world,
@@ -50,19 +72,29 @@ class RandomCraftingEnv(CraftingEnv):
             **kwargs
         )
 
-    def build_world(self,
-        n_items, n_tools, n_foundables,
-        n_required_tools, n_inputs_per_craft,
-        n_zones
-    ) -> World:
-        tools = [
-            Tool(i, f'item_{i}')
-            for i in range(n_tools)
-        ]
-        craftables = [
-            Item(n_tools + i, f'item_{n_tools + i}')
-            for i in range(n_items - n_foundables- n_tools)
-        ]
+    def build_world(self, n_items:int, n_tools:int, n_foundables:int, n_zones:int,
+            n_required_tools:List[float], n_inputs_per_craft:List[float]) -> World:
+        """ Build a random world.
+
+        Args:
+            n_items: Total number of items to generate.
+            n_tools: Number of random tools to generate.
+            n_foundables: Number of random foundable items to generate.
+            n_zones: Number of random zones to generate.
+            n_required_tools: List of probabilities of having x requirements where x is the index.
+            n_inputs_per_craft: List of probabilities of having x+1 inputs where x is the index.
+
+        Returns:
+            A randomly built World.
+
+        """
+
+        if n_items < n_tools + n_foundables:
+            raise ValueError(f'n_items must be >= n_tools + n_foundables'
+                             f'\nGot {n_items} < {n_tools} + {n_foundables}')
+
+        tools = [Tool(i, 'tool') for i in range(n_tools)]
+        craftables = [Item(n_tools + i, 'item') for i in range(n_items - n_foundables- n_tools)]
 
         foundables, items_per_zones, items_per_tool = self._build_foundables(
             n_foundables, n_required_tools, tools, n_zones, offset_id=n_items-n_foundables
@@ -77,17 +109,13 @@ class RandomCraftingEnv(CraftingEnv):
         return world, zones[0]
 
     @staticmethod
-    def _build_foundables(
-            n_foundables:int,
-            n_required_tools:List[float],
-            tools:List[Tool],
-            n_zones:int, offset_id:int=0
-        ) -> Tuple[List[Item], Dict[int, List[Item]]]:
+    def _build_foundables(n_foundables:int, n_required_tools:List[float], tools:List[Tool],
+            n_zones:int, offset_id:int=0) -> Tuple[List[Item], Dict[int, List[Item]]]:
         """ Build a random list of foundable items scattered accross potential zones.
 
         Args:
             n_foundables: Number of random foundable items to generate.
-            n_req: Probabilities (or weights) of having x requirements where x is the index.
+            n_required_tools: List of probabilities of having x requirements where x is the index.
             tools: List of tools that can be requirements.
             n_zones: Number of zones to scatter items into.
             offset_id: Offset added to each item_id of generated foundable items.
@@ -95,14 +123,14 @@ class RandomCraftingEnv(CraftingEnv):
         Returns:
             foundables: List of generated Items.
             items_per_zones: List of attributed zones for each Item generated.
-            items_per_tool: Dictionary mapping tool.item_id to all foundable items that require it.
+            items_per_tool: Dictionary mapping tool.item_id to all foundable items that requires it.
 
         """
-        foundables = []
+        foundables = [Item(offset_id, "found")]
         items_per_zones = [[] for _ in range(n_zones)]
         items_per_tool = {tool.item_id: [] for tool in tools}
 
-        for _ in range(n_foundables):
+        for _ in range(1, n_foundables):
             # Get required tools
             n_req_probs = np.array(n_required_tools) / np.sum(n_required_tools)
             n_req_tools = np.random.choice(range(len(n_required_tools)), p=n_req_probs)
@@ -110,7 +138,7 @@ class RandomCraftingEnv(CraftingEnv):
 
             # Build item
             item_id = offset_id + len(foundables)
-            new_foundable = Item(item_id, f"item_{item_id}", required_tools=required_tools)
+            new_foundable = Item(item_id, "found", required_tools=required_tools)
             foundables.append(new_foundable)
 
             # Assign item to each required_tool
@@ -138,7 +166,7 @@ class RandomCraftingEnv(CraftingEnv):
 
         Args:
             n_zones: Number of zones.
-            items_per_zones: Items to fill each zones.
+            items_per_zones: Items to fill each zones with.
 
         Returns:
             List of random zones.
@@ -147,12 +175,25 @@ class RandomCraftingEnv(CraftingEnv):
         zones = []
         for zone_id in range(n_zones):
             zone_items = items_per_zones[zone_id]
-            new_zone = Zone(zone_id, f'zone_{zone_id}', items=zone_items)
+            new_zone = Zone(zone_id, 'zone', items=zone_items)
             zones.append(new_zone)
         return zones
 
     @staticmethod
-    def _build_recipes(items, foundables, n_inputs_per_craft, items_per_tool):
+    def _build_recipes(items:List[Item], foundables:List[Item], n_inputs_per_craft:List[float],
+            items_per_tool:Dict[int, List[Item]]) -> List[Recipe]:
+        """ Build random recipes to make every item accessible.
+
+        Args:
+            items: List of items.
+            foundables: List of foundable items.
+            n_inputs_per_craft: List of probabilities of having x+1 inputs where x is the index.
+            items_per_tool: Dictionary mapping tool item_id to all foundable items that requires it.
+
+        Returns:
+            List of random recipes.
+
+        """
         recipes = []
         accessible_items = [
             foundable for foundable in foundables
@@ -161,7 +202,7 @@ class RandomCraftingEnv(CraftingEnv):
 
         unaccessible_items = [
             item for item in items
-            if item not in accessible_items
+            if item not in foundables
         ]
 
         while len(unaccessible_items) > 0:
@@ -181,6 +222,8 @@ class RandomCraftingEnv(CraftingEnv):
             if isinstance(new_accessible_item, Tool):
                 for new_accessible_item_by_tool in items_per_tool[new_accessible_item.item_id]:
                     accessible_items.append(new_accessible_item_by_tool)
+            else:
+                accessible_items.append(new_accessible_item)
 
         return recipes
 
@@ -190,6 +233,6 @@ if __name__ == "__main__":
         n_items=30, n_tools=10, n_foundables=10,
         n_required_tools=[0.25, 0.4, 0.2, 0.1, 0.05],
         n_inputs_per_craft=[0.1, 0.6, 0.3],
-        n_zones=3
+        n_zones=5
     )
     print(env.world)
