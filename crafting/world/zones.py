@@ -8,7 +8,7 @@ The Zones have special properties for finding or crafting items.
 
 """
 
-from typing import List, Dict
+from typing import List
 
 from crafting.world.items import Item, Tool, ItemStack
 

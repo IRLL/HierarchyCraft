@@ -232,7 +232,7 @@ def make_menus(resources_path: str, window_shape: tuple):
     )
 
     items_images_path = os.path.join(resources_path, 'items')
-    for item in MC_FOUDABLE_ITEMS:
+    for item in MC_SEARCHABLE_ITEMS:
         image_path = os.path.join(items_images_path, f"{item.item_id}.png")
         image = pygame_menu.baseimage.BaseImage(image_path).scale(0.5, 0.5)
 
@@ -413,7 +413,12 @@ def get_human_action(*args):
 
 if __name__ == '__main__':
     from crafting.examples import MineCraftingEnv
+    import matplotlib.pyplot as plt
     env = MineCraftingEnv(verbose=1, max_step=30, tasks=['obtain_diamond'], tasks_can_end=[True])
+
+    fig, ax = plt.subplots()
+    env.world.draw_requirements_graph(ax)
+    plt.show()
 
     for _ in range(2):
         observation = env.reset()
