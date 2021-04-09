@@ -13,18 +13,34 @@ from crafting.player.player import Player
 from crafting.task import Task, TaskList
 
 class CraftingEnv(gym.Env):
+
+    """ Generic Crafting Environment """
+
     metadata = {'render.modes': ['human', 'ansi']}
 
-    def __init__(self, world: World, player: Player,
-            max_step: int=500, verbose: int=0,
-            observe_legal_actions: bool=False,
-            tasks: List[Union[str, Task]]=None,
-            tasks_weights: Union[list, dict]=None,
-            tasks_can_end: Union[list, dict]=None,
-            fail_penalty: float=0.1,
-            timestep_penalty: float=0.01,
-            moving_penalty: float=0.1,
-        ):
+    def __init__(self, world: World, player: Player, 
+            max_step: int=500, verbose: int=0, observe_legal_actions: bool=False,
+            tasks: List[Union[str, Task]]=None, tasks_weights: Union[list, dict]=None,
+            tasks_can_end: Union[list, dict]=None, tasks_early_stopping: str='all',
+            fail_penalty: float=0.1, timestep_penalty: float=0.01, moving_penalty: float=0.1):
+        """ Generic Crafting Environment.
+
+        Args:
+            world: The world containing items, crafts and zones.
+            player: The player containing an inventory and a position.
+            max_step: The maximum number of steps until done.
+            verbose: Verbosity level. {0: quiet, 1: print actions results}.
+            observe_legal_actions: If True, add legal actions to observations.
+            tasks: List of tasks.
+            tasks_weights: Weight of tasks used for reward.
+            tasks_can_end: Whether task can end the environment.
+            tasks_early_stopping: If 'all', all task that can end have to be done to stop the
+                environment. If 'any', any task that can end will stop the environment when done.
+            fail_penalty: Reward penalty for each non-successful action.
+            timestep_penalty: Reward penalty for each timestep.
+            moving_penalty: Reward penalty for moving to an other zone.
+
+        """
         self.world = deepcopy(world)
         self.initial_world = deepcopy(world)
 
@@ -34,7 +50,8 @@ class CraftingEnv(gym.Env):
         self.tasks = TaskList(
             tasks=tasks,
             tasks_weights=tasks_weights,
-            tasks_can_end=tasks_can_end
+            tasks_can_end=tasks_can_end,
+            early_stopping=tasks_early_stopping
         )
 
         self.fail_penalty = fail_penalty
