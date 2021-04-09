@@ -124,8 +124,10 @@ class RandomCraftingEnv(CraftingEnv):
             items_per_tool: Dictionary mapping tool.item_id to all foundable items that requires it.
 
         """
-        foundables = [Item(offset_id, "found")]
+        original_item = Item(offset_id, "found")
+        foundables = [original_item]
         items_per_zones = [[] for _ in range(n_zones)]
+        items_per_zones[0].append(original_item)
         items_per_tool = {tool.item_id: [] for tool in tools}
 
         for _ in range(1, n_foundables):

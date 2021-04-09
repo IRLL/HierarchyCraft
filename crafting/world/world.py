@@ -229,7 +229,7 @@ class World():
             labels=dict(graph.nodes(data='label'))
         )
 
-        # Create the legend
+        # Create the legend patches
         legend_patches = [
             mpatches.Patch(facecolor='none', edgecolor='cyan', label='Tool'),
             mpatches.Patch(facecolor='none', edgecolor='green', label='Item (foundable)'),
@@ -256,6 +256,7 @@ class World():
                 facecolor='green', edgecolor='none', label='Drop')
             legend_arrows.append(drop_legend)
 
+        # Draw the legend
         ax.legend(
             handles=legend_patches + legend_arrows,
             handler_map={
