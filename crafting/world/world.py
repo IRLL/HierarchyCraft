@@ -131,7 +131,7 @@ class World():
                 type="item",
                 color=color,
                 item_id=item.item_id,
-                label=item.name.capitalize()
+                label=f"{item.name.capitalize()}({item.item_id})"
             )
 
         # Add properties nodes
