@@ -19,10 +19,10 @@ class CraftingEnv(gym.Env):
     metadata = {'render.modes': ['human', 'ansi']}
 
     def __init__(self, world: World, player: Player, 
-            max_step: int=500, verbose: int=0, observe_legal_actions: bool=False,
-            tasks: List[Union[str, Task]]=None, tasks_weights: Union[list, dict]=None,
-            tasks_can_end: Union[list, dict]=None, tasks_early_stopping: str='all',
-            fail_penalty: float=0.1, timestep_penalty: float=0.01, moving_penalty: float=0.1):
+        max_step: int=500, verbose: int=0, observe_legal_actions: bool=False,
+        tasks: List[Union[str, Task]]=None, tasks_weights: Union[list, dict]=None,
+        tasks_can_end: Union[list, dict]=None, tasks_early_stopping: str='all',
+        fail_penalty: float=0.1, timestep_penalty: float=0.01, moving_penalty: float=0.1):
         """ Generic Crafting Environment.
 
         Args:
@@ -99,8 +99,15 @@ class CraftingEnv(gym.Env):
             [str(prop) for prop in self.world.zone_properties]
         ))
 
-    def action(self, *args) -> int:
-        return self.world.action(*args)
+    def action(self, action_type:str, identification:int) -> int:
+        """ Return action_id from action type and identifier.
+        
+        Args:
+            action_type: One of {'get', 'craft', 'move'}.
+            identification: Id of the item, recipe or zone.
+        
+        """
+        return self.world.action(action_type, identification)
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
         previous_observation = self.get_observation()

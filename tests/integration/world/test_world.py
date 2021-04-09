@@ -68,7 +68,7 @@ def items(dirt, wood, stone, plank, stick, air, wooden_pickaxe):
 
 @pytest.fixture
 def world(items, forest, underground, recipe_wooden_pickaxe, recipe_crafting_table):
-    return World([forest, underground], items, [recipe_wooden_pickaxe, recipe_crafting_table])
+    return World(items, [recipe_wooden_pickaxe, recipe_crafting_table], [forest, underground])
 
 def test_init(world, underground):
     print('Items:', world.items)

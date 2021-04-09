@@ -61,7 +61,7 @@ UNDERGROUND = Zone(1, 'underground', [STONE, DIRT])
 
 @pytest.fixture
 def world():
-    return World([FOREST, UNDERGROUND], ITEMS, RECIPES)
+    return World(ITEMS, RECIPES, [FOREST, UNDERGROUND])
 
 @pytest.fixture
 def inv():
