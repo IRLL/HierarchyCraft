@@ -1,6 +1,6 @@
 gym
 numpy
-networkx
+networkx == 2.5.1
 matplotlib
 pygame >= 2.0.1
 pygame-menu @ git+https://github.com/ppizarror/pygame-menu.git#egg=pygame-menu

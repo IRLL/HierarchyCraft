@@ -1,5 +1,3 @@
 sphinx == 3.5.1
 sphinx_rtd_theme == 0.5.1
-numpy
-networkx
-matplotlib
+networkx == 2.5.1
