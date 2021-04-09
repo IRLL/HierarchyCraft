@@ -53,7 +53,9 @@ add_module_names = False
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/', None),
-    'numpy': ('http://docs.scipy.org/doc/numpy/', None)
+    'numpy': ('http://docs.scipy.org/doc/numpy/', None),
+    'networkx': ('https://networkx.org/documentation/latest', None),
+    'matplotlib': ('http://matplotlib.sourceforge.net/', None)
 }
 
 # Add any paths that contain templates here, relative to this directory.
