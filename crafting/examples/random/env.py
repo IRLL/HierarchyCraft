@@ -60,7 +60,6 @@ class RandomCraftingEnv(CraftingEnv):
             n_zones=n_zones,
             n_required_tools=n_required_tools,
             n_inputs_per_craft=n_inputs_per_craft,
-            n_zones=n_zones
         )
 
         tasks = kwargs.pop('tasks', None)
@@ -102,7 +101,6 @@ class RandomCraftingEnv(CraftingEnv):
         zones = self._build_zones(n_zones, items_per_zones)
 
         items = tools + craftables + foundables
-
         recipes = self._build_recipes(items, foundables, n_inputs_per_craft, items_per_tool)
 
         world = World(zones=zones, items=items, recipes=recipes)
@@ -218,7 +216,6 @@ class RandomCraftingEnv(CraftingEnv):
             new_recipe = Recipe(len(recipes), inputs=inputs, outputs=outputs)
             recipes.append(new_recipe)
 
-            accessible_items.append(new_accessible_item)
             if isinstance(new_accessible_item, Tool):
                 for new_accessible_item_by_tool in items_per_tool[new_accessible_item.item_id]:
                     accessible_items.append(new_accessible_item_by_tool)
@@ -229,10 +226,14 @@ class RandomCraftingEnv(CraftingEnv):
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
     env = RandomCraftingEnv(
         n_items=30, n_tools=10, n_foundables=10,
         n_required_tools=[0.25, 0.4, 0.2, 0.1, 0.05],
         n_inputs_per_craft=[0.1, 0.6, 0.3],
         n_zones=5
     )
-    print(env.world)
+
+    fig, ax = plt.subplots()
+    env.world.draw_requirements_graph(ax)
+    plt.show()
