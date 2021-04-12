@@ -11,6 +11,7 @@ import numpy as np
 import networkx as nx
 
 import matplotlib.pyplot as plt
+plt.style.use('dark_background')
 import matplotlib.patches as mpatches
 from matplotlib.legend_handler import HandlerPatch
 
@@ -204,20 +205,45 @@ class World():
         """
         graph = self.get_requirements_graph()
         pos, nodes_by_level = leveled_layout(graph)
+        compute_color(graph)
 
+        dashed_edges = [
+            (u, v)
+            for u, v, style in graph.edges(data='linestyle', default=None)
+            if style == 'dashed'
+        ]
+
+        # Dashed edges
         nx.draw_networkx_edges(
             graph, pos,
+            edgelist=dashed_edges,
             ax=ax,
             arrowsize=40,
             arrowstyle="->",
-            connectionstyle=None,
-            edge_color=[color for _, _, color in graph.edges(data='color')]
+            style=(0, (8, 4)),
+            edge_color=[graph.edges[u, v]['color'] for u, v in dashed_edges]
+        )
+
+        plain_edges = [
+            (u, v)
+            for u, v, style in graph.edges(data='linestyle', default=None)
+            if style is None
+        ]
+
+        # Plain edges
+        nx.draw_networkx_edges(
+            graph, pos,
+            edgelist=plain_edges,
+            ax=ax,
+            arrowsize=40,
+            arrowstyle="->",
+            edge_color=[graph.edges[u, v]['color'] for u, v in plain_edges]
         )
 
         nx.draw_networkx_nodes(
             graph, pos,
             ax=ax,
-            alpha=0.3,
+            alpha=0.8,
             node_color=[color for _, color in graph.nodes(data='color')],
             node_shape="H",
         )
@@ -225,6 +251,7 @@ class World():
         nx.draw_networkx_labels(
             graph, pos,
             ax=ax,
+            font_color='white',
             labels=dict(graph.nodes(data='label'))
         )
 
@@ -273,9 +300,8 @@ class World():
         # Add Hierarchies numbers
         for level in nodes_by_level:
             level_poses = np.array([pos[node] for node in nodes_by_level[level]])
-            min_x = np.min(level_poses[:, 0])
             mean_y = np.mean(level_poses[:, 1])
-            ax.text(min_x-0.75, mean_y, str(level), ha='right', va='center')
+            ax.text(-0.15, mean_y, str(level), ha='right', va='center')
         return ax
 
     def __str__(self):
@@ -296,6 +322,20 @@ class World():
 
         return world_str
 
+
+def compute_color(graph:nx.DiGraph):
+    alphas = [1, 1, 0.9, 0.8, 0.7, 0.5, 0.4, 0.3]
+    for node in graph.nodes():
+        successors = list(graph.successors(node))
+        for succ in successors:
+            alpha = 0.2
+            if graph.nodes[node]['level'] < graph.nodes[succ]['level']:
+                if len(successors) < len(alphas):
+                    alpha = alphas[len(successors)-1]
+            else:
+                graph.edges[node, succ]['linestyle'] = "dashed"
+            if isinstance(graph.edges[node, succ]['color'], list):
+                graph.edges[node, succ]['color'][3] = alpha
 
 def compute_levels(graph:nx.DiGraph, weak_edges_type:List[str]=("tool_requirement",)):
     """ Compute the hierachical levels of all DiGraph nodes given some weak_edges.
@@ -334,11 +374,6 @@ def compute_levels(graph:nx.DiGraph, weak_edges_type:List[str]=("tool_requiremen
         for node in graph.nodes():
             predecessors = list(graph.predecessors(node))
 
-            # Alpha color
-            alpha = 1 / max(1, len(predecessors))
-            for pred in predecessors:
-                graph.edges[pred, node]['color'][3] = alpha
-
             if len(predecessors) == 0:
                 level = 0
             else:
@@ -347,12 +382,6 @@ def compute_levels(graph:nx.DiGraph, weak_edges_type:List[str]=("tool_requiremen
                     all_nodes_have_level = False
             if 'level' in graph.nodes[node] and graph.nodes[node]['level'] != level:
                 all_nodes_have_level = False
-
-            # Alpha color
-            successors = list(graph.successors(node))
-            alpha = 1 / max(1, len(successors))
-            for succ in successors:
-                graph.edges[node, succ]['color'][3] = alpha
 
             graph.nodes[node]['level'] = level
 
@@ -379,16 +408,22 @@ def leveled_layout(graph:nx.DiGraph, center=None):
 
     pos = {}
     for level in nodes_by_level:
-        for node in nodes_by_level[level]:
-            pos[node] = [np.random.random(), -level]
+        n_nodes_in_level = len(nodes_by_level[level])
+        if n_nodes_in_level > 1:
+            spacing = np.linspace(0, 1, n_nodes_in_level)
+        else:
+            spacing = [0.5]
+        for i, node in enumerate(nodes_by_level[level]):
+            pos[node] = [spacing[i], -level]
 
     def dist(x, y):
         x_arr, y_arr = np.array(x), np.array(y)
         return np.linalg.norm(x_arr-y_arr)
 
-    edge_strenght = 10
-    node_strenght = 10
-    for iteration in range(100):
+    edge_strenght = 0
+    node_strenght = 0
+    alpha = 0.01
+    for _ in range(100):
         delta_pos_attract = {node: 0 for node in pos}
         delta_pos_repulse = {node: 0 for node in pos}
         for level in nodes_by_level:
@@ -411,11 +446,11 @@ def leveled_layout(graph:nx.DiGraph, center=None):
                 if len(predecessors_delta) > 0:
                     all_edges = predecessors_delta + successors_delta
                     delta = np.mean(all_edges) / len(all_edges)
-                    delta_pos_repulse[node] -= edge_strenght * delta
+                    delta_pos_repulse[node] += edge_strenght * delta
 
         for node in pos:
-            pos[node][0] += delta_pos_attract[node]
+            pos[node][0] = np.clip(pos[node][0] + alpha * delta_pos_attract[node], 0 , 1)
         for node in pos:
-            pos[node][0] += delta_pos_repulse[node]
+            pos[node][0] = np.clip(pos[node][0] + alpha * delta_pos_repulse[node], 0 , 1)
 
     return pos, nodes_by_level
