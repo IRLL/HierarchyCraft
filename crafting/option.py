@@ -1,7 +1,7 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
-from typing import List
+from typing import List, Dict
 
 from crafting.world.world import World
 
@@ -23,36 +23,33 @@ class Option():
 
 class GetItem(Option):
 
-    def __init__(self, world: World, items_needed:List[List[tuple]],
-            last_action: tuple, zones_id_needed=None, zones_properties_needed=None):
+    def __init__(self, world: World, all_get_options: Dict[int, Option],
+            items_needed:List[List[tuple]],
+            last_action: tuple,
+            zones_id_needed=None, zones_properties_needed=None):
         self.world = world
         self.items_needed = items_needed
         self.zones_id_needed = zones_id_needed
         self.zones_properties_needed = zones_properties_needed
         self.last_action = last_action
+        self.all_get_options = all_get_options
 
     def gather_items(self, observation):
+        if len(self.items_needed) == 0:
+            return None
         action_for_craft_option = [None for _ in self.items_needed]
         for i, craft_option in enumerate(self.items_needed):
-            for item_id, quantity_needed, get_item_option in craft_option:
+            for item_id, quantity_needed in craft_option:
                 if action_for_craft_option[i] is None:
                     item_slot = self.world.item_id_to_slot[item_id]
                     inventory_content = observation[:self.world.n_items]
                     if inventory_content[item_slot] < quantity_needed:
-                        if isinstance(get_item_option, tuple):
-                            action_for_craft_option[i] = self.action(*get_item_option)
-                        elif isinstance(get_item_option, int):
-                            action_for_craft_option[i] = get_item_option
-                        elif isinstance(get_item_option, Option):
-                            action_for_craft_option[i] = get_item_option(observation)
-                        else:
-                            raise TypeError(
-                                'items_needed tuples must contain a int,'
-                                'tuple or Option in last position '
-                                'and thus for every crafting possibility.'
-                            )
+                        get_item_option = self.all_get_options[item_id]
+                        action_for_craft_option[i] = get_item_option(observation)[0]
+            if action_for_craft_option[i] is None:
+                break
 
-        if all([action is not None for action in action_for_craft_option]):
+        if all(action is not None for action in action_for_craft_option):
             return action_for_craft_option[0]
 
     def move_to_zone(self, observation):
@@ -83,7 +80,7 @@ class GetItem(Option):
 
     def __str__(self):
         string = ""
-        if len(self.items_needed[0]) > 0:
+        if len(self.items_needed) > 0 and len(self.items_needed[0]) > 0:
             string += f"  Required {self.items_needed}"
         if self.zones_id_needed is not None and len(self.zones_id_needed) > 0:
             if len(string) > 0:

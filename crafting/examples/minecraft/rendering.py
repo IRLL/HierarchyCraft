@@ -413,12 +413,20 @@ def get_human_action(*args):
 
 if __name__ == '__main__':
     from crafting.examples import MineCraftingEnv
+    from crafting.examples.minecraft.options import ALL_GET_OPTIONS
     import matplotlib.pyplot as plt
     env = MineCraftingEnv(verbose=1, max_step=30, tasks=['obtain_diamond'], tasks_can_end=[True])
 
-    fig, ax = plt.subplots()
-    env.world.draw_requirements_graph(ax)
-    plt.show()
+    # fig, ax = plt.subplots()
+    # env.world.draw_requirements_graph(ax)
+    # plt.show()
+
+    wood_option = ALL_GET_OPTIONS[WOOD.item_id]
+    print(f"{WOOD}\n{wood_option}")
+    diamond_option = ALL_GET_OPTIONS[DIAMOND.item_id]
+    print(f"{DIAMOND}\n{diamond_option}")
+    wooden_pickaxe_option = ALL_GET_OPTIONS[WOODEN_PICKAXE.item_id]
+    print(f"{WOODEN_PICKAXE}\n{wooden_pickaxe_option}")
 
     for _ in range(2):
         observation = env.reset()
@@ -427,4 +435,18 @@ if __name__ == '__main__':
             env.render()
             action = get_human_action(env, *env.render_variables)
             action_id = env.action(*action)
+            print(f'Human: {env.action_from_id(action_id)}')
+
+            print('---Wood---')
+            wood_action_id, _ = wood_option(observation)
+            print(f'For Wood: {env.action_from_id(wood_action_id)}')
+
+            print('---Wooden_pickaxe---')
+            wooden_pickaxe_action_id, _ = wooden_pickaxe_option(observation)
+            print(f'For Wooden_pickaxe: {env.action_from_id(wooden_pickaxe_action_id)}')
+
+            print('---Diamond---')
+            diamond_action_id, _ = diamond_option(observation)
+            print(f'For Diamond: {env.action_from_id(diamond_action_id)}')
+
             observation, reward, done, infos = env(action_id)
