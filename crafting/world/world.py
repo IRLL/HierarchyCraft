@@ -147,7 +147,7 @@ class World():
         # Add recipes edges
         def _add_crafts(in_nodes, out_node):
             for node in in_nodes:
-                graph.add_edge(node, out_node, type="craft", color="red")
+                graph.add_edge(node, out_node, type="craft", color=[1, 0, 0, 1])
 
         for recipe in self.recipes:
 
@@ -177,7 +177,7 @@ class World():
                 for tool in foundable_item.required_tools:
                     graph.add_edge(
                         tool.item_id, foundable_item.item_id,
-                        type="tool_requirement", color="cyan"
+                        type="tool_requirement", color=[0, 1, 1, 1]
                     )
 
             if hasattr(foundable_item, "items_dropped"):
@@ -185,7 +185,7 @@ class World():
                     if dropped_item != foundable_item:
                         graph.add_edge(
                             foundable_item.item_id, dropped_item.item_id,
-                            type="drop", color="green"
+                            type="drop", color=[0, 1, 0, 1]
                         )
 
         compute_levels(graph)
@@ -209,7 +209,6 @@ class World():
             graph, pos,
             ax=ax,
             arrowsize=40,
-            alpha=0.6,
             arrowstyle="->",
             connectionstyle=None,
             edge_color=[color for _, _, color in graph.edges(data='color')]
@@ -334,6 +333,12 @@ def compute_levels(graph:nx.DiGraph, weak_edges_type:List[str]=("tool_requiremen
         all_nodes_have_level = True
         for node in graph.nodes():
             predecessors = list(graph.predecessors(node))
+
+            # Alpha color
+            alpha = 1 / max(1, len(predecessors))
+            for pred in predecessors:
+                graph.edges[pred, node]['color'][3] = alpha
+
             if len(predecessors) == 0:
                 level = 0
             else:
@@ -342,6 +347,12 @@ def compute_levels(graph:nx.DiGraph, weak_edges_type:List[str]=("tool_requiremen
                     all_nodes_have_level = False
             if 'level' in graph.nodes[node] and graph.nodes[node]['level'] != level:
                 all_nodes_have_level = False
+
+            # Alpha color
+            successors = list(graph.successors(node))
+            alpha = 1 / max(1, len(successors))
+            for succ in successors:
+                graph.edges[node, succ]['color'][3] = alpha
 
             graph.nodes[node]['level'] = level
 
@@ -368,7 +379,43 @@ def leveled_layout(graph:nx.DiGraph, center=None):
 
     pos = {}
     for level in nodes_by_level:
-        for i, node in enumerate(nodes_by_level[level]):
-            pos[node] = [i, -level]
+        for node in nodes_by_level[level]:
+            pos[node] = [np.random.random(), -level]
+
+    def dist(x, y):
+        x_arr, y_arr = np.array(x), np.array(y)
+        return np.linalg.norm(x_arr-y_arr)
+
+    edge_strenght = 10
+    node_strenght = 10
+    for iteration in range(100):
+        delta_pos_attract = {node: 0 for node in pos}
+        delta_pos_repulse = {node: 0 for node in pos}
+        for level in nodes_by_level:
+            for node in nodes_by_level[level]:
+                nodes_delta = [
+                    (pos[node][0] - pos[n][0]) / max(1e-1, (pos[node][0] - pos[n][0]) ** 2)
+                    for n in nodes_by_level[level] if n != node
+                ]
+                if len(nodes_delta) > 0:
+                    delta_pos_attract[node] += node_strenght * np.mean(nodes_delta)
+
+                predecessors_delta = [
+                    -(pos[node][0] - pos[n][0])/ max(1e-2, dist(pos[node], pos[n]))
+                    for n in graph.predecessors(node)
+                ]
+                successors_delta =  [
+                    -(pos[node][0] - pos[n][0])/ max(1e-2, dist(pos[node], pos[n]))
+                    for n in graph.successors(node)
+                ]
+                if len(predecessors_delta) > 0:
+                    all_edges = predecessors_delta + successors_delta
+                    delta = np.mean(all_edges) / len(all_edges)
+                    delta_pos_repulse[node] -= edge_strenght * delta
+
+        for node in pos:
+            pos[node][0] += delta_pos_attract[node]
+        for node in pos:
+            pos[node][0] += delta_pos_repulse[node]
 
     return pos, nodes_by_level
