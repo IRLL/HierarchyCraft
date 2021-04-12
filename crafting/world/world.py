@@ -102,6 +102,22 @@ class World():
             action_id += self.zone_id_to_slot[identification]
         return action_id
 
+    def action_from_id(self, action_id:int) -> str:
+        """ Describe the action_id effects. """
+        offset = 0
+        if action_id < self.n_foundable_items:
+            action_type = 'get'
+            object_concerned = self.foundable_items[action_id]
+        elif 0 <= action_id + self.n_foundable_items < self.n_recipes:
+            offset = self.n_foundable_items
+            action_type = 'craft'
+            object_concerned = self.recipes[action_id - offset]
+        elif action_id >= self.n_foundable_items + self.n_recipes:
+            action_type = 'move'
+            offset = self.n_foundable_items + self.n_recipes
+            object_concerned = self.zones[action_id - offset]
+        return f"{action_type.capitalize()} {object_concerned}"
+
     def zone_id_from_observation(self, observation):
         """ Return the player zone from an observation. """
         n_items = self.n_items
