@@ -6,6 +6,7 @@
 """
 
 from typing import List
+from copy import deepcopy
 
 import numpy as np
 import networkx as nx
@@ -407,50 +408,96 @@ def leveled_layout(graph:nx.DiGraph, center=None):
             nodes_by_level[level] = [node]
 
     pos = {}
+    step_size = 1 / max(len(nodes_by_level[level]) for level in nodes_by_level)
+    spacing = np.arange(0, 1, step=step_size)
     for level in nodes_by_level:
         n_nodes_in_level = len(nodes_by_level[level])
         if n_nodes_in_level > 1:
-            spacing = np.linspace(0, 1, n_nodes_in_level)
+            positions = np.linspace(0, len(spacing)-1, n_nodes_in_level,
+                endpoint=True, dtype=np.int32)
+            positions = spacing[positions]
         else:
-            spacing = [0.5]
+            positions = [spacing[(len(spacing)-1)//2]]
+
         for i, node in enumerate(nodes_by_level[level]):
-            pos[node] = [spacing[i], -level]
+            pos[node] = [positions[i], -level]
 
-    def dist(x, y):
-        x_arr, y_arr = np.array(x), np.array(y)
-        return np.linalg.norm(x_arr-y_arr)
+    def energy(pos, nodes_by_level, nodes_strenght=1, edges_strenght=2):
 
-    edge_strenght = 0
-    node_strenght = 0
-    alpha = 0.01
-    for _ in range(100):
-        delta_pos_attract = {node: 0 for node in pos}
-        delta_pos_repulse = {node: 0 for node in pos}
+        def dist(x, y):
+            x_arr, y_arr = np.array(x), np.array(y)
+            return np.linalg.norm(x_arr-y_arr)
+
+        energy = 0
         for level in nodes_by_level:
-            for node in nodes_by_level[level]:
-                nodes_delta = [
-                    (pos[node][0] - pos[n][0]) / max(1e-1, (pos[node][0] - pos[n][0]) ** 2)
+            for node in nodes_by_level[level]:  
+                energy += nodes_strenght * sum(
+                    np.square(dist(pos[node], pos[n]))
                     for n in nodes_by_level[level] if n != node
-                ]
-                if len(nodes_delta) > 0:
-                    delta_pos_attract[node] += node_strenght * np.mean(nodes_delta)
+                )
+                energy -= sum(
+                    edges_strenght \
+                        # *graph.edges[pred, node]['color'][3]\
+                        /abs(graph.nodes[node]['level'] - graph.nodes[pred]['level'])\
+                        /max(1e-6, dist(pos[node], pos[pred]))
+                    for pred in graph.predecessors(node)
+                )
+                energy -= sum(
+                    edges_strenght \
+                        # *graph.edges[node, succ]['color'][3]\
+                        /abs(graph.nodes[node]['level'] - graph.nodes[succ]['level'])\
+                        /max(1e-6, dist(pos[node], pos[succ]))
+                    for succ in graph.successors(node)
+                )
+        return energy
 
-                predecessors_delta = [
-                    -(pos[node][0] - pos[n][0])/ max(1e-2, dist(pos[node], pos[n]))
-                    for n in graph.predecessors(node)
-                ]
-                successors_delta =  [
-                    -(pos[node][0] - pos[n][0])/ max(1e-2, dist(pos[node], pos[n]))
-                    for n in graph.successors(node)
-                ]
-                if len(predecessors_delta) > 0:
-                    all_edges = predecessors_delta + successors_delta
-                    delta = np.mean(all_edges) / len(all_edges)
-                    delta_pos_repulse[node] += edge_strenght * delta
+    def neighbor(pos, step_size):
+        pos_copy = deepcopy(pos)
+        choosen_node = np.random.choice(list(pos_copy.keys()))
+        try:
+            choosen_node = int(choosen_node)
+        except ValueError:
+            pass
+        x, y = pos_copy[choosen_node][0], pos_copy[choosen_node][1]
 
-        for node in pos:
-            pos[node][0] = np.clip(pos[node][0] + alpha * delta_pos_attract[node], 0 , 1)
-        for node in pos:
-            pos[node][0] = np.clip(pos[node][0] + alpha * delta_pos_repulse[node], 0 , 1)
+        if x <= 0:
+            sign = 1
+        elif x >= 1:
+            sign = -1
+        else:
+            sign = np.random.choice((-1, 1))
+
+        new_pos = [x + sign * step_size, y]
+
+        for n in pos:
+            if n != choosen_node and np.all(np.isclose(new_pos, pos_copy[n])):
+                pos_copy[choosen_node], pos_copy[n] = pos_copy[n], pos_copy[choosen_node]
+                return pos_copy
+
+        pos_copy[choosen_node] = new_pos
+        return pos_copy
+
+    def prob_keep(temperature, delta_e, kb=1):
+        return min(1, np.exp(delta_e/kb/temperature))
+
+    max_iterations = 1000
+    max_iters_without_new = 100
+    iters_without_new = 0
+    boltzmann_factor = 50
+    initial_temperature = 0.1
+    energy_pos = energy(pos, nodes_by_level)
+    for k in range(max_iterations):
+        new_pos = neighbor(pos, step_size)
+        new_e = energy(new_pos, nodes_by_level)
+        temperature = initial_temperature/(k+1)
+        iters_without_new += 1
+        prob = prob_keep(temperature, energy_pos - new_e, boltzmann_factor)
+        if np.random.random() < prob:
+            print(f"{k}\t({prob:.0%})\t{energy_pos:.2f}->{new_e:.2f}", end='\r')
+            pos, energy_pos = new_pos, new_e
+            iters_without_new = 0
+
+        if iters_without_new >= max_iters_without_new:
+            break
 
     return pos, nodes_by_level
