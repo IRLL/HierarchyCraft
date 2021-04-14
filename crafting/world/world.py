@@ -17,6 +17,7 @@ from matplotlib.legend_handler import HandlerPatch
 from crafting.world.zones import Zone
 from crafting.world.items import Item, Tool
 from crafting.world.recipes import Recipe
+from crafting.option import GetItem
 
 
 class World():
@@ -84,7 +85,7 @@ class World():
             for prop in recipe.added_properties:
                 self.zone_properties.add(prop)
 
-        self.zone_properties = list(self.zone_properties)
+        self.zone_properties = np.array(list(self.zone_properties))
         self.n_zone_properties = len(self.zone_properties)
 
         self.n_actions = self.n_foundable_items + self.n_recipes + self.n_zones
@@ -102,13 +103,104 @@ class World():
             action_id += self.zone_id_to_slot[identification]
         return action_id
 
+    def action_from_id(self, action_id:int) -> str:
+        """ Describe the action_id effects. """
+        offset = 0
+        if action_id < self.n_foundable_items:
+            action_type = 'get'
+            object_concerned = self.foundable_items[action_id]
+        elif 0 <= action_id - self.n_foundable_items < self.n_recipes:
+            offset = self.n_foundable_items
+            action_type = 'craft'
+            object_concerned = self.recipes[action_id - offset]
+        elif action_id >= self.n_foundable_items + self.n_recipes:
+            action_type = 'move'
+            offset = self.n_foundable_items + self.n_recipes
+            object_concerned = self.zones[action_id - offset]
+        return f"{action_type.capitalize()} {object_concerned}"
+
     def zone_id_from_observation(self, observation):
         """ Return the player zone from an observation. """
-        n_items = self.n_items
-        n_zones = self.n_zones
-        one_hot_zones = observation[n_items:n_items + n_zones]
+        one_hot_zones = observation[self.n_items:self.n_items + self.n_zones]
         zone_slot = np.where(one_hot_zones)[0][0]
         return self.zones[zone_slot].zone_id
+
+    def properties_from_observation(self, observation):
+        """ Return the zone proprietes from an observation. """
+        one_hot_props = observation[self.n_items + self.n_zones:]
+        props_slot = np.where(one_hot_props)
+        return self.zone_properties[props_slot]
+
+    def get_all_get_options(self):
+        all_get_options = {}
+
+        for item in self.foundable_items:
+            zones_id_needed = []
+            for zone in self.zones:
+                if item.item_id in zone.items:
+                    zones_id_needed.append(zone.zone_id)
+
+            items_needed = []
+            if item.required_tools is not None:
+                for tool in item.required_tools:
+                    if tool.item_id == 0:
+                        crafting_option = []
+                    else:
+                        crafting_option = [(tool.item_id, 1)]
+                    items_needed.append(crafting_option)
+
+            if hasattr(item, 'items_dropped'):
+                for dropped_item in item.items_dropped:
+                    all_get_options[dropped_item.item_id] = GetItem(
+                        world=self,
+                        item=dropped_item,
+                        all_get_options=all_get_options,
+                        items_needed=items_needed,
+                        last_action=('get', item.item_id),
+                        zones_id_needed=zones_id_needed,
+                    )
+            else:
+                all_get_options[item.item_id] = GetItem(
+                    world=self,
+                    item=item,
+                    all_get_options=all_get_options,
+                    items_needed=items_needed,
+                    last_action=('get', item.item_id),
+                    zones_id_needed=zones_id_needed,
+                )
+
+        for recipe in self.recipes:
+
+            items_needed = [
+                [
+                    (itemstack.item_id, itemstack.size)
+                    for itemstack in recipe.inputs
+                ]
+            ]
+
+            if recipe.outputs is not None:
+                for output in recipe.outputs:
+                    all_get_options[output.item.item_id] = GetItem(
+                        world=self,
+                        item=output.item,
+                        all_get_options=all_get_options,
+                        items_needed=items_needed,
+                        zones_properties_needed=recipe.needed_properties,
+                        last_action=('craft', recipe.recipe_id),
+                    )
+
+            if recipe.added_properties is not None:
+                for zone_property in recipe.added_properties:
+                    all_get_options[zone_property] = GetItem(
+                        world=self,
+                        item=None,
+                        all_get_options=all_get_options,
+                        items_needed=items_needed,
+                        zones_properties_needed=recipe.needed_properties,
+                        last_action=('craft', recipe.recipe_id),
+                    )
+
+        return all_get_options
 
     def get_requirements_graph(self) -> nx.DiGraph:
         """ Build the world requirements graph.

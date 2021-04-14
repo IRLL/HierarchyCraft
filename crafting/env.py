@@ -101,13 +101,28 @@ class CraftingEnv(gym.Env):
 
     def action(self, action_type:str, identification:int) -> int:
         """ Return action_id from action type and identifier.
-        
+
         Args:
             action_type: One of {'get', 'craft', 'move'}.
             identification: Id of the item, recipe or zone.
-        
+    
+        Returns:
+            The corresponding discrete action ID.
+
         """
         return self.world.action(action_type, identification)
+
+    def action_from_id(self, action_id:int) -> str:
+        """ Return action_id from action type and identifier.
+
+        Args:
+            action_id: A discrete action ID.
+
+        Return:
+            The action type and object concerned by the action.
+
+        """
+        return self.world.action_from_id(action_id)
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
         previous_observation = self.get_observation()
