@@ -420,7 +420,7 @@ if __name__ == '__main__':
     # env.world.draw_requirements_graph(ax)
     # plt.show()
 
-    ALL_GET_OPTIONS = env.world.get_all_get_options()
+    ALL_GET_OPTIONS = env.world.get_all_options()
 
     wood_option = ALL_GET_OPTIONS[WOOD.item_id]
     print(wood_option)

@@ -12,9 +12,11 @@ from crafting.examples.minecraft.items import MC_CRAFT_ITEMS, MC_FOUDABLE_ITEMS
 from crafting.examples.minecraft.tools import MC_TOOLS
 
 MC_WORLD = McWorld()
-ALL_GET_OPTIONS = MC_WORLD.get_all_get_options()
+ALL_GET_OPTIONS = MC_WORLD.get_all_options()
 
 if __name__ == "__main__":
     MC_GETABLE_ITEMS = MC_FOUDABLE_ITEMS + MC_CRAFT_ITEMS + MC_TOOLS[1:]
     for item in MC_GETABLE_ITEMS:
-        print(ALL_GET_OPTIONS[item.item_id])
+        option = ALL_GET_OPTIONS[item.item_id]
+        print(option)
+        print(option.get_graph())

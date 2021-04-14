@@ -19,7 +19,7 @@ from matplotlib.legend_handler import HandlerPatch
 from crafting.world.zones import Zone
 from crafting.world.items import Item, Tool
 from crafting.world.recipes import Recipe
-from crafting.option import GetItem
+from crafting.option import GetItem, GoToZone
 
 
 class World():
@@ -133,8 +133,11 @@ class World():
         props_slot = np.where(one_hot_props)
         return self.zone_properties[props_slot]
 
-    def get_all_get_options(self):
-        all_get_options = {}
+    def get_all_options(self):
+        all_options = {}
+
+        for zone in self.zones:
+            all_options[str(zone)] = GoToZone(zone, self)
 
         for item in self.foundable_items:
             zones_id_needed = []
@@ -153,19 +156,19 @@ class World():
 
             if hasattr(item, 'items_dropped'):
                 for dropped_item in item.items_dropped:
-                    all_get_options[dropped_item.item_id] = GetItem(
+                    all_options[dropped_item.item_id] = GetItem(
                         world=self,
                         item=dropped_item,
-                        all_get_options=all_get_options,
+                        all_options=all_options,
                         items_needed=items_needed,
                         last_action=('get', item.item_id),
                         zones_id_needed=zones_id_needed,
                     )
             else:
-                all_get_options[item.item_id] = GetItem(
+                all_options[item.item_id] = GetItem(
                     world=self,
                     item=item,
-                    all_get_options=all_get_options,
+                    all_options=all_options,
                     items_needed=items_needed,
                     last_action=('get', item.item_id),
                     zones_id_needed=zones_id_needed,
@@ -182,10 +185,10 @@ class World():
 
             if recipe.outputs is not None:
                 for output in recipe.outputs:
-                    all_get_options[output.item.item_id] = GetItem(
+                    all_options[output.item.item_id] = GetItem(
                         world=self,
                         item=output.item,
-                        all_get_options=all_get_options,
+                        all_options=all_options,
                         items_needed=items_needed,
                         zones_properties_needed=recipe.needed_properties,
                         last_action=('craft', recipe.recipe_id),
@@ -193,16 +196,16 @@ class World():
 
             if recipe.added_properties is not None:
                 for zone_property in recipe.added_properties:
-                    all_get_options[zone_property] = GetItem(
+                    all_options[zone_property] = GetItem(
                         world=self,
                         item=None,
-                        all_get_options=all_get_options,
+                        all_options=all_options,
                         items_needed=items_needed,
                         zones_properties_needed=recipe.needed_properties,
                         last_action=('craft', recipe.recipe_id),
                     )
 
-        return all_get_options
+        return all_options
 
     def get_requirements_graph(self) -> nx.DiGraph:
         """ Build the world requirements graph.
