@@ -6,11 +6,13 @@
 """
 
 from typing import List
+from copy import deepcopy
 
 import numpy as np
 import networkx as nx
 
 import matplotlib.pyplot as plt
+plt.style.use('dark_background')
 import matplotlib.patches as mpatches
 from matplotlib.legend_handler import HandlerPatch
 
@@ -239,7 +241,7 @@ class World():
         # Add recipes edges
         def _add_crafts(in_nodes, out_node):
             for node in in_nodes:
-                graph.add_edge(node, out_node, type="craft", color="red")
+                graph.add_edge(node, out_node, type="craft", color=[1, 0, 0, 1])
 
         for recipe in self.recipes:
 
@@ -269,7 +271,7 @@ class World():
                 for tool in foundable_item.required_tools:
                     graph.add_edge(
                         tool.item_id, foundable_item.item_id,
-                        type="tool_requirement", color="cyan"
+                        type="tool_requirement", color=[0, 1, 1, 1]
                     )
 
             if hasattr(foundable_item, "items_dropped"):
@@ -277,7 +279,7 @@ class World():
                     if dropped_item != foundable_item:
                         graph.add_edge(
                             foundable_item.item_id, dropped_item.item_id,
-                            type="drop", color="green"
+                            type="drop", color=[0, 1, 0, 1]
                         )
 
         compute_levels(graph)
@@ -296,21 +298,45 @@ class World():
         """
         graph = self.get_requirements_graph()
         pos, nodes_by_level = leveled_layout(graph)
+        compute_color(graph)
 
+        dashed_edges = [
+            (u, v)
+            for u, v, style in graph.edges(data='linestyle', default=None)
+            if style == 'dashed'
+        ]
+
+        # Dashed edges
         nx.draw_networkx_edges(
             graph, pos,
+            edgelist=dashed_edges,
             ax=ax,
             arrowsize=40,
-            alpha=0.6,
             arrowstyle="->",
-            connectionstyle=None,
-            edge_color=[color for _, _, color in graph.edges(data='color')]
+            style=(0, (8, 4)),
+            edge_color=[graph.edges[u, v]['color'] for u, v in dashed_edges]
+        )
+
+        plain_edges = [
+            (u, v)
+            for u, v, style in graph.edges(data='linestyle', default=None)
+            if style is None
+        ]
+
+        # Plain edges
+        nx.draw_networkx_edges(
+            graph, pos,
+            edgelist=plain_edges,
+            ax=ax,
+            arrowsize=40,
+            arrowstyle="->",
+            edge_color=[graph.edges[u, v]['color'] for u, v in plain_edges]
         )
 
         nx.draw_networkx_nodes(
             graph, pos,
             ax=ax,
-            alpha=0.3,
+            alpha=0.8,
             node_color=[color for _, color in graph.nodes(data='color')],
             node_shape="H",
         )
@@ -318,6 +344,7 @@ class World():
         nx.draw_networkx_labels(
             graph, pos,
             ax=ax,
+            font_color='white',
             labels=dict(graph.nodes(data='label'))
         )
 
@@ -366,9 +393,8 @@ class World():
         # Add Hierarchies numbers
         for level in nodes_by_level:
             level_poses = np.array([pos[node] for node in nodes_by_level[level]])
-            min_x = np.min(level_poses[:, 0])
             mean_y = np.mean(level_poses[:, 1])
-            ax.text(min_x-0.75, mean_y, str(level), ha='right', va='center')
+            ax.text(-0.15, mean_y, str(level), ha='right', va='center')
         return ax
 
     def __str__(self):
@@ -389,6 +415,20 @@ class World():
 
         return world_str
 
+
+def compute_color(graph:nx.DiGraph):
+    alphas = [1, 1, 0.9, 0.8, 0.7, 0.5, 0.4, 0.3]
+    for node in graph.nodes():
+        successors = list(graph.successors(node))
+        for succ in successors:
+            alpha = 0.2
+            if graph.nodes[node]['level'] < graph.nodes[succ]['level']:
+                if len(successors) < len(alphas):
+                    alpha = alphas[len(successors)-1]
+            else:
+                graph.edges[node, succ]['linestyle'] = "dashed"
+            if isinstance(graph.edges[node, succ]['color'], list):
+                graph.edges[node, succ]['color'][3] = alpha
 
 def compute_levels(graph:nx.DiGraph, weak_edges_type:List[str]=("tool_requirement",)):
     """ Compute the hierachical levels of all DiGraph nodes given some weak_edges.
@@ -426,6 +466,7 @@ def compute_levels(graph:nx.DiGraph, weak_edges_type:List[str]=("tool_requiremen
         all_nodes_have_level = True
         for node in graph.nodes():
             predecessors = list(graph.predecessors(node))
+
             if len(predecessors) == 0:
                 level = 0
             else:
@@ -459,8 +500,96 @@ def leveled_layout(graph:nx.DiGraph, center=None):
             nodes_by_level[level] = [node]
 
     pos = {}
+    step_size = 1 / max(len(nodes_by_level[level]) for level in nodes_by_level)
+    spacing = np.arange(0, 1, step=step_size)
     for level in nodes_by_level:
+        n_nodes_in_level = len(nodes_by_level[level])
+        if n_nodes_in_level > 1:
+            positions = np.linspace(0, len(spacing)-1, n_nodes_in_level,
+                endpoint=True, dtype=np.int32)
+            positions = spacing[positions]
+        else:
+            positions = [spacing[(len(spacing)-1)//2]]
+
         for i, node in enumerate(nodes_by_level[level]):
-            pos[node] = [i, -level]
+            pos[node] = [positions[i], -level]
+
+    def energy(pos, nodes_by_level, nodes_strenght=1, edges_strenght=2):
+
+        def dist(x, y):
+            x_arr, y_arr = np.array(x), np.array(y)
+            return np.linalg.norm(x_arr-y_arr)
+
+        energy = 0
+        for level in nodes_by_level:
+            for node in nodes_by_level[level]:  
+                energy += nodes_strenght * sum(
+                    np.square(dist(pos[node], pos[n]))
+                    for n in nodes_by_level[level] if n != node
+                )
+                energy -= sum(
+                    edges_strenght \
+                        # *graph.edges[pred, node]['color'][3]\
+                        /abs(graph.nodes[node]['level'] - graph.nodes[pred]['level'])\
+                        /max(1e-6, dist(pos[node], pos[pred]))
+                    for pred in graph.predecessors(node)
+                )
+                energy -= sum(
+                    edges_strenght \
+                        # *graph.edges[node, succ]['color'][3]\
+                        /abs(graph.nodes[node]['level'] - graph.nodes[succ]['level'])\
+                        /max(1e-6, dist(pos[node], pos[succ]))
+                    for succ in graph.successors(node)
+                )
+        return energy
+
+    def neighbor(pos, step_size):
+        pos_copy = deepcopy(pos)
+        choosen_node = np.random.choice(list(pos_copy.keys()))
+        try:
+            choosen_node = int(choosen_node)
+        except ValueError:
+            pass
+        x, y = pos_copy[choosen_node][0], pos_copy[choosen_node][1]
+
+        if x <= 0:
+            sign = 1
+        elif x >= 1:
+            sign = -1
+        else:
+            sign = np.random.choice((-1, 1))
+
+        new_pos = [x + sign * step_size, y]
+
+        for n in pos:
+            if n != choosen_node and np.all(np.isclose(new_pos, pos_copy[n])):
+                pos_copy[choosen_node], pos_copy[n] = pos_copy[n], pos_copy[choosen_node]
+                return pos_copy
+
+        pos_copy[choosen_node] = new_pos
+        return pos_copy
+
+    def prob_keep(temperature, delta_e, kb=1):
+        return min(1, np.exp(delta_e/kb/temperature))
+
+    max_iterations = 1000
+    max_iters_without_new = 100
+    iters_without_new = 0
+    boltzmann_factor = 50
+    initial_temperature = 0.1
+    energy_pos = energy(pos, nodes_by_level)
+    for k in range(max_iterations):
+        new_pos = neighbor(pos, step_size)
+        new_e = energy(new_pos, nodes_by_level)
+        temperature = initial_temperature/(k+1)
+        iters_without_new += 1
+        prob = prob_keep(temperature, energy_pos - new_e, boltzmann_factor)
+        if np.random.random() < prob:
+            print(f"{k}\t({prob:.0%})\t{energy_pos:.2f}->{new_e:.2f}", end='\r')
+            pos, energy_pos = new_pos, new_e
+            iters_without_new = 0
+
+        if iters_without_new >= max_iters_without_new:
+            break
 
     return pos, nodes_by_level
