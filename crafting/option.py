@@ -76,7 +76,6 @@ class GetItem(Option):
 
     def get_zone_property(self, zone_property, observation):
         props = self.world.properties_from_observation(observation)
-        print(zone_property, props, observation[self.world.n_items + self.world.n_zones:])
         if zone_property not in props:
             get_property_option = self.all_get_options[zone_property]
             return get_property_option(observation)[0]

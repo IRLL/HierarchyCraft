@@ -451,7 +451,6 @@ if __name__ == '__main__':
 
             action = get_human_action(env, *env.render_variables)
             action_id = env.action(*action)
-            print(f'Human: {env.action_from_id(action_id)}')
-
+            print(f'Human did: {env.action_from_id(action_id)}')
 
             observation, reward, done, infos = env(action_id)
