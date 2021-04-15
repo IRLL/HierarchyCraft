@@ -3,10 +3,12 @@
 
 from typing import List, Dict, Union
 from copy import deepcopy
-from crafting.world.items import Item
-from crafting.world.zones import Zone
 
 import networkx as nx
+
+from crafting.world.items import Item
+from crafting.world.zones import Zone
+from crafting.graph import compute_levels, option_layout
 
 class Option():
 
@@ -147,17 +149,113 @@ class GetItem(Option):
 
     def get_graph(self) -> nx.DiGraph:
 
+        def _add_predecessors(graph, prev_checks, node):
+            if len(prev_checks) > 1:
+                for pred in prev_checks:
+                    graph.add_edge(pred, node, type='any', color='purple')
+            elif len(prev_checks) == 1:
+                graph.add_edge(prev_checks[0], node, type='conditional', color='green')
+
         graph = nx.DiGraph()
-        print('----------------------')
+        prev_checks = []
+
+        empty_node = None
+        if len(self.items_needed) > 1:
+            empty_node = ""
+            graph.add_node(empty_node, type='empty', color='purple')
+
         for craft_option in self.items_needed: # Any of Craft options
-            for item in craft_option:
-                print(item)
-        for zone in self.zones_id_needed: # Any of the zones possibles
-            print(zone)
+            prev_check_in_option = None
+            for item_id, quantity in craft_option:
+                item = self.world.item_from_id[item_id]
+                check_item = f"Has {quantity}\n{item} ?"
+                get_item = f"Get\n{item}"
+                graph.add_node(check_item, type='feature_check', color='blue')
+                graph.add_node(get_item, type='option', color='orange')
+                if prev_check_in_option is not None:
+                    graph.add_edge(prev_check_in_option, check_item,
+                        type='conditional', color='green')
+                elif empty_node is not None:
+                    graph.add_edge(empty_node, check_item, type='any', color='purple')
+                graph.add_edge(check_item, get_item, type='conditional', color='red')
+                prev_check_in_option = check_item
+            if prev_check_in_option is not None:
+                prev_checks.append(prev_check_in_option)
+
+        prev_checks_zone = []
+        for zone_id in self.zones_id_needed: # Any of the zones possibles
+            zone = self.world.zone_from_id[zone_id]
+            check_zone = f"Is in\n{zone} ?"
+            go_to_zone = f"Go to\n{zone}"
+            graph.add_node(check_zone, type='feature_check', color='blue')
+            graph.add_node(go_to_zone, type='option', color='orange')
+            if len(prev_checks) > 0:
+                _add_predecessors(graph, prev_checks, check_zone)
+            else:
+                empty_node = ""
+                graph.add_node(empty_node, type='empty', color='purple')
+                graph.add_edge(empty_node, check_zone, type='any', color='purple')
+            graph.add_edge(check_zone, go_to_zone, type='conditional', color='red')
+            prev_checks_zone.append(check_zone)
+
+        if len(prev_checks_zone) > 0:
+            prev_checks = prev_checks_zone
+
         for prop in self.zones_properties_needed: # All properties needed
-            print(prop)
-        print(self.last_action)
-        print('----------------------')
+            check_prop = f"Zone {prop} ?"
+            get_prop = f"Get {prop}"
+            graph.add_node(check_prop, type='prop_check', color='blue')
+            graph.add_node(get_prop, type='option', color='orange')
+            if len(prev_checks) > 0:
+                _add_predecessors(graph, prev_checks, check_prop)
+            graph.add_edge(check_prop, get_prop, type='conditional', color='red')
+            prev_checks = [check_prop]
+
+        # Add last action
+        action_type, obj_id = self.last_action
+        if action_type == 'get':
+            item = self.world.item_from_id[obj_id]
+            last_node = f"Search\n{item}"
+        elif action_type == 'craft':
+            recipe = self.world.recipes_from_id[obj_id]
+            last_node = f"Craft\n{recipe.outputs}"
+        elif action_type == 'move':
+            zone = self.world.zone_from_id[obj_id]
+            last_node = f"Move to\n{zone}"
+        else:
+            raise ValueError(f'Unknowed action_type: {action_type}')
+
+        graph.add_node(last_node, type='action', color='red')
+        _add_predecessors(graph, prev_checks, last_node)
+        return graph
+
+    def draw_graph(self, ax):
+        graph = self.get_graph()
+        if len(list(graph.nodes())) > 0:
+            compute_levels(graph)
+            pos = option_layout(graph)
+
+            nx.draw_networkx_nodes(
+                graph, pos,
+                ax=ax,
+                node_color=[color for _, color in graph.nodes(data='color')],
+            )
+
+            nx.draw_networkx_labels(
+                graph, pos,
+                ax=ax,
+                font_color='white',
+            )
+
+            nx.draw_networkx_edges(
+                graph, pos,
+                ax=ax,
+                arrowsize=40,
+                arrowstyle="->",
+                edge_color=[color for _, _, color in graph.edges(data='color')]
+            )
+
+        return ax
 
     def __str__(self):
 
