@@ -1,7 +1,6 @@
-Pillow<=7.2.0 
-gym
+gym == 0.17.3
 numpy
 networkx == 2.5.1
 matplotlib
 pygame >= 2.0.1
-pygame-menu @ git+https://github.com/ppizarror/pygame-menu.git#egg=pygame-menu
+pygame-menu == 4.0.6
