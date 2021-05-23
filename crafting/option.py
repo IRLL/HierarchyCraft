@@ -4,6 +4,7 @@
 from typing import List, Dict, Union
 from copy import deepcopy
 
+import numpy as np
 import networkx as nx
 
 from crafting.world.items import Item
@@ -26,18 +27,33 @@ class Option():
         """
         raise NotImplementedError
 
+    def complexity(self, used_options:List[str]=None, options_in_search:List[str]=None):
+        if used_options is None:
+            used_options = []
+        used_options = deepcopy(used_options)
+        return 0, used_options
+
+class TrivialOption(Option):
+
+    def __call__(self, observations, greedy: bool=False):
+        return None, True
 
 class GoToZone(Option):
 
-    def __init__(self, zone:Zone, world:"crafting.world.World"):
+    def __init__(self, zone:Zone, world:"crafting.world.World", complexity:float=1):
         self.world = world
         self.zone = zone
+        self.option_complexity = complexity
 
     def __call__(self, observations, greedy: bool=False):
         actual_zone_id = self.world.zone_id_from_observation(observations)
         if actual_zone_id != self.zone.zone_id:
             return self.world.action('move', self.zone.zone_id), True
         return None, True
+
+    def complexity(self, used_options:List[str]=None, options_in_search:List[str]=None):
+        _, used_options = super().complexity(used_options)
+        return self.option_complexity, used_options
 
 class GetItem(Option):
 
@@ -65,6 +81,7 @@ class GetItem(Option):
 
         self.last_action = last_action
         self.all_options = all_options
+        self.graph = self.get_graph()
 
     def gather_items(self, observation, items_id_in_search):
         if len(self.items_needed) == 0:
@@ -147,10 +164,89 @@ class GetItem(Option):
 
         return self.world.action(*self.last_action), True
 
+    def _get_node_complexity(self, node, node_type, used_options, options_in_search):
+        node_used_options = []
+        node_complexity = 0
+        if node_type == 'action':
+            action_id = self.graph.nodes[node]['action_id']
+            node_complexity = self.world.actions_complexities[action_id]
+        elif node_type == 'feature_check':
+            slot = self.graph.nodes[node]['slot']
+            node_complexity = self.world.feature_check_complexities[slot]
+        elif node_type == 'option':
+            option_key = self.graph.nodes[node]['option_key']
+            if option_key not in used_options and option_key not in options_in_search:
+                option = self.all_options[option_key]
+                option_complexity, node_used_options = \
+                    option.complexity(used_options, options_in_search)
+                node_complexity = option_complexity
+                node_used_options.append(option_key)
+            elif option_key in options_in_search:
+                node_complexity = np.inf
+        return node_complexity, node_used_options
+
+    def complexity(self, used_options:List[str]=None, options_in_search:List[str]=None):
+        complexity, used_options = super().complexity(used_options)
+
+        if options_in_search is None:
+            options_in_search = []
+        else:
+            options_in_search = deepcopy(options_in_search)
+        if self.item is not None:
+            options_in_search.append(self.item.item_id)
+
+        nodes_by_level = self.graph.graph['nodes_by_level']
+        depth = self.graph.graph['depth']
+        complexity = {}
+        nodes_used_options = {}
+        for level in range(depth+1)[::-1]:
+            for node in nodes_by_level[level]:
+                node_type = self.graph.nodes[node]['type']
+
+                node_complexity = 0
+                node_used_options = []
+
+                any_complexities = []
+                any_succs = []
+
+                for succ in self.graph.successors(node):
+                    succ_complexity = complexity[succ]
+                    if self.graph.edges[node, succ]['type'] == 'any':
+                        any_complexities.append(succ_complexity)
+                        any_succs.append(succ)
+                    else:
+                        node_complexity += succ_complexity
+                        for used_option in nodes_used_options[succ]:
+                            if used_option not in node_used_options:
+                                node_used_options.append(used_option)
+
+                if len(any_complexities) > 0:
+                    min_succ_id = np.argmin(any_complexities)
+                    min_succ = any_succs[min_succ_id]
+                    min_complex = any_complexities[min_succ_id]
+
+                    node_used_options += nodes_used_options[min_succ]
+                    node_complexity += min_complex
+
+                node_only_complexity, node_only_used_options = \
+                    self._get_node_complexity(node, node_type,
+                        node_used_options + used_options, options_in_search)
+
+                node_complexity += node_only_complexity
+                for used_option in node_only_used_options:
+                    if used_option not in node_used_options:
+                        node_used_options.append(used_option)
+
+                complexity[node] = node_complexity
+                nodes_used_options[node] = node_used_options
+
+        root = nodes_by_level[0][0]
+        return complexity[root], nodes_used_options[root]
+
     def get_graph(self) -> nx.DiGraph:
 
-        def _add_predecessors(graph, prev_checks, node):
-            if len(prev_checks) > 1:
+        def _add_predecessors(graph, prev_checks, node, force_any=False):
+            if len(prev_checks) > 1 or (force_any and len(prev_checks) > 0):
                 for pred in prev_checks:
                     graph.add_edge(pred, node, type='any', color='purple')
             elif len(prev_checks) == 1:
@@ -168,10 +264,11 @@ class GetItem(Option):
             prev_check_in_option = None
             for item_id, quantity in craft_option:
                 item = self.world.item_from_id[item_id]
+                slot = self.world.item_id_to_slot[item_id]
                 check_item = f"Has {quantity}\n{item} ?"
                 get_item = f"Get\n{item}"
-                graph.add_node(check_item, type='feature_check', color='blue')
-                graph.add_node(get_item, type='option', color='orange')
+                graph.add_node(check_item, type='feature_check', color='blue', slot=slot)
+                graph.add_node(get_item, type='option', color='orange', option_key=item_id)
                 if prev_check_in_option is not None:
                     graph.add_edge(prev_check_in_option, check_item,
                         type='conditional', color='green')
@@ -185,12 +282,14 @@ class GetItem(Option):
         prev_checks_zone = []
         for zone_id in self.zones_id_needed: # Any of the zones possibles
             zone = self.world.zone_from_id[zone_id]
+            slot = self.world.zone_id_to_slot[zone_id]
             check_zone = f"Is in\n{zone} ?"
             go_to_zone = f"Go to\n{zone}"
-            graph.add_node(check_zone, type='feature_check', color='blue')
-            graph.add_node(go_to_zone, type='option', color='orange')
+            graph.add_node(check_zone, type='feature_check', color='blue', slot=slot)
+            graph.add_node(go_to_zone, type='option', color='orange', option_key=str(zone))
             if len(prev_checks) > 0:
-                _add_predecessors(graph, prev_checks, check_zone)
+                _add_predecessors(graph, prev_checks, check_zone,
+                    force_any=len(self.zones_id_needed) > 1)
             else:
                 empty_node = ""
                 graph.add_node(empty_node, type='empty', color='purple')
@@ -204,8 +303,9 @@ class GetItem(Option):
         for prop in self.zones_properties_needed: # All properties needed
             check_prop = f"Zone {prop} ?"
             get_prop = f"Get {prop}"
-            graph.add_node(check_prop, type='prop_check', color='blue')
-            graph.add_node(get_prop, type='option', color='orange')
+            slot = self.world.property_to_slot[prop]
+            graph.add_node(check_prop, type='feature_check', color='blue', slot=slot)
+            graph.add_node(get_prop, type='option', color='orange', option_key=prop)
             if len(prev_checks) > 0:
                 _add_predecessors(graph, prev_checks, check_prop)
             graph.add_edge(check_prop, get_prop, type='conditional', color='red')
@@ -213,6 +313,7 @@ class GetItem(Option):
 
         # Add last action
         action_type, obj_id = self.last_action
+        action_id = self.world.action(*self.last_action)
         if action_type == 'get':
             item = self.world.item_from_id[obj_id]
             last_node = f"Search\n{item}"
@@ -225,34 +326,33 @@ class GetItem(Option):
         else:
             raise ValueError(f'Unknowed action_type: {action_type}')
 
-        graph.add_node(last_node, type='action', color='red')
+        graph.add_node(last_node, type='action', color='red', action_id=action_id)
         _add_predecessors(graph, prev_checks, last_node)
+        compute_levels(graph)
         return graph
 
     def draw_graph(self, ax):
-        graph = self.get_graph()
-        if len(list(graph.nodes())) > 0:
-            compute_levels(graph)
-            pos = option_layout(graph)
+        if len(list(self.graph.nodes())) > 0:
+            pos = option_layout(self.graph)
 
             nx.draw_networkx_nodes(
-                graph, pos,
+                self.graph, pos,
                 ax=ax,
-                node_color=[color for _, color in graph.nodes(data='color')],
+                node_color=[color for _, color in self.graph.nodes(data='color')],
             )
 
             nx.draw_networkx_labels(
-                graph, pos,
+                self.graph, pos,
                 ax=ax,
                 font_color='white',
             )
 
             nx.draw_networkx_edges(
-                graph, pos,
+                self.graph, pos,
                 ax=ax,
                 arrowsize=40,
                 arrowstyle="->",
-                edge_color=[color for _, _, color in graph.edges(data='color')]
+                edge_color=[color for _, _, color in self.graph.edges(data='color')]
             )
 
         return ax

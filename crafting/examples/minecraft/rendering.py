@@ -414,7 +414,7 @@ def get_human_action(*args):
 if __name__ == '__main__':
     from crafting.examples import MineCraftingEnv
     import matplotlib.pyplot as plt
-    env = MineCraftingEnv(verbose=1, max_step=30, tasks=['obtain_diamond'], tasks_can_end=[True])
+    env = MineCraftingEnv(verbose=1, max_step=100, tasks=['obtain_enchanting_table'], tasks_can_end=[True])
 
     # fig, ax = plt.subplots()
     # env.world.draw_requirements_graph(ax)
@@ -430,27 +430,37 @@ if __name__ == '__main__':
     print(iron_ingot_option)
     wooden_pickaxe_option = ALL_GET_OPTIONS[WOODEN_PICKAXE.item_id]
     print(wooden_pickaxe_option)
+    enchant_table_option = ALL_GET_OPTIONS[ENCHANTING_TABLE.item_id]
+    print(enchant_table_option)
 
     for _ in range(2):
         observation = env.reset()
         done = False
+        total_reward = 0
         while not done:
             env.render()
 
-            wood_action_id, _ = wood_option(observation)
-            print(f'For Wood: {env.action_from_id(wood_action_id)}')
+            # wood_action_id, _ = wood_option(observation)
+            # print(f'For Wood: {env.action_from_id(wood_action_id)}')
 
-            wooden_pickaxe_action_id, _ = wooden_pickaxe_option(observation)
-            print(f'For Wooden_pickaxe: {env.action_from_id(wooden_pickaxe_action_id)}')
+            # wooden_pickaxe_action_id, _ = wooden_pickaxe_option(observation)
+            # print(f'For Wooden_pickaxe: {env.action_from_id(wooden_pickaxe_action_id)}')
 
-            iron_ingot_action_id, _ = iron_ingot_option(observation)
-            print(f'For Iron_ingot: {env.action_from_id(iron_ingot_action_id)}')
+            # iron_ingot_action_id, _ = iron_ingot_option(observation)
+            # print(f'For Iron_ingot: {env.action_from_id(iron_ingot_action_id)}')
 
-            diamond_action_id, _ = diamond_option(observation)
-            print(f'For Diamond: {env.action_from_id(diamond_action_id)}')
+            # diamond_action_id, _ = diamond_option(observation)
+            # print(f'For Diamond: {env.action_from_id(diamond_action_id)}')
+
+            enchant_action_id, _ = enchant_table_option(observation)
+            print(f'For Diamond: {env.action_from_id(enchant_action_id)}')
 
             action = get_human_action(env, *env.render_variables)
             action_id = env.action(*action)
             print(f'Human did: {env.action_from_id(action_id)}')
 
             observation, reward, done, infos = env(action_id)
+            total_reward += reward
+
+        print("SCORE: ", total_reward)
+

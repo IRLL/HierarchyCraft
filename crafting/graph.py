@@ -72,6 +72,16 @@ def compute_levels(graph:nx.DiGraph, weak_edges_type:List[str]=None):
 
             graph.nodes[node]['level'] = level
 
+    nodes_by_level = {}
+    for node, level in graph.nodes(data='level'):
+        try:
+            nodes_by_level[level].append(node)
+        except KeyError:
+            nodes_by_level[level] = [node]
+
+    graph.graph['nodes_by_level'] = nodes_by_level
+    graph.graph['depth'] = max(level for level in nodes_by_level)
+
 # pylint: disable=protected-access
 def leveled_layout(graph:nx.DiGraph, center=None,
     max_iterations=1000, max_iters_without_new=100,
@@ -91,14 +101,7 @@ def leveled_layout(graph:nx.DiGraph, center=None,
     """
     graph, center = nx.drawing.layout._process_params(graph, center, dim=2)
 
-    nodes_by_level = {}
-    for node, node_data in graph.nodes(data=True):
-        level = node_data['level']
-        try:
-            nodes_by_level[level].append(node)
-        except KeyError:
-            nodes_by_level[level] = [node]
-
+    nodes_by_level = graph.graph['nodes_by_level']
     pos = {}
     step_size = 1 / max(len(nodes_by_level[level]) for level in nodes_by_level)
     spacing = np.arange(0, 1, step=step_size)
@@ -187,7 +190,7 @@ def leveled_layout(graph:nx.DiGraph, center=None,
         if iters_without_new >= max_iters_without_new:
             break
 
-    return pos, nodes_by_level
+    return pos
 
 def option_layout(graph:nx.DiGraph):
     graph, _ = nx.drawing.layout._process_params(graph, None, dim=2)

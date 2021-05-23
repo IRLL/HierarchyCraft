@@ -5,7 +5,7 @@
 
 """
 
-from typing import List
+from typing import List, Union
 
 import numpy as np
 import networkx as nx
@@ -16,7 +16,7 @@ from matplotlib.legend_handler import HandlerPatch
 from crafting.world.zones import Zone
 from crafting.world.items import Item, Tool
 from crafting.world.recipes import Recipe
-from crafting.option import GetItem, GoToZone
+from crafting.option import GetItem, GoToZone, TrivialOption
 from crafting.graph import compute_color, compute_levels, leveled_layout
 
 
@@ -24,7 +24,11 @@ class World():
 
     """ A crafting World containing items, recipes and zones. """
 
-    def __init__(self, items:List[Item], recipes:List[Recipe], zones:List[Zone]):
+    def __init__(self, items:List[Item], recipes:List[Recipe], zones:List[Zone],
+            actions_complexities:float=1,
+            feature_check_complexities:float=1,
+            trivial_items:List[int]=None
+        ):
         """ A crafting World containing items, recipes and zones.
 
         Args:
@@ -86,9 +90,18 @@ class World():
                 self.zone_properties.add(prop)
 
         self.zone_properties = np.array(list(self.zone_properties))
+        self.property_to_slot = {
+            prop:i+self.n_items+self.n_zones
+            for i, prop in enumerate(self.zone_properties)
+        }
         self.n_zone_properties = len(self.zone_properties)
 
         self.n_actions = self.n_foundable_items + self.n_recipes + self.n_zones
+        self.actions_complexities = actions_complexities * np.ones(self.n_actions)
+        observation_size = self.n_items + self.n_zones + self.n_zone_properties
+        self.feature_check_complexities = feature_check_complexities * np.ones(observation_size)
+
+        self.trivial_items = trivial_items
 
     def action(self, action_type:str, identification:int) -> int:
         """ Return the action_id from action_type and identification. """
@@ -134,6 +147,10 @@ class World():
     def get_all_options(self):
         all_options = {}
 
+        if self.trivial_items is not None:
+            for item_id in self.trivial_items:
+                all_options[item_id] = TrivialOption()
+
         for zone in self.zones:
             all_options[str(zone)] = GoToZone(zone, self)
 
@@ -146,10 +163,7 @@ class World():
             items_needed = []
             if item.required_tools is not None:
                 for tool in item.required_tools:
-                    if tool.item_id == 0:
-                        crafting_option = []
-                    else:
-                        crafting_option = [(tool.item_id, 1)]
+                    crafting_option = [(tool.item_id, 1)]
                     items_needed.append(crafting_option)
 
             if hasattr(item, 'items_dropped'):
@@ -298,7 +312,8 @@ class World():
 
         """
         graph = self.get_requirements_graph()
-        pos, nodes_by_level = leveled_layout(graph)
+        pos = leveled_layout(graph)
+        nodes_by_level = graph.graph['nodes_by_level']
         compute_color(graph)
 
         dashed_edges = [

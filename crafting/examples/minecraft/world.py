@@ -13,4 +13,9 @@ class McWorld(World):
     """ Minecraft world """
 
     def __init__(self):
-        super().__init__(zones=MC_ZONES, items=MC_ITEMS + MC_TOOLS, recipes=MC_RECIPES)
+        super().__init__(
+            zones=MC_ZONES,
+            items=MC_ITEMS + MC_TOOLS,
+            recipes=MC_RECIPES,
+            trivial_items=[0,]
+        )
