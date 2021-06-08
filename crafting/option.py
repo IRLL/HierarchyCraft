@@ -30,7 +30,6 @@ class Option():
     def complexity(self, used_options:List[str]=None, options_in_search:List[str]=None):
         if used_options is None:
             used_options = []
-        used_options = deepcopy(used_options)
         return 0, used_options
 
 class TrivialOption(Option):
@@ -133,7 +132,6 @@ class GetItem(Option):
                 return feasable_actions[0]
             return "Not Feasable"
         return None
-
 
     def get_zone_property(self, zone_property, observation):
         props = self.world.properties_from_observation(observation)
