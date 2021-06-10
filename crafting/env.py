@@ -18,7 +18,7 @@ class CraftingEnv(gym.Env):
 
     metadata = {'render.modes': ['human', 'ansi']}
 
-    def __init__(self, world: World, player: Player, 
+    def __init__(self, world: World, player: Player,
         max_step: int=500, verbose: int=0, observe_legal_actions: bool=False,
         tasks: List[Union[str, Task]]=None, tasks_weights: Union[list, dict]=None,
         tasks_can_end: Union[list, dict]=None, tasks_early_stopping: str='all',
@@ -105,7 +105,7 @@ class CraftingEnv(gym.Env):
         Args:
             action_type: One of {'get', 'craft', 'move'}.
             identification: Id of the item, recipe or zone.
-    
+
         Returns:
             The corresponding discrete action ID.
 

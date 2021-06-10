@@ -1,11 +1,13 @@
+# Crafting a gym-environment to simultate inventory managment
+# Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
+
 from typing import List
 from copy import deepcopy
 
-import networkx as nx
 import numpy as np
+import networkx as nx
 
-import matplotlib.pyplot as plt
-plt.style.use('dark_background')
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 def compute_color(graph:nx.DiGraph):
     alphas = [1, 1, 0.9, 0.8, 0.7, 0.5, 0.4, 0.3]
@@ -115,7 +117,7 @@ def leveled_layout(graph:nx.DiGraph, center=None,
             positions = [spacing[(len(spacing)-1)//2]]
 
         for i, node in enumerate(nodes_by_level[level]):
-            pos[node] = [positions[i], -level]
+            pos[node] = [level, positions[i]]
 
     def energy(pos, nodes_by_level, nodes_strenght=1, edges_strenght=2):
 
@@ -155,14 +157,14 @@ def leveled_layout(graph:nx.DiGraph, center=None,
             pass
         x, y = pos_copy[choosen_node][0], pos_copy[choosen_node][1]
 
-        if x <= 0:
+        if y <= 0:
             sign = 1
-        elif x >= 1:
+        elif y >= 1:
             sign = -1
         else:
             sign = np.random.choice((-1, 1))
 
-        new_pos = [x + sign * step_size, y]
+        new_pos = [x, y + sign * step_size]
 
         for n in pos:
             if n != choosen_node and np.all(np.isclose(new_pos, pos_copy[n])):
@@ -216,3 +218,22 @@ def option_layout(graph:nx.DiGraph):
                 x_pos = 1 + max(other_nodes_x + [0])
             pos[node] = [x_pos, -level]
     return pos
+
+def draw_networkx_nodes_images(graph, pos, ax, img_zoom=1):
+    for n in graph:
+        img = graph.nodes[n]['image']
+        color = graph.nodes[n]['color']
+        if img is not None:
+            min_dim = min(img.shape[:2])
+            min_ax_shape = min(ax._position.width, ax._position.height)
+            imagebox = OffsetImage(img, zoom = 100 * img_zoom * min_ax_shape / min_dim )
+            imagebox = AnnotationBbox(
+                imagebox, pos[n],
+                frameon=True, box_alignment=(0.5, 0.5)
+            )
+
+            imagebox.patch.set_facecolor('None')
+            imagebox.patch.set_edgecolor(color)
+            imagebox.patch.set_linewidth(3)
+            imagebox.patch.set_boxstyle("round", pad=0.15)
+            ax.add_artist(imagebox)

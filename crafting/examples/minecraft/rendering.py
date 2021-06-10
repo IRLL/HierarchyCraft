@@ -313,9 +313,6 @@ def create_window(env: CraftingEnv):
 
     window_shape = (int(16/9 * 600), 720)
 
-    mc_dir = os.path.dirname(crafting.examples.minecraft.__file__)
-    resources_path = os.path.join(mc_dir, 'resources')
-
     pygame.init()
     clock = pygame.time.Clock()
 
@@ -324,13 +321,13 @@ def create_window(env: CraftingEnv):
     pygame.display.set_caption('MineCrafting')
 
     # Create menu
-    menus, id_to_action = make_menus(resources_path, window_shape)
+    menus, id_to_action = make_menus(env.world.resources_path, window_shape)
 
     # Create inventory widget
     position = (int(0.15 * window_shape[0]), int(0.15 * window_shape[0]))
     inv_widget = InventoryWidget(
         env.player.inventory,
-        resources_path,
+        env.world.resources_path,
         position,
         window_shape
     )
@@ -340,7 +337,7 @@ def create_window(env: CraftingEnv):
     zone_widget = ZoneWidget(
         env.world.zones,
         env.world.zone_properties,
-        resources_path,
+        env.world.resources_path,
         position,
         window_shape
     )
@@ -348,7 +345,7 @@ def create_window(env: CraftingEnv):
     position = (int(0.17 * window_shape[0]), int(0.01 * window_shape[0]))
     font_size = int(0.06 * window_shape[0])
     score_widget = ScoreWidget(
-        resources_path,
+        env.world.resources_path,
         position,
         font_size,
     )
@@ -413,12 +410,15 @@ def get_human_action(*args):
 
 if __name__ == '__main__':
     from crafting.examples import MineCraftingEnv
-    import matplotlib.pyplot as plt
-    env = MineCraftingEnv(verbose=1, max_step=100, tasks=['obtain_enchanting_table'], tasks_can_end=[True])
 
-    # fig, ax = plt.subplots()
-    # env.world.draw_requirements_graph(ax)
-    # plt.show()
+    env = MineCraftingEnv(verbose=1, max_step=100,
+        tasks=['obtain_enchanting_table'], tasks_can_end=[True]
+    )
+
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots()
+    env.world.draw_requirements_graph(ax)
+    plt.show()
 
     ALL_GET_OPTIONS = env.world.get_all_options()
 
@@ -453,7 +453,7 @@ if __name__ == '__main__':
             # print(f'For Diamond: {env.action_from_id(diamond_action_id)}')
 
             enchant_action_id, _ = enchant_table_option(observation)
-            print(f'For Diamond: {env.action_from_id(enchant_action_id)}')
+            print(f'For Enchanting Table: {env.action_from_id(enchant_action_id)}')
 
             action = get_human_action(env, *env.render_variables)
             action_id = env.action(*action)
@@ -463,4 +463,3 @@ if __name__ == '__main__':
             total_reward += reward
 
         print("SCORE: ", total_reward)
-

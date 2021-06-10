@@ -5,11 +5,13 @@
 
 """
 
-from typing import List, Union
+import os
+from typing import List
 
 import numpy as np
 import networkx as nx
 
+import matplotlib.image as mpimg
 import matplotlib.patches as mpatches
 from matplotlib.legend_handler import HandlerPatch
 
@@ -17,7 +19,7 @@ from crafting.world.zones import Zone
 from crafting.world.items import Item, Tool
 from crafting.world.recipes import Recipe
 from crafting.option import GetItem, GoToZone, TrivialOption
-from crafting.graph import compute_color, compute_levels, leveled_layout
+from crafting.graph import compute_color, compute_levels, leveled_layout, draw_networkx_nodes_images
 
 
 class World():
@@ -27,7 +29,8 @@ class World():
     def __init__(self, items:List[Item], recipes:List[Recipe], zones:List[Zone],
             actions_complexities:float=1,
             feature_check_complexities:float=1,
-            trivial_items:List[int]=None
+            trivial_items:List[int]=None,
+            resources_path:str=None
         ):
         """ A crafting World containing items, recipes and zones.
 
@@ -102,6 +105,7 @@ class World():
         self.feature_check_complexities = feature_check_complexities * np.ones(observation_size)
 
         self.trivial_items = trivial_items
+        self.resources_path = resources_path
 
     def action(self, action_type:str, identification:int) -> int:
         """ Return the action_id from action_type and identification. """
@@ -144,7 +148,32 @@ class World():
         props_slot = np.where(one_hot_props)
         return self.zone_properties[props_slot]
 
+    def get_image(self, obj):
+        if obj is None:
+            return None
+
+        if isinstance(obj, Item):
+            image_path = os.path.join(self.resources_path, 'items', f'{obj.item_id}.png')
+        elif isinstance(obj, Zone):
+            image_path = os.path.join(self.resources_path, 'zones', f'{obj.zone_id}.png')
+        elif isinstance(obj, str):
+            if obj == "has_crafting":
+                prop_id = 58
+            elif obj == "has_furnace":
+                prop_id = 61
+            image_path = os.path.join(self.resources_path, 'items', f'{prop_id}.png')
+        else:
+            raise TypeError(f"Unkowned type {type(obj)}")
+
+        try:
+            image = mpimg.imread(image_path)
+        except FileNotFoundError:
+            image = None
+
+        return image
+
     def get_all_options(self):
+        """ Return a dictionary of handcrafted options to get each item, zone and property. """
         all_options = {}
 
         if self.trivial_items is not None:
@@ -230,17 +259,20 @@ class World():
 
         # Add items nodes
         for i, item in enumerate(self.items):
+
             color = "blue"
             if item in self.foundable_items:
                 color = "green"
             elif isinstance(item, Tool):
                 color = "cyan"
+
             graph.add_node(
                 item.item_id,
                 type="item",
                 color=color,
+                image=self.get_image(item),
                 item_id=item.item_id,
-                label=f"{item.name.capitalize()}({item.item_id})"
+                label=item.name.capitalize()
             )
 
         # Add properties nodes
@@ -250,6 +282,7 @@ class World():
                 type="zone_property",
                 color="orange",
                 prop_id=i,
+                image=self.get_image(prop),
                 label=prop.capitalize()
             )
 
@@ -312,7 +345,7 @@ class World():
 
         """
         graph = self.get_requirements_graph()
-        pos = leveled_layout(graph)
+        pos = leveled_layout(graph, max_iterations=2000, initial_temperature=10)
         nodes_by_level = graph.graph['nodes_by_level']
         compute_color(graph)
 
@@ -344,25 +377,20 @@ class World():
             graph, pos,
             edgelist=plain_edges,
             ax=ax,
-            arrowsize=40,
+            arrowsize=20,
             arrowstyle="->",
             edge_color=[graph.edges[u, v]['color'] for u, v in plain_edges]
         )
 
-        nx.draw_networkx_nodes(
-            graph, pos,
-            ax=ax,
-            alpha=0.8,
-            node_color=[color for _, color in graph.nodes(data='color')],
-            node_shape="H",
-        )
+        draw_networkx_nodes_images(graph, pos, ax=ax, img_zoom=0.3)
 
-        nx.draw_networkx_labels(
-            graph, pos,
-            ax=ax,
-            font_color='white',
-            labels=dict(graph.nodes(data='label'))
-        )
+        # nx.draw_networkx_labels(
+        #     graph, pos,
+        #     ax=ax,
+        #     font_color='black',
+        #     font_size=6,
+        #     labels=dict(graph.nodes(data='label'))
+        # )
 
         # Create the legend patches
         legend_patches = [
@@ -402,15 +430,16 @@ class World():
                         length_includes_head=True, head_width=height, overhang=0.5
                     )
                 ),
-
             }
         )
 
         # Add Hierarchies numbers
         for level in nodes_by_level:
             level_poses = np.array([pos[node] for node in nodes_by_level[level]])
-            mean_y = np.mean(level_poses[:, 1])
-            ax.text(-0.15, mean_y, str(level), ha='right', va='center')
+            mean_x = np.mean(level_poses[:, 0])
+            if level == 0:
+                ax.text(mean_x-1, -0.07, "Depth", ha='left', va='center')
+            ax.text(mean_x, -0.07, str(level), ha='center', va='center')
         return ax
 
     def __str__(self):

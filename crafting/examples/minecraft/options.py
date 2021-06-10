@@ -8,8 +8,6 @@ All useful options to get any item
 """
 
 from crafting.examples.minecraft.world import McWorld
-from crafting.examples.minecraft.items import MC_CRAFT_ITEMS, MC_FOUDABLE_ITEMS, COBBLESTONE
-from crafting.examples.minecraft.tools import MC_TOOLS, WOODEN_PICKAXE
 
 MC_WORLD = McWorld()
 ALL_OPTIONS = MC_WORLD.get_all_options()
@@ -36,7 +34,8 @@ if __name__ == "__main__":
         title = str(option_name)
         complexity = options_complexities[rank]
         print(f"{complexity}\t\t| {title}")
-        if hasattr(option, 'draw_graph') and str(option_name) in ["Stick(280)", "Wooden_pickaxe(270)"]:
+
+        if hasattr(option, 'draw_graph'):
             title += f" - Complexity:{complexity}"
             fig, ax = plt.subplots()
             option.draw_graph(ax)

@@ -1,6 +1,9 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
+import os
+
+import crafting
 from crafting.world.world import World
 
 from crafting.examples.minecraft.items import MC_ITEMS
@@ -13,9 +16,12 @@ class McWorld(World):
     """ Minecraft world """
 
     def __init__(self):
+        mc_dir = os.path.dirname(crafting.examples.minecraft.__file__)
+        resources_path = os.path.join(mc_dir, 'resources')
         super().__init__(
             zones=MC_ZONES,
             items=MC_ITEMS + MC_TOOLS,
             recipes=MC_RECIPES,
-            trivial_items=[0,]
+            trivial_items=[0,],
+            resources_path=resources_path
         )
