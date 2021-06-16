@@ -8,6 +8,8 @@ Crafting environment adapted to the Minecraft inventory
 
 """
 
+import pygame
+
 from crafting.env import CraftingEnv
 from crafting.task import Task
 
@@ -65,8 +67,11 @@ class MineCraftingEnv(CraftingEnv):
         )
 
     def render(self, mode='human'):
-        if mode != 'human':
+        if mode not in ('human', 'rgb_array'):
             return super().render(mode)
         if self.render_variables is None:
             self.render_variables = create_window(self)
-        update_rendering(self, *self.render_variables, fps=self.frame_per_sec)
+        update_rendering(env=self, fps=self.frame_per_sec, **self.render_variables)
+        if mode == 'rgb_array':
+            rgb_array = pygame.surfarray.array3d(self.render_variables['screen'])
+            return rgb_array.swapaxes(0, 1)
