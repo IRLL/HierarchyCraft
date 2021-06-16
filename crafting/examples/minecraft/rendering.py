@@ -20,6 +20,9 @@ from crafting.env import CraftingEnv
 from crafting.world.zones import Zone
 from crafting.player.inventory import Inventory
 
+from pygame.event import Event
+from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP
+
 
 def load_and_scale(
     path: str,
@@ -352,8 +355,8 @@ def create_window(env: CraftingEnv):
 
     return clock, screen, menus, inv_widget, zone_widget, score_widget, id_to_action
 
-def update_rendering(env: CraftingEnv, clock, screen, menus,
-    inv_widget, zone_widget, score_widget, id_to_action, fps:float=60):
+def update_rendering(env: CraftingEnv, clock, screen, menus, inv_widget, zone_widget,
+    score_widget, id_to_action, additional_events:List[Event]=None, fps:float=60):
     # Tick
     clock.tick(fps)
 
@@ -362,6 +365,8 @@ def update_rendering(env: CraftingEnv, clock, screen, menus,
 
     # Execute main from principal menu if is enabled
     events = pygame.event.get()
+    if additional_events is not None:
+        events += additional_events
     for event in events:
         if event.type == pygame.QUIT:
             exit()
@@ -400,10 +405,10 @@ def update_rendering(env: CraftingEnv, clock, screen, menus,
     pygame.display.update()
     return action
 
-def get_human_action(*args):
+def get_human_action(env, *args, additional_events=None):
     action_chosen = False
     while not action_chosen:
-        action = update_rendering(*args)
+        action = update_rendering(env, *args, additional_events=additional_events)
         action_chosen = action is not None
     return action
 
@@ -415,10 +420,10 @@ if __name__ == '__main__':
         tasks=['obtain_enchanting_table'], tasks_can_end=[True]
     )
 
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots()
-    env.world.draw_requirements_graph(ax)
-    plt.show()
+    # import matplotlib.pyplot as plt
+    # fig, ax = plt.subplots()
+    # env.world.draw_requirements_graph(ax)
+    # plt.show()
 
     ALL_GET_OPTIONS = env.world.get_all_options()
 
@@ -455,7 +460,14 @@ if __name__ == '__main__':
             enchant_action_id, _ = enchant_table_option(observation)
             print(f'For Enchanting Table: {env.action_from_id(enchant_action_id)}')
 
-            action = get_human_action(env, *env.render_variables)
+            # additional_events = [
+            #     Event(MOUSEBUTTONDOWN, pos=(75, 331), button=1, window=None),
+            #     Event(MOUSEBUTTONUP, pos=(75, 331), button=1, window=None)
+            # ]
+            action = get_human_action(env,
+                # additional_events=additional_events,
+                *env.render_variables
+            )
             action_id = env.action(*action)
             print(f'Human did: {env.action_from_id(action_id)}')
 
