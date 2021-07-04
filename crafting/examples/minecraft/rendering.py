@@ -413,11 +413,11 @@ def update_rendering(env: CraftingEnv, clock, screen, menus, inv_widget, zone_wi
     pygame.display.update()
     return action
 
-def get_human_action(env, additional_events=None, **kwargs):
+def get_human_action(env, additional_events=None, can_be_none=False, **kwargs):
     action_chosen = False
     while not action_chosen:
         action = update_rendering(env, additional_events=additional_events, **kwargs)
-        action_chosen = action is not None
+        action_chosen = action is not None or can_be_none
     return action
 
 
