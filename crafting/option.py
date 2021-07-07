@@ -19,6 +19,7 @@ class Option():
 
     def __init__(self, option_id) -> None:
         self.option_id = option_id
+        self._graph = None
 
     def __call__(self, observations, greedy: bool=False):
         """ Use the option to get next actions.
@@ -37,19 +38,14 @@ class Option():
     def interest(self, observations) -> float:
         raise NotImplementedError
 
-    def get_graph(self) -> nx.DiGraph:
+    def build_graph(self) -> nx.DiGraph:
         raise NotImplementedError
 
-
-class TrivialOption(Option):
-
-    """ Option to be removed """
-
-    def __init__(self, option_id) -> None:
-        super().__init__(option_id)
-
-    def __call__(self, observations, greedy: bool=False):
-        return None, True
+    @property
+    def graph(self) -> nx.DiGraph:
+        if self._graph is None:
+            self._graph = self.build_graph()
+        return self._graph
 
 class GoToZone(Option):
 
