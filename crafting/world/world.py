@@ -27,8 +27,6 @@ class World():
     """ A crafting World containing items, recipes and zones. """
 
     def __init__(self, items:List[Item], recipes:List[Recipe], zones:List[Zone],
-            actions_complexities:float=1,
-            feature_check_complexities:float=1,
             trivial_items:List[int]=None,
             resources_path:str=None
         ):
@@ -100,9 +98,7 @@ class World():
         self.n_zone_properties = len(self.zone_properties)
 
         self.n_actions = self.n_foundable_items + self.n_recipes + self.n_zones
-        self.actions_complexities = actions_complexities * np.ones(self.n_actions)
         observation_size = self.n_items + self.n_zones + self.n_zone_properties
-        self.feature_check_complexities = feature_check_complexities * np.ones(observation_size)
 
         self.trivial_items = trivial_items
         self.resources_path = resources_path
@@ -178,7 +174,7 @@ class World():
 
         if self.trivial_items is not None:
             for item_id in self.trivial_items:
-                all_options[item_id] = TrivialOption()
+                all_options[item_id] = TrivialOption(item_id)
 
         for zone in self.zones:
             all_options[str(zone)] = GoToZone(zone, self)
@@ -239,7 +235,7 @@ class World():
                 for zone_property in recipe.added_properties:
                     all_options[zone_property] = GetItem(
                         world=self,
-                        item=None,
+                        item=zone_property,
                         all_options=all_options,
                         items_needed=items_needed,
                         zones_properties_needed=recipe.needed_properties,

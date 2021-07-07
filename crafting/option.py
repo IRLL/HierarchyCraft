@@ -4,7 +4,6 @@
 from typing import List, Dict, Union
 from copy import deepcopy
 
-import numpy as np
 import networkx as nx
 import matplotlib.patches as mpatches
 from matplotlib.legend_handler import HandlerPatch
@@ -13,9 +12,13 @@ from crafting.world.items import Item
 from crafting.world.zones import Zone
 from crafting.graph import compute_levels, option_layout, draw_networkx_nodes_images
 
+
 class Option():
 
     """ Abstract class for options """
+
+    def __init__(self, option_id) -> None:
+        self.option_id = option_id
 
     def __call__(self, observations, greedy: bool=False):
         """ Use the option to get next actions.
@@ -31,14 +34,19 @@ class Option():
         """
         raise NotImplementedError
 
-    def complexity(self, used_options:List[str]=None, options_in_search:List[str]=None):
-        if used_options is None:
-            used_options = []
-        return 0, used_options
+    def interest(self, observations) -> float:
+        raise NotImplementedError
+
+    def get_graph(self) -> nx.DiGraph:
+        raise NotImplementedError
+
 
 class TrivialOption(Option):
 
     """ Option to be removed """
+
+    def __init__(self, option_id) -> None:
+        super().__init__(option_id)
 
     def __call__(self, observations, greedy: bool=False):
         return None, True
@@ -47,20 +55,16 @@ class GoToZone(Option):
 
     """ Generic option for moving to a zone """
 
-    def __init__(self, zone:Zone, world:"crafting.world.World", complexity:float=1):
+    def __init__(self, zone:Zone, world:"crafting.world.World"):
+        super().__init__(zone.zone_id)
         self.world = world
         self.zone = zone
-        self.option_complexity = complexity
 
     def __call__(self, observations, greedy: bool=False):
         actual_zone_id = self.world.zone_id_from_observation(observations)
         if actual_zone_id != self.zone.zone_id:
             return self.world.action('move', self.zone.zone_id), True
         return None, True
-
-    def complexity(self, used_options:List[str]=None, options_in_search:List[str]=None):
-        _, used_options = super().complexity(used_options)
-        return self.option_complexity, used_options
 
 class GetItem(Option):
 
@@ -73,6 +77,8 @@ class GetItem(Option):
             last_action: tuple,
             zones_id_needed=None, zones_properties_needed=None):
 
+        option_id = item.item_id if isinstance(item, Item) else item
+        super().__init__(option_id)
         self.world = world
         self.item = item
 
@@ -90,7 +96,6 @@ class GetItem(Option):
 
         self.last_action = last_action
         self.all_options = all_options
-        self.graph = self.get_graph()
 
     def gather_items(self, observation, items_id_in_search):
         if len(self.items_needed) == 0:
@@ -171,92 +176,6 @@ class GetItem(Option):
                 return action, False
 
         return self.world.action(*self.last_action), True
-
-    def _get_node_complexity(self, node, node_type, used_options, options_in_search):
-        node_used_options = []
-        node_complexity = 0
-
-        if node_type == 'action':
-            action_id = self.graph.nodes[node]['action_id']
-            node_complexity = self.world.actions_complexities[action_id]
-
-        elif node_type == 'feature_check':
-            slot = self.graph.nodes[node]['slot']
-            node_complexity = self.world.feature_check_complexities[slot]
-
-        elif node_type == 'option':
-            option_key = self.graph.nodes[node]['option_key']
-
-            if option_key not in used_options and option_key not in options_in_search:
-                option = self.all_options[option_key]
-                option_complexity, node_used_options = \
-                    option.complexity(used_options, options_in_search)
-                node_complexity = option_complexity
-                node_used_options.append(option_key)
-
-            elif option_key in options_in_search:
-                node_complexity = np.inf
-
-        return node_complexity, node_used_options
-
-    def complexity(self, used_options:List[str]=None, options_in_search:List[str]=None):
-        complexity, used_options = super().complexity(used_options)
-
-        if options_in_search is None:
-            options_in_search = []
-        else:
-            options_in_search = deepcopy(options_in_search)
-
-        if self.item is not None:
-            options_in_search.append(self.item.item_id)
-
-        nodes_by_level = self.graph.graph['nodes_by_level']
-        depth = self.graph.graph['depth']
-        complexity = {}
-        nodes_used_options = {}
-        for level in range(depth+1)[::-1]:
-            for node in nodes_by_level[level]:
-                node_type = self.graph.nodes[node]['type']
-
-                node_complexity = 0
-                node_used_options = []
-
-                any_complexities = []
-                any_succs = []
-
-                for succ in self.graph.successors(node):
-                    succ_complexity = complexity[succ]
-                    if self.graph.edges[node, succ]['type'] == 'any':
-                        any_complexities.append(succ_complexity)
-                        any_succs.append(succ)
-                    else:
-                        node_complexity += succ_complexity
-                        for used_option in nodes_used_options[succ]:
-                            if used_option not in node_used_options:
-                                node_used_options.append(used_option)
-
-                if len(any_complexities) > 0:
-                    min_succ_id = np.argmin(any_complexities)
-                    min_succ = any_succs[min_succ_id]
-                    min_complex = any_complexities[min_succ_id]
-
-                    node_used_options += nodes_used_options[min_succ]
-                    node_complexity += min_complex
-
-                node_only_complexity, node_only_used_options = \
-                    self._get_node_complexity(node, node_type,
-                        node_used_options + used_options, options_in_search)
-
-                node_complexity += node_only_complexity
-                for used_option in node_only_used_options:
-                    if used_option not in node_used_options:
-                        node_used_options.append(used_option)
-
-                complexity[node] = node_complexity
-                nodes_used_options[node] = node_used_options
-
-        root = nodes_by_level[0][0]
-        return complexity[root], nodes_used_options[root]
 
     def get_graph(self) -> nx.DiGraph:
 

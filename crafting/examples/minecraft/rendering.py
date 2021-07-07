@@ -11,7 +11,6 @@ import pygame
 from pygame.surface import Surface
 import pygame_menu
 
-import crafting.examples.minecraft
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.recipes import MC_RECIPES
 from crafting.examples.minecraft.zones import MC_ZONES
@@ -21,7 +20,6 @@ from crafting.world.zones import Zone
 from crafting.player.inventory import Inventory
 
 from pygame.event import Event
-from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP
 
 
 def load_and_scale(
@@ -422,7 +420,9 @@ def get_human_action(env, additional_events=None, can_be_none=False, **kwargs):
 
 
 if __name__ == '__main__':
+    from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP
     from crafting.examples import MineCraftingEnv
+    
 
     env = MineCraftingEnv(verbose=1, max_step=100,
         tasks=['obtain_enchanting_table'], tasks_can_end=[True]
