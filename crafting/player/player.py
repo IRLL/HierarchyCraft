@@ -72,7 +72,7 @@ class Player():
         raise NotImplementedError('You must choose how your player choses a tool')
 
     def search_for(self, item: Item, tool: Tool) -> int:
-        """ Search for an item using a tool.
+        """ Search for an item using a tool and add them to inventory.
 
         Args:
             item: The item to look for.
@@ -99,16 +99,7 @@ class Player():
             True if the item can be found, False otherwise.
 
         """
-
-        if not item in self.zone.items:
-            return False
-
-        required_tools = item.required_tools
-        tool_in_required = tool is not None and tool in required_tools
-        if required_tools is None or tool_in_required:
-            return True
-
-        return False
+        return self.zone.can_search_for(item, tool)
 
     def move_to(self, zone: Zone) -> bool:
         """ Move to a given new zone

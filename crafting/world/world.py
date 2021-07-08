@@ -18,7 +18,7 @@ from matplotlib.legend_handler import HandlerPatch
 from crafting.world.zones import Zone
 from crafting.world.items import Item, Tool
 from crafting.world.recipes import Recipe
-from crafting.option import GetItem, GoToZone, TrivialOption
+from crafting.option import GetItem, GoToZone
 from crafting.graph import compute_color, compute_levels, leveled_layout, draw_networkx_nodes_images
 
 
@@ -27,9 +27,6 @@ class World():
     """ A crafting World containing items, recipes and zones. """
 
     def __init__(self, items:List[Item], recipes:List[Recipe], zones:List[Zone],
-            actions_complexities:float=1,
-            feature_check_complexities:float=1,
-            trivial_items:List[int]=None,
             resources_path:str=None
         ):
         """ A crafting World containing items, recipes and zones.
@@ -100,11 +97,7 @@ class World():
         self.n_zone_properties = len(self.zone_properties)
 
         self.n_actions = self.n_foundable_items + self.n_recipes + self.n_zones
-        self.actions_complexities = actions_complexities * np.ones(self.n_actions)
-        observation_size = self.n_items + self.n_zones + self.n_zone_properties
-        self.feature_check_complexities = feature_check_complexities * np.ones(observation_size)
-
-        self.trivial_items = trivial_items
+        self.observation_size = self.n_items + self.n_zones + self.n_zone_properties
         self.resources_path = resources_path
 
     def action(self, action_type:str, identification:int) -> int:
@@ -176,10 +169,6 @@ class World():
         """ Return a dictionary of handcrafted options to get each item, zone and property. """
         all_options = {}
 
-        if self.trivial_items is not None:
-            for item_id in self.trivial_items:
-                all_options[item_id] = TrivialOption()
-
         for zone in self.zones:
             all_options[str(zone)] = GoToZone(zone, self)
 
@@ -190,7 +179,7 @@ class World():
                     zones_id_needed.append(zone.zone_id)
 
             items_needed = []
-            if item.required_tools is not None:
+            if item.required_tools is not None and None not in item.required_tools:
                 for tool in item.required_tools:
                     crafting_option = [(tool.item_id, 1)]
                     items_needed.append(crafting_option)
@@ -239,7 +228,7 @@ class World():
                 for zone_property in recipe.added_properties:
                     all_options[zone_property] = GetItem(
                         world=self,
-                        item=None,
+                        item=zone_property,
                         all_options=all_options,
                         items_needed=items_needed,
                         zones_properties_needed=recipe.needed_properties,

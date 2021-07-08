@@ -4,18 +4,23 @@
 from typing import List, Dict, Union
 from copy import deepcopy
 
-import numpy as np
 import networkx as nx
 import matplotlib.patches as mpatches
+from matplotlib.axes import Axes
 from matplotlib.legend_handler import HandlerPatch
 
 from crafting.world.items import Item
 from crafting.world.zones import Zone
 from crafting.graph import compute_levels, option_layout, draw_networkx_nodes_images
 
+
 class Option():
 
     """ Abstract class for options """
+
+    def __init__(self, option_id) -> None:
+        self.option_id = option_id
+        self._graph = None
 
     def __call__(self, observations, greedy: bool=False):
         """ Use the option to get next actions.
@@ -31,36 +36,115 @@ class Option():
         """
         raise NotImplementedError
 
-    def complexity(self, used_options:List[str]=None, options_in_search:List[str]=None):
-        if used_options is None:
-            used_options = []
-        return 0, used_options
+    def interest(self, observations) -> float:
+        raise NotImplementedError
 
-class TrivialOption(Option):
+    def build_graph(self) -> nx.DiGraph:
+        raise NotImplementedError
+    
+    def draw_graph(self, ax):
+        return draw_option_graph(self.graph, ax)
 
-    """ Option to be removed """
+    @property
+    def graph(self) -> nx.DiGraph:
+        if self._graph is None:
+            self._graph = self.build_graph()
+        return self._graph
 
-    def __call__(self, observations, greedy: bool=False):
-        return None, True
+def _add_predecessors(graph, prev_checks, node, force_any=False):
+    if len(prev_checks) > 1 or (force_any and len(prev_checks) > 0):
+        for pred in prev_checks:
+            graph.add_edge(pred, node, type='any', color='purple')
+    elif len(prev_checks) == 1:
+        graph.add_edge(prev_checks[0], node, type='conditional', color='green')
+
+def _add_node_feature_condition(graph, node_name:str, image):
+    graph.add_node(node_name, type='feature_check', color='blue', image=image)
+
+def _add_node_option(graph, node_name:str, option_id, image):
+    graph.add_node(node_name, type='option', color='orange',
+        option_key=option_id, image=image)
+
+def _add_node_action(graph, node_name:str, image):
+    graph.add_node(node_name, type='action', color='red', image=image)
+
+def _add_node_empty(graph, node_name:str):
+    graph.add_node(node_name, type='empty', color='purple', image=None)
+
+
+def draw_option_graph(graph, ax) -> Axes:
+    if len(list(graph.nodes())) > 0:
+        pos = option_layout(graph)
+
+        draw_networkx_nodes_images(graph, pos, ax=ax, img_zoom=0.4)
+
+        # nx.draw_networkx_labels(
+        #     self.graph, pos,
+        #     ax=ax,
+        #     font_color='black',
+        # )
+
+        nx.draw_networkx_edges(
+            graph, pos,
+            ax=ax,
+            arrowsize=20,
+            arrowstyle="-|>",
+            min_source_margin=30, min_target_margin=30,
+            edge_color=[color for _, _, color in graph.edges(data='color')]
+        )
+
+        legend_patches = [
+            mpatches.Patch(facecolor='none', edgecolor='blue', label='Feature condition'),
+            mpatches.Patch(facecolor='none', edgecolor='orange', label='Option'),
+            mpatches.Patch(facecolor='none', edgecolor='red', label='Action'),
+        ]
+        legend_arrows = [
+            mpatches.FancyArrow(0, 0, 1, 0,
+                facecolor='green', edgecolor='none', label='Condition (True)'),
+            mpatches.FancyArrow(0, 0, 1, 0,
+                facecolor='red', edgecolor='none', label='Condition (False)'),
+            mpatches.FancyArrow(0, 0, 1, 0,
+                facecolor='purple', edgecolor='none', label='Any'),
+        ]
+
+        # Draw the legend
+        ax.legend(
+            handles=legend_patches + legend_arrows,
+            handler_map={
+                # Patch arrows with fancy arrows in legend
+                mpatches.FancyArrow : HandlerPatch(
+                    patch_func=lambda width, height, **kwargs:mpatches.FancyArrow(
+                        0, 0.5*height, width, 0, width=0.2*height,
+                        length_includes_head=True, head_width=height, overhang=0.5
+                    )
+                ),
+            }
+        )
+
+    return ax
 
 class GoToZone(Option):
 
     """ Generic option for moving to a zone """
 
-    def __init__(self, zone:Zone, world:"crafting.world.World", complexity:float=1):
+    def __init__(self, zone:Zone, world:"crafting.world.World"):
+        super().__init__(zone.zone_id)
         self.world = world
         self.zone = zone
-        self.option_complexity = complexity
+    
+    def build_graph(self) -> nx.DiGraph:
+        graph = nx.DiGraph()
+        node_name = f"Go to\n{self.zone}"
+        zone_image = self.world.get_image(self.zone)
+        _add_node_action(graph, node_name, zone_image)
+        compute_levels(graph)
+        return graph
 
     def __call__(self, observations, greedy: bool=False):
         actual_zone_id = self.world.zone_id_from_observation(observations)
         if actual_zone_id != self.zone.zone_id:
             return self.world.action('move', self.zone.zone_id), True
         return None, True
-
-    def complexity(self, used_options:List[str]=None, options_in_search:List[str]=None):
-        _, used_options = super().complexity(used_options)
-        return self.option_complexity, used_options
 
 class GetItem(Option):
 
@@ -73,6 +157,8 @@ class GetItem(Option):
             last_action: tuple,
             zones_id_needed=None, zones_properties_needed=None):
 
+        option_id = item.item_id if isinstance(item, Item) else item
+        super().__init__(option_id)
         self.world = world
         self.item = item
 
@@ -90,7 +176,6 @@ class GetItem(Option):
 
         self.last_action = last_action
         self.all_options = all_options
-        self.graph = self.get_graph()
 
     def gather_items(self, observation, items_id_in_search):
         if len(self.items_needed) == 0:
@@ -172,128 +257,7 @@ class GetItem(Option):
 
         return self.world.action(*self.last_action), True
 
-    def _get_node_complexity(self, node, node_type, used_options, options_in_search):
-        node_used_options = []
-        node_complexity = 0
-
-        if node_type == 'action':
-            action_id = self.graph.nodes[node]['action_id']
-            node_complexity = self.world.actions_complexities[action_id]
-
-        elif node_type == 'feature_check':
-            slot = self.graph.nodes[node]['slot']
-            node_complexity = self.world.feature_check_complexities[slot]
-
-        elif node_type == 'option':
-            option_key = self.graph.nodes[node]['option_key']
-
-            if option_key not in used_options and option_key not in options_in_search:
-                option = self.all_options[option_key]
-                option_complexity, node_used_options = \
-                    option.complexity(used_options, options_in_search)
-                node_complexity = option_complexity
-                node_used_options.append(option_key)
-
-            elif option_key in options_in_search:
-                node_complexity = np.inf
-
-        return node_complexity, node_used_options
-
-    def complexity(self, used_options:List[str]=None, options_in_search:List[str]=None):
-        complexity, used_options = super().complexity(used_options)
-
-        if options_in_search is None:
-            options_in_search = []
-        else:
-            options_in_search = deepcopy(options_in_search)
-
-        if self.item is not None:
-            options_in_search.append(self.item.item_id)
-
-        nodes_by_level = self.graph.graph['nodes_by_level']
-        depth = self.graph.graph['depth']
-        complexity = {}
-        nodes_used_options = {}
-        for level in range(depth+1)[::-1]:
-            for node in nodes_by_level[level]:
-                node_type = self.graph.nodes[node]['type']
-
-                node_complexity = 0
-                node_used_options = []
-
-                any_complexities = []
-                any_succs = []
-
-                for succ in self.graph.successors(node):
-                    succ_complexity = complexity[succ]
-                    if self.graph.edges[node, succ]['type'] == 'any':
-                        any_complexities.append(succ_complexity)
-                        any_succs.append(succ)
-                    else:
-                        node_complexity += succ_complexity
-                        for used_option in nodes_used_options[succ]:
-                            if used_option not in node_used_options:
-                                node_used_options.append(used_option)
-
-                if len(any_complexities) > 0:
-                    min_succ_id = np.argmin(any_complexities)
-                    min_succ = any_succs[min_succ_id]
-                    min_complex = any_complexities[min_succ_id]
-
-                    node_used_options += nodes_used_options[min_succ]
-                    node_complexity += min_complex
-
-                node_only_complexity, node_only_used_options = \
-                    self._get_node_complexity(node, node_type,
-                        node_used_options + used_options, options_in_search)
-
-                node_complexity += node_only_complexity
-                for used_option in node_only_used_options:
-                    if used_option not in node_used_options:
-                        node_used_options.append(used_option)
-
-                complexity[node] = node_complexity
-                nodes_used_options[node] = node_used_options
-
-        root = nodes_by_level[0][0]
-        return complexity[root], nodes_used_options[root]
-
-    def get_graph(self) -> nx.DiGraph:
-
-        def _add_predecessors(graph, prev_checks, node, force_any=False):
-            if len(prev_checks) > 1 or (force_any and len(prev_checks) > 0):
-                for pred in prev_checks:
-                    graph.add_edge(pred, node, type='any', color='purple')
-            elif len(prev_checks) == 1:
-                graph.add_edge(prev_checks[0], node, type='conditional', color='green')
-
-        def _add_node_feature_condition(graph, node_name:str, obj):
-            image = self.world.get_image(obj)
-            if isinstance(obj, Item):
-                slot = self.world.item_id_to_slot[obj.item_id]
-            elif isinstance(obj, Zone):
-                slot = self.world.zone_id_to_slot[obj.zone_id]
-            elif isinstance(obj, str):
-                slot = self.world.property_to_slot[obj]
-            graph.add_node(node_name, type='feature_check', color='blue', slot=slot, image=image)
-
-        def _add_node_option(graph, node_name:str, obj):
-            image = self.world.get_image(obj)
-            if isinstance(obj, Item):
-                option_key = obj.item_id
-            elif isinstance(obj, (Zone, str)):
-                option_key = str(obj)
-            graph.add_node(node_name, type='option', color='orange',
-                option_key=option_key, image=image)
-
-        def _add_node_action(graph, node_name:str, obj, action_id):
-            image = self.world.get_image(obj)
-            graph.add_node(node_name, type='action', color='red', action_id=action_id, image=image)
-
-        def _add_node_empty(graph, node_name:str):
-            graph.add_node(node_name, type='empty', color='purple', image=None)
-
-
+    def build_graph(self) -> nx.DiGraph:
         graph = nx.DiGraph()
         prev_checks = []
 
@@ -308,8 +272,9 @@ class GetItem(Option):
                 item = self.world.item_from_id[item_id]
                 check_item = f"Has {quantity}\n{item} ?"
                 get_item = f"Get\n{item}"
-                _add_node_feature_condition(graph, check_item, item)
-                _add_node_option(graph, get_item, item)
+                item_image = self.world.get_image(item)
+                _add_node_feature_condition(graph, check_item, item_image)
+                _add_node_option(graph, get_item, item_id, item_image)
                 if prev_check_in_option is not None:
                     graph.add_edge(prev_check_in_option, check_item,
                         type='conditional', color='green')
@@ -325,12 +290,13 @@ class GetItem(Option):
             zone = self.world.zone_from_id[zone_id]
             check_zone = f"Is in\n{zone} ?"
             go_to_zone = f"Go to\n{zone}"
-            _add_node_feature_condition(graph, check_zone, zone)
-            _add_node_option(graph, go_to_zone, zone)
+            zone_image = self.world.get_image(zone)
+            _add_node_feature_condition(graph, check_zone, zone_image)
+            _add_node_option(graph, go_to_zone, str(zone), zone_image)
             if len(prev_checks) > 0:
                 _add_predecessors(graph, prev_checks, check_zone,
                     force_any=len(self.zones_id_needed) > 1)
-            else:
+            elif len(self.zones_id_needed) > 1:
                 empty_node = ""
                 _add_node_empty(graph, empty_node)
                 graph.add_edge(empty_node, check_zone, type='any', color='purple')
@@ -343,8 +309,9 @@ class GetItem(Option):
         for prop in self.zones_properties_needed: # All properties needed
             check_prop = f"Zone {prop} ?"
             get_prop = f"Get {prop}"
-            _add_node_feature_condition(graph, check_prop, prop)
-            _add_node_option(graph, get_prop, prop)
+            prop_image = self.world.get_image(prop)
+            _add_node_feature_condition(graph, check_prop, prop_image)
+            _add_node_option(graph, get_prop, prop, prop_image)
             if len(prev_checks) > 0:
                 _add_predecessors(graph, prev_checks, check_prop)
             graph.add_edge(check_prop, get_prop, type='conditional', color='red')
@@ -352,7 +319,6 @@ class GetItem(Option):
 
         # Add last action
         action_type, obj_id = self.last_action
-        action_id = self.world.action(*self.last_action)
         if action_type == 'get':
             obj = self.world.item_from_id[obj_id]
             last_node = f"Search\n{obj}"
@@ -369,61 +335,11 @@ class GetItem(Option):
         else:
             raise ValueError(f'Unknowed action_type: {action_type}')
 
-        _add_node_action(graph, last_node, obj, action_id)
+        action_image = self.world.get_image(obj)
+        _add_node_action(graph, last_node, action_image)
         _add_predecessors(graph, prev_checks, last_node)
         compute_levels(graph)
         return graph
-
-    def draw_graph(self, ax):
-        if len(list(self.graph.nodes())) > 0:
-            pos = option_layout(self.graph)
-
-            draw_networkx_nodes_images(self.graph, pos, ax=ax, img_zoom=0.4)
-
-            # nx.draw_networkx_labels(
-            #     self.graph, pos,
-            #     ax=ax,
-            #     font_color='black',
-            # )
-
-            nx.draw_networkx_edges(
-                self.graph, pos,
-                ax=ax,
-                arrowsize=20,
-                arrowstyle="-|>",
-                min_source_margin=30, min_target_margin=30,
-                edge_color=[color for _, _, color in self.graph.edges(data='color')]
-            )
-
-            legend_patches = [
-                mpatches.Patch(facecolor='none', edgecolor='blue', label='Feature condition'),
-                mpatches.Patch(facecolor='none', edgecolor='orange', label='Option'),
-                mpatches.Patch(facecolor='none', edgecolor='red', label='Action'),
-            ]
-            legend_arrows = [
-                mpatches.FancyArrow(0, 0, 1, 0,
-                    facecolor='green', edgecolor='none', label='Condition (True)'),
-                mpatches.FancyArrow(0, 0, 1, 0,
-                    facecolor='red', edgecolor='none', label='Condition (False)'),
-                mpatches.FancyArrow(0, 0, 1, 0,
-                    facecolor='purple', edgecolor='none', label='Any'),
-            ]
-
-            # Draw the legend
-            ax.legend(
-                handles=legend_patches + legend_arrows,
-                handler_map={
-                    # Patch arrows with fancy arrows in legend
-                    mpatches.FancyArrow : HandlerPatch(
-                        patch_func=lambda width, height, **kwargs:mpatches.FancyArrow(
-                            0, 0.5*height, width, 0, width=0.2*height,
-                            length_includes_head=True, head_width=height, overhang=0.5
-                        )
-                    ),
-                }
-            )
-
-        return ax
 
     def __str__(self):
 

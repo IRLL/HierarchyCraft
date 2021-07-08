@@ -94,8 +94,6 @@ class McPlayer(Player):
 
     def __init__(self, world: World):
         inventory = Inventory(world.items)
-        self.hand = world.item_from_id[0]
-        inventory.add_stacks([ItemStack(self.hand)])
         forest_slot = world.zone_id_to_slot[0]
         super().__init__(
             inventory=inventory,
@@ -104,8 +102,8 @@ class McPlayer(Player):
         )
 
     def choose_tool(self, item:Item) -> Tool:
-        if item in self.zone.items:
-            usable_tools = np.array(item.required_tools)
+        if item in self.zone.items and item.required_tools is not None:
+            usable_tools = np.array([tool for tool in item.required_tools if tool is not None])
             tools_id = np.array([tool.item_id for tool in usable_tools])
             tools_slots = self.inventory.item_id_to_slot(tools_id)
             tools_quantities = self.inventory.content[tools_slots]
@@ -113,11 +111,11 @@ class McPlayer(Player):
             if len(usable_tools) > 0:
                 usable_tools_speed = np.array([tool.speed for tool in usable_tools])
                 return usable_tools[np.argmax(usable_tools_speed)]
-        return self.hand
+        return None
 
     def search_for(self, item: Item, tool: McTool) -> int:
         n_items_found = super().search_for(item, tool)
-        if tool.is_broken:
+        if tool is not None and tool.is_broken:
             self.inventory.remove_stacks([ItemStack(tool)])
             tool.reset()
         return n_items_found
