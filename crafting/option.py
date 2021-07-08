@@ -6,6 +6,7 @@ from copy import deepcopy
 
 import networkx as nx
 import matplotlib.patches as mpatches
+from matplotlib.axes import Axes
 from matplotlib.legend_handler import HandlerPatch
 
 from crafting.world.items import Item
@@ -40,12 +41,87 @@ class Option():
 
     def build_graph(self) -> nx.DiGraph:
         raise NotImplementedError
+    
+    def draw_graph(self, ax):
+        return draw_option_graph(self.graph, ax)
 
     @property
     def graph(self) -> nx.DiGraph:
         if self._graph is None:
             self._graph = self.build_graph()
         return self._graph
+
+def _add_predecessors(graph, prev_checks, node, force_any=False):
+    if len(prev_checks) > 1 or (force_any and len(prev_checks) > 0):
+        for pred in prev_checks:
+            graph.add_edge(pred, node, type='any', color='purple')
+    elif len(prev_checks) == 1:
+        graph.add_edge(prev_checks[0], node, type='conditional', color='green')
+
+def _add_node_feature_condition(graph, node_name:str, image):
+    graph.add_node(node_name, type='feature_check', color='blue', image=image)
+
+def _add_node_option(graph, node_name:str, option_id, image):
+    graph.add_node(node_name, type='option', color='orange',
+        option_key=option_id, image=image)
+
+def _add_node_action(graph, node_name:str, image):
+    graph.add_node(node_name, type='action', color='red', image=image)
+
+def _add_node_empty(graph, node_name:str):
+    graph.add_node(node_name, type='empty', color='purple', image=None)
+
+
+def draw_option_graph(graph, ax) -> Axes:
+    if len(list(graph.nodes())) > 0:
+        pos = option_layout(graph)
+
+        draw_networkx_nodes_images(graph, pos, ax=ax, img_zoom=0.4)
+
+        # nx.draw_networkx_labels(
+        #     self.graph, pos,
+        #     ax=ax,
+        #     font_color='black',
+        # )
+
+        nx.draw_networkx_edges(
+            graph, pos,
+            ax=ax,
+            arrowsize=20,
+            arrowstyle="-|>",
+            min_source_margin=30, min_target_margin=30,
+            edge_color=[color for _, _, color in graph.edges(data='color')]
+        )
+
+        legend_patches = [
+            mpatches.Patch(facecolor='none', edgecolor='blue', label='Feature condition'),
+            mpatches.Patch(facecolor='none', edgecolor='orange', label='Option'),
+            mpatches.Patch(facecolor='none', edgecolor='red', label='Action'),
+        ]
+        legend_arrows = [
+            mpatches.FancyArrow(0, 0, 1, 0,
+                facecolor='green', edgecolor='none', label='Condition (True)'),
+            mpatches.FancyArrow(0, 0, 1, 0,
+                facecolor='red', edgecolor='none', label='Condition (False)'),
+            mpatches.FancyArrow(0, 0, 1, 0,
+                facecolor='purple', edgecolor='none', label='Any'),
+        ]
+
+        # Draw the legend
+        ax.legend(
+            handles=legend_patches + legend_arrows,
+            handler_map={
+                # Patch arrows with fancy arrows in legend
+                mpatches.FancyArrow : HandlerPatch(
+                    patch_func=lambda width, height, **kwargs:mpatches.FancyArrow(
+                        0, 0.5*height, width, 0, width=0.2*height,
+                        length_includes_head=True, head_width=height, overhang=0.5
+                    )
+                ),
+            }
+        )
+
+    return ax
 
 class GoToZone(Option):
 
@@ -55,6 +131,14 @@ class GoToZone(Option):
         super().__init__(zone.zone_id)
         self.world = world
         self.zone = zone
+    
+    def build_graph(self) -> nx.DiGraph:
+        graph = nx.DiGraph()
+        node_name = f"Go to\n{self.zone}"
+        zone_image = self.world.get_image(self.zone)
+        _add_node_action(graph, node_name, zone_image)
+        compute_levels(graph)
+        return graph
 
     def __call__(self, observations, greedy: bool=False):
         actual_zone_id = self.world.zone_id_from_observation(observations)
@@ -174,41 +258,6 @@ class GetItem(Option):
         return self.world.action(*self.last_action), True
 
     def build_graph(self) -> nx.DiGraph:
-
-        def _add_predecessors(graph, prev_checks, node, force_any=False):
-            if len(prev_checks) > 1 or (force_any and len(prev_checks) > 0):
-                for pred in prev_checks:
-                    graph.add_edge(pred, node, type='any', color='purple')
-            elif len(prev_checks) == 1:
-                graph.add_edge(prev_checks[0], node, type='conditional', color='green')
-
-        def _add_node_feature_condition(graph, node_name:str, obj):
-            image = self.world.get_image(obj)
-            if isinstance(obj, Item):
-                slot = self.world.item_id_to_slot[obj.item_id]
-            elif isinstance(obj, Zone):
-                slot = self.world.zone_id_to_slot[obj.zone_id]
-            elif isinstance(obj, str):
-                slot = self.world.property_to_slot[obj]
-            graph.add_node(node_name, type='feature_check', color='blue', slot=slot, image=image)
-
-        def _add_node_option(graph, node_name:str, obj):
-            image = self.world.get_image(obj)
-            if isinstance(obj, Item):
-                option_key = obj.item_id
-            elif isinstance(obj, (Zone, str)):
-                option_key = str(obj)
-            graph.add_node(node_name, type='option', color='orange',
-                option_key=option_key, image=image)
-
-        def _add_node_action(graph, node_name:str, obj, action_id):
-            image = self.world.get_image(obj)
-            graph.add_node(node_name, type='action', color='red', action_id=action_id, image=image)
-
-        def _add_node_empty(graph, node_name:str):
-            graph.add_node(node_name, type='empty', color='purple', image=None)
-
-
         graph = nx.DiGraph()
         prev_checks = []
 
@@ -223,8 +272,9 @@ class GetItem(Option):
                 item = self.world.item_from_id[item_id]
                 check_item = f"Has {quantity}\n{item} ?"
                 get_item = f"Get\n{item}"
-                _add_node_feature_condition(graph, check_item, item)
-                _add_node_option(graph, get_item, item)
+                item_image = self.world.get_image(item)
+                _add_node_feature_condition(graph, check_item, item_image)
+                _add_node_option(graph, get_item, item_id, item_image)
                 if prev_check_in_option is not None:
                     graph.add_edge(prev_check_in_option, check_item,
                         type='conditional', color='green')
@@ -240,12 +290,13 @@ class GetItem(Option):
             zone = self.world.zone_from_id[zone_id]
             check_zone = f"Is in\n{zone} ?"
             go_to_zone = f"Go to\n{zone}"
-            _add_node_feature_condition(graph, check_zone, zone)
-            _add_node_option(graph, go_to_zone, zone)
+            zone_image = self.world.get_image(zone)
+            _add_node_feature_condition(graph, check_zone, zone_image)
+            _add_node_option(graph, go_to_zone, str(zone), zone_image)
             if len(prev_checks) > 0:
                 _add_predecessors(graph, prev_checks, check_zone,
                     force_any=len(self.zones_id_needed) > 1)
-            else:
+            elif len(self.zones_id_needed) > 1:
                 empty_node = ""
                 _add_node_empty(graph, empty_node)
                 graph.add_edge(empty_node, check_zone, type='any', color='purple')
@@ -258,8 +309,9 @@ class GetItem(Option):
         for prop in self.zones_properties_needed: # All properties needed
             check_prop = f"Zone {prop} ?"
             get_prop = f"Get {prop}"
-            _add_node_feature_condition(graph, check_prop, prop)
-            _add_node_option(graph, get_prop, prop)
+            prop_image = self.world.get_image(prop)
+            _add_node_feature_condition(graph, check_prop, prop_image)
+            _add_node_option(graph, get_prop, prop, prop_image)
             if len(prev_checks) > 0:
                 _add_predecessors(graph, prev_checks, check_prop)
             graph.add_edge(check_prop, get_prop, type='conditional', color='red')
@@ -267,7 +319,6 @@ class GetItem(Option):
 
         # Add last action
         action_type, obj_id = self.last_action
-        action_id = self.world.action(*self.last_action)
         if action_type == 'get':
             obj = self.world.item_from_id[obj_id]
             last_node = f"Search\n{obj}"
@@ -284,61 +335,11 @@ class GetItem(Option):
         else:
             raise ValueError(f'Unknowed action_type: {action_type}')
 
-        _add_node_action(graph, last_node, obj, action_id)
+        action_image = self.world.get_image(obj)
+        _add_node_action(graph, last_node, action_image)
         _add_predecessors(graph, prev_checks, last_node)
         compute_levels(graph)
         return graph
-
-    def draw_graph(self, ax):
-        if len(list(self.graph.nodes())) > 0:
-            pos = option_layout(self.graph)
-
-            draw_networkx_nodes_images(self.graph, pos, ax=ax, img_zoom=0.4)
-
-            # nx.draw_networkx_labels(
-            #     self.graph, pos,
-            #     ax=ax,
-            #     font_color='black',
-            # )
-
-            nx.draw_networkx_edges(
-                self.graph, pos,
-                ax=ax,
-                arrowsize=20,
-                arrowstyle="-|>",
-                min_source_margin=30, min_target_margin=30,
-                edge_color=[color for _, _, color in self.graph.edges(data='color')]
-            )
-
-            legend_patches = [
-                mpatches.Patch(facecolor='none', edgecolor='blue', label='Feature condition'),
-                mpatches.Patch(facecolor='none', edgecolor='orange', label='Option'),
-                mpatches.Patch(facecolor='none', edgecolor='red', label='Action'),
-            ]
-            legend_arrows = [
-                mpatches.FancyArrow(0, 0, 1, 0,
-                    facecolor='green', edgecolor='none', label='Condition (True)'),
-                mpatches.FancyArrow(0, 0, 1, 0,
-                    facecolor='red', edgecolor='none', label='Condition (False)'),
-                mpatches.FancyArrow(0, 0, 1, 0,
-                    facecolor='purple', edgecolor='none', label='Any'),
-            ]
-
-            # Draw the legend
-            ax.legend(
-                handles=legend_patches + legend_arrows,
-                handler_map={
-                    # Patch arrows with fancy arrows in legend
-                    mpatches.FancyArrow : HandlerPatch(
-                        patch_func=lambda width, height, **kwargs:mpatches.FancyArrow(
-                            0, 0.5*height, width, 0, width=0.2*height,
-                            length_includes_head=True, head_width=height, overhang=0.5
-                        )
-                    ),
-                }
-            )
-
-        return ax
 
     def __str__(self):
 
