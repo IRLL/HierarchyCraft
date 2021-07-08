@@ -11,7 +11,6 @@ from numpy import inf
 
 from crafting.examples.minecraft.abc import McTool
 
-AIR = McTool(0, 'air', durability=inf, speed=1) #: AIR
 WOODEN_PICKAXE = McTool(270, 'wooden_pickaxe', durability=59, speed=2) #: WOODEN_PICKAXE
 WOODEN_AXE = McTool(271, 'wooden_axe', durability=59, speed=2) #: WOODEN_AXE
 WOODEN_SWORD = McTool(268, 'wooden_sword', durability=59, speed=2) #: WOODEN_SWORD
@@ -44,7 +43,7 @@ SWORDS = [
     GOLD_SWORD, DIAMOND_SWORD
 ]
 
-MC_TOOLS = [AIR] + PICKAXES + AXES + SWORDS
+MC_TOOLS = PICKAXES + AXES + SWORDS
 
 if __name__ == "__main__":
     print('Tools:', str(MC_TOOLS))

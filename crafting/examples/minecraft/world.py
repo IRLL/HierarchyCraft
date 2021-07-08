@@ -22,6 +22,5 @@ class McWorld(World):
             zones=MC_ZONES,
             items=MC_ITEMS + MC_TOOLS,
             recipes=MC_RECIPES,
-            trivial_items=[0,],
             resources_path=resources_path
         )

@@ -173,7 +173,7 @@ class GetItem(Option):
 
         return self.world.action(*self.last_action), True
 
-    def get_graph(self) -> nx.DiGraph:
+    def build_graph(self) -> nx.DiGraph:
 
         def _add_predecessors(graph, prev_checks, node, force_any=False):
             if len(prev_checks) > 1 or (force_any and len(prev_checks) > 0):

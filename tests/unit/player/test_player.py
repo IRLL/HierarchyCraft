@@ -1,5 +1,6 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
+# pylint: disable=attribute-defined-outside-init
 
 import pytest
 
@@ -8,29 +9,30 @@ from crafting.world.zones import Zone
 from crafting.player.player import Player
 from crafting.player.inventory import Inventory
 
-@pytest.fixture
-def items():
-    dirt = Item(3, name='dirt')
-    plank = Item(5, name='plank')
-    stone = Item(12, name='stone')
-    air = Tool(0, 'air')
-    wooden_pickaxe = Tool(270, 'wooden_pickaxe')
-    return (dirt, plank, stone, wooden_pickaxe, air)
 
-@pytest.fixture
-def forest(items):
-    dirt = items[0]
-    stone = items[2]
-    air = items[3]
-    wooden_pickaxe = items[4]
-    return Zone(0, 'forest', {
-        stone.item_id: [wooden_pickaxe],
-        dirt.item_id: [air]
-    })
+class TestPlayer:
+    "Player"
 
-@pytest.fixture
-def inv(items):
-    return Inventory(items)
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        """ Setup variables. """
+        self.egg = Item(666, 'egg')
 
-def test_player_init(inv, forest):
-    Player(inv, forest)
+        self.wooden_axe = Tool(18, 'wooden_axe')
+        self.wood = Item(17, 'wood', required_tools=[None, self.wooden_axe])
+
+        self.wooden_pickaxe = Tool(18, 'wooden_pickaxe')
+        self.stone = Item(1, 'stone', required_tools=[self.wooden_pickaxe])
+
+        self.forest = Zone(
+            zone_id=0,
+            name='forest',
+            properties={'has_crafting': False, 'has_furnace': False},
+            items=[self.egg, self.wood, self.stone]
+        )
+
+        self.inventory = Inventory([self.egg, self.wood, self.stone])
+
+    def test_init(self):
+        """ should instanciate correctly. """
+        self.player = Player(self.inventory, self.forest)

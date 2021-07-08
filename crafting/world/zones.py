@@ -48,6 +48,24 @@ class Zone():
         self.items = items
         self.properties = properties if properties is not None else {}
 
+    def can_search_for(self, item:Item, tool:Tool=None) -> bool:
+        """ Check if the item can be found using a tool
+
+        Args:
+            item: The item to look for.
+            tool: The tool to use in search.
+
+        Returns:
+            True if the item can be found, False otherwise.
+
+        """
+        if not item in self.items:
+            return False
+        required_tools = item.required_tools
+        no_tool_is_required = required_tools is None or None in required_tools
+        tool_in_required = tool is not None and tool in required_tools
+        return no_tool_is_required or tool_in_required
+
     def search_for(self, item:Item, tool:Tool=None) -> List[ItemStack]:
         """ Searches for the given item using a tool
 
@@ -62,14 +80,15 @@ class Zone():
         if item in self.items:
             required_tools = item.required_tools
 
-            # If no tool is needed, just gather items
+            # If no tool is usable, just gather item
             if required_tools is None:
                 return [ItemStack(item)]
-
             # If a tool is needed, gather items relative to used tool
             if tool is not None and tool in required_tools:
                 return tool.use(item)
-
+            # If no tool is needed anyway, just gather item
+            elif None in required_tools:
+                return [ItemStack(item)]
         return []
 
     def __str__(self):

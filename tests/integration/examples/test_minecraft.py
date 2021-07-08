@@ -22,7 +22,7 @@ def test_obtain_getting_wood():
         _, _, done, _ = env(env.action('get', WOOD.item_id))
 
     if env.player.inventory.content[5] != 100:
-        raise ValueError('Unexpected number of wood got after 100 steps (AIR)')
+        raise ValueError('Unexpected number of wood got after 100 steps (No tool)')
 
     print()
     env.reset()
@@ -85,7 +85,8 @@ def test_obtain_enchant_table():
     env(env.action('get', LEATHER.item_id))
 
     env(env.action('move', SWAMP.zone_id))
-    env(env.action('get', REEDS.item_id))
+    for _ in range(3):
+        env(env.action('get', REEDS.item_id))
 
     env(env.action('move', BEDROCK.zone_id))
     for _ in range(2):

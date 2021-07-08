@@ -13,7 +13,7 @@ class TestZone:
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        """ Setup reused variables. """
+        """ Setup variables. """
         self.egg = Item(666, 'egg')
 
         self.wooden_axe = Tool(18, 'wooden_axe')
