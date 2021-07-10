@@ -170,7 +170,8 @@ class World():
         all_options = {}
 
         for zone in self.zones:
-            all_options[str(zone)] = GoToZone(zone, self)
+            zone_option = GoToZone(zone, self)
+            all_options[zone_option.option_id] = zone_option
 
         for item in self.foundable_items:
             zones_id_needed = []
@@ -186,7 +187,7 @@ class World():
 
             if hasattr(item, 'items_dropped'):
                 for dropped_item in item.items_dropped:
-                    all_options[dropped_item.item_id] = GetItem(
+                    item_option = GetItem(
                         world=self,
                         item=dropped_item,
                         all_options=all_options,
@@ -195,7 +196,7 @@ class World():
                         zones_id_needed=zones_id_needed,
                     )
             else:
-                all_options[item.item_id] = GetItem(
+                item_option = GetItem(
                     world=self,
                     item=item,
                     all_options=all_options,
@@ -203,6 +204,7 @@ class World():
                     last_action=('get', item.item_id),
                     zones_id_needed=zones_id_needed,
                 )
+            all_options[item_option.option_id] = item_option
 
         for recipe in self.recipes:
 
@@ -215,7 +217,7 @@ class World():
 
             if recipe.outputs is not None:
                 for output in recipe.outputs:
-                    all_options[output.item.item_id] = GetItem(
+                    recipe_option = GetItem(
                         world=self,
                         item=output.item,
                         all_options=all_options,
@@ -223,10 +225,11 @@ class World():
                         zones_properties_needed=recipe.needed_properties,
                         last_action=('craft', recipe.recipe_id),
                     )
+                    all_options[recipe_option.option_id] = recipe_option
 
             if recipe.added_properties is not None:
                 for zone_property in recipe.added_properties:
-                    all_options[zone_property] = GetItem(
+                    zone_property_option = GetItem(
                         world=self,
                         item=zone_property,
                         all_options=all_options,
@@ -234,6 +237,7 @@ class World():
                         zones_properties_needed=recipe.needed_properties,
                         last_action=('craft', recipe.recipe_id),
                     )
+                    all_options[zone_property_option.option_id] = zone_property_option
 
         return all_options
 

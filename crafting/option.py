@@ -61,9 +61,8 @@ def _add_predecessors(graph, prev_checks, node, force_any=False):
 def _add_node_feature_condition(graph, node_name:str, image):
     graph.add_node(node_name, type='feature_check', color='blue', image=image)
 
-def _add_node_option(graph, node_name:str, option_id, image):
-    graph.add_node(node_name, type='option', color='orange',
-        option_key=option_id, image=image)
+def _add_node_option(graph, node_name:str, image):
+    graph.add_node(node_name, type='option', color='orange', image=image)
 
 def _add_node_action(graph, node_name:str, image):
     graph.add_node(node_name, type='action', color='red', image=image)
@@ -128,13 +127,13 @@ class GoToZone(Option):
     """ Generic option for moving to a zone """
 
     def __init__(self, zone:Zone, world:"crafting.world.World"):
-        super().__init__(zone.zone_id)
+        super().__init__(f"Reach {str(zone)}")
         self.world = world
         self.zone = zone
-    
+
     def build_graph(self) -> nx.DiGraph:
         graph = nx.DiGraph()
-        node_name = f"Go to\n{self.zone}"
+        node_name = f"Go to {self.zone}"
         zone_image = self.world.get_image(self.zone)
         _add_node_action(graph, node_name, zone_image)
         compute_levels(graph)
@@ -157,8 +156,7 @@ class GetItem(Option):
             last_action: tuple,
             zones_id_needed=None, zones_properties_needed=None):
 
-        option_id = item.item_id if isinstance(item, Item) else item
-        super().__init__(option_id)
+        super().__init__(f"Get {str(item)}")
         self.world = world
         self.item = item
 
@@ -270,11 +268,11 @@ class GetItem(Option):
             prev_check_in_option = None
             for item_id, quantity in craft_option:
                 item = self.world.item_from_id[item_id]
-                check_item = f"Has {quantity}\n{item} ?"
-                get_item = f"Get\n{item}"
+                check_item = f"Has {quantity} {item} ?"
+                get_item = f"Get {item}"
                 item_image = self.world.get_image(item)
                 _add_node_feature_condition(graph, check_item, item_image)
-                _add_node_option(graph, get_item, item_id, item_image)
+                _add_node_option(graph, get_item, item_image)
                 if prev_check_in_option is not None:
                     graph.add_edge(prev_check_in_option, check_item,
                         type='conditional', color='green')
@@ -288,11 +286,11 @@ class GetItem(Option):
         prev_checks_zone = []
         for zone_id in self.zones_id_needed: # Any of the zones possibles
             zone = self.world.zone_from_id[zone_id]
-            check_zone = f"Is in\n{zone} ?"
-            go_to_zone = f"Go to\n{zone}"
+            check_zone = f"Is in {zone} ?"
+            option_zone = f"Reach {zone}"
             zone_image = self.world.get_image(zone)
             _add_node_feature_condition(graph, check_zone, zone_image)
-            _add_node_option(graph, go_to_zone, str(zone), zone_image)
+            _add_node_option(graph, option_zone, zone_image)
             if len(prev_checks) > 0:
                 _add_predecessors(graph, prev_checks, check_zone,
                     force_any=len(self.zones_id_needed) > 1)
@@ -300,7 +298,7 @@ class GetItem(Option):
                 empty_node = ""
                 _add_node_empty(graph, empty_node)
                 graph.add_edge(empty_node, check_zone, type='any', color='purple')
-            graph.add_edge(check_zone, go_to_zone, type='conditional', color='red')
+            graph.add_edge(check_zone, option_zone, type='conditional', color='red')
             prev_checks_zone.append(check_zone)
 
         if len(prev_checks_zone) > 0:
@@ -311,7 +309,7 @@ class GetItem(Option):
             get_prop = f"Get {prop}"
             prop_image = self.world.get_image(prop)
             _add_node_feature_condition(graph, check_prop, prop_image)
-            _add_node_option(graph, get_prop, prop, prop_image)
+            _add_node_option(graph, get_prop, prop_image)
             if len(prev_checks) > 0:
                 _add_predecessors(graph, prev_checks, check_prop)
             graph.add_edge(check_prop, get_prop, type='conditional', color='red')
@@ -321,17 +319,17 @@ class GetItem(Option):
         action_type, obj_id = self.last_action
         if action_type == 'get':
             obj = self.world.item_from_id[obj_id]
-            last_node = f"Search\n{obj}"
+            last_node = f"Search {obj}"
         elif action_type == 'craft':
             recipe = self.world.recipes_from_id[obj_id]
             if recipe.outputs is not None:
                 obj = recipe.outputs[0]
             else:
                 obj = list(recipe.added_properties.keys())[0]
-            last_node = f"Craft\n{recipe}"
+            last_node = f"Craft {recipe}"
         elif action_type == 'move':
             obj = self.world.zone_from_id[obj_id]
-            last_node = f"Move to\n{obj}"
+            last_node = f"Move to {obj}"
         else:
             raise ValueError(f'Unknowed action_type: {action_type}')
 
