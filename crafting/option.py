@@ -75,7 +75,7 @@ def draw_option_graph(graph, ax) -> Axes:
     if len(list(graph.nodes())) > 0:
         pos = option_layout(graph)
 
-        draw_networkx_nodes_images(graph, pos, ax=ax, img_zoom=0.4)
+        draw_networkx_nodes_images(graph, pos, ax=ax, img_zoom=0.5)
 
         # nx.draw_networkx_labels(
         #     self.graph, pos,
@@ -88,7 +88,8 @@ def draw_option_graph(graph, ax) -> Axes:
             ax=ax,
             arrowsize=20,
             arrowstyle="-|>",
-            min_source_margin=30, min_target_margin=30,
+            min_source_margin=0, min_target_margin=10,
+            node_shape='s', node_size=1500,
             edge_color=[color for _, _, color in graph.edges(data='color')]
         )
 
