@@ -30,14 +30,14 @@ class Task():
         self.reset()
 
     def add_achivement_getitem(self, item_id, value, end_task=False):
-        """ Makes getting `item_id` an achievement with reward `value`. """
+        """ Makes getting `item_id` for the first time an achievement with reward `value`. """
         item_slot = self.world.item_id_to_slot[item_id]
         self.achievements_items_values[item_slot] += value
         if end_task:
             self.items_end_task_at[item_slot] = 1
 
     def add_item_value(self, item_id, value, end_task_at=None):
-        """ Makes getting `item_id` an achievement with reward `value`. """
+        """ Attributes a reward `value` for each unit of the item `item_id`. """
         item_slot = self.world.item_id_to_slot[item_id]
         self.items_values[item_slot] += value
         if end_task_at is not None:
