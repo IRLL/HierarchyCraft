@@ -180,9 +180,9 @@ class World():
                     zones_id_needed.append(zone.zone_id)
 
             items_needed = []
-            if item.required_tools is not None and None not in item.required_tools:
+            if item.required_tools is not None :
                 for tool in item.required_tools:
-                    crafting_option = [(tool.item_id, 1)]
+                    crafting_option = [(tool.item_id, 1)] if tool is not None else None
                     items_needed.append(crafting_option)
 
             if hasattr(item, 'items_dropped'):

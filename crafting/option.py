@@ -25,6 +25,9 @@ class OptionGraph(nx.DiGraph):
     def add_node_action(self, node_name:str, image):
         self.add_node(node_name, type='action', color='red', image=image)
 
+    def add_node_empty(self, node_name:str):
+        self.add_node(node_name, type='empty', color='purple', image=None)
+
     def add_edge_conditional(self, u_of_edge, v_of_edge, is_yes:bool):
         color = 'green' if is_yes else 'red'
         self.add_edge(u_of_edge, v_of_edge, type='conditional', color=color)
@@ -268,20 +271,25 @@ class GetItem(Option):
         prev_checks = []
 
         for craft_option in self.items_needed: # Any of Craft options
-            prev_check_in_option = None
-            for item_id, quantity in craft_option:
-                item = self.world.item_from_id[item_id]
-                check_item = f"Has {quantity} {item} ?"
-                get_item = f"Get {item}"
-                item_image = self.world.get_image(item)
-                graph.add_node_feature_condition(check_item, item_image)
-                graph.add_node_option(get_item, item_image)
+            if craft_option is not None:
+                prev_check_in_option = None
+                for item_id, quantity in craft_option:
+                    item = self.world.item_from_id[item_id]
+                    check_item = f"Has {quantity} {item} ?"
+                    get_item = f"Get {item}"
+                    item_image = self.world.get_image(item)
+                    graph.add_node_feature_condition(check_item, item_image)
+                    graph.add_node_option(get_item, item_image)
+                    if prev_check_in_option is not None:
+                        graph.add_edge_conditional(prev_check_in_option, check_item, True)
+                    graph.add_edge_conditional(check_item, get_item, False)
+                    prev_check_in_option = check_item
                 if prev_check_in_option is not None:
-                    graph.add_edge_conditional(prev_check_in_option, check_item, True)
-                graph.add_edge_conditional(check_item, get_item, False)
-                prev_check_in_option = check_item
-            if prev_check_in_option is not None:
-                prev_checks.append(prev_check_in_option)
+                    prev_checks.append(prev_check_in_option)
+            else:
+                no_item_required = "No item required"
+                graph.add_node_empty(no_item_required)
+                prev_checks.append(no_item_required)
 
         prev_checks_zone = []
         for zone_id in self.zones_id_needed: # Any of the zones possibles
