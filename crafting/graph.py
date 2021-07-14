@@ -196,21 +196,13 @@ def leveled_layout(graph:nx.DiGraph, center=None,
 
 def option_layout(graph:nx.DiGraph):
     graph, _ = nx.drawing.layout._process_params(graph, None, dim=2)
-
-    nodes_by_level = {}
-    for node, node_data in graph.nodes(data=True):
-        level = node_data['level']
-        try:
-            nodes_by_level[level].append(node)
-        except KeyError:
-            nodes_by_level[level] = [node]
-
+    nodes_by_level = graph.graph['nodes_by_level']
     pos = {}
     for level in range(max(nodes_by_level.keys()) + 1):
         for i, node in enumerate(nodes_by_level[level]):
             preds = list(graph.predecessors(node))
             if len(preds) == 0:
-                x_pos = 0
+                x_pos = i
             elif len(preds) == 1 and graph.edges[preds[0], node]['color'] == 'red':
                 x_pos = pos[preds[0]][0]
             else:
