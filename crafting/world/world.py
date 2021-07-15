@@ -27,7 +27,7 @@ class World():
     """ A crafting World containing items, recipes and zones. """
 
     def __init__(self, items:List[Item], recipes:List[Recipe], zones:List[Zone],
-            resources_path:str=None
+            searchable_items:List[Item]=None, resources_path:str=None
         ):
         """ A crafting World containing items, recipes and zones.
 
@@ -47,6 +47,7 @@ class World():
 
         # Items
         self.items = items
+        self.searchable_items = searchable_items if searchable_items is not None else items
         self.item_from_id = {item.item_id: item for item in items}
         self.item_id_to_slot = {
             item.item_id: i for i, item in enumerate(items)

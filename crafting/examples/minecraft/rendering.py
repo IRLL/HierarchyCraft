@@ -11,11 +11,8 @@ import pygame
 from pygame.surface import Surface
 import pygame_menu
 
-from crafting.examples.minecraft.items import *
-from crafting.examples.minecraft.recipes import MC_RECIPES
-from crafting.examples.minecraft.zones import MC_ZONES
-
 from crafting.env import CraftingEnv
+from crafting.world.world import World
 from crafting.world.zones import Zone
 from crafting.player.inventory import Inventory
 
@@ -206,24 +203,18 @@ class ScoreWidget():
         surface.blit(score_name_img, self.position)
 
 
-def make_menus(resources_path: str, window_shape: tuple):
+def make_menus(world: World, window_shape: tuple):
 
     def on_button_click(action_type, identification):
         return action_type, identification
-
-    # Menus sizes
-    recipes_menu_height = int(0.25 * window_shape[1])
-    recipes_menu_width = window_shape[0]
-
-    items_menu_height = window_shape[1] - recipes_menu_height
-    items_menu_width = int(0.15 * window_shape[0])
-
-    zones_menu_height = items_menu_height
-    zones_menu_width = int(0.20 * window_shape[0])
-
+    
+    resources_path = world.resources_path
     id_to_action = {}
 
     # Item Menu
+    items_menu_height = int(0.75 * window_shape[1])
+    items_menu_width = int(0.15 * window_shape[0])
+
     items_menu = pygame_menu.Menu(
         title='Search',
         height=items_menu_height,
@@ -233,7 +224,7 @@ def make_menus(resources_path: str, window_shape: tuple):
     )
 
     items_images_path = os.path.join(resources_path, 'items')
-    for item in MC_SEARCHABLE_ITEMS:
+    for item in world.searchable_items:
         image_path = os.path.join(items_images_path, f"{item.item_id}.png")
         image = pygame_menu.baseimage.BaseImage(image_path).scale(0.5, 0.5)
 
@@ -250,20 +241,22 @@ def make_menus(resources_path: str, window_shape: tuple):
         id_to_action[button.get_id()] = ('get', item.item_id)
 
     # Recipes Menu
+    recipes_menu_height = window_shape[1] - items_menu_height
+    recipes_menu_width = window_shape[0]
 
     recipes_menu = pygame_menu.Menu(
         title='Craft',
         height=recipes_menu_height,
         width=recipes_menu_width,
         rows=1,
-        columns=len(MC_RECIPES),
+        columns=world.n_recipes,
         position=(0, 100),
         column_max_width=int(0.08 * window_shape[0]),
         theme=pygame_menu.themes.THEME_ORANGE
     )
 
     recipes_images_path = os.path.join(resources_path, 'items')
-    for recipe in MC_RECIPES:
+    for recipe in world.recipes:
         image_path = os.path.join(recipes_images_path, f"{recipe.recipe_id}.png")
         image = pygame_menu.baseimage.BaseImage(image_path).scale(0.5, 0.5)
 
@@ -280,6 +273,8 @@ def make_menus(resources_path: str, window_shape: tuple):
         id_to_action[button.get_id()] = ('craft', recipe.recipe_id)
 
     # Zones Menu
+    zones_menu_height = items_menu_height
+    zones_menu_width = int(0.20 * window_shape[0])
 
     zones_menu = pygame_menu.Menu(
         title='Move',
@@ -290,7 +285,7 @@ def make_menus(resources_path: str, window_shape: tuple):
     )
 
     zones_images_path = os.path.join(resources_path, 'zones')
-    for zone in MC_ZONES:
+    for zone in world.zones:
         image_path = os.path.join(zones_images_path, f"{zone.zone_id}.png")
         image = pygame_menu.baseimage.BaseImage(image_path).scale(0.2, 0.2)
 
@@ -322,7 +317,7 @@ def create_window(env: CraftingEnv):
     pygame.display.set_caption('MineCrafting')
 
     # Create menu
-    menus, id_to_action = make_menus(env.world.resources_path, window_shape)
+    menus, id_to_action = make_menus(env.world, window_shape)
 
     # Create inventory widget
     position = (int(0.15 * window_shape[0]), int(0.15 * window_shape[0]))
