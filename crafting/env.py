@@ -174,7 +174,7 @@ class CraftingEnv(gym.Env):
         if not success:
             reward -= self.fail_penalty
 
-        self.player.score += reward
+        self.player.score += int(100 * reward)
 
         # Termination
         done = self.steps >= self.max_step or task_done

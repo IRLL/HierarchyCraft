@@ -202,7 +202,7 @@ class ScoreWidget():
         self.score = score
 
     def draw(self, surface):
-        score_name_img = self.font.render(f"SCORE {self.score:.2f}", False, '#c95149')
+        score_name_img = self.font.render(f"SCORE {self.score}", False, '#c95149')
         surface.blit(score_name_img, self.position)
 
 
