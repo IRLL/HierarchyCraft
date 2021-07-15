@@ -18,7 +18,6 @@ from crafting.env import CraftingEnv
 from crafting.world.world import World
 from crafting.world.zones import Zone
 from crafting.player.inventory import Inventory
-from crafting.player.player import Player
 
 
 def load_and_scale(
@@ -490,7 +489,7 @@ if __name__ == '__main__':
         tasks=['obtain_enchanting_table'], tasks_can_end=[True]
     )
 
-    import matplotlib.pyplot as plt
+    # import matplotlib.pyplot as plt
     # fig, ax = plt.subplots()
     # env.world.draw_requirements_graph(ax)
     # plt.show()
