@@ -415,9 +415,8 @@ def get_human_action(env, additional_events=None, can_be_none=False, **kwargs):
 
 
 if __name__ == '__main__':
-    from pygame.locals import MOUSEBUTTONDOWN, MOUSEBUTTONUP
+    from crafting.examples.minecraft.items import ENCHANTING_TABLE
     from crafting.examples import MineCraftingEnv
-    
 
     env = MineCraftingEnv(verbose=1, max_step=100,
         tasks=['obtain_enchanting_table'], tasks_can_end=[True]
@@ -430,7 +429,7 @@ if __name__ == '__main__':
 
     ALL_GET_OPTIONS = env.world.get_all_options()
 
-    enchant_table_option = ALL_GET_OPTIONS[ENCHANTING_TABLE.item_id]
+    enchant_table_option = ALL_GET_OPTIONS[f"Get {ENCHANTING_TABLE}"]
     # print(enchant_table_option)
 
     for _ in range(2):
