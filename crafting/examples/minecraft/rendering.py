@@ -9,14 +9,16 @@ import numpy as np
 
 import pygame
 from pygame.surface import Surface
+from pygame.event import Event
+
 import pygame_menu
+from pygame_menu.menu import Menu
 
 from crafting.env import CraftingEnv
 from crafting.world.world import World
 from crafting.world.zones import Zone
 from crafting.player.inventory import Inventory
-
-from pygame.event import Event
+from crafting.player.player import Player
 
 
 def load_and_scale(
@@ -49,12 +51,27 @@ def load_and_scale(
     new_shape = (int(image_shape[0] * scale_ratio), int(image_shape[1] * scale_ratio))
     return pygame.transform.scale(image, new_shape)
 
+class EnvWidget():
 
-class InventoryWidget():
+    """ Display widget base class for any crafting environment. """
+
+    def update(self, env: CraftingEnv):
+        """ Update the widget given the environment state. """
+        raise NotImplementedError
+
+    def draw(self, surface: Surface):
+        """ Draw the widget on a given surface. """
+        raise NotImplementedError
+
+
+class InventoryWidget(EnvWidget):
+
+    """ Displays the player's inventory. """
 
     def __init__(self,
         inventory: Inventory,
         resources_path:str,
+        font_path:str,
         position: Tuple[int],
         window_shape: Tuple[int]
     ):
@@ -64,8 +81,6 @@ class InventoryWidget():
         self.background = self._load_background(window_shape)
         self.shape = self.background.get_size()
         self.position = np.array(position)
-
-        font_path = os.path.join(self.resources_path, 'minecraft_font.ttf')
         self.font = pygame.font.Font(font_path, int(0.1 * self.shape[1]))
 
         self.item_images_per_id = {
@@ -82,8 +97,8 @@ class InventoryWidget():
         image_path = os.path.join(self.resources_path, 'items', f'{item_id}.png')
         return load_and_scale(image_path, self.shape, 0.09)
 
-    def update(self, inventory: Inventory=None):
-        self.inventory = inventory
+    def update(self, env: CraftingEnv):
+        self.inventory = env.player.inventory
 
     def draw(self, surface: Surface):
         surface.blit(self.background, self.position)
@@ -116,12 +131,15 @@ class InventoryWidget():
                 surface.blit(text, text_rect)
 
 
-class ZoneWidget():
+class ZoneWidget(EnvWidget):
+
+    """ Displays the current player zone and its active properties. """
 
     def __init__(self,
             zones: List[Zone],
             properties: List[str],
             resources_path: str,
+            font_path:str,
             position: Tuple[int],
             window_shape: Tuple[int]
         ):
@@ -141,7 +159,6 @@ class ZoneWidget():
             for prop in properties
         }
 
-        font_path = os.path.join(self.resources_path, 'minecraft_font.ttf')
         self.font = pygame.font.Font(font_path, int(0.3 * self.shape[1]))
 
     def _load_zone_image(self, zone_id, window_shape):
@@ -149,19 +166,13 @@ class ZoneWidget():
         return load_and_scale(image_path, window_shape, 0.25)
 
     def _load_property_image(self, prop: str):
-        if prop == "has_crafting":
-            prop_id = 58
-        elif prop == "has_furnace":
-            prop_id = 61
-        else:
-            raise ValueError(f'Unknowed property :{prop}')
-        image_path = os.path.join(self.resources_path, 'items', f'{prop_id}.png')
+        image_path = os.path.join(self.resources_path, 'items', f'{prop}.png')
         return load_and_scale(image_path, self.shape, 0.2)
 
-    def update(self, zone: Zone):
-        self.zone = zone
+    def update(self, env: CraftingEnv):
+        self.zone = env.player.zone
 
-    def draw(self, surface):
+    def draw(self, surface: Surface):
         zone_image = self.zones_images[self.zone.zone_id]
         surface.blit(zone_image, self.position)
 
@@ -169,7 +180,7 @@ class ZoneWidget():
         font_shift = np.array([int(0.05 * self.shape[0]), 0])
         surface.blit(zone_name_img, self.position + font_shift)
 
-        prop_shift = np.array([int(0.05 * self.shape[0]), int(0.6 * self.shape[1])])
+        prop_shift = np.array([int(0.02 * self.shape[0]), int(0.55 * self.shape[1])])
         x_step = int(0.22 * self.shape[0])
 
         n_active_props = 0
@@ -182,24 +193,45 @@ class ZoneWidget():
                 n_active_props += 1
 
 
-class ScoreWidget():
+class ScoreWidget(EnvWidget):
+
+    """ Display the current score """
 
     def __init__(self,
-            resources_path: str,
+            font_path: str,
             position: Tuple[int],
             font_size: int
         ):
         self.position = position
-        font_path = os.path.join(resources_path, 'minecraft_font.ttf')
         self.font = pygame.font.Font(font_path, font_size)
         self.reward = 0
         self.score = 0
 
-    def update(self, score: float):
-        self.score = score
+    def update(self, env: CraftingEnv):
+        self.score = env.player.score
 
-    def draw(self, surface):
+    def draw(self, surface: Surface):
         score_name_img = self.font.render(f"SCORE {self.score}", False, '#c95149')
+        surface.blit(score_name_img, self.position)
+
+class StepLeftWidget(EnvWidget):
+
+    """ Display the number of steps left until the environment is done. """
+
+    def __init__(self,
+            font_path: str,
+            position: Tuple[int],
+            font_size: int
+        ):
+        self.position = position
+        self.font = pygame.font.Font(font_path, font_size)
+        self.steps_left = None
+
+    def update(self, env: CraftingEnv):
+        self.steps_left = env.max_step - env.steps
+
+    def draw(self, surface: Surface):
+        score_name_img = self.font.render(f"Steps left: {self.steps_left}", False, '#803300')
         surface.blit(score_name_img, self.position)
 
 
@@ -207,7 +239,7 @@ def make_menus(world: World, window_shape: tuple):
 
     def on_button_click(action_type, identification):
         return action_type, identification
-    
+
     resources_path = world.resources_path
     id_to_action = {}
 
@@ -219,7 +251,10 @@ def make_menus(world: World, window_shape: tuple):
         title='Search',
         height=items_menu_height,
         width=items_menu_width,
+        keyboard_enabled=False,
+        joystick_enabled=False,
         position=(0, 0),
+        overflow=(True, False),
         theme=pygame_menu.themes.THEME_BLUE,
     )
 
@@ -248,9 +283,12 @@ def make_menus(world: World, window_shape: tuple):
         title='Craft',
         height=recipes_menu_height,
         width=recipes_menu_width,
+        keyboard_enabled=False,
+        joystick_enabled=False,
         rows=1,
         columns=world.n_recipes,
         position=(0, 100),
+        overflow=(False, True),
         column_max_width=int(0.08 * window_shape[0]),
         theme=pygame_menu.themes.THEME_ORANGE
     )
@@ -280,7 +318,10 @@ def make_menus(world: World, window_shape: tuple):
         title='Move',
         height=zones_menu_height,
         width=zones_menu_width,
+        keyboard_enabled=False,
+        joystick_enabled=False,
         position=(100, 0),
+        overflow=(True, False),
         theme=pygame_menu.themes.THEME_GREEN,
     )
 
@@ -301,12 +342,40 @@ def make_menus(world: World, window_shape: tuple):
         decorator.add_baseimage(0, 0, image, centered=True)
         id_to_action[button.get_id()] = ('move', zone.zone_id)
 
+    # # Inventory menu
+    # inventory_menu_height =  window_shape[1] - recipes_menu_height - int(0.25 * window_shape[1])
+    # inventory_menu_width = window_shape[0] - zones_menu_width - items_menu_width
+
+    # inventory_menu = pygame_menu.Menu(
+    #     title='Inventory',
+    #     height=inventory_menu_height,
+    #     width=inventory_menu_width,
+    #     position=(50, 50),
+    #     overflow=(True, False),
+    #     center_content=False,
+    #     columns=9,
+    #     rows=len(world.items) // 9 + 1,
+    #     keyboard_enabled=False,
+    #     joystick_enabled=False,
+    #     mouse_enabled=False,
+    #     mouse_motion_selection=False,
+    # )
+
+    # items_images_path = os.path.join(resources_path, 'items')
+    # for item in world.items:
+    #     image_path = os.path.join(items_images_path, f"{item.item_id}.png")
+    #     image = pygame_menu.baseimage.BaseImage(image_path).scale(0.5, 0.5)
+    #     button = inventory_menu.add.button(' '*8, padding=(12, 0, 12, 0), selection_effect=None)
+    #     decorator = button.get_decorator()
+    #     decorator.add_baseimage(0, 0, image, centered=True)
+    #     id_to_action[button.get_id()] = item.item_id
+
     return (items_menu, recipes_menu, zones_menu), id_to_action
 
 
 def create_window(env: CraftingEnv):
+    """" Initialize PyGame and all graphics widgets. """
     os.environ['SDL_VIDEO_CENTERED'] = '1'
-
     window_shape = (int(16/9 * 600), 720)
 
     pygame.init()
@@ -314,50 +383,52 @@ def create_window(env: CraftingEnv):
 
     # Create window
     screen = pygame.display.set_mode(window_shape)
-    pygame.display.set_caption('MineCrafting')
+    pygame.display.set_caption(env.name)
 
     # Create menu
     menus, id_to_action = make_menus(env.world, window_shape)
 
     # Create inventory widget
-    position = (int(0.15 * window_shape[0]), int(0.15 * window_shape[0]))
     inv_widget = InventoryWidget(
         env.player.inventory,
         env.world.resources_path,
-        position,
-        window_shape
+        env.world.font_path,
+        position=(int(0.15 * window_shape[0]), int(0.15 * window_shape[0])),
+        window_shape=window_shape
     )
 
     # Create zone widget
-    position = (int(0.52 * window_shape[0]), int(0.02 * window_shape[0]))
     zone_widget = ZoneWidget(
         env.world.zones,
         env.world.zone_properties,
         env.world.resources_path,
-        position,
-        window_shape
+        env.world.font_path,
+        position=(int(0.52 * window_shape[0]), int(0.02 * window_shape[0])),
+        window_shape=window_shape
     )
 
-    position = (int(0.17 * window_shape[0]), int(0.01 * window_shape[0]))
-    font_size = int(0.06 * window_shape[0])
     score_widget = ScoreWidget(
-        env.world.resources_path,
-        position,
-        font_size,
+        env.world.font_path,
+        position=(int(0.17 * window_shape[0]), int(0.01 * window_shape[0])),
+        font_size=int(0.06 * window_shape[0]),
+    )
+
+    step_widget = StepLeftWidget(
+        env.world.font_path,
+        position=(int(0.17 * window_shape[0]), int(0.06 * window_shape[0])),
+        font_size=int(0.04 * window_shape[0]),
     )
 
     return {
         'clock': clock,
         'screen': screen,
         'menus': menus,
-        'inv_widget': inv_widget,
-        'zone_widget': zone_widget,
-        'score_widget': score_widget,
+        'widgets': (score_widget, zone_widget, inv_widget, step_widget),
         'id_to_action': id_to_action
     }
 
-def update_rendering(env: CraftingEnv, clock, screen, menus, inv_widget, zone_widget,
-    score_widget, id_to_action, additional_events:List[Event]=None, fps:float=60):
+def update_rendering(env: CraftingEnv, clock, screen, menus:List[Menu], widgets:List[EnvWidget],
+    id_to_action, additional_events:List[Event]=None, fps:float=60):
     # Tick
     clock.tick(fps)
 
@@ -372,17 +443,13 @@ def update_rendering(env: CraftingEnv, clock, screen, menus, inv_widget, zone_wi
         if event.type == pygame.QUIT:
             exit()
 
-    inv_widget.update(env.player.inventory)
-    inv_widget.draw(screen)
-
-    zone_widget.update(env.player.zone)
-    zone_widget.draw(screen)
-
-    score_widget.update(env.player.score)
-    score_widget.draw(screen)
+    for widget in widgets:
+        widget.update(env)
+        widget.draw(screen)
 
     action = None
     action_is_legal = env.get_action_is_legal()
+
     for menu in menus:
         buttons = [
             widget for widget in menu.get_widgets()
@@ -390,7 +457,8 @@ def update_rendering(env: CraftingEnv, clock, screen, menus, inv_widget, zone_wi
         ]
         for button in buttons:
             action_id = env.action(*id_to_action[button.get_id()])
-            if action_is_legal[action_id]:
+            show_button = action_is_legal[action_id]
+            if show_button:
                 button.show()
             else:
                 button.hide()

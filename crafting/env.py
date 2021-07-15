@@ -18,7 +18,7 @@ class CraftingEnv(gym.Env):
 
     metadata = {'render.modes': ['human', 'ansi']}
 
-    def __init__(self, world: World, player: Player,
+    def __init__(self, world: World, player: Player, name:str='Crafting',
         max_step: int=500, verbose: int=0, observe_legal_actions: bool=False,
         tasks: List[Union[str, Task]]=None, tasks_weights: Union[list, dict]=None,
         tasks_can_end: Union[list, dict]=None, tasks_early_stopping: str='all',
@@ -41,6 +41,8 @@ class CraftingEnv(gym.Env):
             moving_penalty: Reward penalty for moving to an other zone.
 
         """
+        self.name = name
+
         self.world = deepcopy(world)
         self.initial_world = deepcopy(world)
 

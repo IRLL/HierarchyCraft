@@ -49,6 +49,7 @@ class MineCraftingEnv(CraftingEnv):
             tasks = [self._get_tasks(task, world) for task in tasks]
 
         super().__init__(
+            name='MineCrafting',
             world=world,
             player=player,
             tasks=tasks,

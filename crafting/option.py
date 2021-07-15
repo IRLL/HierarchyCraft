@@ -122,7 +122,7 @@ class Option():
 
     def build_graph(self) -> OptionGraph:
         raise NotImplementedError
-    
+
     def draw_graph(self, ax):
         return self.graph.draw(ax)
 

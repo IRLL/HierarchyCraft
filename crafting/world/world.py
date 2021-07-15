@@ -27,7 +27,7 @@ class World():
     """ A crafting World containing items, recipes and zones. """
 
     def __init__(self, items:List[Item], recipes:List[Recipe], zones:List[Zone],
-            searchable_items:List[Item]=None, resources_path:str=None
+            searchable_items:List[Item]=None, resources_path:str=None, font_path:str=None
         ):
         """ A crafting World containing items, recipes and zones.
 
@@ -99,7 +99,9 @@ class World():
 
         self.n_actions = self.n_foundable_items + self.n_recipes + self.n_zones
         self.observation_size = self.n_items + self.n_zones + self.n_zone_properties
+
         self.resources_path = resources_path
+        self.font_path = font_path
 
     def action(self, action_type:str, identification:int) -> int:
         """ Return the action_id from action_type and identification. """
@@ -151,11 +153,7 @@ class World():
         elif isinstance(obj, Zone):
             image_path = os.path.join(self.resources_path, 'zones', f'{obj.zone_id}.png')
         elif isinstance(obj, str):
-            if obj == "has_crafting":
-                prop_id = 58
-            elif obj == "has_furnace":
-                prop_id = 61
-            image_path = os.path.join(self.resources_path, 'items', f'{prop_id}.png')
+            image_path = os.path.join(self.resources_path, 'items', f'{obj}.png')
         else:
             raise TypeError(f"Unkowned type {type(obj)}")
 
