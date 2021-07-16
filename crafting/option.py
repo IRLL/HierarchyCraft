@@ -42,7 +42,7 @@ class OptionGraph(nx.DiGraph):
         elif len(prev_checks) == 1:
             self.add_edge_conditional(prev_checks[0], node, True)
 
-    def draw(self, ax) -> Axes:
+    def draw(self, ax:Axes) -> Axes:
         if len(list(self.nodes())) > 0:
             pos = option_layout(self)
 
@@ -51,7 +51,7 @@ class OptionGraph(nx.DiGraph):
             # nx.draw_networkx_labels(
             #     self.graph, pos,
             #     ax=ax,
-            #     font_color='black',
+            #     font_color= 'white' if background_color='black' else 'black',
             # )
 
             nx.draw_networkx_edges(
@@ -122,8 +122,8 @@ class Option():
 
     def build_graph(self) -> OptionGraph:
         raise NotImplementedError
-    
-    def draw_graph(self, ax):
+
+    def draw_graph(self, ax:Axes) -> Axes:
         return self.graph.draw(ax)
 
     @property
@@ -275,7 +275,7 @@ class GetItem(Option):
                 prev_check_in_option = None
                 for item_id, quantity in craft_option:
                     item = self.world.item_from_id[item_id]
-                    check_item = f"Has {quantity} {item} ?"
+                    check_item = f"Has {quantity} {item}?"
                     get_item = f"Get {item}"
                     item_image = self.world.get_image(item)
                     graph.add_node_feature_condition(check_item, item_image)
@@ -294,7 +294,7 @@ class GetItem(Option):
         prev_checks_zone = []
         for zone_id in self.zones_id_needed: # Any of the zones possibles
             zone = self.world.zone_from_id[zone_id]
-            check_zone = f"Is in {zone} ?"
+            check_zone = f"Is in {zone}?"
             option_zone = f"Reach {zone}"
             zone_image = self.world.get_image(zone)
             graph.add_node_feature_condition(check_zone, zone_image)
