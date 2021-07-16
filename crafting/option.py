@@ -1,7 +1,9 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
-from typing import List, Dict, Union
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, List, Dict, Union
 from copy import deepcopy
 
 import networkx as nx
@@ -9,8 +11,10 @@ import matplotlib.patches as mpatches
 from matplotlib.axes import Axes
 from matplotlib.legend_handler import HandlerPatch
 
-from crafting.world.items import Item
-from crafting.world.zones import Zone
+if TYPE_CHECKING:
+    from crafting.world.items import Item
+    from crafting.world.zones import Zone
+    from crafting.world.world import World
 from crafting.graph import compute_levels, option_layout, draw_networkx_nodes_images
 
 
@@ -137,7 +141,7 @@ class GoToZone(Option):
 
     """ Generic option for moving to a zone """
 
-    def __init__(self, zone:Zone, world:"crafting.world.World"):
+    def __init__(self, zone:Zone, world:World):
         super().__init__(f"Reach {str(zone)}")
         self.world = world
         self.zone = zone
@@ -160,7 +164,7 @@ class GetItem(Option):
 
     """ Generic option for getting an item """
 
-    def __init__(self, world:"crafting.world.World",
+    def __init__(self, world:World,
             item:Item,
             all_options: Dict[Union[int, str], Option],
             items_needed:List[List[tuple]],
@@ -194,12 +198,13 @@ class GetItem(Option):
         for i, craft_option in enumerate(self.items_needed):
             for item_id, quantity_needed in craft_option:
                 if action_for_craft_option[i] is None:
+                    item = self.world.item_from_id[item_id]
                     item_slot = self.world.item_id_to_slot[item_id]
                     inventory_content = observation[:self.world.n_items]
                     has_enought = inventory_content[item_slot] >= quantity_needed
                     if not has_enought:
                         if item_id not in items_id_in_search:
-                            get_item_option = self.all_options[item_id]
+                            get_item_option = self.all_options[f"Get {item}"]
                             action_for_craft_option[i], _ = get_item_option(
                                 observation, items_id_in_search=items_id_in_search
                             )
@@ -224,7 +229,7 @@ class GetItem(Option):
         action_for_zone = [None for _ in self.zones_id_needed]
         for i, zone_id in enumerate(self.zones_id_needed):
             zone = self.world.zone_from_id[zone_id]
-            action_for_zone[i], _ = self.all_options[str(zone)](observation)
+            action_for_zone[i], _ = self.all_options[f"Reach {zone}"](observation)
 
         need_an_action = all(action is not None for action in action_for_zone)
         if len(self.zones_id_needed) > 0 and need_an_action:

@@ -11,6 +11,7 @@ from gym import spaces
 from crafting.world.world import World
 from crafting.player.player import Player
 from crafting.task import Task, TaskList
+from crafting.render.render import update_rendering, surface_to_rgb_array, create_window
 
 class CraftingEnv(gym.Env):
 
@@ -18,7 +19,7 @@ class CraftingEnv(gym.Env):
 
     metadata = {'render.modes': ['human', 'ansi']}
 
-    def __init__(self, world: World, player: Player,
+    def __init__(self, world: World, player: Player, name:str='Crafting',
         max_step: int=500, verbose: int=0, observe_legal_actions: bool=False,
         tasks: List[Union[str, Task]]=None, tasks_weights: Union[list, dict]=None,
         tasks_can_end: Union[list, dict]=None, tasks_early_stopping: str='all',
@@ -41,6 +42,8 @@ class CraftingEnv(gym.Env):
             moving_penalty: Reward penalty for moving to an other zone.
 
         """
+        self.name = name
+
         self.world = deepcopy(world)
         self.initial_world = deepcopy(world)
 
@@ -240,6 +243,12 @@ class CraftingEnv(gym.Env):
             raise NotImplementedError
         if mode == 'ansi': # for console print
             return str(self.player)
+        if mode == 'rgb_array':
+            if self.render_variables is None:
+                self.render_variables = create_window(self)
+            update_rendering(env=self, fps=self.frame_per_sec, **self.render_variables)
+            rgb_array = surface_to_rgb_array(self.render_variables['screen'])
+            return rgb_array
         return super().render(mode=mode) # just raise an exception
 
     def __call__(self, action):

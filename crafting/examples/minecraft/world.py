@@ -23,5 +23,6 @@ class McWorld(World):
             items=MC_ITEMS + MC_TOOLS,
             searchable_items=MC_SEARCHABLE_ITEMS,
             recipes=MC_RECIPES,
-            resources_path=resources_path
+            resources_path=resources_path,
+            font_path=os.path.join(resources_path, 'minecraft_font.ttf')
         )

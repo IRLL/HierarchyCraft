@@ -5,8 +5,10 @@
 
 """
 
+from __future__ import annotations
+
 import os
-from typing import List
+from typing import TYPE_CHECKING, List, Dict
 
 import numpy as np
 import networkx as nx
@@ -15,10 +17,11 @@ import matplotlib.image as mpimg
 import matplotlib.patches as mpatches
 from matplotlib.legend_handler import HandlerPatch
 
-from crafting.world.zones import Zone
+if TYPE_CHECKING:
+    from crafting.world.zones import Zone
+    from crafting.world.recipes import Recipe
 from crafting.world.items import Item, Tool
-from crafting.world.recipes import Recipe
-from crafting.option import GetItem, GoToZone
+from crafting.option import GetItem, GoToZone, Option
 from crafting.graph import compute_color, compute_levels, leveled_layout, draw_networkx_nodes_images
 
 
@@ -27,7 +30,7 @@ class World():
     """ A crafting World containing items, recipes and zones. """
 
     def __init__(self, items:List[Item], recipes:List[Recipe], zones:List[Zone],
-            searchable_items:List[Item]=None, resources_path:str=None
+            searchable_items:List[Item]=None, resources_path:str=None, font_path:str=None
         ):
         """ A crafting World containing items, recipes and zones.
 
@@ -99,7 +102,9 @@ class World():
 
         self.n_actions = self.n_foundable_items + self.n_recipes + self.n_zones
         self.observation_size = self.n_items + self.n_zones + self.n_zone_properties
+
         self.resources_path = resources_path
+        self.font_path = font_path
 
     def action(self, action_type:str, identification:int) -> int:
         """ Return the action_id from action_type and identification. """
@@ -151,11 +156,7 @@ class World():
         elif isinstance(obj, Zone):
             image_path = os.path.join(self.resources_path, 'zones', f'{obj.zone_id}.png')
         elif isinstance(obj, str):
-            if obj == "has_crafting":
-                prop_id = 58
-            elif obj == "has_furnace":
-                prop_id = 61
-            image_path = os.path.join(self.resources_path, 'items', f'{prop_id}.png')
+            image_path = os.path.join(self.resources_path, 'items', f'{obj}.png')
         else:
             raise TypeError(f"Unkowned type {type(obj)}")
 
@@ -166,7 +167,7 @@ class World():
 
         return image
 
-    def get_all_options(self):
+    def get_all_options(self)-> Dict[str, Option]:
         """ Return a dictionary of handcrafted options to get each item, zone and property. """
         all_options = {}
 

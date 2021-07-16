@@ -1,4 +1,11 @@
-from typing import List, Tuple
+# Crafting a gym-environment to simultate inventory managment
+# Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
+
+""" Widgets for rendering of the Crafting environments """
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, List, Tuple
 
 import os
 import numpy as np
@@ -6,16 +13,34 @@ import numpy as np
 import pygame
 from pygame.surface import Surface
 
-from crafting.player.inventory import Inventory
-from crafting.world.zones import Zone
+if TYPE_CHECKING:
+    from crafting.env import CraftingEnv
+    from crafting.player.inventory import Inventory
+    from crafting.world.zones import Zone
 from crafting.render.utils import load_and_scale
 
 
-class InventoryWidget():
+class EnvWidget():
+
+    """ Display widget base class for any crafting environment. """
+
+    def update(self, env: CraftingEnv):
+        """ Update the widget given the environment state. """
+        raise NotImplementedError
+
+    def draw(self, surface: Surface):
+        """ Draw the widget on a given surface. """
+        raise NotImplementedError
+
+
+class InventoryWidget(EnvWidget):
+
+    """ Displays the player's inventory. """
 
     def __init__(self,
         inventory: Inventory,
         resources_path:str,
+        font_path:str,
         position: Tuple[int],
         window_shape: Tuple[int]
     ):
@@ -25,8 +50,6 @@ class InventoryWidget():
         self.background = self._load_background(window_shape)
         self.shape = self.background.get_size()
         self.position = np.array(position)
-
-        font_path = os.path.join(self.resources_path, 'minecraft_font.ttf')
         self.font = pygame.font.Font(font_path, int(0.1 * self.shape[1]))
 
         self.item_images_per_id = {
@@ -43,8 +66,8 @@ class InventoryWidget():
         image_path = os.path.join(self.resources_path, 'items', f'{item_id}.png')
         return load_and_scale(image_path, self.shape, 0.09)
 
-    def update(self, inventory: Inventory=None):
-        self.inventory = inventory
+    def update(self, env: CraftingEnv):
+        self.inventory = env.player.inventory
 
     def draw(self, surface: Surface):
         surface.blit(self.background, self.position)
@@ -77,12 +100,15 @@ class InventoryWidget():
                 surface.blit(text, text_rect)
 
 
-class ZoneWidget():
+class ZoneWidget(EnvWidget):
+
+    """ Displays the current player zone and its active properties. """
 
     def __init__(self,
             zones: List[Zone],
             properties: List[str],
             resources_path: str,
+            font_path:str,
             position: Tuple[int],
             window_shape: Tuple[int]
         ):
@@ -102,7 +128,6 @@ class ZoneWidget():
             for prop in properties
         }
 
-        font_path = os.path.join(self.resources_path, 'minecraft_font.ttf')
         self.font = pygame.font.Font(font_path, int(0.3 * self.shape[1]))
 
     def _load_zone_image(self, zone_id, window_shape):
@@ -110,19 +135,13 @@ class ZoneWidget():
         return load_and_scale(image_path, window_shape, 0.25)
 
     def _load_property_image(self, prop: str):
-        if prop == "has_crafting":
-            prop_id = 58
-        elif prop == "has_furnace":
-            prop_id = 61
-        else:
-            raise ValueError(f'Unknowed property :{prop}')
-        image_path = os.path.join(self.resources_path, 'items', f'{prop_id}.png')
+        image_path = os.path.join(self.resources_path, 'items', f'{prop}.png')
         return load_and_scale(image_path, self.shape, 0.2)
 
-    def update(self, zone: Zone):
-        self.zone = zone
+    def update(self, env: CraftingEnv):
+        self.zone = env.player.zone
 
-    def draw(self, surface):
+    def draw(self, surface: Surface):
         zone_image = self.zones_images[self.zone.zone_id]
         surface.blit(zone_image, self.position)
 
@@ -130,7 +149,7 @@ class ZoneWidget():
         font_shift = np.array([int(0.05 * self.shape[0]), 0])
         surface.blit(zone_name_img, self.position + font_shift)
 
-        prop_shift = np.array([int(0.05 * self.shape[0]), int(0.6 * self.shape[1])])
+        prop_shift = np.array([int(0.02 * self.shape[0]), int(0.55 * self.shape[1])])
         x_step = int(0.22 * self.shape[0])
 
         n_active_props = 0
@@ -143,22 +162,43 @@ class ZoneWidget():
                 n_active_props += 1
 
 
-class ScoreWidget():
+class ScoreWidget(EnvWidget):
+
+    """ Display the current score """
 
     def __init__(self,
-            resources_path: str,
+            font_path: str,
             position: Tuple[int],
             font_size: int
         ):
         self.position = position
-        font_path = os.path.join(resources_path, 'minecraft_font.ttf')
         self.font = pygame.font.Font(font_path, font_size)
         self.reward = 0
         self.score = 0
 
-    def update(self, score: float):
-        self.score = score
+    def update(self, env: CraftingEnv):
+        self.score = env.player.score
 
-    def draw(self, surface):
+    def draw(self, surface: Surface):
         score_name_img = self.font.render(f"SCORE {self.score}", False, '#c95149')
+        surface.blit(score_name_img, self.position)
+
+class StepLeftWidget(EnvWidget):
+
+    """ Display the number of steps left until the environment is done. """
+
+    def __init__(self,
+            font_path: str,
+            position: Tuple[int],
+            font_size: int
+        ):
+        self.position = position
+        self.font = pygame.font.Font(font_path, font_size)
+        self.steps_left = None
+
+    def update(self, env: CraftingEnv):
+        self.steps_left = env.max_step - env.steps
+
+    def draw(self, surface: Surface):
+        score_name_img = self.font.render(f"Steps left: {self.steps_left}", False, '#803300')
         surface.blit(score_name_img, self.position)

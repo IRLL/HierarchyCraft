@@ -15,7 +15,6 @@ from crafting.task import Task
 
 from crafting.examples.minecraft.abc import McPlayer
 from crafting.examples.minecraft.world import McWorld
-from crafting.examples.minecraft.rendering import create_window, update_rendering
 from crafting.examples.minecraft.tasks import TASKS
 
 class MineCraftingEnv(CraftingEnv):
@@ -49,6 +48,7 @@ class MineCraftingEnv(CraftingEnv):
             tasks = [self._get_tasks(task, world) for task in tasks]
 
         super().__init__(
+            name='MineCrafting',
             world=world,
             player=player,
             tasks=tasks,
@@ -65,13 +65,3 @@ class MineCraftingEnv(CraftingEnv):
         raise TypeError(
             f'task should be str or Task instances but was {type(task)}'
         )
-
-    def render(self, mode='human'):
-        if mode not in ('human', 'rgb_array'):
-            return super().render(mode)
-        if self.render_variables is None:
-            self.render_variables = create_window(self)
-        update_rendering(env=self, fps=self.frame_per_sec, **self.render_variables)
-        if mode == 'rgb_array':
-            rgb_array = pygame.surfarray.array3d(self.render_variables['screen'])
-            return rgb_array.swapaxes(0, 1)
