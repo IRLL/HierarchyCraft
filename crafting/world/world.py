@@ -6,7 +6,7 @@
 """
 
 import os
-from typing import List
+from typing import List, Dict
 
 import numpy as np
 import networkx as nx
@@ -18,7 +18,7 @@ from matplotlib.legend_handler import HandlerPatch
 from crafting.world.zones import Zone
 from crafting.world.items import Item, Tool
 from crafting.world.recipes import Recipe
-from crafting.option import GetItem, GoToZone
+from crafting.option import GetItem, GoToZone, Option
 from crafting.graph import compute_color, compute_levels, leveled_layout, draw_networkx_nodes_images
 
 
@@ -164,7 +164,7 @@ class World():
 
         return image
 
-    def get_all_options(self):
+    def get_all_options(self)-> Dict[str: Option]:
         """ Return a dictionary of handcrafted options to get each item, zone and property. """
         all_options = {}
 
