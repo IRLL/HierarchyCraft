@@ -12,9 +12,9 @@ from matplotlib.axes import Axes
 from matplotlib.legend_handler import HandlerPatch
 
 if TYPE_CHECKING:
-    from crafting.world.items import Item
     from crafting.world.zones import Zone
     from crafting.world.world import World
+from crafting.world.items import Item
 from crafting.graph import compute_levels, option_layout, draw_networkx_nodes_images
 
 
@@ -196,6 +196,8 @@ class GetItem(Option):
         action_for_craft_option = [None for _ in self.items_needed]
 
         for i, craft_option in enumerate(self.items_needed):
+            if craft_option is None:
+                return None
             for item_id, quantity_needed in craft_option:
                 if action_for_craft_option[i] is None:
                     item = self.world.item_from_id[item_id]
@@ -245,7 +247,7 @@ class GetItem(Option):
     def get_zone_property(self, zone_property, observation):
         props = self.world.properties_from_observation(observation)
         if zone_property not in props:
-            get_property_option = self.all_options[zone_property]
+            get_property_option = self.all_options[f"Get {zone_property}"]
             return get_property_option(observation)[0]
 
     def __call__(self, observations, greedy: bool=False, items_id_in_search=None):
@@ -254,7 +256,10 @@ class GetItem(Option):
         else:
             items_id_in_search = deepcopy(items_id_in_search)
         if self.item is not None:
-            items_id_in_search.append(self.item.item_id)
+            if isinstance(self.item, Item):
+                items_id_in_search.append(self.item.item_id)
+            else:
+                items_id_in_search.append(self.item)
 
         action = self.gather_items(observations, items_id_in_search)
         if action is not None:

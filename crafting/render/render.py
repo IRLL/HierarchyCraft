@@ -251,7 +251,7 @@ def make_menus(world: World, window_shape: tuple):
     recipes_images_path = os.path.join(resources_path, 'items')
     for recipe in world.recipes:
         image_path = os.path.join(recipes_images_path, f"{recipe.recipe_id}.png")
-        add_button(items_menu, id_to_action, image_path, scaling=0.5, text_width=8,
+        add_button(recipes_menu, id_to_action, image_path, scaling=0.5, text_width=8,
             action_type='craft', identificator=recipe.recipe_id, padding=(16, 0, 16, 0))
 
     # Zones Menu
@@ -272,7 +272,7 @@ def make_menus(world: World, window_shape: tuple):
     zones_images_path = os.path.join(resources_path, 'zones')
     for zone in world.zones:
         image_path = os.path.join(zones_images_path, f"{zone.zone_id}.png")
-        add_button(items_menu, id_to_action, image_path, scaling=0.2, text_width=19,
+        add_button(zones_menu, id_to_action, image_path, scaling=0.2, text_width=19,
             action_type='move', identificator=zone.zone_id, padding=(26, 0, 26, 0))
 
     return (items_menu, recipes_menu, zones_menu), id_to_action

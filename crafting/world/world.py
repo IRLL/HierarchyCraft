@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, List, Dict
+from typing import List, Dict
 
 import numpy as np
 import networkx as nx
@@ -17,9 +17,8 @@ import matplotlib.image as mpimg
 import matplotlib.patches as mpatches
 from matplotlib.legend_handler import HandlerPatch
 
-if TYPE_CHECKING:
-    from crafting.world.zones import Zone
-    from crafting.world.recipes import Recipe
+from crafting.world.zones import Zone
+from crafting.world.recipes import Recipe
 from crafting.world.items import Item, Tool
 from crafting.option import GetItem, GoToZone, Option
 from crafting.graph import compute_color, compute_levels, leveled_layout, draw_networkx_nodes_images
@@ -95,7 +94,7 @@ class World():
 
         self.zone_properties = np.array(list(self.zone_properties))
         self.property_to_slot = {
-            prop:i+self.n_items+self.n_zones
+            prop: i + self.n_items + self.n_zones
             for i, prop in enumerate(self.zone_properties)
         }
         self.n_zone_properties = len(self.zone_properties)
@@ -310,7 +309,9 @@ class World():
         # Add required_tools and drops edges
         for foundable_item in self.foundable_items:
 
-            if foundable_item.required_tools is not None:
+            need_tool = foundable_item.required_tools is not None and \
+                None not in foundable_item.required_tools
+            if need_tool:
                 for tool in foundable_item.required_tools:
                     graph.add_edge(
                         tool.item_id, foundable_item.item_id,
