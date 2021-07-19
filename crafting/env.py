@@ -23,7 +23,7 @@ class CraftingEnv(gym.Env):
         max_step: int=500, verbose: int=0, observe_legal_actions: bool=False,
         tasks: List[Union[str, Task]]=None, tasks_weights: Union[list, dict]=None,
         tasks_can_end: Union[list, dict]=None, tasks_early_stopping: str='all',
-        fail_penalty: float=0.1, timestep_penalty: float=0.01, moving_penalty: float=0.1):
+        fail_penalty: float=0.09, timestep_penalty: float=0.01, moving_penalty: float=0.09):
         """ Generic Crafting Environment.
 
         Args:
