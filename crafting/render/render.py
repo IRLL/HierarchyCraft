@@ -220,7 +220,7 @@ def make_menus(world: World, window_shape: tuple):
         keyboard_enabled=False,
         joystick_enabled=False,
         position=(0, 0),
-        overflow=(True, False),
+        overflow=(False, True),
         theme=pygame_menu.themes.THEME_BLUE,
     )
 
@@ -243,7 +243,7 @@ def make_menus(world: World, window_shape: tuple):
         rows=1,
         columns=world.n_recipes,
         position=(0, 100),
-        overflow=(False, True),
+        overflow=(True, False),
         column_max_width=int(0.08 * window_shape[0]),
         theme=pygame_menu.themes.THEME_ORANGE
     )
@@ -265,7 +265,7 @@ def make_menus(world: World, window_shape: tuple):
         keyboard_enabled=False,
         joystick_enabled=False,
         position=(100, 0),
-        overflow=(True, False),
+        overflow=(False, True),
         theme=pygame_menu.themes.THEME_GREEN,
     )
 
