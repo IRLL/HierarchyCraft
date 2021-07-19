@@ -84,6 +84,8 @@ class OptionGraph(nx.DiGraph):
 
             # Draw the legend
             ax.legend(
+                fontsize='x-large',
+                loc='upper right',
                 handles=legend_patches + legend_arrows,
                 handler_map={
                     # Patch arrows with fancy arrows in legend
