@@ -8,6 +8,7 @@ from copy import deepcopy
 
 import networkx as nx
 import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.legend_handler import HandlerPatch
 
@@ -46,7 +47,8 @@ class OptionGraph(nx.DiGraph):
         elif len(prev_checks) == 1:
             self.add_edge_conditional(prev_checks[0], node, True)
 
-    def draw(self, ax:Axes) -> Axes:
+    def draw(self, ax:Axes, **kwargs) -> Axes:
+        fontcolor = kwargs.get('fontcolor', 'black')
         if len(list(self.nodes())) > 0:
             pos = option_layout(self)
 
@@ -83,7 +85,9 @@ class OptionGraph(nx.DiGraph):
             ]
 
             # Draw the legend
-            ax.legend(
+            legend = ax.legend(
+                fancybox=True,
+                framealpha=0,
                 fontsize='x-large',
                 loc='upper right',
                 handles=legend_patches + legend_arrows,
@@ -97,6 +101,7 @@ class OptionGraph(nx.DiGraph):
                     ),
                 }
             )
+            plt.setp(legend.get_texts(), color=fontcolor)
 
         return ax
 
@@ -129,8 +134,8 @@ class Option():
     def build_graph(self) -> OptionGraph:
         raise NotImplementedError
 
-    def draw_graph(self, ax:Axes) -> Axes:
-        return self.graph.draw(ax)
+    def draw_graph(self, ax:Axes, **kwargs) -> Axes:
+        return self.graph.draw(ax, **kwargs)
 
     @property
     def graph(self) -> OptionGraph:
