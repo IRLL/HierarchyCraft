@@ -1,4 +1,1 @@
-include crafting/examples/minecraft/resources/*.png
-include crafting/examples/minecraft/resources/items/*.png
-include crafting/examples/minecraft/resources/zones/*.png
-include crafting/examples/minecraft/resources/*.ttf
+graft crafting/examples/**/resources

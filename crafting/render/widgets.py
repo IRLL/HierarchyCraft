@@ -11,6 +11,7 @@ import os
 import numpy as np
 
 import pygame
+from pygame.font import Font
 from pygame.surface import Surface
 
 if TYPE_CHECKING:
@@ -50,7 +51,7 @@ class InventoryWidget(EnvWidget):
         self.background = self._load_background(window_shape)
         self.shape = self.background.get_size()
         self.position = np.array(position)
-        self.font = pygame.font.Font(font_path, int(0.1 * self.shape[1]))
+        self.font = Font(font_path, int(0.1 * self.shape[1]))
 
         self.item_images_per_id = {
            item_id: self._load_image(item_id)
@@ -128,14 +129,14 @@ class ZoneWidget(EnvWidget):
             for prop in properties
         }
 
-        self.font = pygame.font.Font(font_path, int(0.3 * self.shape[1]))
+        self.font = Font(font_path, int(0.3 * self.shape[1]))
 
     def _load_zone_image(self, zone_id, window_shape):
         image_path = os.path.join(self.resources_path, 'zones', f'{zone_id}.png')
         return load_and_scale(image_path, window_shape, 0.25)
 
     def _load_property_image(self, prop: str):
-        image_path = os.path.join(self.resources_path, 'items', f'{prop}.png')
+        image_path = os.path.join(self.resources_path, 'properties', f'{prop}.png')
         return load_and_scale(image_path, self.shape, 0.2)
 
     def update(self, env: CraftingEnv):
@@ -172,7 +173,7 @@ class ScoreWidget(EnvWidget):
             font_size: int
         ):
         self.position = position
-        self.font = pygame.font.Font(font_path, font_size)
+        self.font = Font(font_path, font_size)
         self.reward = 0
         self.score = 0
 
@@ -193,7 +194,7 @@ class StepLeftWidget(EnvWidget):
             font_size: int
         ):
         self.position = position
-        self.font = pygame.font.Font(font_path, font_size)
+        self.font = Font(font_path, font_size)
         self.steps_left = None
 
     def update(self, env: CraftingEnv):
