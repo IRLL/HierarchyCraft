@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from crafting.world.world import World
 from crafting.world.items import Item
 from crafting.graph import compute_levels, option_layout, draw_networkx_nodes_images
+from crafting.render.utils import load_image
 
 
 class OptionGraph(nx.DiGraph):
@@ -156,7 +157,7 @@ class GoToZone(Option):
     def build_graph(self) -> OptionGraph:
         graph = OptionGraph()
         node_name = f"Go to {self.zone}"
-        zone_image = self.world.get_image(self.zone)
+        zone_image = load_image(self.world, self.zone)
         graph.add_node_action(node_name, zone_image)
         compute_levels(graph)
         return graph
@@ -294,12 +295,18 @@ class GetItem(Option):
                     item = self.world.item_from_id[item_id]
                     check_item = f"Has {quantity} {item}?"
                     get_item = f"Get {item}"
-                    item_image = self.world.get_image(item)
-                    graph.add_node_feature_condition(check_item, item_image)
-                    graph.add_node_option(get_item, item_image)
+
+                    conditon_text = f"{quantity}" if quantity > 1 else ''
+                    item_condition_image = load_image(self.world, item, text=conditon_text)
+                    graph.add_node_feature_condition(check_item, item_condition_image)
+
+                    item_option_image = load_image(self.world, item)
+                    graph.add_node_option(get_item, item_option_image)
+
                     if prev_check_in_option is not None:
                         graph.add_edge_conditional(prev_check_in_option, check_item, True)
                     graph.add_edge_conditional(check_item, get_item, False)
+
                     prev_check_in_option = check_item
                 if prev_check_in_option is not None:
                     prev_checks.append(prev_check_in_option)
@@ -313,13 +320,16 @@ class GetItem(Option):
             zone = self.world.zone_from_id[zone_id]
             check_zone = f"Is in {zone}?"
             option_zone = f"Reach {zone}"
-            zone_image = self.world.get_image(zone)
+
+            zone_image = load_image(self.world, zone)
             graph.add_node_feature_condition(check_zone, zone_image)
             graph.add_node_option(option_zone, zone_image)
+
             if len(prev_checks) > 0:
                 graph.add_predecessors(prev_checks, check_zone,
                     force_any=len(self.zones_id_needed) > 1)
             graph.add_edge_conditional(check_zone, option_zone, False)
+
             prev_checks_zone.append(check_zone)
 
         if len(prev_checks_zone) > 0:
@@ -328,12 +338,15 @@ class GetItem(Option):
         for prop in self.zones_properties_needed: # All properties needed
             check_prop = f"Zone {prop} ?"
             get_prop = f"Get {prop}"
-            prop_image = self.world.get_image(prop)
+
+            prop_image = load_image(self.world, prop)
             graph.add_node_feature_condition(check_prop, prop_image)
             graph.add_node_option(get_prop, prop_image)
+
             if len(prev_checks) > 0:
                 graph.add_predecessors(prev_checks, check_prop)
             graph.add_edge_conditional(check_prop, get_prop, False)
+
             prev_checks = [check_prop]
 
         # Add last action
@@ -354,7 +367,7 @@ class GetItem(Option):
         else:
             raise ValueError(f'Unknowed action_type: {action_type}')
 
-        action_image = self.world.get_image(obj)
+        action_image = load_image(self.world, obj)
         graph.add_node_action(last_node, action_image)
         graph.add_predecessors(prev_checks, last_node)
         compute_levels(graph)

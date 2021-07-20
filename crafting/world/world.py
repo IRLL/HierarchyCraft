@@ -146,26 +146,6 @@ class World():
         props_slot = np.where(one_hot_props)
         return self.zone_properties[props_slot]
 
-    def get_image(self, obj):
-        if obj is None:
-            return None
-
-        if isinstance(obj, Item):
-            image_path = os.path.join(self.resources_path, 'items', f'{obj.item_id}.png')
-        elif isinstance(obj, Zone):
-            image_path = os.path.join(self.resources_path, 'zones', f'{obj.zone_id}.png')
-        elif isinstance(obj, str):
-            image_path = os.path.join(self.resources_path, 'items', f'{obj}.png')
-        else:
-            raise TypeError(f"Unkowned type {type(obj)}")
-
-        try:
-            image = mpimg.imread(image_path)
-        except FileNotFoundError:
-            image = None
-
-        return image
-
     def get_all_options(self)-> Dict[str, Option]:
         """ Return a dictionary of handcrafted options to get each item, zone and property. """
         all_options = {}
