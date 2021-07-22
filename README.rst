@@ -20,9 +20,23 @@ Indeed, with simple options you can make this environment trivial, whereas witho
 Installation
 ------------
 
+Initialise submodules:
 .. code:: bash
 
-   pip install git+https://github.com/MathisFederico/Crafting
+   git submodule update --init 
+
+
+Build from source:
+.. code:: bash
+
+   pip install -r requirement.txt
+
+
+Build as a package:
+.. code:: bash
+
+   pip install .
+
 
 Online documentation
 --------------------

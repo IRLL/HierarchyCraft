@@ -32,7 +32,7 @@ setup(
     packages=find_packages(exclude=("tests", "docs")),
     include_package_data=True,
     package_data = {
-        'minecraft_ressources': ['crafting/examples/minecraft/ressources/*'],
+        'examples_ressources': ['crafting/examples/**/resources/*'],
     },
     install_requires=REQUIREMENTS,
     classifiers=[
