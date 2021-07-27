@@ -21,18 +21,21 @@ Installation
 ------------
 
 Initialise submodules:
+
 .. code:: bash
 
    git submodule update --init 
 
 
 Build from source:
+
 .. code:: bash
 
    pip install -r requirement.txt
 
 
 Build as a package:
+
 .. code:: bash
 
    pip install .
