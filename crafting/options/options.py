@@ -28,6 +28,12 @@ class ReachZone(Option):
         self.zone = zone
 
     def build_graph(self) -> OptionGraph:
+        """ Build the OptionGraph of this Option.
+
+        Returns:
+            The built OptionGraph.
+
+        """
         graph = OptionGraph(option=self)
 
         is_in_zone = IsInZone(self.zone, self.world)
@@ -74,29 +80,26 @@ class GetItem(Option):
         self.all_options = all_options
 
     def build_graph(self) -> OptionGraph:
+        """ Build the OptionGraph of this Option.
+
+        Returns:
+            The built OptionGraph.
+
+        """
         graph = OptionGraph(option=self, all_options=self.all_options)
         prev_checks = []
 
         # Any of Craft options
         for craft_option in self.items_needed:
             if craft_option is not None:
-                prev_check_in_option = None
+                prev_check = None
                 for item_id, quantity in craft_option:
-                    item = self.world.item_from_id[item_id]
-
-                    has_item = HasItem(item=item, world=self.world, quantity=quantity)
-                    graph.add_node(has_item)
-
-                    get_item = Option(f"Get {item}", image=load_image(self.world, item))
-                    graph.add_node(get_item)
-
-                    if prev_check_in_option is not None:
-                        graph.add_edge(prev_check_in_option, has_item, index=int(True))
-                    graph.add_edge(has_item, get_item, index=int(False))
-
-                    prev_check_in_option = has_item
-                if prev_check_in_option is not None:
-                    prev_checks.append(prev_check_in_option)
+                    has_item = self._add_crafting_option(graph, item_id, quantity)
+                    if prev_check is not None:
+                        graph.add_edge(prev_check, has_item, index=int(True))
+                    prev_check = has_item
+                if prev_check is not None:
+                    prev_checks.append(prev_check)
             else:
                 no_item_required = EmptyNode("No item required")
                 graph.add_node(no_item_required)
@@ -105,35 +108,18 @@ class GetItem(Option):
         # Any of the zones possibles
         prev_checks_zone = []
         for zone_id in self.zones_id_needed:
-            zone = self.world.zone_from_id[zone_id]
-
-            is_in_zone = IsInZone(zone, self.world)
-            graph.add_node(is_in_zone)
-
-            reach_zone = Option(f"Reach {zone}", image=load_image(self.world, zone))
-            graph.add_node(reach_zone)
-
+            is_in_zone = self._add_zone_option(graph, zone_id)
+            prev_checks_zone.append(is_in_zone)
             for prev in prev_checks:
                 graph.add_edge(prev, is_in_zone, index=int(True))
-            graph.add_edge(is_in_zone, reach_zone, index=int(False))
-
-            prev_checks_zone.append(is_in_zone)
-
         if len(prev_checks_zone) > 0:
             prev_checks = prev_checks_zone
 
         # All properties needed
         for prop, _ in self.zones_properties_needed.items():
-            has_prop = HasProperty(prop, world=self.world)
-            graph.add_node(has_prop)
-
-            get_prop = Option(f"Get {prop}", image=load_image(self.world, prop))
-            graph.add_node(get_prop)
-
+            has_prop = self._add_property_needed(graph, prop)
             for prev in prev_checks:
                 graph.add_edge(prev, has_prop, index=int(True))
-            graph.add_edge(has_prop, get_prop, index=int(False))
-
             prev_checks = [has_prop]
 
         # Add last action
@@ -154,3 +140,29 @@ class GetItem(Option):
         for prev in prev_checks:
             graph.add_edge(prev, action, index=int(True))
         return graph
+
+    def _add_crafting_option(self, graph:OptionGraph, item_id:int, quantity:int) -> HasItem:
+        item = self.world.item_from_id[item_id]
+        has_item = HasItem(item=item, world=self.world, quantity=quantity)
+        graph.add_node(has_item)
+        get_item = Option(f"Get {item}", image=load_image(self.world, item))
+        graph.add_node(get_item)
+        graph.add_edge(has_item, get_item, index=int(False))
+        return has_item
+
+    def _add_zone_option(self, graph:OptionGraph, zone_id:int) -> IsInZone:
+        zone = self.world.zone_from_id[zone_id]
+        is_in_zone = IsInZone(zone, self.world)
+        graph.add_node(is_in_zone)
+        reach_zone = Option(f"Reach {zone}", image=load_image(self.world, zone))
+        graph.add_node(reach_zone)
+        graph.add_edge(is_in_zone, reach_zone, index=int(False))
+        return is_in_zone
+
+    def _add_property_needed(self, graph:OptionGraph, prop:str) -> HasProperty:
+        has_prop = HasProperty(prop, world=self.world)
+        graph.add_node(has_prop)
+        get_prop = Option(f"Get {prop}", image=load_image(self.world, prop))
+        graph.add_node(get_prop)
+        graph.add_edge(has_prop, get_prop, index=int(False))
+        return has_prop

@@ -1,10 +1,9 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
-# pylint: disable=attribute-defined-outside-init
+# pylint: disable=attribute-defined-outside-init, no-self-use, missing-function-docstring
 
 """ Module to test that all OptionGraph can be drawn. """
 
-from option_graph.node import Action
 import pytest
 import matplotlib.pyplot as plt
 from crafting.examples.minecraft.world import McWorld
