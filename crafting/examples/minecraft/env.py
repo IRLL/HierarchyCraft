@@ -41,10 +41,12 @@ class MineCraftingEnv(CraftingEnv):
         world = McWorld()
         player = McPlayer(world)
         self.render_variables = None
-        tasks = kwargs.pop('tasks', None)
         self.frame_per_sec = kwargs.pop('fps', 60)
 
+        tasks = kwargs.pop('tasks', None)
         if tasks is not None:
+            if not isinstance(tasks, (list, tuple)):
+                tasks = [tasks]
             tasks = [self._get_tasks(task, world) for task in tasks]
 
         super().__init__(

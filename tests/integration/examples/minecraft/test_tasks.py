@@ -1,20 +1,43 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
+# pylint: disable=no-self-use, missing-function-docstring
+
+""" Module testing that each of the built-in tasks can be done succesfully. """
+
+import pytest
+import pytest_check as check
 
 from crafting.examples import MineCraftingEnv
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.tools import *
 from crafting.examples.minecraft.recipes import *
 from crafting.examples.minecraft.zones import *
+from crafting.examples.minecraft.tasks import TASKS
 
-def test_minecrafting_init():
-    env = MineCraftingEnv(max_step=500, verbose=1)
-    print(env.world.items)
-    print(env.world.recipes)
-    print(env.world.zones)
-    print(env.player)
+class TestTasks():
+
+    """Tasks of the MineCrafting environment"""
+
+    @pytest.mark.parametrize('task_name', [name for name in TASKS if name.startswith('obtain')])
+    def test_completion_of_(self, task_name):
+        env = MineCraftingEnv()
+        task = TASKS[task_name](world=env.world)
+        env = MineCraftingEnv(tasks=task)
+
+        all_options = env.world.get_all_options()
+        option_solving_task = all_options[f"Get {task.item}"]
+
+        observation = env.reset()
+        done = False
+        while not done:
+            action = option_solving_task(observation)
+            observation, _, done, _ = env.step(action)
+
+        item_slot = env.world.item_id_to_slot[task.item.item_id]
+        check.greater_equal(env.player.inventory.content[item_slot], 1)
 
 def test_obtain_getting_wood():
+    """ should obtain the correct amount of wood using tool or not. """
     env = MineCraftingEnv(max_step=100, verbose=1)
 
     done = False
@@ -62,6 +85,7 @@ def test_obtain_getting_wood():
         raise ValueError('Unexpected number of wood got after 100 steps (IRON AXE)')
 
 def test_obtain_enchant_table():
+    """ should be able to build an enchanting table. """
     env = MineCraftingEnv(max_step=500, verbose=1)
     for _ in range(5):
         env(env.action('get', WOOD.item_id))

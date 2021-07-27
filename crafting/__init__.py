@@ -4,7 +4,5 @@
 """ Crafting : A gym environment for inventory managment """
 
 from crafting.task import Task
-from crafting.option import Option, GetItem
 from crafting.env import CraftingEnv
-
 from crafting.examples.minecraft.env import MineCraftingEnv
