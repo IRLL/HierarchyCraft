@@ -4,4 +4,4 @@ networkx == 2.5.1
 matplotlib
 pygame >= 2.0.1
 pygame-menu == 4.0.6
-./options_graphs/
+option-graph @ git+https://github.com/IRLL/options_graphs.git#egg=option-graph
