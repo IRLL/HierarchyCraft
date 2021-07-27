@@ -21,7 +21,7 @@ from option_graph.graph import compute_color, compute_levels, \
 from crafting.world.zones import Zone
 from crafting.world.recipes import Recipe
 from crafting.world.items import Item, Tool
-from crafting.option import GetItem, GoToZone, Option
+from crafting.options.options import GetItem, ReachZone, Option
 
 class World():
 
@@ -150,7 +150,7 @@ class World():
         all_options = {}
 
         for zone in self.zones:
-            zone_option = GoToZone(zone, self)
+            zone_option = ReachZone(zone, self)
             all_options[zone_option.option_id] = zone_option
 
         for item in self.foundable_items:
