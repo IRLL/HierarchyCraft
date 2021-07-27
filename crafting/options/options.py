@@ -123,8 +123,8 @@ class GetItem(Option):
             prev_checks = prev_checks_zone
 
         # All properties needed
-        for prop, value in self.zones_properties_needed.items():
-            has_prop = HasProperty(prop, world=self.world, value=value)
+        for prop, _ in self.zones_properties_needed.items():
+            has_prop = HasProperty(prop, world=self.world)
             graph.add_node(has_prop)
 
             get_prop = Option(f"Get {prop}", image=load_image(self.world, prop))
@@ -154,28 +154,3 @@ class GetItem(Option):
         for prev in prev_checks:
             graph.add_edge(prev, action, index=int(True))
         return graph
-
-    def __str__(self):
-
-        def _add_text(string, text, do_return=False):
-            if do_return:
-                string += "\n"
-            string += text
-            return string
-
-        string = ""
-        if self.item is not None:
-            string = _add_text(string, f"{self.item}\n")
-
-        do_return = False
-        if len(self.items_needed) > 0 and len(self.items_needed[0]) > 0:
-            string = _add_text(string, f"  Required {self.items_needed}", do_return)
-            do_return = True
-        if len(self.zones_id_needed) > 0:
-            string = _add_text(string, f"  Zones {self.zones_id_needed}", do_return)
-            do_return = True
-        if len(self.zones_properties_needed) > 0:
-            string = _add_text(string, f"  Properties {self.zones_properties_needed}", do_return)
-            do_return = True
-        string = _add_text(string, f"  Last action {self.last_action}", do_return)
-        return string

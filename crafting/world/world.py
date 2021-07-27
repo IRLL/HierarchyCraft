@@ -151,7 +151,7 @@ class World():
 
         for zone in self.zones:
             zone_option = ReachZone(zone, self)
-            all_options[zone_option.option_id] = zone_option
+            all_options[str(zone_option)] = zone_option
 
         for item in self.foundable_items:
             zones_id_needed = []
@@ -184,7 +184,7 @@ class World():
                     last_action=('get', item.item_id),
                     zones_id_needed=zones_id_needed,
                 )
-            all_options[item_option.option_id] = item_option
+            all_options[str(item_option)] = item_option
 
         for recipe in self.recipes:
 
@@ -205,7 +205,7 @@ class World():
                         zones_properties_needed=recipe.needed_properties,
                         last_action=('craft', recipe.recipe_id),
                     )
-                    all_options[recipe_option.option_id] = recipe_option
+                    all_options[str(recipe_option)] = recipe_option
 
             if recipe.added_properties is not None:
                 for zone_property in recipe.added_properties:
@@ -217,7 +217,7 @@ class World():
                         zones_properties_needed=recipe.needed_properties,
                         last_action=('craft', recipe.recipe_id),
                     )
-                    all_options[zone_property_option.option_id] = zone_property_option
+                    all_options[str(zone_property_option)] = zone_property_option
 
         return all_options
 

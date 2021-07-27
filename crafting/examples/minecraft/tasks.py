@@ -3,7 +3,7 @@
 
 """ MineCrafting environement common tasks """
 
-from crafting import Task
+from crafting.task import Task
 from crafting.world.world import World
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.tools import *
@@ -39,6 +39,7 @@ class TaskObtainBook(Task):
 
     def __init__(self, world:World, use_reward_shaping=True):
         super().__init__('obtain_book', world)
+        self.item = BOOK
         self.use_reward_shaping = use_reward_shaping
         self.add_achivement_getitem(BOOK.item_id, 10, end_task=True)
 
@@ -56,6 +57,7 @@ class TaskObtainDiamond(Task):
 
     def __init__(self, world:World, use_reward_shaping=True):
         super().__init__('obtain_diamond', world)
+        self.item = DIAMOND
         self.use_reward_shaping = use_reward_shaping
         self.add_achivement_getitem(DIAMOND.item_id, 10, end_task=True)
 
@@ -74,6 +76,7 @@ class TaskObtainClock(Task):
 
     def __init__(self, world:World, use_reward_shaping=True):
         super().__init__('obtain_clock', world)
+        self.item = CLOCK
         self.use_reward_shaping = use_reward_shaping
         self.add_achivement_getitem(CLOCK.item_id, 10, end_task=True)
 
@@ -96,6 +99,7 @@ class TaskObtainEnchantingTable(Task):
 
     def __init__(self, world:World, use_reward_shaping=True):
         super().__init__('obtain_enchanting_table', world)
+        self.item = ENCHANTING_TABLE
         self.use_reward_shaping = use_reward_shaping
         self.add_achivement_getitem(ENCHANTING_TABLE.item_id, 10, end_task=True)
 

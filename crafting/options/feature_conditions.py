@@ -59,18 +59,14 @@ class HasProperty(FeatureCondition):
 
     """ FeatureCondition to check if a Zone has the given property. """
 
-    def __init__(self, prop:str, world: World, value=True) -> None:
+    def __init__(self, prop:str, world: World) -> None:
         name = f"Has property '{prop}' ?"
-        if value is not True:
-            name += f"({value})"
-        name += "?"
         image = load_image(world, prop)
         super().__init__(name=name, image=image)
 
         self.world = world
         self.prop = prop
-        self.value = value
 
     def __call__(self, observation) -> int:
         props = self.world.properties_from_observation(observation)
-        return self.prop in props and props[self.prop] == self.value
+        return self.prop in props
