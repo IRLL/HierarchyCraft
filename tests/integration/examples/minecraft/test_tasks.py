@@ -1,6 +1,8 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
+""" Module testing that each of the built-in tasks can be done succesfully. """
+
 from crafting.examples import MineCraftingEnv
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.tools import *
@@ -8,11 +10,7 @@ from crafting.examples.minecraft.recipes import *
 from crafting.examples.minecraft.zones import *
 
 def test_minecrafting_init():
-    env = MineCraftingEnv(max_step=500, verbose=1)
-    print(env.world.items)
-    print(env.world.recipes)
-    print(env.world.zones)
-    print(env.player)
+    MineCraftingEnv(max_step=500, verbose=1)
 
 def test_obtain_getting_wood():
     env = MineCraftingEnv(max_step=100, verbose=1)
