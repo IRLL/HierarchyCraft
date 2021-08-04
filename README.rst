@@ -42,20 +42,19 @@ Contributing to Crafting
 ------------------------
 
 Whenever you encounter a :beetle: **bug** or have :tada: **feature request**, 
-report this via [Github issues](https://github.com/schneegans/dynamic-badges-action/issues).
+report this via `Github issues <https://github.com/MathisFederico/Crafting/issues>`.
 
 We are happy to receive contributions in the form of **pull requests** via Github.
-Feel free to fork the repository, implement your changes and create a merge request to the `master` branch.
+Feel free to fork the repository, implement your changes and create a merge request to the `dev` branch.
 
 Git Commit Messages
 ~~~~~~~~~~~~~~~~~~~
 
-Commits should start with a Capital letter and should be written in present tense (e.g. __:tada: Add cool new feature__ instead of __:tada: Added cool new feature__).
+Commits should start with a Capital letter and should be written in present tense (e.g.``:tada: Add cool new feature`` instead of ``:tada: Added cool new feature``).
 You should also start your commit message with **one** applicable emoji. This does not only look great but also makes you rethink what to add to a commit. Make many but small commits!
 
 
 .. list-table:: Title
-   :widths: 25 25 50
    :header-rows: 1
 
    * - Emoji
