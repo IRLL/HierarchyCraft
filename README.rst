@@ -38,3 +38,57 @@ Online documentation
    Click to see the html documentation!
 
 
+Contributing to Crafting
+------------------------
+
+Whenever you encounter a :beetle: **bug** or have :tada: **feature request**, 
+report this via [Github issues](https://github.com/schneegans/dynamic-badges-action/issues).
+
+We are happy to receive contributions in the form of **pull requests** via Github.
+Feel free to fork the repository, implement your changes and create a merge request to the `master` branch.
+
+Git Commit Messages
+~~~~~~~~~~~~~~~~~~~
+
+Commits should start with a Capital letter and should be written in present tense (e.g. __:tada: Add cool new feature__ instead of __:tada: Added cool new feature__).
+You should also start your commit message with **one** applicable emoji. This does not only look great but also makes you rethink what to add to a commit. Make many but small commits!
+
+
+.. list-table:: Title
+   :widths: 25 25 50
+   :header-rows: 1
+
+   * - Emoji
+     - Description
+   * - :tada: `:tada:`,
+     - When you added a cool new feature
+   * - :bug: `:bug:`
+     - When you refactored / When you fixed a bug
+   * - :fire: `:fire:`,
+     - When you removed something.
+   * - :truck: `:truck:,
+     - When you moved / renamed something.
+   * - :wrench: `:wrench:`
+     - When you refactored / improved a small piece of code.
+   * - :hammer: `:hammer:`
+     - When you refactored / improved large parts of the code.
+   * - :art: `:art:`
+     - When you improved / added design assets.
+   * - :rocket: `:rocket:`
+     - When you improved performance.
+   * - :memo: `:memo:`,
+     - When you wrote documentation.
+   * - :twisted_rightwards_arrows: `:twisted_rightwards_arrows:`,
+     - When you merged a branch.
+
+This section was inspired by `This repository <https://github.com/schneegans/dynamic-badges-action>`.
+
+Version Numbers
+---------------
+
+Version numbers will be assigned according to the `Semantic Versioning <https://semver.org/>`. scheme.
+This means, given a version number MAJOR.MINOR.PATCH, we will increment the:
+
+1. MAJOR version when we make incompatible API changes,
+2. MINOR version when we add functionality in a backwards compatible manner, and
+3. PATCH version when we make backwards compatible bug fixes.
