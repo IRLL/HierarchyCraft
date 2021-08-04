@@ -50,7 +50,7 @@ Feel free to fork the repository, implement your changes and create a merge requ
 Git Commit Messages
 ~~~~~~~~~~~~~~~~~~~
 
-Commits should start with a Capital letter and should be written in present tense (e.g.``:tada: Add cool new feature`` instead of ``:tada: Added cool new feature``).
+Commits should start with a Capital letter and should be written in present tense (e.g. ``:tada: Add cool new feature`` instead of ``:tada: Added cool new feature``).
 You should also start your commit message with **one** applicable emoji. This does not only look great but also makes you rethink what to add to a commit. Make many but small commits!
 
 
@@ -59,25 +59,25 @@ You should also start your commit message with **one** applicable emoji. This do
 
    * - Emoji
      - Description
-   * - :tada: `:tada:`,
+   * - ``:tada:`` `:tada:`
      - When you added a cool new feature
-   * - :bug: `:bug:`
+   * - ``:bug:`` `:bug:`
      - When you refactored / When you fixed a bug
-   * - :fire: `:fire:`,
+   * - ``:fire:`` `:fire:`
      - When you removed something.
-   * - :truck: `:truck:,
+   * - ``:truck:`` `:truck:`
      - When you moved / renamed something.
-   * - :wrench: `:wrench:`
+   * - ``:wrench:`` `:wrench:`
      - When you refactored / improved a small piece of code.
-   * - :hammer: `:hammer:`
+   * - ``:hammer:`` `:hammer:`
      - When you refactored / improved large parts of the code.
-   * - :art: `:art:`
+   * - ``:art:`` `:art:`
      - When you improved / added design assets.
-   * - :rocket: `:rocket:`
+   * - ``:rocket:`` `:rocket:`
      - When you improved performance.
-   * - :memo: `:memo:`,
+   * - ``:memo:`` `:memo:`
      - When you wrote documentation.
-   * - :twisted_rightwards_arrows: `:twisted_rightwards_arrows:`,
+   * - ``:twisted_rightwards_arrows:`` `:twisted_rightwards_arrows:`
      - When you merged a branch.
 
 This section was inspired by `This repository <https://github.com/schneegans/dynamic-badges-action>`.
