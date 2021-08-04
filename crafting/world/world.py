@@ -15,8 +15,8 @@ import networkx as nx
 import matplotlib.patches as mpatches
 from matplotlib.legend_handler import HandlerPatch
 
-from option_graph.graph import compute_color, compute_levels, \
-    leveled_layout, draw_networkx_nodes_images
+from option_graph.graph import compute_levels, draw_networkx_nodes_images, compute_edges_color
+from option_graph.layouts.metabased import leveled_layout_energy
 
 from crafting.world.zones import Zone
 from crafting.world.recipes import Recipe
@@ -305,7 +305,7 @@ class World():
                             type="drop", color=[0, 1, 0, 1]
                         )
 
-        compute_levels(graph, weak_edges_type=["tool_requirement"])
+        compute_levels(graph)
         return graph
 
     # pylint: disable=invalid-name
@@ -320,9 +320,9 @@ class World():
 
         """
         graph = self.get_requirements_graph()
-        pos = leveled_layout(graph, max_iterations=2000, initial_temperature=10)
+        pos = leveled_layout_energy(graph)
         nodes_by_level = graph.graph['nodes_by_level']
-        compute_color(graph)
+        compute_edges_color(graph)
 
         dashed_edges = [
             (u, v)
