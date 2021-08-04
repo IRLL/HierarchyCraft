@@ -77,6 +77,8 @@ You should also start your commit message with **one** applicable emoji. This do
      - When you improved performance.
    * - `:memo:` ``:memo:``
      - When you wrote documentation.
+   * - `:umbrella:` ``:umbrella:``
+     - When you improve coverage.
    * - `:twisted_rightwards_arrows:` ``:twisted_rightwards_arrows:``
      - When you merged a branch.
 
