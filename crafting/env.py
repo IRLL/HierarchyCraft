@@ -17,7 +17,10 @@ class CraftingEnv(gym.Env):
 
     """ Generic Crafting Environment """
 
-    metadata = {'render.modes': ['human', 'ansi']}
+    metadata = {
+        'render.modes': ['rgb_array'],
+        'video.frames_per_second': 10
+    }
 
     def __init__(self, world: World, player: Player, name:str='Crafting',
         max_step: int=500, verbose: int=0, observe_legal_actions: bool=False,
@@ -183,7 +186,7 @@ class CraftingEnv(gym.Env):
         done = self.steps >= self.max_step or task_done
 
         # Infos
-        action_is_legal = self.get_action_is_legal()
+        action_is_legal = self.action_masks()
         infos = {
             'env_step': self.steps,
             'action_is_legal': action_is_legal
@@ -196,7 +199,7 @@ class CraftingEnv(gym.Env):
 
         return observation, reward, done, infos
 
-    def get_action_is_legal(self) -> np.ndarray:
+    def action_masks(self) -> np.ndarray:
         """ Return the legal actions """
         can_get = np.array([
             self.player.can_get(item, self.player.choose_tool(item))
@@ -234,14 +237,14 @@ class CraftingEnv(gym.Env):
 
         observation = self.get_observation()
         if self.observe_legal_actions:
-            observation = (observation, self.get_action_is_legal())
+            observation = (observation, self.action_masks())
 
         return observation
 
     def render(self, mode='human'):
         if mode == 'human': # for human interaction
             raise NotImplementedError
-        if mode == 'ansi': # for console print
+        if mode == 'console': # for console print
             return str(self.player)
         if mode == 'rgb_array':
             if self.render_variables is None:
