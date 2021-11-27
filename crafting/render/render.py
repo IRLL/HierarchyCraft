@@ -148,7 +148,7 @@ def update_rendering(
         widget.draw(screen)
 
     action = None
-    action_is_legal = env.get_action_is_legal()
+    action_is_legal = env.action_masks()
 
     for menu in menus:
         buttons = [
@@ -305,8 +305,8 @@ if __name__ == '__main__':
         while not done:
             rgb_array = env.render(mode='rgb_array')
 
-            enchant_action_id = enchant_table_option(observation)
-            print(f'For Enchanting Table: {env.action_from_id(enchant_action_id)}')
+            # enchant_action_id = enchant_table_option(observation)
+            # print(f'For Enchanting Table: {env.action_from_id(enchant_action_id)}')
 
             action = get_human_action(env, **env.render_variables)
             action_id = env.action(*action)
