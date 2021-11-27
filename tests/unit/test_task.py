@@ -21,7 +21,7 @@ class DummyWorld:
 
 
 class TestTask:
-    """ Task """
+    """Task"""
 
     @pytest.fixture(autouse=True)
     def setup(self):
@@ -31,16 +31,16 @@ class TestTask:
         self.action = 2
 
     def test_init(self):
-        """ should instanciate correctly. """
-        task = Task('task_name', self.world)
-        check.equal(task.name, 'task_name')
+        """should instanciate correctly."""
+        task = Task("task_name", self.world)
+        check.equal(task.name, "task_name")
         check.equal(task.world, self.world)
 
     def test_call(self, mocker):
-        """ should call `done` and `reward` on call. """
-        mocker.patch('crafting.task.Task.reward', lambda *args:1)
-        mocker.patch('crafting.task.Task.done', lambda *args:True)
-        task = Task('task_name', self.world)
+        """should call `done` and `reward` on call."""
+        mocker.patch("crafting.task.Task.reward", lambda *args: 1)
+        mocker.patch("crafting.task.Task.done", lambda *args: True)
+        task = Task("task_name", self.world)
         reward, done = task(self.observation, self.previous_observation, self.action)
 
         check.equal(reward, 1)
@@ -48,83 +48,78 @@ class TestTask:
 
 
 class TestTaskList:
-    """ TaskList """
+    """TaskList"""
 
     @pytest.fixture(autouse=True)
     def setup(self):
-        """ Setup dummy tasks """
+        """Setup dummy tasks"""
         self.world = DummyWorld()
         self.previous_observation = np.ones(10)
         self.observation = 2 * np.ones(10)
         self.action = 2
-        self.task_observe_123 = Task('obs_123', self.world)
-        self.task_observe_123.reward = \
-            lambda obs, prev_obs, act: 2.1 * np.all(obs == 2 * np.ones(10))
-        self.task_prev_observe_312 = Task('prev_obs_312', self.world)
-        self.task_prev_observe_312.reward = \
-            lambda obs, prev_obs, act: 3.4 * np.all(prev_obs == np.ones(10))
-        self.task_action_observe_213 = Task('action_213', self.world)
-        self.task_action_observe_213.reward = \
-            lambda obs, prev_obs, act: 4.7 * (act == 2)
+        self.task_observe_123 = Task("obs_123", self.world)
+        self.task_observe_123.reward = lambda obs, prev_obs, act: 2.1 * np.all(
+            obs == 2 * np.ones(10)
+        )
+        self.task_prev_observe_312 = Task("prev_obs_312", self.world)
+        self.task_prev_observe_312.reward = lambda obs, prev_obs, act: 3.4 * np.all(
+            prev_obs == np.ones(10)
+        )
+        self.task_action_observe_213 = Task("action_213", self.world)
+        self.task_action_observe_213.reward = lambda obs, prev_obs, act: 4.7 * (
+            act == 2
+        )
         self.tasks = [
             self.task_observe_123,
             self.task_prev_observe_312,
-            self.task_action_observe_213
+            self.task_action_observe_213,
         ]
 
     def test_init(self):
-        """ should instanciate correctly. """
+        """should instanciate correctly."""
         TaskList(self.tasks)
 
     def test_init_raise_not_task(self):
-        """ should raise TypeError if a task doesn't subclass crafting.Task. """
-        tasks = [self.task_observe_123, 'task_str']
+        """should raise TypeError if a task doesn't subclass crafting.Task."""
+        tasks = [self.task_observe_123, "task_str"]
         with pytest.raises(TypeError, match=r".*must be.*crafting.Task.*"):
             TaskList(tasks)
 
     def test_call_none_task(self):
-        """ should return (0, False) if tasks is None. """
+        """should return (0, False) if tasks is None."""
         tasks = TaskList(None)
         reward, done = tasks(self.observation, self.previous_observation, self.action)
         check.equal(reward, 0)
         check.is_false(done)
 
     def test_call(self, mocker):
-        """ should return accumulated rewards and done on call. """
-        mocker.patch(
-            'crafting.task.TaskList._get_task_weight',
-            lambda *args: 1
-        )
-        mocker.patch(
-            'crafting.task.TaskList._get_task_can_end',
-            lambda *args: True
-        )
-        mocker.patch(
-            'crafting.task.TaskList._stack_dones',
-            lambda *args: True
-        )
+        """should return accumulated rewards and done on call."""
+        mocker.patch("crafting.task.TaskList._get_task_weight", lambda *args: 1)
+        mocker.patch("crafting.task.TaskList._get_task_can_end", lambda *args: True)
+        mocker.patch("crafting.task.TaskList._stack_dones", lambda *args: True)
         tasks = TaskList(self.tasks)
         reward, done = tasks(self.observation, self.previous_observation, self.action)
         check.equal(reward, 10.2)
         check.is_true(done)
 
+
 class TestTaskListGetTaskWeight:
-    """ TaskList._get_task_weight """
+    """TaskList._get_task_weight"""
 
     def setup(self):
-        """ Setup dummy tasks """
+        """Setup dummy tasks"""
         self.world = DummyWorld()
-        self.task_observe_123 = Task('obs_123', self.world)
-        self.task_prev_observe_312 = Task('prev_obs_312', self.world)
-        self.task_action_observe_213 = Task('action_213', self.world)
+        self.task_observe_123 = Task("obs_123", self.world)
+        self.task_prev_observe_312 = Task("prev_obs_312", self.world)
+        self.task_action_observe_213 = Task("action_213", self.world)
         self.tasks = [
             self.task_observe_123,
             self.task_prev_observe_312,
-            self.task_action_observe_213
+            self.task_action_observe_213,
         ]
 
     def test_list(self):
-        """ should assign weights correctly if tasks_weights is a list."""
+        """should assign weights correctly if tasks_weights is a list."""
         self.tasklist = TaskList(self.tasks)
 
         expected_tasks_weights = [0.2, 0.1, 5]
@@ -139,12 +134,11 @@ class TestTaskListGetTaskWeight:
             check.equal(value, expected)
 
     def test_dict(self):
-        """ should assign weights correctly if tasks_weights is a dict."""
+        """should assign weights correctly if tasks_weights is a dict."""
         self.tasklist = TaskList(self.tasks)
 
         expected_tasks_weights = {
-            task.name: weight
-            for task, weight in zip(self.tasks, [0.2, 0.1, 5])
+            task.name: weight for task, weight in zip(self.tasks, [0.2, 0.1, 5])
         }
         self.tasklist.tasks_weights = expected_tasks_weights
 
@@ -154,7 +148,7 @@ class TestTaskListGetTaskWeight:
             check.equal(value, expected)
 
     def test_none(self):
-        """ should assign weights of 1 if tasks_weights is None."""
+        """should assign weights of 1 if tasks_weights is None."""
         self.tasklist = TaskList(self.tasks)
         for i, task in enumerate(self.tasklist.tasks):
             value = self.tasklist._get_task_weight(task, i)
@@ -162,22 +156,22 @@ class TestTaskListGetTaskWeight:
 
 
 class TestTaskListGetTaskCanEnd:
-    """ TaskList._get_task_can_end """
+    """TaskList._get_task_can_end"""
 
     def setup(self):
-        """ Setup dummy tasks """
+        """Setup dummy tasks"""
         self.world = DummyWorld()
-        self.task_observe_123 = Task('obs_123', self.world)
-        self.task_prev_observe_312 = Task('prev_obs_312', self.world)
-        self.task_action_observe_213 = Task('action_213', self.world)
+        self.task_observe_123 = Task("obs_123", self.world)
+        self.task_prev_observe_312 = Task("prev_obs_312", self.world)
+        self.task_action_observe_213 = Task("action_213", self.world)
         self.tasks = [
             self.task_observe_123,
             self.task_prev_observe_312,
-            self.task_action_observe_213
+            self.task_action_observe_213,
         ]
 
     def test_list(self):
-        """ should assign `can_end` correctly if tasks_can_end is a list."""
+        """should assign `can_end` correctly if tasks_can_end is a list."""
         self.tasklist = TaskList(self.tasks)
 
         expected_tasks_can_end = [True, False, True]
@@ -192,12 +186,11 @@ class TestTaskListGetTaskCanEnd:
             check.equal(value, expected)
 
     def test_dict(self):
-        """ should assign `can_end` correctly if tasks_can_end is a dict."""
+        """should assign `can_end` correctly if tasks_can_end is a dict."""
         self.tasklist = TaskList(self.tasks)
 
         expected_tasks_can_end = {
-            task.name: can_end
-            for task, can_end in zip(self.tasks, [True, False, True])
+            task.name: can_end for task, can_end in zip(self.tasks, [True, False, True])
         }
         self.tasklist.tasks_can_end = expected_tasks_can_end
 
@@ -207,7 +200,7 @@ class TestTaskListGetTaskCanEnd:
             check.equal(value, expected)
 
     def test_none(self):
-        """ should assign False to all if tasks_can_end is None."""
+        """should assign False to all if tasks_can_end is None."""
         self.tasklist = TaskList(self.tasks)
         for i, task in enumerate(self.tasklist.tasks):
             value = self.tasklist._get_task_can_end(task, i)
@@ -215,11 +208,11 @@ class TestTaskListGetTaskCanEnd:
 
 
 class TestTaskListStackDones:
-    """ TestList._stack_dones """
+    """TestList._stack_dones"""
 
     def test_all(self):
-        """ should return True only if all dones are True if early_stopping is 'all'. """
-        tests = TaskList(None, early_stopping='all')
+        """should return True only if all dones are True if early_stopping is 'all'."""
+        tests = TaskList(None, early_stopping="all")
 
         dones = [True, False, True]
         done = tests._stack_dones(dones)
@@ -230,8 +223,8 @@ class TestTaskListStackDones:
         check.is_true(done)
 
     def test_any(self):
-        """ should return True if any dones is True if early_stopping is 'any'. """
-        tests = TaskList(None, early_stopping='any')
+        """should return True if any dones is True if early_stopping is 'any'."""
+        tests = TaskList(None, early_stopping="any")
 
         dones = [True, False, True]
         done = tests._stack_dones(dones)
@@ -242,8 +235,8 @@ class TestTaskListStackDones:
         check.is_false(done)
 
     def test_raise_othervalue(self):
-        """ should raise ValueError if early_stopping is not in ('any', 'all'). """
-        tests = TaskList(None, early_stopping='x')
+        """should raise ValueError if early_stopping is not in ('any', 'all')."""
+        tests = TaskList(None, early_stopping="x")
         dones = [True, False, True]
         with pytest.raises(ValueError, match=r"Unknown value for early_stopping.*"):
             tests._stack_dones(dones)

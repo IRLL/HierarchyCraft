@@ -10,9 +10,10 @@ Here are defined abstract classes for items, tools and item-stacks
 from typing import List
 from operator import index
 
-class Item():
 
-    """ Item are to represent objects that could be present in an inventory
+class Item:
+
+    """Item are to represent objects that could be present in an inventory
 
     Attributes:
         item_id (int): Unique item identification number.
@@ -21,8 +22,8 @@ class Item():
 
     """
 
-    def __init__(self, item_id: int, name: str, required_tools: list=None):
-        """ Item are to represent objects that could be present in an inventory
+    def __init__(self, item_id: int, name: str, required_tools: list = None):
+        """Item are to represent objects that could be present in an inventory
 
         Args:
             item_id: Unique item identification number.
@@ -34,7 +35,10 @@ class Item():
         self.item_id = item_id
         self.name = name
         self.required_tools = required_tools
-        if isinstance(self.required_tools, (list, tuple)) and len(self.required_tools) == 0:
+        if (
+            isinstance(self.required_tools, (list, tuple))
+            and len(self.required_tools) == 0
+        ):
             self.required_tools = None
 
     def __eq__(self, item):
@@ -55,7 +59,7 @@ class Item():
 
 class ItemStack(Item):
 
-    """ ItemStack are to represent stackable objects that could be present in an inventory.
+    """ItemStack are to represent stackable objects that could be present in an inventory.
 
     Attributes:
         item (:obj:`Item`): Item object that will be stacked.
@@ -67,8 +71,8 @@ class ItemStack(Item):
 
     """
 
-    def __init__(self, item: Item, size:int=1):
-        """ ItemStack are to represent stackable objects that could be present in an inventory.
+    def __init__(self, item: Item, size: int = 1):
+        """ItemStack are to represent stackable objects that could be present in an inventory.
 
         Args:
             item: Item object that will be stacked.
@@ -85,7 +89,7 @@ class ItemStack(Item):
 
 class Tool(Item):
 
-    """ Tool are to represent special usable items.
+    """Tool are to represent special usable items.
 
     Attributes:
         item_id (int): Unique item identification number.
@@ -94,8 +98,8 @@ class Tool(Item):
 
     """
 
-    def use(self, item:Item=None) -> List[ItemStack]:
-        """ Use the tool on the (optional) given item.
+    def use(self, item: Item = None) -> List[ItemStack]:
+        """Use the tool on the (optional) given item.
 
         Args:
             item: Item to use the tool on.

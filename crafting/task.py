@@ -10,11 +10,12 @@ import numpy as np
 
 from crafting.world.world import World
 
-class Task():
 
-    """ Abstract class for any task """
+class Task:
 
-    def __init__(self, name, world:World):
+    """Abstract class for any task"""
+
+    def __init__(self, name, world: World):
         self.name = name
         self.world = world
 
@@ -30,26 +31,29 @@ class Task():
         self.reset()
 
     def add_achivement_getitem(self, item_id, value, end_task=False):
-        """ Makes getting `item_id` for the first time an achievement with reward `value`. """
+        """Makes getting `item_id` for the first time an achievement with reward `value`."""
         item_slot = self.world.item_id_to_slot[item_id]
         self.achievements_items_values[item_slot] += value
         if end_task:
             self.items_end_task_at[item_slot] = 1
 
     def add_item_value(self, item_id, value, end_task_at=None):
-        """ Attributes a reward `value` for each unit of the item `item_id`. """
+        """Attributes a reward `value` for each unit of the item `item_id`."""
         item_slot = self.world.item_id_to_slot[item_id]
         self.items_values[item_slot] += value
         if end_task_at is not None:
             self.items_end_task_at[item_slot] = end_task_at
 
     def reward(self, observation, previous_observation, action):
-        """ Attribute a reward to the current transition """
-        diff_items = observation[:self.world.n_items] - previous_observation[:self.world.n_items]
+        """Attribute a reward to the current transition"""
+        diff_items = (
+            observation[: self.world.n_items]
+            - previous_observation[: self.world.n_items]
+        )
 
         achived_items = np.logical_and(
             np.logical_not(self.achievements_items_done),
-            observation[:self.world.n_items] > 0
+            observation[: self.world.n_items] > 0,
         )
 
         reward = np.sum(achived_items * self.achievements_items_values)
@@ -57,20 +61,19 @@ class Task():
         reward += self.action_values[action]
 
         self.achievements_items_done = np.logical_or(
-            observation[:self.world.n_items] > 0,
-            self.achievements_items_done
+            observation[: self.world.n_items] > 0, self.achievements_items_done
         )
 
         return reward
 
     def done(self, observation, previous_observation, action):
-        """ Return True if the task is done, used for early stopping """
-        item_done = np.any(observation[:self.world.n_items] >= self.items_end_task_at)
+        """Return True if the task is done, used for early stopping"""
+        item_done = np.any(observation[: self.world.n_items] >= self.items_end_task_at)
         action_done = self.action_end_task[action]
         return item_done or action_done
 
     def reset(self):
-        """ Reset the task. """
+        """Reset the task."""
         self.achievements_items_done = np.zeros(self.world.n_items, dtype=bool)
 
     def __call__(self, observation, previous_observation, action):
@@ -79,22 +82,23 @@ class Task():
         return reward, done
 
 
-class TaskList():
+class TaskList:
 
-    """ Wrapper for a list of tasks """
+    """Wrapper for a list of tasks"""
 
-    def __init__(self,
-            tasks: List[Task],
-            tasks_weights: Union[List[float], Dict[str, float]]=None,
-            tasks_can_end: Union[List[bool], Dict[str, bool]]=None,
-            early_stopping: str='all'
-        ):
+    def __init__(
+        self,
+        tasks: List[Task],
+        tasks_weights: Union[List[float], Dict[str, float]] = None,
+        tasks_can_end: Union[List[bool], Dict[str, bool]] = None,
+        early_stopping: str = "all",
+    ):
 
         self.tasks = tasks if tasks is not None else []
         for task in self.tasks:
             if not isinstance(task, Task):
                 raise TypeError(
-                    f'tasks must be subclassed from :class:`crafting.Task` but was {type(task)}'
+                    f"tasks must be subclassed from :class:`crafting.Task` but was {type(task)}"
                 )
 
         self.tasks_weights = tasks_weights
@@ -122,10 +126,10 @@ class TaskList():
             return all(dones)
         if self.early_stopping == "any":
             return any(dones)
-        raise ValueError(f'Unknown value for early_stopping: {self.early_stopping}')
+        raise ValueError(f"Unknown value for early_stopping: {self.early_stopping}")
 
     def reset(self):
-        """ Reset all tasks for a new episode. """
+        """Reset all tasks for a new episode."""
         for task in self.tasks:
             task.reset()
 

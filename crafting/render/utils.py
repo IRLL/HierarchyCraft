@@ -20,17 +20,22 @@ if TYPE_CHECKING:
 from crafting.world.zones import Zone
 from crafting.world.items import Item
 
-def load_image(world:World, obj:Union[Item, Zone, str],
-        text:str=None, text_relative_size:float=0.3):
+
+def load_image(
+    world: World,
+    obj: Union[Item, Zone, str],
+    text: str = None,
+    text_relative_size: float = 0.3,
+):
     if obj is None:
         return None
 
     if isinstance(obj, Item):
-        image_path = os.path.join(world.resources_path, 'items', f'{obj.item_id}.png')
+        image_path = os.path.join(world.resources_path, "items", f"{obj.item_id}.png")
     elif isinstance(obj, Zone):
-        image_path = os.path.join(world.resources_path, 'zones', f'{obj.zone_id}.png')
+        image_path = os.path.join(world.resources_path, "zones", f"{obj.zone_id}.png")
     elif isinstance(obj, str):
-        image_path = os.path.join(world.resources_path, 'properties', f'{obj}.png')
+        image_path = os.path.join(world.resources_path, "properties", f"{obj}.png")
     else:
         raise TypeError(f"Unkowned type {type(obj)}")
 
@@ -46,17 +51,15 @@ def load_image(world:World, obj:Union[Item, Zone, str],
         text_px_size = int(3 * text_relative_size * min(image_shape[:1]))
         text_pt_size = int(0.75 * text_px_size)
         font = ImageFont.truetype(world.font_path, size=text_pt_size)
-        font_offset = (int(0.05*image_shape[0]), int(0.95*image_shape[1]))
-        image_draw.text(font_offset, text, font=font, anchor='lb')
+        font_offset = (int(0.05 * image_shape[0]), int(0.95 * image_shape[1]))
+        image_draw.text(font_offset, text, font=font, anchor="lb")
     return np.array(image)
 
+
 def load_and_scale(
-        path: str,
-        canevas_shape: Tuple[int],
-        size_ratio: float,
-        relative_to: str='width'
-    ) -> Surface:
-    """ Load and rescales an image using pygame.
+    path: str, canevas_shape: Tuple[int], size_ratio: float, relative_to: str = "width"
+) -> Surface:
+    """Load and rescales an image using pygame.
 
     Load and rescales an image relatively to canevas_shape preserving aspect ratio.
 
@@ -70,9 +73,9 @@ def load_and_scale(
     image = load(path).convert_alpha()
     image_shape = image.get_size()
 
-    if relative_to.startswith('w'):
+    if relative_to.startswith("w"):
         scale_ratio = int(size_ratio * canevas_shape[0]) / image_shape[0]
-    elif relative_to.startswith('h'):
+    elif relative_to.startswith("h"):
         scale_ratio = int(size_ratio * canevas_shape[1]) / image_shape[1]
     else:
         raise ValueError(f"Unknowed value for 'relative_to': {relative_to}")

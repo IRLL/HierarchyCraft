@@ -15,9 +15,10 @@ from crafting.world.items import ItemStack
 from crafting.world.zones import Zone
 from crafting.player.inventory import Inventory
 
-class Recipe():
 
-    """ Recipe are to represent transformations of items.
+class Recipe:
+
+    """Recipe are to represent transformations of items.
 
     Recipes are initiated using an input-output design
     but they can also affect and be affected by the Zone in which the craft is done.
@@ -31,14 +32,16 @@ class Recipe():
 
     """
 
-    def __init__(self,
-                 recipe_id: int,
-                 inputs: List[ItemStack]=None,
-                 outputs: List[ItemStack]=None,
-                 needed_properties: dict=None,
-                 added_properties: dict=None):
+    def __init__(
+        self,
+        recipe_id: int,
+        inputs: List[ItemStack] = None,
+        outputs: List[ItemStack] = None,
+        needed_properties: dict = None,
+        added_properties: dict = None,
+    ):
 
-        """ Recipe are to represent transformations of items.
+        """Recipe are to represent transformations of items.
 
         Recipes are initiated using an input-output design
         but they can also affect and be affected by the Zone in which the craft is done.
@@ -57,15 +60,15 @@ class Recipe():
         self.inputs = inputs
         self.outputs = outputs
 
-        self.needed_properties = needed_properties \
-            if needed_properties is not None else {}
-        self.added_properties = added_properties \
-            if added_properties is not None else {}
+        self.needed_properties = (
+            needed_properties if needed_properties is not None else {}
+        )
+        self.added_properties = added_properties if added_properties is not None else {}
 
         self._operation = None
 
     def _build_operation(self, inventory: Inventory):
-        """ Build and cache the operation performed by this recipe on the specific inventory """
+        """Build and cache the operation performed by this recipe on the specific inventory"""
         operation = np.zeros_like(inventory.content)
 
         # Inputs consumed if any
@@ -78,10 +81,10 @@ class Recipe():
             outputs_ids, outputs_sizes = inventory.stacks_ind_and_size(self.outputs)
             operation[outputs_ids] += outputs_sizes
 
-        self._operation =  operation
+        self._operation = operation
 
     def has_enought(self, inventory: Inventory):
-        """ Check if the inventory contains the necessary materials
+        """Check if the inventory contains the necessary materials
 
         Args:
             inventory: The inventory to check.
@@ -95,7 +98,7 @@ class Recipe():
         return np.all(inventory.content + self._operation >= 0)
 
     def has_properties(self, zone: Zone):
-        """ Check if the zone has the necessary propreties
+        """Check if the zone has the necessary propreties
 
         Args:
             zone: The zone to check.
@@ -107,13 +110,15 @@ class Recipe():
         if self.needed_properties is None:
             return True
         for property_name, value in self.needed_properties.items():
-            if property_name not in zone.properties or \
-               not zone.properties[property_name] == value:
+            if (
+                property_name not in zone.properties
+                or not zone.properties[property_name] == value
+            ):
                 return False
         return True
 
     def can_craft(self, inventory: Inventory, zone: Zone) -> bool:
-        """ Check if the craft can be performed
+        """Check if the craft can be performed
 
         Args:
             inventory: Inventory to transform.
@@ -126,7 +131,7 @@ class Recipe():
         return self.has_properties(zone) and self.has_enought(inventory)
 
     def craft(self, inventory: Inventory, zone: Zone) -> bool:
-        """ Use the recipe using an inventory in a zone
+        """Use the recipe using an inventory in a zone
 
         Args:
             inventory: Inventory to transform.
@@ -163,4 +168,4 @@ class Recipe():
                 outputs_msg += f"{self.outputs}"
         if self.added_properties is not None and len(self.added_properties) > 0:
             outputs_msg += f"{self.added_properties}"
-        return outputs_msg + ' <- ' + inputs_msg
+        return outputs_msg + " <- " + inputs_msg

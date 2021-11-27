@@ -21,29 +21,30 @@ if TYPE_CHECKING:
 from crafting.render.utils import load_and_scale
 
 
-class EnvWidget():
+class EnvWidget:
 
-    """ Display widget base class for any crafting environment. """
+    """Display widget base class for any crafting environment."""
 
     def update(self, env: CraftingEnv):
-        """ Update the widget given the environment state. """
+        """Update the widget given the environment state."""
         raise NotImplementedError
 
     def draw(self, surface: Surface):
-        """ Draw the widget on a given surface. """
+        """Draw the widget on a given surface."""
         raise NotImplementedError
 
 
 class InventoryWidget(EnvWidget):
 
-    """ Displays the player's inventory. """
+    """Displays the player's inventory."""
 
-    def __init__(self,
+    def __init__(
+        self,
         inventory: Inventory,
-        resources_path:str,
-        font_path:str,
+        resources_path: str,
+        font_path: str,
         position: Tuple[int],
-        window_shape: Tuple[int]
+        window_shape: Tuple[int],
     ):
         self.inventory = inventory
         self.resources_path = resources_path
@@ -54,17 +55,17 @@ class InventoryWidget(EnvWidget):
         self.font = Font(font_path, int(0.1 * self.shape[1]))
 
         self.item_images_per_id = {
-           item_id: self._load_image(item_id)
-           for item_id in self.inventory.items_ids
-           if item_id != 0
+            item_id: self._load_image(item_id)
+            for item_id in self.inventory.items_ids
+            if item_id != 0
         }
 
     def _load_background(self, window_shape):
-        background_path = os.path.join(self.resources_path, 'inventory.png')
+        background_path = os.path.join(self.resources_path, "inventory.png")
         return load_and_scale(background_path, window_shape, 0.65)
 
     def _load_image(self, item_id):
-        image_path = os.path.join(self.resources_path, 'items', f'{item_id}.png')
+        image_path = os.path.join(self.resources_path, "items", f"{item_id}.png")
         return load_and_scale(image_path, self.shape, 0.09)
 
     def update(self, env: CraftingEnv):
@@ -74,14 +75,13 @@ class InventoryWidget(EnvWidget):
         surface.blit(self.background, self.position)
 
         non_empty_items = np.logical_and(
-            self.inventory.content != 0,
-            np.not_equal(self.inventory.items_ids, 0)
+            self.inventory.content != 0, np.not_equal(self.inventory.items_ids, 0)
         )
 
         items_in_inv = np.array(self.inventory.items)[non_empty_items]
         content = self.inventory.content[non_empty_items]
 
-        offset = np.array([int(0.029 * self.shape[0]), int(0.155* self.shape[1])])
+        offset = np.array([int(0.029 * self.shape[0]), int(0.155 * self.shape[1])])
         x_step = y_step = int(0.108 * self.shape[0])
         font_offset = np.array([int(0.85 * x_step), int(0.9 * y_step)])
 
@@ -94,7 +94,7 @@ class InventoryWidget(EnvWidget):
             surface.blit(self.item_images_per_id[item.item_id], item_position)
             if quantity > 1:
                 text_position = item_position + font_offset
-                text = self.font.render(str(quantity), False, 'white')
+                text = self.font.render(str(quantity), False, "white")
                 text_rect = text.get_rect()
                 text_rect.right = text_position[0]
                 text_rect.bottom = text_position[1]
@@ -103,16 +103,17 @@ class InventoryWidget(EnvWidget):
 
 class ZoneWidget(EnvWidget):
 
-    """ Displays the current player zone and its active properties. """
+    """Displays the current player zone and its active properties."""
 
-    def __init__(self,
-            zones: List[Zone],
-            properties: List[str],
-            resources_path: str,
-            font_path:str,
-            position: Tuple[int],
-            window_shape: Tuple[int]
-        ):
+    def __init__(
+        self,
+        zones: List[Zone],
+        properties: List[str],
+        resources_path: str,
+        font_path: str,
+        position: Tuple[int],
+        window_shape: Tuple[int],
+    ):
         self.zone = zones[0]
         self.position = np.array(position)
         self.resources_path = resources_path
@@ -125,18 +126,17 @@ class ZoneWidget(EnvWidget):
         self.shape = self.zones_images[0].get_size()
 
         self.properties_images = {
-            prop: self._load_property_image(prop)
-            for prop in properties
+            prop: self._load_property_image(prop) for prop in properties
         }
 
         self.font = Font(font_path, int(0.3 * self.shape[1]))
 
     def _load_zone_image(self, zone_id, window_shape):
-        image_path = os.path.join(self.resources_path, 'zones', f'{zone_id}.png')
+        image_path = os.path.join(self.resources_path, "zones", f"{zone_id}.png")
         return load_and_scale(image_path, window_shape, 0.25)
 
     def _load_property_image(self, prop: str):
-        image_path = os.path.join(self.resources_path, 'properties', f'{prop}.png')
+        image_path = os.path.join(self.resources_path, "properties", f"{prop}.png")
         return load_and_scale(image_path, self.shape, 0.2)
 
     def update(self, env: CraftingEnv):
@@ -146,7 +146,7 @@ class ZoneWidget(EnvWidget):
         zone_image = self.zones_images[self.zone.zone_id]
         surface.blit(zone_image, self.position)
 
-        zone_name_img = self.font.render(self.zone.name.capitalize(), False, 'white')
+        zone_name_img = self.font.render(self.zone.name.capitalize(), False, "white")
         font_shift = np.array([int(0.05 * self.shape[0]), 0])
         surface.blit(zone_name_img, self.position + font_shift)
 
@@ -165,13 +165,9 @@ class ZoneWidget(EnvWidget):
 
 class ScoreWidget(EnvWidget):
 
-    """ Display the current score """
+    """Display the current score"""
 
-    def __init__(self,
-            font_path: str,
-            position: Tuple[int],
-            font_size: int
-        ):
+    def __init__(self, font_path: str, position: Tuple[int], font_size: int):
         self.position = position
         self.font = Font(font_path, font_size)
         self.reward = 0
@@ -181,18 +177,15 @@ class ScoreWidget(EnvWidget):
         self.score = env.player.score
 
     def draw(self, surface: Surface):
-        score_name_img = self.font.render(f"SCORE {self.score}", False, '#c95149')
+        score_name_img = self.font.render(f"SCORE {self.score}", False, "#c95149")
         surface.blit(score_name_img, self.position)
+
 
 class StepLeftWidget(EnvWidget):
 
-    """ Display the number of steps left until the environment is done. """
+    """Display the number of steps left until the environment is done."""
 
-    def __init__(self,
-            font_path: str,
-            position: Tuple[int],
-            font_size: int
-        ):
+    def __init__(self, font_path: str, position: Tuple[int], font_size: int):
         self.position = position
         self.font = Font(font_path, font_size)
         self.steps_left = None
@@ -201,5 +194,7 @@ class StepLeftWidget(EnvWidget):
         self.steps_left = env.max_step - env.steps
 
     def draw(self, surface: Surface):
-        score_name_img = self.font.render(f"Steps left: {self.steps_left}", False, '#803300')
+        score_name_img = self.font.render(
+            f"Steps left: {self.steps_left}", False, "#803300"
+        )
         surface.blit(score_name_img, self.position)

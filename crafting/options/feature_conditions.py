@@ -19,11 +19,11 @@ if TYPE_CHECKING:
 
 class HasItem(FeatureCondition):
 
-    """ FeatureCondition to check if player has an Item in a given quantity. """
+    """FeatureCondition to check if player has an Item in a given quantity."""
 
-    def __init__(self, item: Item, world: World, quantity:int=1) -> None:
+    def __init__(self, item: Item, world: World, quantity: int = 1) -> None:
         name = f"Has {quantity} {item}?"
-        conditon_text = f"{quantity}" if quantity > 1 else ''
+        conditon_text = f"{quantity}" if quantity > 1 else ""
         image = load_image(world, item, text=conditon_text)
         super().__init__(name=name, image=image)
 
@@ -33,13 +33,13 @@ class HasItem(FeatureCondition):
         self.slot = self.world.item_id_to_slot[item.item_id]
 
     def __call__(self, observation) -> int:
-        inventory_content = observation[:self.world.n_items]
+        inventory_content = observation[: self.world.n_items]
         return inventory_content[self.slot] >= self.quantity
 
 
 class IsInZone(FeatureCondition):
 
-    """ FeatureCondition to check if in a Zone. """
+    """FeatureCondition to check if in a Zone."""
 
     def __init__(self, zone: Zone, world: World) -> None:
         name = f"Is in {zone}?"
@@ -57,9 +57,9 @@ class IsInZone(FeatureCondition):
 
 class HasProperty(FeatureCondition):
 
-    """ FeatureCondition to check if a Zone has the given property. """
+    """FeatureCondition to check if a Zone has the given property."""
 
-    def __init__(self, prop:str, world: World) -> None:
+    def __init__(self, prop: str, world: World) -> None:
         name = f"Has property '{prop}' ?"
         image = load_image(world, prop)
         super().__init__(name=name, image=image)

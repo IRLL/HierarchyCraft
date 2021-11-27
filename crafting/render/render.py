@@ -17,13 +17,22 @@ from pygame_menu.menu import Menu
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv
     from crafting.world.world import World
-from crafting.render.widgets import EnvWidget, InventoryWidget,ScoreWidget, \
-    ZoneWidget, StepLeftWidget
+from crafting.render.widgets import (
+    EnvWidget,
+    InventoryWidget,
+    ScoreWidget,
+    ZoneWidget,
+    StepLeftWidget,
+)
 
 
-def get_human_action(env:CraftingEnv, additional_events:List[Event]=None, 
-        can_be_none:bool=False, **kwargs):
-    """ Update the environment rendering and gather potential action given by the UI.
+def get_human_action(
+    env: CraftingEnv,
+    additional_events: List[Event] = None,
+    can_be_none: bool = False,
+    **kwargs,
+):
+    """Update the environment rendering and gather potential action given by the UI.
 
     Args:
         env: The running Crafting environment.
@@ -41,8 +50,9 @@ def get_human_action(env:CraftingEnv, additional_events:List[Event]=None,
         action_chosen = action is not None or can_be_none
     return action
 
+
 def create_window(env: CraftingEnv) -> Dict[str, Any]:
-    """ Initialise pygame window, menus and widgets for the UI.
+    """Initialise pygame window, menus and widgets for the UI.
 
     Args:
         env: The running Crafting environment.
@@ -51,8 +61,8 @@ def create_window(env: CraftingEnv) -> Dict[str, Any]:
         Dictionary of rendering variables.
 
     """
-    os.environ['SDL_VIDEO_CENTERED'] = '1'
-    window_shape = (int(16/9 * 600), 720)
+    os.environ["SDL_VIDEO_CENTERED"] = "1"
+    window_shape = (int(16 / 9 * 600), 720)
 
     pygame.init()
     clock = pygame.time.Clock()
@@ -70,7 +80,7 @@ def create_window(env: CraftingEnv) -> Dict[str, Any]:
         env.world.resources_path,
         env.world.font_path,
         position=(int(0.15 * window_shape[0]), int(0.15 * window_shape[0])),
-        window_shape=window_shape
+        window_shape=window_shape,
     )
 
     # Create zone widget
@@ -80,7 +90,7 @@ def create_window(env: CraftingEnv) -> Dict[str, Any]:
         env.world.resources_path,
         env.world.font_path,
         position=(int(0.52 * window_shape[0]), int(0.02 * window_shape[0])),
-        window_shape=window_shape
+        window_shape=window_shape,
     )
 
     score_widget = ScoreWidget(
@@ -96,24 +106,25 @@ def create_window(env: CraftingEnv) -> Dict[str, Any]:
     )
 
     return {
-        'clock': clock,
-        'screen': screen,
-        'menus': menus,
-        'widgets': (score_widget, zone_widget, inv_widget, step_widget),
-        'id_to_action': id_to_action
+        "clock": clock,
+        "screen": screen,
+        "menus": menus,
+        "widgets": (score_widget, zone_widget, inv_widget, step_widget),
+        "id_to_action": id_to_action,
     }
 
+
 def update_rendering(
-        env: CraftingEnv,
-        clock:Clock,
-        screen:pygame.Surface,
-        menus:List[pygame_menu.Menu],
-        widgets:List[EnvWidget],
-        id_to_action:Dict[str, Any],
-        additional_events:List[Event]=None,
-        fps:float=60
-    ) -> Union[int, None]:
-    """ Update the User Interface returning action if one was found.
+    env: CraftingEnv,
+    clock: Clock,
+    screen: pygame.Surface,
+    menus: List[pygame_menu.Menu],
+    widgets: List[EnvWidget],
+    id_to_action: Dict[str, Any],
+    additional_events: List[Event] = None,
+    fps: float = 60,
+) -> Union[int, None]:
+    """Update the User Interface returning action if one was found.
 
     Args:
         env: The running Crafting environment.
@@ -152,7 +163,8 @@ def update_rendering(
 
     for menu in menus:
         buttons = [
-            widget for widget in menu.get_widgets()
+            widget
+            for widget in menu.get_widgets()
             if isinstance(widget, pygame_menu.widgets.Button)
         ]
         for button in buttons:
@@ -174,20 +186,22 @@ def update_rendering(
     pygame.display.update()
     return action
 
+
 def surface_to_rgb_array(surface: pygame.Surface) -> np.ndarray:
-    """ Transforms a pygame surface to a conventional rgb array.
-    
+    """Transforms a pygame surface to a conventional rgb array.
+
     Args:
         surface: pygame surface.
-    
+
     Returns:
         A rgb_array representing the given surface.
-    
+
     """
     return pygame.surfarray.array3d(surface).swapaxes(0, 1)
 
+
 def make_menus(world: World, window_shape: tuple):
-    """ Build menus for user interface.
+    """Build menus for user interface.
 
     Args:
         world: The current world.
@@ -195,16 +209,29 @@ def make_menus(world: World, window_shape: tuple):
 
     """
 
-    def add_button(menu: Menu, id_to_action:Dict[str, Any], image_path:str,
-            scaling:float, text_width:int, action_type, identificator, padding):
+    def add_button(
+        menu: Menu,
+        id_to_action: Dict[str, Any],
+        image_path: str,
+        scaling: float,
+        text_width: int,
+        action_type,
+        identificator,
+        padding,
+    ):
         image = pygame_menu.baseimage.BaseImage(image_path).scale(scaling, scaling)
 
-        button = menu.add.button(' '*text_width, lambda *args: args, action_type,
-            identificator, padding=padding)
+        button = menu.add.button(
+            " " * text_width,
+            lambda *args: args,
+            action_type,
+            identificator,
+            padding=padding,
+        )
 
         decorator = button.get_decorator()
         decorator.add_baseimage(0, 0, image, centered=True)
-        id_to_action[button.get_id()] = (action_type, identificator) 
+        id_to_action[button.get_id()] = (action_type, identificator)
 
     resources_path = world.resources_path
     id_to_action = {}
@@ -214,7 +241,7 @@ def make_menus(world: World, window_shape: tuple):
     items_menu_width = int(0.15 * window_shape[0])
 
     items_menu = pygame_menu.Menu(
-        title='Search',
+        title="Search",
         height=items_menu_height,
         width=items_menu_width,
         keyboard_enabled=False,
@@ -224,18 +251,26 @@ def make_menus(world: World, window_shape: tuple):
         theme=pygame_menu.themes.THEME_BLUE,
     )
 
-    items_images_path = os.path.join(resources_path, 'items')
+    items_images_path = os.path.join(resources_path, "items")
     for item in world.searchable_items:
         image_path = os.path.join(items_images_path, f"{item.item_id}.png")
-        add_button(items_menu, id_to_action, image_path, scaling=0.5, text_width=8,
-            action_type='get', identificator=item.item_id, padding=(12, 0, 12, 0))
+        add_button(
+            items_menu,
+            id_to_action,
+            image_path,
+            scaling=0.5,
+            text_width=8,
+            action_type="get",
+            identificator=item.item_id,
+            padding=(12, 0, 12, 0),
+        )
 
     # Recipes Menu
     recipes_menu_height = window_shape[1] - items_menu_height
     recipes_menu_width = window_shape[0]
 
     recipes_menu = pygame_menu.Menu(
-        title='Craft',
+        title="Craft",
         height=recipes_menu_height,
         width=recipes_menu_width,
         keyboard_enabled=False,
@@ -245,21 +280,29 @@ def make_menus(world: World, window_shape: tuple):
         position=(0, 100),
         overflow=(True, False),
         column_max_width=int(0.08 * window_shape[0]),
-        theme=pygame_menu.themes.THEME_ORANGE
+        theme=pygame_menu.themes.THEME_ORANGE,
     )
 
-    recipes_images_path = os.path.join(resources_path, 'items')
+    recipes_images_path = os.path.join(resources_path, "items")
     for recipe in world.recipes:
         image_path = os.path.join(recipes_images_path, f"{recipe.recipe_id}.png")
-        add_button(recipes_menu, id_to_action, image_path, scaling=0.5, text_width=8,
-            action_type='craft', identificator=recipe.recipe_id, padding=(16, 0, 16, 0))
+        add_button(
+            recipes_menu,
+            id_to_action,
+            image_path,
+            scaling=0.5,
+            text_width=8,
+            action_type="craft",
+            identificator=recipe.recipe_id,
+            padding=(16, 0, 16, 0),
+        )
 
     # Zones Menu
     zones_menu_height = items_menu_height
     zones_menu_width = int(0.20 * window_shape[0])
 
     zones_menu = pygame_menu.Menu(
-        title='Move',
+        title="Move",
         height=zones_menu_height,
         width=zones_menu_width,
         keyboard_enabled=False,
@@ -269,26 +312,35 @@ def make_menus(world: World, window_shape: tuple):
         theme=pygame_menu.themes.THEME_GREEN,
     )
 
-    zones_images_path = os.path.join(resources_path, 'zones')
+    zones_images_path = os.path.join(resources_path, "zones")
     for zone in world.zones:
         image_path = os.path.join(zones_images_path, f"{zone.zone_id}.png")
-        add_button(zones_menu, id_to_action, image_path, scaling=0.2, text_width=19,
-            action_type='move', identificator=zone.zone_id, padding=(26, 0, 26, 0))
+        add_button(
+            zones_menu,
+            id_to_action,
+            image_path,
+            scaling=0.2,
+            text_width=19,
+            action_type="move",
+            identificator=zone.zone_id,
+            padding=(26, 0, 26, 0),
+        )
 
     return (items_menu, recipes_menu, zones_menu), id_to_action
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from crafting.examples.minecraft.items import ENCHANTING_TABLE
     from crafting.examples import MineCraftingEnv
 
-    env = MineCraftingEnv(verbose=1, max_step=100,
-        tasks=['obtain_enchanting_table'], tasks_can_end=[True]
+    env = MineCraftingEnv(
+        verbose=1, max_step=100, tasks=["obtain_enchanting_table"], tasks_can_end=[True]
     )
 
     draw_requirements_graph = False
     if draw_requirements_graph:
         import matplotlib.pyplot as plt
+
         fig, ax = plt.subplots()
         env.world.draw_requirements_graph(ax)
         plt.show()
@@ -303,14 +355,14 @@ if __name__ == '__main__':
         done = False
         total_reward = 0
         while not done:
-            rgb_array = env.render(mode='rgb_array')
+            rgb_array = env.render(mode="rgb_array")
 
             # enchant_action_id = enchant_table_option(observation)
             # print(f'For Enchanting Table: {env.action_from_id(enchant_action_id)}')
 
             action = get_human_action(env, **env.render_variables)
             action_id = env.action(*action)
-            print(f'Human did: {env.action_from_id(action_id)}')
+            print(f"Human did: {env.action_from_id(action_id)}")
 
             observation, reward, done, infos = env(action_id)
             total_reward += reward

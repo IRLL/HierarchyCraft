@@ -20,29 +20,29 @@ if TYPE_CHECKING:
 
 class SearchItem(Action):
 
-    """ Action to search to for an Item. """
+    """Action to search to for an Item."""
 
     def __init__(self, item: Item, world: World) -> None:
         name = f"Search {item}"
         image = load_image(world, item)
-        action = world.action('get', item.item_id)
+        action = world.action("get", item.item_id)
         super().__init__(action, name=name, image=image)
 
 
 class MoveToZone(Action):
 
-    """ Action to move to a Zone. """
+    """Action to move to a Zone."""
 
     def __init__(self, zone: Zone, world: World) -> None:
         name = f"Move to {zone}"
         image = load_image(world, zone)
-        action = world.action('move', zone.zone_id)
+        action = world.action("move", zone.zone_id)
         super().__init__(action, name=name, image=image)
 
 
 class CraftRecipe(Action):
 
-    """ Action to use a Recipe. """
+    """Action to use a Recipe."""
 
     def __init__(self, recipe: Recipe, world: World) -> None:
         name = f"Craft {recipe}"
@@ -53,5 +53,5 @@ class CraftRecipe(Action):
             obj = list(recipe.added_properties.keys())[0]
 
         image = load_image(world, obj)
-        action = world.action('craft', recipe.recipe_id)
+        action = world.action("craft", recipe.recipe_id)
         super().__init__(action, name=name, image=image)

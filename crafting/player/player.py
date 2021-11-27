@@ -8,9 +8,10 @@ from crafting.world.zones import Zone
 from crafting.world.recipes import Recipe
 from crafting.player.inventory import Inventory
 
-class Player():
 
-    """ Player are entities with an inventory positioned in a zone.
+class Player:
+
+    """Player are entities with an inventory positioned in a zone.
 
     Attributes:
         inventory (:obj:`Inventory`): Player inventory.
@@ -19,8 +20,8 @@ class Player():
 
     """
 
-    def __init__(self, inventory: Inventory, zone: Zone, name:str='Player'):
-        """ Player are moving inventories that can perform actions.
+    def __init__(self, inventory: Inventory, zone: Zone, name: str = "Player"):
+        """Player are moving inventories that can perform actions.
 
         Attributes:
             inventory: Initial player inventory.
@@ -34,7 +35,7 @@ class Player():
         self.score = 0
 
     def craft(self, recipe: Recipe) -> bool:
-        """ Use a recipe
+        """Use a recipe
 
         Args:
             recipe: The recipe to use.
@@ -48,7 +49,7 @@ class Player():
         return False
 
     def can_craft(self, recipe: Recipe) -> bool:
-        """ Check if the recipe can be performed
+        """Check if the recipe can be performed
 
         Args:
             recipe: Recipe to be tested.
@@ -60,7 +61,7 @@ class Player():
         return recipe.can_craft(self.inventory, self.zone)
 
     def choose_tool(self, item: Item) -> Tool:
-        """ Choose a tool to search for an item.
+        """Choose a tool to search for an item.
 
         Args:
             item: The item to search for.
@@ -69,10 +70,10 @@ class Player():
             The chosen tool.
 
         """
-        raise NotImplementedError('You must choose how your player choses a tool')
+        raise NotImplementedError("You must choose how your player choses a tool")
 
     def search_for(self, item: Item, tool: Tool) -> int:
-        """ Search for an item using a tool and add them to inventory.
+        """Search for an item using a tool and add them to inventory.
 
         Args:
             item: The item to look for.
@@ -90,7 +91,7 @@ class Player():
         return 0
 
     def can_get(self, item: Item, tool: Tool) -> bool:
-        """ Check if the item can be found
+        """Check if the item can be found
 
         Args:
             item: The item to look for.
@@ -102,7 +103,7 @@ class Player():
         return self.zone.can_search_for(item, tool)
 
     def move_to(self, zone: Zone) -> bool:
-        """ Move to a given new zone
+        """Move to a given new zone
 
         Args:
             zone: The zone to move to.
@@ -117,7 +118,7 @@ class Player():
         return False
 
     def can_move_to(self, zone: Zone) -> bool:
-        """ Check if the player can move to the zone
+        """Check if the player can move to the zone
 
         Args:
             zone: The zone we want to access.
@@ -129,6 +130,6 @@ class Player():
         return zone.zone_id != self.zone.zone_id
 
     def __repr__(self):
-        name = self.name.capitalize() + ':'
-        position = 'At ' + repr(self.zone)
-        return '\n '.join((name, position, str(self.inventory)))
+        name = self.name.capitalize() + ":"
+        position = "At " + repr(self.zone)
+        return "\n ".join((name, position, str(self.inventory)))

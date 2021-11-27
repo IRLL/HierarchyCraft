@@ -14,17 +14,18 @@ from crafting.player.inventory import Inventory
 
 @pytest.fixture
 def items(mocker):
-    """ Dummy items for testing """
+    """Dummy items for testing"""
     item_ids = [3, 5, 12]
-    mocker.patch('crafting.world.items.Item')
-    return [Item(item_id, 'Item_' + str(item_id)) for item_id in item_ids]
+    mocker.patch("crafting.world.items.Item")
+    return [Item(item_id, "Item_" + str(item_id)) for item_id in item_ids]
+
 
 class TestInventory:
 
-    """ Inventory """
+    """Inventory"""
 
     def test_inventory_init(self, items):
-        """ should instanciate correctly. """
+        """should instanciate correctly."""
         inv = Inventory(items)
 
         expected_items_ids = (3, 5, 12)
@@ -36,42 +37,38 @@ class TestInventory:
         ]
 
         check.is_true(all(slot_is_right), "should match id to slots correctly")
-        check.is_true(np.all(inv.content == np.zeros(3, dtype=np.int32)), "should be empty")
+        check.is_true(
+            np.all(inv.content == np.zeros(3, dtype=np.int32)), "should be empty"
+        )
 
     def test_inventory_add_stacks(self, items):
-        """ should be able to add a list of ItemStack. """
+        """should be able to add a list of ItemStack."""
         inv = Inventory(items)
 
-        stacks = [
-            ItemStack(items[0], 15),
-            ItemStack(items[2], 33)
-        ]
+        stacks = [ItemStack(items[0], 15), ItemStack(items[2], 33)]
 
         inv.add_stacks(stacks)
         check.is_true(np.all(inv.content == [15, 0, 33]))
 
     def test_inventory_add_array(self, items):
-        """ should be able to add an array. """
+        """should be able to add an array."""
         inv = Inventory(items)
         inv += np.array([15, 0, 33])
         check.is_true(np.all(inv.content == [15, 0, 33]))
 
     def test_inventory_remove_stacks(self, items):
-        """ should be able to remove a list of ItemStack. """
+        """should be able to remove a list of ItemStack."""
         inv = Inventory(items)
         inv.content = np.array([15, 0, 33], dtype=np.int32)
 
-        stacks = [
-            ItemStack(items[0], 8),
-            ItemStack(items[2], 21)
-        ]
+        stacks = [ItemStack(items[0], 8), ItemStack(items[2], 21)]
 
         inv.remove_stacks(stacks)
-        check.is_true(np.all(inv.content == [15-8, 0, 33-21]))
+        check.is_true(np.all(inv.content == [15 - 8, 0, 33 - 21]))
 
     def test_inventory_sub_array(self, items):
-        """ should be able to substract an array. """
+        """should be able to substract an array."""
         inv = Inventory(items)
         inv.content = np.array([15, 0, 33], dtype=np.int32)
         inv = inv - np.array([8, 0, 21])
-        check.is_true(np.all(inv.content == [15-8, 0, 33-21]))
+        check.is_true(np.all(inv.content == [15 - 8, 0, 33 - 21]))

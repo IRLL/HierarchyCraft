@@ -18,17 +18,18 @@ if TYPE_CHECKING:
     from crafting.world.zones import Zone
     from crafting.world.world import World
 
+
 class ReachZone(Option):
 
-    """ Option for moving to a Zone """
+    """Option for moving to a Zone"""
 
-    def __init__(self, zone:Zone, world:World):
+    def __init__(self, zone: Zone, world: World):
         super().__init__(f"Reach {str(zone)}")
         self.world = world
         self.zone = zone
 
     def build_graph(self) -> OptionGraph:
-        """ Build the OptionGraph of this Option.
+        """Build the OptionGraph of this Option.
 
         Returns:
             The built OptionGraph.
@@ -51,14 +52,18 @@ class ReachZone(Option):
 
 class GetItem(Option):
 
-    """ Option for getting an item """
+    """Option for getting an item"""
 
-    def __init__(self, world:World,
-            item:Item,
-            all_options:Dict[Union[int, str], Option],
-            items_needed:List[List[tuple]],
-            last_action:tuple,
-            zones_id_needed:list=None, zones_properties_needed:dict=None):
+    def __init__(
+        self,
+        world: World,
+        item: Item,
+        all_options: Dict[Union[int, str], Option],
+        items_needed: List[List[tuple]],
+        last_action: tuple,
+        zones_id_needed: list = None,
+        zones_properties_needed: dict = None,
+    ):
 
         super().__init__(name=f"Get {str(item)}")
         self.world = world
@@ -80,7 +85,7 @@ class GetItem(Option):
         self.all_options = all_options
 
     def build_graph(self) -> OptionGraph:
-        """ Build the OptionGraph of this Option.
+        """Build the OptionGraph of this Option.
 
         Returns:
             The built OptionGraph.
@@ -124,24 +129,26 @@ class GetItem(Option):
 
         # Add last action
         action_type, obj_id = self.last_action
-        if action_type == 'get':
+        if action_type == "get":
             item = self.world.item_from_id[obj_id]
             action = SearchItem(item, self.world)
-        elif action_type == 'craft':
+        elif action_type == "craft":
             recipe = self.world.recipes_from_id[obj_id]
             action = CraftRecipe(recipe, self.world)
-        elif action_type == 'move':
+        elif action_type == "move":
             zone = self.world.zone_from_id[obj_id]
             action = MoveToZone(zone, self.world)
         else:
-            raise ValueError(f'Unknowed action_type: {action_type}')
+            raise ValueError(f"Unknowed action_type: {action_type}")
 
         graph.add_node(action)
         for prev in prev_checks:
             graph.add_edge(prev, action, index=int(True))
         return graph
 
-    def _add_crafting_option(self, graph:OptionGraph, item_id:int, quantity:int) -> HasItem:
+    def _add_crafting_option(
+        self, graph: OptionGraph, item_id: int, quantity: int
+    ) -> HasItem:
         item = self.world.item_from_id[item_id]
         has_item = HasItem(item=item, world=self.world, quantity=quantity)
         graph.add_node(has_item)
@@ -150,7 +157,7 @@ class GetItem(Option):
         graph.add_edge(has_item, get_item, index=int(False))
         return has_item
 
-    def _add_zone_option(self, graph:OptionGraph, zone_id:int) -> IsInZone:
+    def _add_zone_option(self, graph: OptionGraph, zone_id: int) -> IsInZone:
         zone = self.world.zone_from_id[zone_id]
         is_in_zone = IsInZone(zone, self.world)
         graph.add_node(is_in_zone)
@@ -159,7 +166,7 @@ class GetItem(Option):
         graph.add_edge(is_in_zone, reach_zone, index=int(False))
         return is_in_zone
 
-    def _add_property_needed(self, graph:OptionGraph, prop:str) -> HasProperty:
+    def _add_property_needed(self, graph: OptionGraph, prop: str) -> HasProperty:
         has_prop = HasProperty(prop, world=self.world)
         graph.add_node(has_prop)
         get_prop = Option(f"Get {prop}", image=load_image(self.world, prop))

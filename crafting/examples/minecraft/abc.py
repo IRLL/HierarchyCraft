@@ -15,9 +15,10 @@ from crafting.world.world import World
 from crafting.player.player import Player
 from crafting.player.inventory import Inventory
 
+
 class Block(Item):
 
-    """ Blocks are common minecraft items that can be gathered with tools.
+    """Blocks are common minecraft items that can be gathered with tools.
 
     Attributes:
         item_id (int): Unique item identification number.
@@ -28,16 +29,22 @@ class Block(Item):
 
     """
 
-    def __init__(self, item_id: int, name: str,
-            hardness:float, required_tools:list=None, drops:List[Item]=None
-        ):
+    def __init__(
+        self,
+        item_id: int,
+        name: str,
+        hardness: float,
+        required_tools: list = None,
+        drops: List[Item] = None,
+    ):
         super().__init__(item_id, name, required_tools)
         self.hardness = hardness
         self.items_dropped = [self] if drops is None else drops
 
+
 class Loot(Item):
 
-    """ Loots are common minecraft items that can be gathered in wilderness.
+    """Loots are common minecraft items that can be gathered in wilderness.
 
     Attributes:
         item_id (int): Unique item identification number.
@@ -46,13 +53,16 @@ class Loot(Item):
 
     """
 
-    def __init__(self, item_id: int, name: str, required_tools:list=None, stack_size: int=1):
+    def __init__(
+        self, item_id: int, name: str, required_tools: list = None, stack_size: int = 1
+    ):
         super().__init__(item_id, name, required_tools)
         self.stack_size = stack_size
 
+
 class McTool(Tool):
 
-    """ Special tool for minecraft, with durability and speed.
+    """Special tool for minecraft, with durability and speed.
 
     Attributes:
         item_id (int): Unique item identification number.
@@ -63,15 +73,15 @@ class McTool(Tool):
 
     """
 
-    def __init__(self, item_id:int, name:str, durability:int, speed:int):
+    def __init__(self, item_id: int, name: str, durability: int, speed: int):
         super().__init__(item_id, name)
         self.durability = durability
         self._durability = durability
         self.speed = speed
 
-    def use(self, item:Union[Block, Loot, Item]=None):
+    def use(self, item: Union[Block, Loot, Item] = None):
         if self._durability > 0 and isinstance(item, Block):
-            stack_size = min(self.durability, 1+int(self.speed / item.hardness))
+            stack_size = min(self.durability, 1 + int(self.speed / item.hardness))
             self._durability -= stack_size
             findings = [
                 ItemStack(item_dropped, stack_size)
@@ -90,20 +100,20 @@ class McTool(Tool):
     def reset(self):
         self._durability = self.durability
 
-class McPlayer(Player):
 
+class McPlayer(Player):
     def __init__(self, world: World):
         inventory = Inventory(world.items)
         forest_slot = world.zone_id_to_slot[0]
         super().__init__(
-            inventory=inventory,
-            zone=world.zones[forest_slot],
-            name='Steve'
+            inventory=inventory, zone=world.zones[forest_slot], name="Steve"
         )
 
-    def choose_tool(self, item:Item) -> Tool:
+    def choose_tool(self, item: Item) -> Tool:
         if item in self.zone.items and item.required_tools is not None:
-            usable_tools = np.array([tool for tool in item.required_tools if tool is not None])
+            usable_tools = np.array(
+                [tool for tool in item.required_tools if tool is not None]
+            )
             tools_id = np.array([tool.item_id for tool in usable_tools])
             tools_slots = self.inventory.item_id_to_slot(tools_id)
             tools_quantities = self.inventory.content[tools_slots]

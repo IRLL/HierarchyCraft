@@ -9,9 +9,10 @@ import numpy as np
 
 from crafting.world.items import Item, ItemStack
 
-class Inventory():
 
-    """ Inventory is where Items are stored
+class Inventory:
+
+    """Inventory is where Items are stored
 
     Attributes:
         items (tuple of :obj:`Item`): All items that could be added to this inventory.
@@ -23,7 +24,7 @@ class Inventory():
     """
 
     def __init__(self, items: Tuple[Item]):
-        """ Inventory is where Items are stored
+        """Inventory is where Items are stored
 
         Args:
             items: All items that could be added to this inventory.
@@ -50,7 +51,7 @@ class Inventory():
         return stack_ind, stack_sizes
 
     def add_stacks(self, stacks: List[ItemStack]) -> bool:
-        """ Add a list of ItemStack into the inventory content
+        """Add a list of ItemStack into the inventory content
 
         Args:
             stacks: ItemStacks to add.
@@ -64,7 +65,7 @@ class Inventory():
         return True
 
     def remove_stacks(self, stacks: List[ItemStack]) -> bool:
-        """ Remove a list of ItemStack from the inventory content
+        """Remove a list of ItemStack from the inventory content
 
         Args:
             stacks: ItemStacks to remove.
@@ -96,7 +97,9 @@ class Inventory():
         non_empty_items = self.content != 0
         items_in_inv = np.array(self.items)[non_empty_items]
         content = self.content[non_empty_items]
-        return str([f'{quantity} {name}' for name, quantity in zip(items_in_inv, content)])
+        return str(
+            [f"{quantity} {name}" for name, quantity in zip(items_in_inv, content)]
+        )
 
     def __contains__(self, item: Union[Item, ItemStack]):
         wanted_size = item.size if isinstance(item, ItemStack) else 1

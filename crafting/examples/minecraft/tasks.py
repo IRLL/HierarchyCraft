@@ -10,10 +10,10 @@ from crafting.examples.minecraft.tools import *
 
 
 class TaskGatherWood(Task):
-    """ Gather as much wood as possible """
+    """Gather as much wood as possible"""
 
-    def __init__(self, world:World, use_reward_shaping=True):
-        super().__init__('gather_wood', world)
+    def __init__(self, world: World, use_reward_shaping=True):
+        super().__init__("gather_wood", world)
         self.add_item_value(WOOD.item_id, 1)
         self.use_reward_shaping = use_reward_shaping
         if self.use_reward_shaping:
@@ -22,10 +22,10 @@ class TaskGatherWood(Task):
 
 
 class TaskGatherStone(Task):
-    """ Gather as much stone as possible """
+    """Gather as much stone as possible"""
 
-    def __init__(self, world:World, use_reward_shaping=True):
-        super().__init__('gather_stone', world)
+    def __init__(self, world: World, use_reward_shaping=True):
+        super().__init__("gather_stone", world)
         self.add_item_value(COBBLESTONE.item_id, 1)
         self.use_reward_shaping = use_reward_shaping
         if self.use_reward_shaping:
@@ -33,12 +33,11 @@ class TaskGatherStone(Task):
                 self.add_achivement_getitem(pickaxe.item_id, 1)
 
 
-
 class TaskObtainBook(Task):
-    """ Obtaining a Book """
+    """Obtaining a Book"""
 
-    def __init__(self, world:World, use_reward_shaping=True):
-        super().__init__('obtain_book', world)
+    def __init__(self, world: World, use_reward_shaping=True):
+        super().__init__("obtain_book", world)
         self.item = BOOK
         self.use_reward_shaping = use_reward_shaping
         self.add_achivement_getitem(BOOK.item_id, 10, end_task=True)
@@ -53,10 +52,10 @@ class TaskObtainBook(Task):
 
 
 class TaskObtainDiamond(Task):
-    """ Obtaining a Diamond """
+    """Obtaining a Diamond"""
 
-    def __init__(self, world:World, use_reward_shaping=True):
-        super().__init__('obtain_diamond', world)
+    def __init__(self, world: World, use_reward_shaping=True):
+        super().__init__("obtain_diamond", world)
         self.item = DIAMOND
         self.use_reward_shaping = use_reward_shaping
         self.add_achivement_getitem(DIAMOND.item_id, 10, end_task=True)
@@ -72,10 +71,10 @@ class TaskObtainDiamond(Task):
 
 
 class TaskObtainClock(Task):
-    """ Obtaining an Clock """
+    """Obtaining an Clock"""
 
-    def __init__(self, world:World, use_reward_shaping=True):
-        super().__init__('obtain_clock', world)
+    def __init__(self, world: World, use_reward_shaping=True):
+        super().__init__("obtain_clock", world)
         self.item = CLOCK
         self.use_reward_shaping = use_reward_shaping
         self.add_achivement_getitem(CLOCK.item_id, 10, end_task=True)
@@ -95,10 +94,10 @@ class TaskObtainClock(Task):
 
 
 class TaskObtainEnchantingTable(Task):
-    """ Obtaining an EnchantingTable """
+    """Obtaining an EnchantingTable"""
 
-    def __init__(self, world:World, use_reward_shaping=True):
-        super().__init__('obtain_enchanting_table', world)
+    def __init__(self, world: World, use_reward_shaping=True):
+        super().__init__("obtain_enchanting_table", world)
         self.item = ENCHANTING_TABLE
         self.use_reward_shaping = use_reward_shaping
         self.add_achivement_getitem(ENCHANTING_TABLE.item_id, 10, end_task=True)
@@ -123,10 +122,10 @@ class TaskObtainEnchantingTable(Task):
 
 
 TASKS = {
-    'gather_wood': TaskGatherWood,
-    'gather_stone': TaskGatherStone,
-    'obtain_book': TaskObtainBook,
-    'obtain_diamond': TaskObtainDiamond,
-    'obtain_clock': TaskObtainClock,
-    'obtain_enchanting_table': TaskObtainEnchantingTable,
+    "gather_wood": TaskGatherWood,
+    "gather_stone": TaskGatherStone,
+    "obtain_book": TaskObtainBook,
+    "obtain_diamond": TaskObtainDiamond,
+    "obtain_clock": TaskObtainClock,
+    "obtain_enchanting_table": TaskObtainEnchantingTable,
 }

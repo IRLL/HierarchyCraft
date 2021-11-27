@@ -12,9 +12,10 @@ from typing import List
 
 from crafting.world.items import Item, Tool, ItemStack
 
-class Zone():
 
-    """ Zones are to represent abstract places in the world.
+class Zone:
+
+    """Zones are to represent abstract places in the world.
 
     Zone have specific properties that can change how items can be gathered
     and how craftings are done.
@@ -30,8 +31,10 @@ class Zone():
 
     """
 
-    def __init__(self, zone_id: int, name: str, items: List[Item], properties: dict=None):
-        """ Zones are to represent abstract places in the world.
+    def __init__(
+        self, zone_id: int, name: str, items: List[Item], properties: dict = None
+    ):
+        """Zones are to represent abstract places in the world.
 
         Zone have specific properties that can change how items can be gathered
         and how craftings are done.
@@ -48,8 +51,8 @@ class Zone():
         self.items = items
         self.properties = properties if properties is not None else {}
 
-    def can_search_for(self, item:Item, tool:Tool=None) -> bool:
-        """ Check if the item can be found using a tool
+    def can_search_for(self, item: Item, tool: Tool = None) -> bool:
+        """Check if the item can be found using a tool
 
         Args:
             item: The item to look for.
@@ -66,8 +69,8 @@ class Zone():
         tool_in_required = tool is not None and tool in required_tools
         return no_tool_is_required or tool_in_required
 
-    def search_for(self, item:Item, tool:Tool=None) -> List[ItemStack]:
-        """ Searches for the given item using a tool
+    def search_for(self, item: Item, tool: Tool = None) -> List[ItemStack]:
+        """Searches for the given item using a tool
 
         Args:
             item: The item to look for.
