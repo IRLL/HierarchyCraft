@@ -15,10 +15,11 @@ from pygame.surface import Surface
 
 from PIL import Image, ImageFont, ImageDraw
 
+from crafting.world.zones import Zone
+from crafting.world.items import Item, Tool
+
 if TYPE_CHECKING:
     from crafting.world.world import World
-from crafting.world.zones import Zone
-from crafting.world.items import Item
 
 
 def load_image(
@@ -30,29 +31,42 @@ def load_image(
     if obj is None:
         return None
 
-    if isinstance(obj, Item):
-        image_path = os.path.join(world.resources_path, "items", f"{obj.item_id}.png")
-    elif isinstance(obj, Zone):
-        image_path = os.path.join(world.resources_path, "zones", f"{obj.zone_id}.png")
-    elif isinstance(obj, str):
-        image_path = os.path.join(world.resources_path, "properties", f"{obj}.png")
-    else:
-        raise TypeError(f"Unkowned type {type(obj)}")
-
-    try:
-        image = Image.open(image_path).convert("RGBA")
-    except FileNotFoundError:
-        image = None
-
-    if text is not None and image is not None:
-        image_draw = ImageDraw.Draw(image)
-        image_shape = np.array(image).shape
-
-        text_px_size = int(3 * text_relative_size * min(image_shape[:1]))
-        text_pt_size = int(0.75 * text_px_size)
+    if world.resources_path is None:
+        image_size = (120, 120)
+        image = Image.new("RGBA", image_size, (0, 255, 0, 0))
+        draw = ImageDraw.Draw(image)
+        cx, cy = image_size[0] // 2, image_size[1] // 2
+        text_pt_size = image_size[0] // 2
         font = ImageFont.truetype(world.font_path, size=text_pt_size)
-        font_offset = (int(0.05 * image_shape[0]), int(0.95 * image_shape[1]))
-        image_draw.text(font_offset, text, font=font, anchor="lb")
+        draw.text((cx, cy), text, fill=(0, 0, 0), font=font, anchor="mm")
+    else:
+        if isinstance(obj, Item):
+            image_path = os.path.join(
+                world.resources_path, "items", f"{obj.item_id}.png"
+            )
+        elif isinstance(obj, Zone):
+            image_path = os.path.join(
+                world.resources_path, "zones", f"{obj.zone_id}.png"
+            )
+        elif isinstance(obj, str):
+            image_path = os.path.join(world.resources_path, "properties", f"{obj}.png")
+        else:
+            raise TypeError(f"Unkowned type {type(obj)}")
+
+        try:
+            image = Image.open(image_path).convert("RGBA")
+        except FileNotFoundError:
+            image = None
+
+        if text is not None and image is not None:
+            image_draw = ImageDraw.Draw(image)
+            image_shape = np.array(image).shape
+
+            text_px_size = int(3 * text_relative_size * min(image_shape[:1]))
+            text_pt_size = int(0.75 * text_px_size)
+            font = ImageFont.truetype(world.font_path, size=text_pt_size)
+            font_offset = (int(0.05 * image_shape[0]), int(0.95 * image_shape[1]))
+            image_draw.text(font_offset, text, font=font, anchor="lb")
     return np.array(image)
 
 

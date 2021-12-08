@@ -22,7 +22,7 @@ class Item:
 
     """
 
-    def __init__(self, item_id: int, name: str, required_tools: list = None):
+    def __init__(self, item_id: int, name: str, required_tools: List["Tool"] = None):
         """Item are to represent objects that could be present in an inventory
 
         Args:

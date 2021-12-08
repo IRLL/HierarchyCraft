@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import List, Dict
 
 import numpy as np
@@ -22,10 +23,12 @@ from option_graph.graph import (
 )
 from option_graph.layouts.metabased import leveled_layout_energy
 
+import crafting
 from crafting.world.zones import Zone
 from crafting.world.recipes import Recipe
 from crafting.world.items import Item, Tool
 from crafting.options.options import GetItem, ReachZone, Option
+from crafting.render.utils import load_image
 
 
 class World:
@@ -98,7 +101,7 @@ class World:
             for prop in recipe.added_properties:
                 self.zone_properties.add(prop)
 
-        self.zone_properties = np.array(list(self.zone_properties))
+        self.zone_properties: List[str] = np.array(list(self.zone_properties))
         self.property_to_slot = {
             prop: i + self.n_items + self.n_zones
             for i, prop in enumerate(self.zone_properties)
@@ -109,7 +112,10 @@ class World:
         self.observation_size = self.n_items + self.n_zones + self.n_zone_properties
 
         self.resources_path = resources_path
-        self.font_path = font_path
+        default_font_path = os.path.join(
+            os.path.dirname(crafting.render.__file__), "default_font.ttf"
+        )
+        self.font_path = default_font_path if font_path is None else font_path
 
     def action(self, action_type: str, identification: int) -> int:
         """Return the action_id from action_type and identification."""
@@ -247,7 +253,7 @@ class World:
                 item.item_id,
                 type="item",
                 color=color,
-                image=self.get_image(item),
+                image=load_image(self, item, text=str(item.item_id)),
                 item_id=item.item_id,
                 label=item.name.capitalize(),
             )
@@ -259,14 +265,20 @@ class World:
                 type="zone_property",
                 color="orange",
                 prop_id=i,
-                image=self.get_image(prop),
+                image=load_image(self, prop, text=prop),
                 label=prop.capitalize(),
             )
 
         # Add recipes edges
         def _add_crafts(in_nodes, out_node):
-            for node in in_nodes:
-                graph.add_edge(node, out_node, type="craft", color=[1, 0, 0, 1])
+            for index, node in enumerate(in_nodes):
+                graph.add_edge(
+                    node,
+                    out_node,
+                    type="craft",
+                    color=[1, 0, 0, 1],
+                    index=index,
+                )
 
         for recipe in self.recipes:
 
@@ -307,6 +319,7 @@ class World:
                         foundable_item.item_id,
                         type="tool_requirement",
                         color=[0, 1, 1, 1],
+                        index=0,
                     )
 
             if hasattr(foundable_item, "items_dropped"):
@@ -317,6 +330,7 @@ class World:
                             dropped_item.item_id,
                             type="drop",
                             color=[0, 1, 0, 1],
+                            index=0,
                         )
 
         compute_levels(graph)
