@@ -14,11 +14,13 @@ import pygame
 from pygame.font import Font
 from pygame.surface import Surface
 
+from crafting.render.utils import load_image, scale, pilImageToSurface
+
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv
     from crafting.player.inventory import Inventory
     from crafting.world.zones import Zone
-from crafting.render.utils import load_and_scale
+    from crafting.world.world import World
 
 
 class EnvWidget:
@@ -41,18 +43,17 @@ class InventoryWidget(EnvWidget):
     def __init__(
         self,
         inventory: Inventory,
-        resources_path: str,
-        font_path: str,
+        world: "World",
         position: Tuple[int],
         window_shape: Tuple[int],
     ):
         self.inventory = inventory
-        self.resources_path = resources_path
+        self.world = world
 
         self.background = self._load_background(window_shape)
         self.shape = self.background.get_size()
         self.position = np.array(position)
-        self.font = Font(font_path, int(0.1 * self.shape[1]))
+        self.font = Font(world.font_path, int(0.1 * self.shape[1]))
 
         self.item_images_per_id = {
             item_id: self._load_image(item_id)
@@ -60,13 +61,15 @@ class InventoryWidget(EnvWidget):
             if item_id != 0
         }
 
-    def _load_background(self, window_shape):
-        background_path = os.path.join(self.resources_path, "inventory.png")
-        return load_and_scale(background_path, window_shape, 0.65)
+    def _load_background(self, window_shape) -> Surface:
+        background_path = os.path.join(self.world.resources_path, "inventory.png")
+        background_image = pygame.image.load(background_path)
+        return scale(background_image, window_shape, 0.65)
 
-    def _load_image(self, item_id):
-        image_path = os.path.join(self.resources_path, "items", f"{item_id}.png")
-        return load_and_scale(image_path, self.shape, 0.09)
+    def _load_image(self, item_id) -> Surface:
+        image = load_image(self.world, self.world.item_from_id[item_id], as_array=False)
+        image = pilImageToSurface(image)
+        return scale(image, self.shape, 0.09)
 
     def update(self, env: CraftingEnv):
         self.inventory = env.player.inventory
@@ -109,14 +112,13 @@ class ZoneWidget(EnvWidget):
         self,
         zones: List[Zone],
         properties: List[str],
-        resources_path: str,
-        font_path: str,
+        world: "World",
         position: Tuple[int],
         window_shape: Tuple[int],
     ):
         self.zone = zones[0]
         self.position = np.array(position)
-        self.resources_path = resources_path
+        self.world = world
 
         self.zones_images = {
             zone.zone_id: self._load_zone_image(zone.zone_id, window_shape)
@@ -129,15 +131,17 @@ class ZoneWidget(EnvWidget):
             prop: self._load_property_image(prop) for prop in properties
         }
 
-        self.font = Font(font_path, int(0.3 * self.shape[1]))
+        self.font = Font(world.font_path, int(0.3 * self.shape[1]))
 
     def _load_zone_image(self, zone_id, window_shape):
-        image_path = os.path.join(self.resources_path, "zones", f"{zone_id}.png")
-        return load_and_scale(image_path, window_shape, 0.25)
+        image = load_image(self.world, self.world.zone_from_id[zone_id], as_array=False)
+        image = pilImageToSurface(image)
+        return scale(image, window_shape, 0.25)
 
     def _load_property_image(self, prop: str):
-        image_path = os.path.join(self.resources_path, "properties", f"{prop}.png")
-        return load_and_scale(image_path, self.shape, 0.2)
+        image = load_image(self.world, prop, as_array=False)
+        image = pilImageToSurface(image)
+        return scale(image, self.shape, 0.2)
 
     def update(self, env: CraftingEnv):
         self.zone = env.player.zone

@@ -70,7 +70,12 @@ class Player:
             The chosen tool.
 
         """
-        raise NotImplementedError("You must choose how your player choses a tool")
+        if item in self.zone.items and item.required_tools is not None:
+            usable_tools = [tool for tool in item.required_tools if tool is not None]
+            if len(usable_tools) > 0:
+                return usable_tools[0]
+        return None
+        # raise NotImplementedError("You must choose how your player choses a tool")
 
     def search_for(self, item: Item, tool: Tool) -> int:
         """Search for an item using a tool and add them to inventory.

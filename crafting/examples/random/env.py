@@ -10,8 +10,10 @@ Crafting environment adapted to the Minecraft inventory
 from typing import List, Tuple, Dict
 
 import numpy as np
+from numpy import random
 
 from crafting.env import CraftingEnv
+from crafting.render.render import get_human_action
 from crafting.world.world import World
 
 from crafting.player.player import Player
@@ -99,16 +101,9 @@ class RandomCraftingEnv(CraftingEnv):
         """
 
         if n_items < n_tools + n_foundables:
-            raise ValueError(
-                f"n_items must be >= n_tools + n_foundables"
-                f"\nGot {n_items} < {n_tools} + {n_foundables}"
-            )
+            raise ValueError("n_items must be >= n_tools + n_foundables")
 
         tools = [Tool(i, "tool") for i in range(n_tools)]
-        craftables = [
-            Item(n_tools + i, "item") for i in range(n_items - n_foundables - n_tools)
-        ]
-
         foundables, items_per_zones, items_per_tool = self._build_foundables(
             n_foundables,
             n_required_tools,
@@ -118,6 +113,9 @@ class RandomCraftingEnv(CraftingEnv):
         )
         zones = self._build_zones(n_zones, items_per_zones)
 
+        craftables = [
+            Item(n_tools + i, "item") for i in range(n_items - n_foundables - n_tools)
+        ]
         items = tools + craftables + foundables
         recipes = self._build_recipes(
             items, foundables, n_inputs_per_craft, items_per_tool
@@ -159,6 +157,7 @@ class RandomCraftingEnv(CraftingEnv):
             # Get required tools
             n_req_probs = np.array(n_required_tools) / np.sum(n_required_tools)
             n_req_tools = np.random.choice(range(len(n_required_tools)), p=n_req_probs)
+            n_req_tools = min(n_req_tools, len(tools))
             required_tools = list(
                 np.random.choice(tools, size=n_req_tools, replace=False)
             )
@@ -225,39 +224,53 @@ class RandomCraftingEnv(CraftingEnv):
 
         """
         recipes = []
-        accessible_items = [
+        accessible_items = set(
             foundable for foundable in foundables if foundable.required_tools is None
-        ]
+        )
 
         unaccessible_items = [item for item in items if item not in foundables]
+        random.shuffle(unaccessible_items)
 
-        while len(unaccessible_items) > 0:
-            new_accessible_item = unaccessible_items.pop(
-                np.random.randint(len(unaccessible_items))
-            )
+        while len(accessible_items) < len(items):
+            new_accessible_item = unaccessible_items.pop()
+            new_is_tool = isinstance(new_accessible_item, Tool)
+
+            accessible_foundables = [
+                item
+                for item in items
+                if item in accessible_items and not isinstance(item, Tool)
+            ]
+
+            for item in accessible_foundables:
+                if (
+                    new_is_tool
+                    and item.required_tools is not None
+                    and new_accessible_item in item.required_tools
+                ):
+                    accessible_foundables.remove(item)
+
             outputs = [ItemStack(new_accessible_item)]
-
             n_inputs_probs = np.array(n_inputs_per_craft) / np.sum(n_inputs_per_craft)
             n_inputs = 1 + np.random.choice(
                 range(len(n_inputs_probs)), p=n_inputs_probs
             )
-            n_inputs = min(n_inputs, len(accessible_items))
+            n_inputs = min(n_inputs, len(accessible_foundables))
             input_items = list(
-                np.random.choice(accessible_items, size=n_inputs, replace=False)
+                np.random.choice(accessible_foundables, size=n_inputs, replace=False)
             )
             inputs = [ItemStack(item) for item in input_items]
 
             new_recipe = Recipe(len(recipes), inputs=inputs, outputs=outputs)
             recipes.append(new_recipe)
 
-            if isinstance(new_accessible_item, Tool):
+            print(new_recipe, unaccessible_items, accessible_items)
+
+            if new_is_tool:
                 for new_accessible_item_by_tool in items_per_tool[
                     new_accessible_item.item_id
                 ]:
-                    accessible_items.append(new_accessible_item_by_tool)
-            else:
-                accessible_items.append(new_accessible_item)
-
+                    accessible_items.add(new_accessible_item_by_tool)
+            accessible_items.add(new_accessible_item)
         return recipes
 
 
@@ -265,14 +278,32 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     env = RandomCraftingEnv(
-        n_items=30,
-        n_tools=10,
-        n_foundables=10,
+        n_items=12,
+        n_tools=2,
+        n_foundables=5,
         n_required_tools=[0.25, 0.4, 0.2, 0.1, 0.05],
         n_inputs_per_craft=[0.1, 0.6, 0.3],
         n_zones=5,
     )
 
-    fig, ax = plt.subplots()
-    env.world.draw_requirements_graph(ax)
-    plt.show()
+    plot_requirement_graph = False
+    if plot_requirement_graph:
+        fig, ax = plt.subplots()
+        env.world.draw_requirements_graph(ax)
+        plt.show()
+
+    for _ in range(1):
+        observation = env.reset()
+        done = False
+        total_reward = 0
+        while not done:
+            rgb_array = env.render(mode="rgb_array")
+
+            action = get_human_action(env, **env.render_variables)
+            action_id = env.action(*action)
+            print(f"Human did: {env.action_from_id(action_id)}")
+
+            observation, reward, done, infos = env(action_id)
+            total_reward += reward
+
+        print("SCORE: ", total_reward)

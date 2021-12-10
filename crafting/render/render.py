@@ -3,20 +3,23 @@
 
 """ Rendering of the Crafting environments """
 
-from __future__ import annotations
-
 import os
 from typing import TYPE_CHECKING, Dict, List, Any, Union
 
 import numpy as np
-import pygame, pygame_menu
+from PIL.Image import Image
+from io import BytesIO
+
+import pygame
+from pygame import Surface
 from pygame.time import Clock
 from pygame.event import Event
-from pygame_menu.menu import Menu
 
-if TYPE_CHECKING:
-    from crafting.env import CraftingEnv
-    from crafting.world.world import World
+from pygame_menu.baseimage import BaseImage
+from pygame_menu.menu import Menu
+from pygame_menu.widgets import Button
+from pygame_menu.themes import THEME_BLUE, THEME_GREEN, THEME_ORANGE
+
 from crafting.render.widgets import (
     EnvWidget,
     InventoryWidget,
@@ -24,10 +27,15 @@ from crafting.render.widgets import (
     ZoneWidget,
     StepLeftWidget,
 )
+from crafting.render.utils import load_image
+
+if TYPE_CHECKING:
+    from crafting.env import CraftingEnv
+    from crafting.world.world import World
 
 
 def get_human_action(
-    env: CraftingEnv,
+    env: "CraftingEnv",
     additional_events: List[Event] = None,
     can_be_none: bool = False,
     **kwargs,
@@ -51,7 +59,7 @@ def get_human_action(
     return action
 
 
-def create_window(env: CraftingEnv) -> Dict[str, Any]:
+def create_window(env: "CraftingEnv") -> Dict[str, Any]:
     """Initialise pygame window, menus and widgets for the UI.
 
     Args:
@@ -77,8 +85,7 @@ def create_window(env: CraftingEnv) -> Dict[str, Any]:
     # Create inventory widget
     inv_widget = InventoryWidget(
         env.player.inventory,
-        env.world.resources_path,
-        env.world.font_path,
+        env.world,
         position=(int(0.15 * window_shape[0]), int(0.15 * window_shape[0])),
         window_shape=window_shape,
     )
@@ -87,8 +94,7 @@ def create_window(env: CraftingEnv) -> Dict[str, Any]:
     zone_widget = ZoneWidget(
         env.world.zones,
         env.world.zone_properties,
-        env.world.resources_path,
-        env.world.font_path,
+        env.world,
         position=(int(0.52 * window_shape[0]), int(0.02 * window_shape[0])),
         window_shape=window_shape,
     )
@@ -115,10 +121,10 @@ def create_window(env: CraftingEnv) -> Dict[str, Any]:
 
 
 def update_rendering(
-    env: CraftingEnv,
+    env: "CraftingEnv",
     clock: Clock,
-    screen: pygame.Surface,
-    menus: List[pygame_menu.Menu],
+    screen: Surface,
+    menus: List[Menu],
     widgets: List[EnvWidget],
     id_to_action: Dict[str, Any],
     additional_events: List[Event] = None,
@@ -163,9 +169,7 @@ def update_rendering(
 
     for menu in menus:
         buttons = [
-            widget
-            for widget in menu.get_widgets()
-            if isinstance(widget, pygame_menu.widgets.Button)
+            widget for widget in menu.get_widgets() if isinstance(widget, Button)
         ]
         for button in buttons:
             action_id = env.action(*id_to_action[button.get_id()])
@@ -200,7 +204,7 @@ def surface_to_rgb_array(surface: pygame.Surface) -> np.ndarray:
     return pygame.surfarray.array3d(surface).swapaxes(0, 1)
 
 
-def make_menus(world: World, window_shape: tuple):
+def make_menus(world: "World", window_shape: tuple):
     """Build menus for user interface.
 
     Args:
@@ -212,14 +216,17 @@ def make_menus(world: World, window_shape: tuple):
     def add_button(
         menu: Menu,
         id_to_action: Dict[str, Any],
-        image_path: str,
+        image: Image,
         scaling: float,
         text_width: int,
         action_type,
         identificator,
         padding,
     ):
-        image = pygame_menu.baseimage.BaseImage(image_path).scale(scaling, scaling)
+        buffered = BytesIO()
+        image.save(buffered, format="PNG")
+        buffered.seek(0)
+        image = BaseImage(buffered).scale(scaling, scaling)
 
         button = menu.add.button(
             " " * text_width,
@@ -233,14 +240,13 @@ def make_menus(world: World, window_shape: tuple):
         decorator.add_baseimage(0, 0, image, centered=True)
         id_to_action[button.get_id()] = (action_type, identificator)
 
-    resources_path = world.resources_path
     id_to_action = {}
 
     # Item Menu
     items_menu_height = int(0.75 * window_shape[1])
     items_menu_width = int(0.15 * window_shape[0])
 
-    items_menu = pygame_menu.Menu(
+    items_menu = Menu(
         title="Search",
         height=items_menu_height,
         width=items_menu_width,
@@ -248,16 +254,14 @@ def make_menus(world: World, window_shape: tuple):
         joystick_enabled=False,
         position=(0, 0),
         overflow=(False, True),
-        theme=pygame_menu.themes.THEME_BLUE,
+        theme=THEME_BLUE,
     )
 
-    items_images_path = os.path.join(resources_path, "items")
     for item in world.searchable_items:
-        image_path = os.path.join(items_images_path, f"{item.item_id}.png")
         add_button(
             items_menu,
             id_to_action,
-            image_path,
+            image=load_image(world, item, as_array=False),
             scaling=0.5,
             text_width=8,
             action_type="get",
@@ -269,7 +273,7 @@ def make_menus(world: World, window_shape: tuple):
     recipes_menu_height = window_shape[1] - items_menu_height
     recipes_menu_width = window_shape[0]
 
-    recipes_menu = pygame_menu.Menu(
+    recipes_menu = Menu(
         title="Craft",
         height=recipes_menu_height,
         width=recipes_menu_width,
@@ -280,16 +284,14 @@ def make_menus(world: World, window_shape: tuple):
         position=(0, 100),
         overflow=(True, False),
         column_max_width=int(0.08 * window_shape[0]),
-        theme=pygame_menu.themes.THEME_ORANGE,
+        theme=THEME_ORANGE,
     )
 
-    recipes_images_path = os.path.join(resources_path, "items")
     for recipe in world.recipes:
-        image_path = os.path.join(recipes_images_path, f"{recipe.recipe_id}.png")
         add_button(
             recipes_menu,
             id_to_action,
-            image_path,
+            image=load_image(world, recipe, as_array=False),
             scaling=0.5,
             text_width=8,
             action_type="craft",
@@ -301,7 +303,7 @@ def make_menus(world: World, window_shape: tuple):
     zones_menu_height = items_menu_height
     zones_menu_width = int(0.20 * window_shape[0])
 
-    zones_menu = pygame_menu.Menu(
+    zones_menu = Menu(
         title="Move",
         height=zones_menu_height,
         width=zones_menu_width,
@@ -309,16 +311,14 @@ def make_menus(world: World, window_shape: tuple):
         joystick_enabled=False,
         position=(100, 0),
         overflow=(False, True),
-        theme=pygame_menu.themes.THEME_GREEN,
+        theme=THEME_GREEN,
     )
 
-    zones_images_path = os.path.join(resources_path, "zones")
     for zone in world.zones:
-        image_path = os.path.join(zones_images_path, f"{zone.zone_id}.png")
         add_button(
             zones_menu,
             id_to_action,
-            image_path,
+            image=load_image(world, zone, as_array=False),
             scaling=0.2,
             text_width=19,
             action_type="move",

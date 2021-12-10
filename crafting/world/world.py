@@ -60,9 +60,6 @@ class World:
 
         # Items
         self.items = items
-        self.searchable_items = (
-            searchable_items if searchable_items is not None else items
-        )
         self.item_from_id = {item.item_id: item for item in items}
         self.item_id_to_slot = {item.item_id: i for i, item in enumerate(items)}
         self.n_items = len(items)
@@ -82,6 +79,10 @@ class World:
             item.item_id: i for i, item in enumerate(self.foundable_items)
         }
         self.n_foundable_items = len(self.foundable_items)
+
+        self.searchable_items = (
+            searchable_items if searchable_items is not None else self.foundable_items
+        )
 
         # Recipes
         self.recipes = recipes
@@ -111,11 +112,19 @@ class World:
         self.n_actions = self.n_foundable_items + self.n_recipes + self.n_zones
         self.observation_size = self.n_items + self.n_zones + self.n_zone_properties
 
-        self.resources_path = resources_path
-        default_font_path = os.path.join(
-            os.path.dirname(crafting.render.__file__), "default_font.ttf"
-        )
-        self.font_path = default_font_path if font_path is None else font_path
+        # Resources path
+        render_path = os.path.dirname(crafting.render.__file__)
+        default_ressources_path = os.path.join(render_path, "default_ressources")
+
+        if resources_path is None:
+            self.resources_path = default_ressources_path
+        else:
+            self.resources_path = resources_path
+
+        if font_path is None:
+            self.font_path = os.path.join(default_ressources_path, "font.ttf")
+        else:
+            self.font_path = font_path
 
     def action(self, action_type: str, identification: int) -> int:
         """Return the action_id from action_type and identification."""

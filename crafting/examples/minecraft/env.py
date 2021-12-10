@@ -17,12 +17,13 @@ from crafting.examples.minecraft.abc import McPlayer
 from crafting.examples.minecraft.world import McWorld
 from crafting.examples.minecraft.tasks import TASKS
 
+
 class MineCraftingEnv(CraftingEnv):
 
-    """ MineCrafting Environment """
+    """MineCrafting Environment"""
 
     def __init__(self, **kwargs):
-        """ A minecraft-like Crafting Environment.
+        """A minecraft-like Crafting Environment.
 
         Kwargs:
             max_step: The maximum number of steps until done.
@@ -41,20 +42,16 @@ class MineCraftingEnv(CraftingEnv):
         world = McWorld()
         player = McPlayer(world)
         self.render_variables = None
-        self.frame_per_sec = kwargs.pop('fps', 60)
+        self.metadata["video.frames_per_second"] = kwargs.pop("fps", 10)
 
-        tasks = kwargs.pop('tasks', None)
+        tasks = kwargs.pop("tasks", None)
         if tasks is not None:
             if not isinstance(tasks, (list, tuple)):
                 tasks = [tasks]
             tasks = [self._get_tasks(task, world) for task in tasks]
 
         super().__init__(
-            name='MineCrafting',
-            world=world,
-            player=player,
-            tasks=tasks,
-            **kwargs
+            name="MineCrafting", world=world, player=player, tasks=tasks, **kwargs
         )
 
     @staticmethod
@@ -64,6 +61,4 @@ class MineCraftingEnv(CraftingEnv):
         if isinstance(task, str):
             task_class = TASKS[task.lower()]
             return task_class(world)
-        raise TypeError(
-            f'task should be str or Task instances but was {type(task)}'
-        )
+        raise TypeError(f"task should be str or Task instances but was {type(task)}")

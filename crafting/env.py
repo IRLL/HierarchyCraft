@@ -1,6 +1,8 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
+"""  Module for the base gym environment of any crafting environement. """
+
 from typing import Tuple, List, Union
 from copy import deepcopy
 
@@ -113,6 +115,7 @@ class CraftingEnv(gym.Env):
                 [str(prop) for prop in self.world.zone_properties],
             )
         )
+        self.render_variables = None
 
     def action(self, action_type: str, identification: int) -> int:
         """Return action_id from action type and identifier.
@@ -262,7 +265,11 @@ class CraftingEnv(gym.Env):
         if mode == "rgb_array":
             if self.render_variables is None:
                 self.render_variables = create_window(self)
-            update_rendering(env=self, fps=self.frame_per_sec, **self.render_variables)
+            update_rendering(
+                env=self,
+                fps=self.metadata["video.frames_per_second"],
+                **self.render_variables,
+            )
             rgb_array = surface_to_rgb_array(self.render_variables["screen"])
             return rgb_array
         return super().render(mode=mode)  # just raise an exception
