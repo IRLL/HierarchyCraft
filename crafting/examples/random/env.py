@@ -289,7 +289,8 @@ if __name__ == "__main__":
     if plot_requirement_graph:
         fig, ax = plt.subplots()
         env.world.draw_requirements_graph(ax)
-        plt.show()
+        plt.show(block=False)
+        plt.pause(0.001)
 
     for _ in range(1):
         observation = env.reset()
