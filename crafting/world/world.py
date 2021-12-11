@@ -5,10 +5,8 @@
 
 """
 
-from __future__ import annotations
-
 import os
-from typing import List, Dict
+from typing import TYPE_CHECKING, List, Dict
 
 import numpy as np
 import networkx as nx
@@ -24,11 +22,14 @@ from option_graph.graph import (
 from option_graph.layouts.metabased import leveled_layout_energy
 
 import crafting
-from crafting.world.zones import Zone
-from crafting.world.recipes import Recipe
-from crafting.world.items import Item, Tool
 from crafting.options.options import GetItem, ReachZone, Option
+from crafting.world.items import Tool
 from crafting.render.utils import load_image
+
+if TYPE_CHECKING:
+    from crafting.world.zones import Zone
+    from crafting.world.recipes import Recipe
+    from crafting.world.items import Item
 
 
 class World:
@@ -37,10 +38,10 @@ class World:
 
     def __init__(
         self,
-        items: List[Item],
-        recipes: List[Recipe],
-        zones: List[Zone],
-        searchable_items: List[Item] = None,
+        items: List["Item"],
+        recipes: List["Recipe"],
+        zones: List["Zone"],
+        searchable_items: List["Item"] = None,
         resources_path: str = None,
         font_path: str = None,
     ):
@@ -471,19 +472,19 @@ class World:
         return ax
 
     def __str__(self):
-        world_str = "\nItems"
+        world_str = "Items: "
         for item in self.items:
             requitements_txt = ""
             if item.required_tools is not None:
                 requitements_txt = f"<- {item.required_tools}"
-            world_str += f"\n  {item}{requitements_txt}"
+            world_str += f";{item}{requitements_txt}"
 
-        world_str += "\nZones"
+        world_str += "| Zones "
         for zone in self.zones:
-            world_str += "\n  " + repr(zone)
+            world_str += ";" + repr(zone)
 
-        world_str += "\nRecipes"
+        world_str += "| Recipes "
         for recipe in self.recipes:
-            world_str += "\n  " + str(recipe)
+            world_str += ";" + str(recipe)
 
         return world_str

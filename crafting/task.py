@@ -4,18 +4,19 @@
 
 """ Task to defines objectives """
 
-from typing import List, Union, Dict
+from typing import TYPE_CHECKING, List, Union, Dict
 
 import numpy as np
 
-from crafting.world.world import World
+if TYPE_CHECKING:
+    from crafting.world.world import World
 
 
 class Task:
 
     """Abstract class for any task"""
 
-    def __init__(self, name, world: World):
+    def __init__(self, name, world: "World"):
         self.name = name
         self.world = world
 

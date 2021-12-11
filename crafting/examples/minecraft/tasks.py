@@ -3,16 +3,20 @@
 
 """ MineCrafting environement common tasks """
 
+from typing import TYPE_CHECKING
+
 from crafting.task import Task
-from crafting.world.world import World
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.tools import *
+
+if TYPE_CHECKING:
+    from crafting.world.world import World
 
 
 class TaskGatherWood(Task):
     """Gather as much wood as possible"""
 
-    def __init__(self, world: World, use_reward_shaping=True):
+    def __init__(self, world: "World", use_reward_shaping=True):
         super().__init__("gather_wood", world)
         self.add_item_value(WOOD.item_id, 1)
         self.use_reward_shaping = use_reward_shaping
@@ -24,7 +28,7 @@ class TaskGatherWood(Task):
 class TaskGatherStone(Task):
     """Gather as much stone as possible"""
 
-    def __init__(self, world: World, use_reward_shaping=True):
+    def __init__(self, world: "World", use_reward_shaping=True):
         super().__init__("gather_stone", world)
         self.add_item_value(COBBLESTONE.item_id, 1)
         self.use_reward_shaping = use_reward_shaping
@@ -36,7 +40,7 @@ class TaskGatherStone(Task):
 class TaskObtainBook(Task):
     """Obtaining a Book"""
 
-    def __init__(self, world: World, use_reward_shaping=True):
+    def __init__(self, world: "World", use_reward_shaping=True):
         super().__init__("obtain_book", world)
         self.item = BOOK
         self.use_reward_shaping = use_reward_shaping
@@ -54,7 +58,7 @@ class TaskObtainBook(Task):
 class TaskObtainDiamond(Task):
     """Obtaining a Diamond"""
 
-    def __init__(self, world: World, use_reward_shaping=True):
+    def __init__(self, world: "World", use_reward_shaping=True):
         super().__init__("obtain_diamond", world)
         self.item = DIAMOND
         self.use_reward_shaping = use_reward_shaping
@@ -73,7 +77,7 @@ class TaskObtainDiamond(Task):
 class TaskObtainClock(Task):
     """Obtaining an Clock"""
 
-    def __init__(self, world: World, use_reward_shaping=True):
+    def __init__(self, world: "World", use_reward_shaping=True):
         super().__init__("obtain_clock", world)
         self.item = CLOCK
         self.use_reward_shaping = use_reward_shaping
@@ -96,7 +100,7 @@ class TaskObtainClock(Task):
 class TaskObtainEnchantingTable(Task):
     """Obtaining an EnchantingTable"""
 
-    def __init__(self, world: World, use_reward_shaping=True):
+    def __init__(self, world: "World", use_reward_shaping=True):
         super().__init__("obtain_enchanting_table", world)
         self.item = ENCHANTING_TABLE
         self.use_reward_shaping = use_reward_shaping

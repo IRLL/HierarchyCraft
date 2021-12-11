@@ -3,17 +3,19 @@
 
 """  Module for the base gym environment of any crafting environement. """
 
-from typing import Tuple, List, Union
+from typing import TYPE_CHECKING, Tuple, List, Union
 from copy import deepcopy
 
 import gym
 import numpy as np
 from gym import spaces
 
-from crafting.world.world import World
 from crafting.player.player import Player
 from crafting.task import Task, TaskList
 from crafting.render.render import update_rendering, surface_to_rgb_array, create_window
+
+if TYPE_CHECKING:
+    from crafting.world.world import World
 
 
 class CraftingEnv(gym.Env):
@@ -24,7 +26,7 @@ class CraftingEnv(gym.Env):
 
     def __init__(
         self,
-        world: World,
+        world: "World",
         player: Player,
         name: str = "Crafting",
         max_step: int = 500,

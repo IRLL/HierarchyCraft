@@ -3,8 +3,6 @@
 
 """ Widgets for rendering of the Crafting environments """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, List, Tuple
 
 import os
@@ -12,7 +10,6 @@ import numpy as np
 
 import pygame
 from pygame.font import Font
-from pygame.surface import Surface
 
 from crafting.render.utils import load_image, scale, pilImageToSurface
 
@@ -21,17 +18,18 @@ if TYPE_CHECKING:
     from crafting.player.inventory import Inventory
     from crafting.world.zones import Zone
     from crafting.world.world import World
+    from pygame.surface import Surface
 
 
 class EnvWidget:
 
     """Display widget base class for any crafting environment."""
 
-    def update(self, env: CraftingEnv):
+    def update(self, env: "CraftingEnv"):
         """Update the widget given the environment state."""
         raise NotImplementedError
 
-    def draw(self, surface: Surface):
+    def draw(self, surface: "Surface"):
         """Draw the widget on a given surface."""
         raise NotImplementedError
 
@@ -42,7 +40,7 @@ class InventoryWidget(EnvWidget):
 
     def __init__(
         self,
-        inventory: Inventory,
+        inventory: "Inventory",
         world: "World",
         position: Tuple[int],
         window_shape: Tuple[int],
@@ -59,20 +57,20 @@ class InventoryWidget(EnvWidget):
             item_id: self._load_image(item_id) for item_id in self.inventory.items_ids
         }
 
-    def _load_background(self, window_shape) -> Surface:
+    def _load_background(self, window_shape) -> "Surface":
         background_path = os.path.join(self.world.resources_path, "inventory.png")
         background_image = pygame.image.load(background_path)
         return scale(background_image, window_shape, 0.65)
 
-    def _load_image(self, item_id) -> Surface:
+    def _load_image(self, item_id) -> "Surface":
         image = load_image(self.world, self.world.item_from_id[item_id])
         image = pilImageToSurface(image)
         return scale(image, self.shape, 0.09)
 
-    def update(self, env: CraftingEnv):
+    def update(self, env: "CraftingEnv"):
         self.inventory = env.player.inventory
 
-    def draw(self, surface: Surface):
+    def draw(self, surface: "Surface"):
         surface.blit(self.background, self.position)
 
         non_empty_items = self.inventory.content != 0
@@ -106,7 +104,7 @@ class ZoneWidget(EnvWidget):
 
     def __init__(
         self,
-        zones: List[Zone],
+        zones: List["Zone"],
         properties: List[str],
         world: "World",
         position: Tuple[int],
@@ -139,10 +137,10 @@ class ZoneWidget(EnvWidget):
         image = pilImageToSurface(image)
         return scale(image, self.shape, 0.2)
 
-    def update(self, env: CraftingEnv):
+    def update(self, env: "CraftingEnv"):
         self.zone = env.player.zone
 
-    def draw(self, surface: Surface):
+    def draw(self, surface: "Surface"):
         zone_image = self.zones_images[self.zone.zone_id]
         surface.blit(zone_image, self.position)
 
@@ -173,10 +171,10 @@ class ScoreWidget(EnvWidget):
         self.reward = 0
         self.score = 0
 
-    def update(self, env: CraftingEnv):
+    def update(self, env: "CraftingEnv"):
         self.score = env.player.score
 
-    def draw(self, surface: Surface):
+    def draw(self, surface: "Surface"):
         score_name_img = self.font.render(f"SCORE {self.score}", False, "#c95149")
         surface.blit(score_name_img, self.position)
 
@@ -190,10 +188,10 @@ class StepLeftWidget(EnvWidget):
         self.font = Font(font_path, font_size)
         self.steps_left = None
 
-    def update(self, env: CraftingEnv):
+    def update(self, env: "CraftingEnv"):
         self.steps_left = env.max_step - env.steps
 
-    def draw(self, surface: Surface):
+    def draw(self, surface: "Surface"):
         score_name_img = self.font.render(
             f"Steps left: {self.steps_left}", False, "#803300"
         )
