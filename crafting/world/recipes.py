@@ -73,12 +73,12 @@ class Recipe:
 
         # Inputs consumed if any
         if self.inputs is not None and len(self.inputs) > 0:
-            inputs_ids, inputs_sizes = inventory.stacks_ind_and_size(self.inputs)
+            inputs_ids, inputs_sizes = inventory.stacks_id_and_size(self.inputs)
             operation[inputs_ids] -= inputs_sizes
 
         # Outputs created if any
         if self.outputs is not None and len(self.outputs) > 0:
-            outputs_ids, outputs_sizes = inventory.stacks_ind_and_size(self.outputs)
+            outputs_ids, outputs_sizes = inventory.stacks_id_and_size(self.outputs)
             operation[outputs_ids] += outputs_sizes
 
         self._operation = operation
