@@ -90,7 +90,7 @@ class Zone:
             if tool is not None and tool in required_tools:
                 return tool.use(item)
             # If no tool is needed anyway, just gather item
-            elif None in required_tools:
+            if None in required_tools:
                 return [ItemStack(item)]
         return []
 

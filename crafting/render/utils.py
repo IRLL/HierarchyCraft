@@ -3,7 +3,7 @@
 
 """ Utilitaries functions for rendering of the Crafting environments """
 
-from typing import TYPE_CHECKING, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Tuple, Union
 
 import os
 import numpy as np
@@ -22,6 +22,15 @@ if TYPE_CHECKING:
 
 
 def pilImageToSurface(pilImage: Image.Image):
+    """Convert a PIL Image to a pygame Surface.
+
+    Args:
+        pilImage: PIL Image to convert.
+
+    Returns:
+        A pygame Surface.
+
+    """
     return pygame.image.fromstring(
         pilImage.tobytes(), pilImage.size, pilImage.mode
     ).convert_alpha()
@@ -32,6 +41,18 @@ def create_image(
     obj: Union[Item, Zone, Recipe, str],
     with_text: bool = False,
 ):
+    """Create a PIL image for and obj in a world.
+
+    Args:
+        world: A crafting World.
+        obj: A crafting Item, Zone, Recipe or property.
+        with_text: If True, draw an alternative text on the image center.
+
+    Returns:
+        A PIL image corresponding to the given object.
+
+    """
+
     def _get_text_color(obj: Union[Item, Zone, Recipe, str]):
         if isinstance(obj, Item):
             alt_txt = str(obj.item_id)
@@ -80,10 +101,22 @@ def create_image(
 def load_image(
     world: "World",
     obj: Union[Item, Zone, Recipe, str],
-    text: str = None,
+    text: Optional[str] = None,
     text_relative_size: float = 0.3,
-    as_array=True,
 ):
+    """Load a PIL image for and obj in a world.
+
+    Args:
+        world: A crafting World.
+        obj: A crafting Item, Zone, Recipe or property.
+        text (Optional): Text to draw on top of the image.
+        text_relative_size: If a text is given,
+            this is the relative size of the text compared to the image size.
+
+    Returns:
+        A PIL image corresponding to the given object.
+
+    """
     if obj is None:
         return None
 
@@ -95,10 +128,10 @@ def load_image(
         image_path = os.path.join(world.resources_path, "properties", f"{obj}.png")
     elif isinstance(obj, Recipe):
         if obj.outputs is not None:
-            return load_image(world, obj.outputs[0], text, text_relative_size, as_array)
+            return load_image(world, obj.outputs[0], text, text_relative_size)
         if len(obj.added_properties) > 0:
             prop, _ = obj.added_properties.popitem()
-            return load_image(world, prop, text, text_relative_size, as_array)
+            return load_image(world, prop, text, text_relative_size)
         raise ValueError(f"Recipe {obj} has no output nor added_properties.")
     else:
         raise TypeError(f"Unkowned type {type(obj)}")
@@ -117,9 +150,6 @@ def load_image(
         font = ImageFont.truetype(world.font_path, size=text_pt_size)
         font_offset = (int(0.05 * image_shape[0]), int(0.95 * image_shape[1]))
         image_draw.text(font_offset, text, font=font, anchor="lb")
-
-    if as_array:
-        image = np.array(image)
     return image
 
 

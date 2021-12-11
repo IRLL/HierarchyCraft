@@ -3,9 +3,8 @@
 
 """ Module to define Action nodes for the OptionGraph of the Crafting environment. """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
+import numpy as np
 
 from option_graph import Action
 
@@ -22,9 +21,9 @@ class SearchItem(Action):
 
     """Action to search to for an Item."""
 
-    def __init__(self, item: Item, world: World) -> None:
+    def __init__(self, item: "Item", world: "World") -> None:
         name = f"Search {item}"
-        image = load_image(world, item)
+        image = np.array(load_image(world, item))
         action = world.action("get", item.item_id)
         super().__init__(action, name=name, image=image)
 
@@ -33,9 +32,9 @@ class MoveToZone(Action):
 
     """Action to move to a Zone."""
 
-    def __init__(self, zone: Zone, world: World) -> None:
+    def __init__(self, zone: "Zone", world: "World") -> None:
         name = f"Move to {zone}"
-        image = load_image(world, zone)
+        image = np.array(load_image(world, zone))
         action = world.action("move", zone.zone_id)
         super().__init__(action, name=name, image=image)
 
@@ -44,7 +43,7 @@ class CraftRecipe(Action):
 
     """Action to use a Recipe."""
 
-    def __init__(self, recipe: Recipe, world: World) -> None:
+    def __init__(self, recipe: "Recipe", world: "World") -> None:
         name = f"Craft {recipe}"
 
         if recipe.outputs is not None:
@@ -52,6 +51,6 @@ class CraftRecipe(Action):
         else:
             obj = list(recipe.added_properties.keys())[0]
 
-        image = load_image(world, obj)
+        image = np.array(load_image(world, obj))
         action = world.action("craft", recipe.recipe_id)
         super().__init__(action, name=name, image=image)

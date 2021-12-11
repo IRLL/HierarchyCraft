@@ -3,9 +3,8 @@
 
 """ Module to define FeatureCondition nodes for the OptionGraph of the Crafting environment. """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
+import numpy as np
 
 from option_graph import FeatureCondition
 
@@ -21,10 +20,10 @@ class HasItem(FeatureCondition):
 
     """FeatureCondition to check if player has an Item in a given quantity."""
 
-    def __init__(self, item: Item, world: World, quantity: int = 1) -> None:
+    def __init__(self, item: "Item", world: "World", quantity: int = 1) -> None:
         name = f"Has {quantity} {item}?"
         conditon_text = f"{quantity}" if quantity > 1 else ""
-        image = load_image(world, item, text=conditon_text)
+        image = np.array(load_image(world, item, text=conditon_text))
         super().__init__(name=name, image=image)
 
         self.world = world
@@ -41,9 +40,9 @@ class IsInZone(FeatureCondition):
 
     """FeatureCondition to check if in a Zone."""
 
-    def __init__(self, zone: Zone, world: World) -> None:
+    def __init__(self, zone: "Zone", world: "World") -> None:
         name = f"Is in {zone}?"
-        image = load_image(world, zone)
+        image = np.array(load_image(world, zone))
         super().__init__(name=name, image=image)
 
         self.world = world
@@ -59,9 +58,9 @@ class HasProperty(FeatureCondition):
 
     """FeatureCondition to check if a Zone has the given property."""
 
-    def __init__(self, prop: str, world: World) -> None:
+    def __init__(self, prop: str, world: "World") -> None:
         name = f"Has property '{prop}' ?"
-        image = load_image(world, prop)
+        image = np.array(load_image(world, prop))
         super().__init__(name=name, image=image)
 
         self.world = world

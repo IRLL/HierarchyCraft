@@ -262,7 +262,7 @@ class World:
                 item.item_id,
                 type="item",
                 color=color,
-                image=load_image(self, item),
+                image=np.array(load_image(self, item)),
                 item_id=item.item_id,
                 label=item.name.capitalize(),
             )
@@ -274,7 +274,7 @@ class World:
                 type="zone_property",
                 color="orange",
                 prop_id=i,
-                image=load_image(self, prop),
+                image=np.array(load_image(self, prop)),
                 label=prop.capitalize(),
             )
 

@@ -4,11 +4,13 @@
 """ Rendering of the Crafting environments """
 
 import os
+import sys
+
 from typing import TYPE_CHECKING, Dict, List, Any, Union
+from io import BytesIO
 
 import numpy as np
 from PIL.Image import Image
-from io import BytesIO
 
 import pygame
 from pygame import Surface
@@ -158,7 +160,7 @@ def update_rendering(
         events += additional_events
     for event in events:
         if event.type == pygame.QUIT:
-            exit()
+            sys.exit()
 
     for widget in widgets:
         widget.update(env)
@@ -261,7 +263,7 @@ def make_menus(world: "World", window_shape: tuple):
         add_button(
             items_menu,
             id_to_action,
-            image=load_image(world, item, as_array=False),
+            image=load_image(world, item),
             scaling=0.5,
             text_width=8,
             action_type="get",
@@ -291,7 +293,7 @@ def make_menus(world: "World", window_shape: tuple):
         add_button(
             recipes_menu,
             id_to_action,
-            image=load_image(world, recipe, as_array=False),
+            image=load_image(world, recipe),
             scaling=0.5,
             text_width=8,
             action_type="craft",
@@ -318,7 +320,7 @@ def make_menus(world: "World", window_shape: tuple):
         add_button(
             zones_menu,
             id_to_action,
-            image=load_image(world, zone, as_array=False),
+            image=load_image(world, zone),
             scaling=0.2,
             text_width=19,
             action_type="move",

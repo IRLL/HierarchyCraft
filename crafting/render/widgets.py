@@ -65,7 +65,7 @@ class InventoryWidget(EnvWidget):
         return scale(background_image, window_shape, 0.65)
 
     def _load_image(self, item_id) -> Surface:
-        image = load_image(self.world, self.world.item_from_id[item_id], as_array=False)
+        image = load_image(self.world, self.world.item_from_id[item_id])
         image = pilImageToSurface(image)
         return scale(image, self.shape, 0.09)
 
@@ -130,12 +130,12 @@ class ZoneWidget(EnvWidget):
         self.font = Font(world.font_path, int(0.3 * self.shape[1]))
 
     def _load_zone_image(self, zone_id, window_shape):
-        image = load_image(self.world, self.world.zone_from_id[zone_id], as_array=False)
+        image = load_image(self.world, self.world.zone_from_id[zone_id])
         image = pilImageToSurface(image)
         return scale(image, window_shape, 0.25)
 
     def _load_property_image(self, prop: str):
-        image = load_image(self.world, prop, as_array=False)
+        image = load_image(self.world, prop)
         image = pilImageToSurface(image)
         return scale(image, self.shape, 0.2)
 

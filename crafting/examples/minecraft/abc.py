@@ -7,13 +7,15 @@ All redifined specialized objects used for the MineCrafting environment.
 
 """
 
-from typing import List, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 import numpy as np
 
 from crafting.world.items import Item, Tool, ItemStack
-from crafting.world.world import World
 from crafting.player.player import Player
 from crafting.player.inventory import Inventory
+
+if TYPE_CHECKING:
+    from crafting.examples.minecraft.world import McWorld
 
 
 class Block(Item):
@@ -79,7 +81,16 @@ class McTool(Tool):
         self._durability = durability
         self.speed = speed
 
-    def use(self, item: Union[Block, Loot, Item] = None):
+    def use(self, item: Optional[Union[Block, Loot, Item]] = None) -> List[ItemStack]:
+        """Use the tool on a given Item.
+
+        Args:
+            item: Item to use the tool on.
+
+        Returns:
+            List of ItemStack gathered by using the tool on the item.
+
+        """
         if self._durability > 0 and isinstance(item, Block):
             stack_size = min(self.durability, 1 + int(self.speed / item.hardness))
             self._durability -= stack_size
@@ -95,14 +106,25 @@ class McTool(Tool):
 
     @property
     def is_broken(self):
+        """True if the tool is broken, False otherwise."""
         return not self._durability > 0
 
     def reset(self):
+        """Reset the tool durability."""
         self._durability = self.durability
 
 
 class McPlayer(Player):
-    def __init__(self, world: World):
+
+    """Player of a MineCrafting environement."""
+
+    def __init__(self, world: "McWorld"):
+        """Player of a MineCrafting environement.
+
+        Args:
+            world: McWorld of a MineCrafting environment.
+
+        """
         inventory = Inventory(world.items)
         forest_slot = world.zone_id_to_slot[0]
         super().__init__(

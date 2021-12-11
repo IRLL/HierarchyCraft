@@ -7,7 +7,7 @@ from typing import Tuple, List, Union
 
 import numpy as np
 
-from crafting.world.items import Item, ItemStack
+from crafting.world.items import ItemStack
 
 
 class Inventory:
@@ -23,7 +23,7 @@ class Inventory:
 
     """
 
-    def __init__(self, items: Tuple[Item]):
+    def __init__(self, items: Tuple["Item"]):
         """Inventory is where Items are stored
 
         Args:
@@ -44,13 +44,14 @@ class Inventory:
 
         self.item_id_to_slot = np.vectorize(item_id_to_slot)
 
-    def stacks_ind_and_size(self, stacks):
+    def stacks_id_and_size(self, stacks: "ItemStack") -> Tuple[np.ndarray]:
+        """Gather the item_id and size of a list of stacks."""
         stack_ids = np.array([stack.item_id for stack in stacks])
         stack_ind = self.item_id_to_slot(stack_ids)
         stack_sizes = np.array([stack.size for stack in stacks])
         return stack_ind, stack_sizes
 
-    def add_stacks(self, stacks: List[ItemStack]) -> bool:
+    def add_stacks(self, stacks: List["ItemStack"]) -> bool:
         """Add a list of ItemStack into the inventory content
 
         Args:
@@ -60,11 +61,11 @@ class Inventory:
             True if successful, False otherwise.
 
         """
-        stack_ind, stack_sizes = self.stacks_ind_and_size(stacks)
+        stack_ind, stack_sizes = self.stacks_id_and_size(stacks)
         self.content[stack_ind] += stack_sizes
         return True
 
-    def remove_stacks(self, stacks: List[ItemStack]) -> bool:
+    def remove_stacks(self, stacks: List["ItemStack"]) -> bool:
         """Remove a list of ItemStack from the inventory content
 
         Args:
@@ -77,7 +78,7 @@ class Inventory:
             ValueError: If content does not have enough to remove.
 
         """
-        stack_ind, stack_sizes = self.stacks_ind_and_size(stacks)
+        stack_ind, stack_sizes = self.stacks_id_and_size(stacks)
 
         if np.any(self.content[stack_ind] < stack_sizes):
             raise ValueError("Not enough in content to remove")
@@ -101,7 +102,7 @@ class Inventory:
             [f"{quantity} {name}" for name, quantity in zip(items_in_inv, content)]
         )
 
-    def __contains__(self, item: Union[Item, ItemStack]):
+    def __contains__(self, item: Union["Item", "ItemStack"]):
         wanted_size = item.size if isinstance(item, ItemStack) else 1
 
         item_slot = self.item_id_to_slot(item.item_id)

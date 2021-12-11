@@ -7,8 +7,6 @@ All used minecraft tools
 
 """
 
-from numpy import inf
-
 from crafting.examples.minecraft.abc import McTool
 
 WOODEN_PICKAXE = McTool(

@@ -3,9 +3,8 @@
 
 """ Module for handcrafted Option with OptionGraph in any Crafting environment. """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, List, Dict, Union
+import numpy as np
 
 from option_graph import Option, OptionGraph, Action, EmptyNode
 
@@ -23,7 +22,7 @@ class ReachZone(Option):
 
     """Option for moving to a Zone"""
 
-    def __init__(self, zone: Zone, world: World):
+    def __init__(self, zone: "Zone", world: "World"):
         super().__init__(f"Reach {str(zone)}")
         self.world = world
         self.zone = zone
@@ -56,8 +55,8 @@ class GetItem(Option):
 
     def __init__(
         self,
-        world: World,
-        item: Item,
+        world: "World",
+        item: "Item",
         all_options: Dict[Union[int, str], Option],
         items_needed: List[List[tuple]],
         last_action: tuple,
@@ -152,7 +151,8 @@ class GetItem(Option):
         item = self.world.item_from_id[item_id]
         has_item = HasItem(item=item, world=self.world, quantity=quantity)
         graph.add_node(has_item)
-        get_item = Option(f"Get {item}", image=load_image(self.world, item))
+        image = np.array(load_image(self.world, item))
+        get_item = Option(f"Get {item}", image=image)
         graph.add_node(get_item)
         graph.add_edge(has_item, get_item, index=int(False))
         return has_item
@@ -161,7 +161,8 @@ class GetItem(Option):
         zone = self.world.zone_from_id[zone_id]
         is_in_zone = IsInZone(zone, self.world)
         graph.add_node(is_in_zone)
-        reach_zone = Option(f"Reach {zone}", image=load_image(self.world, zone))
+        image = np.array(load_image(self.world, zone))
+        reach_zone = Option(f"Reach {zone}", image=image)
         graph.add_node(reach_zone)
         graph.add_edge(is_in_zone, reach_zone, index=int(False))
         return is_in_zone
@@ -169,7 +170,8 @@ class GetItem(Option):
     def _add_property_needed(self, graph: OptionGraph, prop: str) -> HasProperty:
         has_prop = HasProperty(prop, world=self.world)
         graph.add_node(has_prop)
-        get_prop = Option(f"Get {prop}", image=load_image(self.world, prop))
+        image = np.array(load_image(self.world, prop))
+        get_prop = Option(f"Get {prop}", image=image)
         graph.add_node(get_prop)
         graph.add_edge(has_prop, get_prop, index=int(False))
         return has_prop

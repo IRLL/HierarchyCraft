@@ -8,8 +8,6 @@ Crafting environment adapted to the Minecraft inventory
 
 """
 
-import pygame
-
 from crafting.env import CraftingEnv
 from crafting.task import Task
 
