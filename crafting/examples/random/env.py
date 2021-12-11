@@ -63,6 +63,11 @@ class RandomCraftingEnv(CraftingEnv):
 
         """
 
+        assert n_zones > 0, "Must have at lease one zone."
+        assert (
+            n_items >= n_tools + n_foundables
+        ), "Number of items must be greater than number of tools and foundables."
+
         world, initial_zone = self.build_world(
             n_items=n_items,
             n_tools=n_tools,
@@ -172,13 +177,17 @@ class RandomCraftingEnv(CraftingEnv):
                 items_per_tool[tool.item_id].append(new_foundable)
 
             # Place item in (futur?) zones
-            n_zones_probs = np.array([1 / (n + 1) for n in range(1, n_zones)])
-            n_zones_probs /= np.sum(n_zones_probs)
-            n_foundable_zones = np.random.choice(range(1, n_zones), p=n_zones_probs)
-
-            foundable_zones = np.random.choice(
-                range(n_zones), size=n_foundable_zones, replace=False
-            )
+            if n_zones > 1:
+                n_zones_probs = np.array([1 / (n + 1) for n in range(1, n_zones)])
+                n_zones_probs /= np.sum(n_zones_probs)
+                n_foundable_zones = 1 + np.random.choice(
+                    range(1, n_zones), p=n_zones_probs
+                )
+                foundable_zones = np.random.choice(
+                    range(n_zones), size=n_foundable_zones, replace=False
+                )
+            else:
+                foundable_zones = [0]
 
             for foundable_zone in foundable_zones:
                 items_per_zones[foundable_zone].append(new_foundable)
@@ -282,7 +291,7 @@ if __name__ == "__main__":
         n_foundables=5,
         n_required_tools=[0.25, 0.4, 0.2, 0.1, 0.05],
         n_inputs_per_craft=[0.1, 0.6, 0.3],
-        n_zones=5,
+        n_zones=1,
     )
 
     plot_requirement_graph = True
