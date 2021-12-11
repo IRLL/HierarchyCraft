@@ -2,3 +2,6 @@
 show_missing = True
 omit =
     crafting/examples/minecraft/*
+exclude_lines = 
+    pragma: no cover
+    if TYPE_CHECKING:
