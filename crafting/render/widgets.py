@@ -56,9 +56,7 @@ class InventoryWidget(EnvWidget):
         self.font = Font(world.font_path, int(0.1 * self.shape[1]))
 
         self.item_images_per_id = {
-            item_id: self._load_image(item_id)
-            for item_id in self.inventory.items_ids
-            if item_id != 0
+            item_id: self._load_image(item_id) for item_id in self.inventory.items_ids
         }
 
     def _load_background(self, window_shape) -> Surface:
@@ -77,9 +75,7 @@ class InventoryWidget(EnvWidget):
     def draw(self, surface: Surface):
         surface.blit(self.background, self.position)
 
-        non_empty_items = np.logical_and(
-            self.inventory.content != 0, np.not_equal(self.inventory.items_ids, 0)
-        )
+        non_empty_items = self.inventory.content != 0
 
         items_in_inv = np.array(self.inventory.items)[non_empty_items]
         content = self.inventory.content[non_empty_items]
