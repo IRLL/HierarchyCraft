@@ -3,7 +3,6 @@
 
 """ Utilitaries functions for rendering of the Crafting environments """
 
-from __future__ import annotations
 from typing import TYPE_CHECKING, Tuple, Union
 
 import os
@@ -15,7 +14,7 @@ from pygame.surface import Surface
 from PIL import Image, ImageFont, ImageDraw
 
 from crafting.world.zones import Zone
-from crafting.world.items import Item
+from crafting.world.items import Item, Tool
 from crafting.world.recipes import Recipe
 
 if TYPE_CHECKING:
@@ -28,8 +27,58 @@ def pilImageToSurface(pilImage: Image.Image):
     ).convert_alpha()
 
 
+def create_image(
+    world: "World",
+    obj: Union[Item, Zone, Recipe, str],
+    with_text: bool = False,
+):
+    def _get_text_color(obj: Union[Item, Zone, Recipe, str]):
+        if isinstance(obj, Item):
+            alt_txt = str(obj.item_id)
+            if isinstance(obj, Tool):
+                color = (0, 255, 255, 255)
+            elif obj in world.foundable_items:
+                color = (0, 125, 0, 255)
+            else:
+                color = (0, 0, 255, 255)
+        elif isinstance(obj, Zone):
+            alt_txt = str(obj)
+            color = None
+        elif isinstance(obj, str):
+            alt_txt = obj
+            color = None
+        elif isinstance(obj, Recipe):
+            if obj.outputs is not None:
+                return _get_text_color(obj.outputs)
+            if len(obj.added_properties) > 0:
+                prop, _ = obj.added_properties.popitem()
+                return _get_text_color(prop)
+        return alt_txt, color
+
+    if isinstance(obj, Zone):
+        image_size = (699, 394)
+    else:
+        image_size = (120, 120)
+
+    image = Image.new("RGBA", image_size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+
+    cx, cy = image_size[0] // 2, image_size[1] // 2
+    bbox = [0, 0, image_size[0], image_size[1]]
+    alt_txt, color = _get_text_color(obj)
+
+    if color is not None:
+        draw.rectangle(bbox, outline=color, width=5)
+
+    if with_text:
+        text_pt_size = int(0.60 * image_size[1])
+        font = ImageFont.truetype(world.font_path, size=text_pt_size)
+        draw.text((cx, cy), alt_txt, fill=(0, 0, 0), font=font, anchor="mm")
+    return image
+
+
 def load_image(
-    world: World,
+    world: "World",
     obj: Union[Item, Zone, Recipe, str],
     text: str = None,
     text_relative_size: float = 0.3,
@@ -57,17 +106,7 @@ def load_image(
     try:
         image = Image.open(image_path).convert("RGBA")
     except FileNotFoundError:
-        if isinstance(obj, Zone):
-            image_size = (699, 394)
-        else:
-            image_size = (120, 120)
-        image = Image.new("RGBA", image_size, (0, 255, 0, 0))
-        draw = ImageDraw.Draw(image)
-        cx, cy = image_size[0] // 2, image_size[1] // 2
-        text_pt_size = int(0.26 * image_size[0])
-        font = ImageFont.truetype(world.font_path, size=text_pt_size)
-        if text is None:
-            draw.text((cx, cy), str(obj), fill=(0, 0, 0), font=font, anchor="mm")
+        image = create_image(world, obj, with_text=text is None)
 
     if text is not None:
         image_draw = ImageDraw.Draw(image)
