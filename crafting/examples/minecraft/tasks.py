@@ -47,12 +47,15 @@ class TaskObtainBook(Task):
         self.add_achivement_getitem(BOOK.item_id, 10, end_task=True)
 
         if self.use_reward_shaping:
-            self.add_achivement_getitem(WOOD.item_id, 1)
-            self.add_achivement_getitem(WOOD_PLANK.item_id, 1)
-            self.add_achivement_getitem(REEDS.item_id, 1)
-            self.add_achivement_getitem(PAPER.item_id, 1)
-            self.add_achivement_getitem(WOODEN_SWORD.item_id, 1)
-            self.add_achivement_getitem(LEATHER.item_id, 1)
+            for item in (
+                WOOD,
+                WOOD_PLANK,
+                REEDS,
+                PAPER,
+                WOODEN_SWORD,
+                LEATHER,
+            ):
+                self.add_achivement_getitem(item.item_id, 1)
 
 
 class TaskObtainDiamond(Task):
@@ -65,13 +68,17 @@ class TaskObtainDiamond(Task):
         self.add_achivement_getitem(DIAMOND.item_id, 10, end_task=True)
 
         if self.use_reward_shaping:
-            self.add_achivement_getitem(WOOD.item_id, 1)
-            self.add_achivement_getitem(WOOD_PLANK.item_id, 1)
-            self.add_achivement_getitem(WOODEN_PICKAXE.item_id, 1)
-            self.add_achivement_getitem(COBBLESTONE.item_id, 1)
-            self.add_achivement_getitem(STONE_PICKAXE.item_id, 1)
-            self.add_achivement_getitem(IRON_INGOT.item_id, 1)
-            self.add_achivement_getitem(IRON_PICKAXE.item_id, 1)
+            for item in (
+                WOOD,
+                WOOD_PLANK,
+                WOODEN_PICKAXE,
+                COBBLESTONE,
+                STONE_PICKAXE,
+                IRON_ORE,
+                IRON_INGOT,
+                IRON_PICKAXE,
+            ):
+                self.add_achivement_getitem(item.item_id, 1)
 
 
 class TaskObtainClock(Task):
@@ -84,17 +91,20 @@ class TaskObtainClock(Task):
         self.add_achivement_getitem(CLOCK.item_id, 10, end_task=True)
 
         if self.use_reward_shaping:
-            self.add_achivement_getitem(WOOD.item_id, 1)
-            self.add_achivement_getitem(WOOD_PLANK.item_id, 1)
-            self.add_achivement_getitem(WOODEN_PICKAXE.item_id, 1)
-            self.add_achivement_getitem(COBBLESTONE.item_id, 1)
-            self.add_achivement_getitem(STONE_PICKAXE.item_id, 1)
-            self.add_achivement_getitem(IRON_ORE.item_id, 1)
-            self.add_achivement_getitem(IRON_INGOT.item_id, 1)
-            self.add_achivement_getitem(IRON_PICKAXE.item_id, 1)
-            self.add_achivement_getitem(GOLD_ORE.item_id, 1)
-            self.add_achivement_getitem(GOLD_INGOT.item_id, 1)
-            self.add_achivement_getitem(REDSTONE.item_id, 1)
+            for item in (
+                WOOD,
+                WOOD_PLANK,
+                WOODEN_PICKAXE,
+                COBBLESTONE,
+                STONE_PICKAXE,
+                IRON_ORE,
+                IRON_INGOT,
+                IRON_PICKAXE,
+                GOLD_ORE,
+                GOLD_INGOT,
+                REDSTONE,
+            ):
+                self.add_achivement_getitem(item.item_id, 1)
 
 
 class TaskObtainEnchantingTable(Task):
@@ -107,22 +117,24 @@ class TaskObtainEnchantingTable(Task):
         self.add_achivement_getitem(ENCHANTING_TABLE.item_id, 10, end_task=True)
 
         if self.use_reward_shaping:
-            self.add_achivement_getitem(WOOD.item_id, 1)
-            self.add_achivement_getitem(WOOD_PLANK.item_id, 1)
-            self.add_achivement_getitem(WOODEN_PICKAXE.item_id, 1)
-            self.add_achivement_getitem(COBBLESTONE.item_id, 1)
-            self.add_achivement_getitem(STONE_PICKAXE.item_id, 1)
-            self.add_achivement_getitem(IRON_INGOT.item_id, 1)
-            self.add_achivement_getitem(IRON_PICKAXE.item_id, 1)
-            self.add_achivement_getitem(DIAMOND.item_id, 1)
-            self.add_achivement_getitem(DIAMOND_PICKAXE.item_id, 1)
-            self.add_achivement_getitem(OBSIDIAN.item_id, 1)
-
-            self.add_achivement_getitem(REEDS.item_id, 1)
-            self.add_achivement_getitem(PAPER.item_id, 1)
-            self.add_achivement_getitem(WOODEN_SWORD.item_id, 1)
-            self.add_achivement_getitem(LEATHER.item_id, 1)
-            self.add_achivement_getitem(BOOK.item_id, 1)
+            for item in (
+                WOOD,
+                WOOD_PLANK,
+                WOODEN_PICKAXE,
+                COBBLESTONE,
+                STONE_PICKAXE,
+                IRON_ORE,
+                IRON_INGOT,
+                IRON_PICKAXE,
+                DIAMOND,
+                DIAMOND_PICKAXE,
+                OBSIDIAN,
+                REEDS,
+                WOODEN_SWORD,
+                LEATHER,
+                BOOK,
+            ):
+                self.add_achivement_getitem(item.item_id, 1)
 
 
 TASKS = {
