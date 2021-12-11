@@ -235,42 +235,41 @@ class RandomCraftingEnv(CraftingEnv):
             new_accessible_item = unaccessible_items.pop()
             new_is_tool = isinstance(new_accessible_item, Tool)
 
-            accessible_foundables = [
+            # Don't build recipes from tools or unaccesible items
+            accessible_notool_items = [
                 item
                 for item in items
                 if item in accessible_items and not isinstance(item, Tool)
             ]
 
-            for item in accessible_foundables:
-                if (
-                    new_is_tool
-                    and item.required_tools is not None
-                    and new_accessible_item in item.required_tools
-                ):
-                    accessible_foundables.remove(item)
-
             outputs = [ItemStack(new_accessible_item)]
+
+            # Chooses randomly the number of input items (>=1)
             n_inputs_probs = np.array(n_inputs_per_craft) / np.sum(n_inputs_per_craft)
             n_inputs = 1 + np.random.choice(
                 range(len(n_inputs_probs)), p=n_inputs_probs
             )
-            n_inputs = min(n_inputs, len(accessible_foundables))
+            n_inputs = min(n_inputs, len(accessible_notool_items))
+
+            # Chooses randomly accessible items and build ItemStacks of size 1 (default).
             input_items = list(
-                np.random.choice(accessible_foundables, size=n_inputs, replace=False)
+                np.random.choice(accessible_notool_items, size=n_inputs, replace=False)
             )
             inputs = [ItemStack(item) for item in input_items]
 
+            # Build recipe
             new_recipe = Recipe(len(recipes), inputs=inputs, outputs=outputs)
             recipes.append(new_recipe)
 
-            print(new_recipe, unaccessible_items, accessible_items)
-
+            # If new accessible item is a tool,
+            #   add foundables that can be gathered with it in accessible items
             if new_is_tool:
                 for new_accessible_item_by_tool in items_per_tool[
                     new_accessible_item.item_id
                 ]:
                     accessible_items.add(new_accessible_item_by_tool)
             accessible_items.add(new_accessible_item)
+
         return recipes
 
 
@@ -286,7 +285,7 @@ if __name__ == "__main__":
         n_zones=5,
     )
 
-    plot_requirement_graph = False
+    plot_requirement_graph = True
     if plot_requirement_graph:
         fig, ax = plt.subplots()
         env.world.draw_requirements_graph(ax)
