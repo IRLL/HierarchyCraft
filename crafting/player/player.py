@@ -71,7 +71,11 @@ class Player:
 
         """
         if item in self.zone.items and item.required_tools is not None:
-            usable_tools = [tool for tool in item.required_tools if tool is not None]
+            usable_tools = [
+                tool
+                for tool in item.required_tools
+                if tool is not None and tool in self.inventory
+            ]
             if len(usable_tools) > 0:
                 return usable_tools[0]
         return None
