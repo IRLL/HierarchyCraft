@@ -2,6 +2,6 @@ gym == 0.17.3
 numpy
 networkx == 2.5.1
 matplotlib
-pygame >= 2.0.1
+pygame == 2.0.1
 pygame-menu == 4.0.6
 option-graph @ git+https://github.com/IRLL/options_graphs.git#egg=option-graph
