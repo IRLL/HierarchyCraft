@@ -1,9 +1,9 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
-""" MineCrafting Environment
+""" Random Crafting Environment
 
-Crafting environment adapted to the Minecraft inventory
+Generate a random Crafting environment using basic constructor rules.
 
 """
 
