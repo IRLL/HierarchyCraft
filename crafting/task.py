@@ -83,6 +83,9 @@ class Task:
         done = self.done(observation, previous_observation, action)
         return reward, done
 
+    def __repr__(self) -> str:
+        return self.name
+
 
 class TaskList:
 
@@ -150,6 +153,9 @@ class TaskList:
 
         done = self._stack_dones(dones)
         return accumulated_reward, done
+
+    def __repr__(self) -> str:
+        return "[" + ", ".join(repr(task) for task in self.tasks) + "]"
 
 
 class TaskObtainItem(Task):
