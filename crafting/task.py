@@ -10,6 +10,7 @@ import numpy as np
 
 if TYPE_CHECKING:
     from crafting.world.world import World
+    from crafting.world.items import Item
 
 
 class Task:
@@ -149,3 +150,12 @@ class TaskList:
 
         done = self._stack_dones(dones)
         return accumulated_reward, done
+
+
+class TaskObtainItem(Task):
+
+    """Obtaining a given item_id"""
+
+    def __init__(self, world: "World", item: "Item"):
+        super().__init__(f"obtain_{item}", world)
+        self.add_achivement_getitem(item.item_id, 10, end_task=True)
