@@ -22,6 +22,7 @@ from crafting.player.inventory import Inventory
 from crafting.world.zones import Zone
 from crafting.world.items import Item, Tool, ItemStack
 from crafting.world.recipes import Recipe
+from crafting.task import Task, TaskObtainItem
 
 
 class RandomCraftingEnv(CraftingEnv):
@@ -77,9 +78,25 @@ class RandomCraftingEnv(CraftingEnv):
             n_inputs_per_craft=n_inputs_per_craft,
         )
 
-        tasks = kwargs.pop("tasks", None)
         player = Player(Inventory(world.items), initial_zone)
+        tasks = kwargs.pop("tasks", None)
+        if tasks is not None:
+            if not isinstance(tasks, (list, tuple)):
+                tasks = [tasks]
+            tasks = [self._get_tasks(task, world) for task in tasks]
+
         super().__init__(world=world, player=player, tasks=tasks, **kwargs)
+
+    @staticmethod
+    def _get_tasks(task, world: World):
+        if isinstance(task, Task):
+            return task
+        if isinstance(task, str):
+            if task == "random_item":
+                goal_item = np.random.choice(world.items)
+                return TaskObtainItem(world, goal_item)
+            raise ValueError(f"Unknown task: {task}")
+        raise TypeError(f"Tasks should be str or Task instances but was {type(task)}")
 
     def build_world(
         self,
@@ -294,7 +311,11 @@ if __name__ == "__main__":
         n_required_tools=[0.25, 0.4, 0.2, 0.1, 0.05],
         n_inputs_per_craft=[0.1, 0.6, 0.3],
         n_zones=1,
+        tasks=["random_item"],
+        tasks_can_end=[True],
     )
+
+    print(env.tasks)
 
     all_options = env.world.get_all_options()
     all_options_list = list(all_options.values())
