@@ -284,6 +284,8 @@ class RandomCraftingEnv(CraftingEnv):
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
+    from option_graph.metrics.complexity import learning_complexity
+    from option_graph.metrics.complexity.histograms import nodes_histograms
 
     env = RandomCraftingEnv(
         n_items=12,
@@ -294,12 +296,28 @@ if __name__ == "__main__":
         n_zones=1,
     )
 
+    all_options = env.world.get_all_options()
+    all_options_list = list(all_options.values())
+    used_nodes_all = nodes_histograms(all_options_list)
+
+    plot_options_graphs = False
+    if plot_options_graphs:
+        ncols = min(5, len(all_options) + 1)
+        fig, axes = plt.subplots(1 + (len(all_options) + 1) // 6, ncols)
+    else:
+        fig, axes = plt.subplots(1, 1)
+        axes = [axes]
+
+    for i, (option_name, option) in enumerate(all_options.items()):
+        if plot_options_graphs:
+            ax = axes[i // ncols, i % ncols]
+            option.graph.draw(ax)
+        lcomp, comp_saved = learning_complexity(option, used_nodes_all)
+        print(f"{option_name}: {lcomp} ({comp_saved})")
+
     plot_requirement_graph = True
     if plot_requirement_graph:
-        fig, ax = plt.subplots()
-        env.world.draw_requirements_graph(ax)
-        plt.show(block=False)
-        plt.pause(0.001)
+        env.world.draw_requirements_graph(axes[-1])
 
     for _ in range(1):
         observation = env.reset()
@@ -307,6 +325,10 @@ if __name__ == "__main__":
         total_reward = 0
         while not done:
             rgb_array = env.render(mode="rgb_array")
+
+            if plot_options_graphs or plot_requirement_graph:
+                plt.show(block=False)
+                plt.pause(0.001)
 
             action = get_human_action(env, **env.render_variables)
             action_id = env.action(*action)
