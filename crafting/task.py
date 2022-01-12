@@ -138,6 +138,9 @@ class TaskList:
         for task in self.tasks:
             task.reset()
 
+    def __getitem__(self, index: int):
+        return self.tasks[index]
+
     def __call__(self, observation, previous_observation, action):
         if self.tasks is None:
             return 0, False
