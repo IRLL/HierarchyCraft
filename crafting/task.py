@@ -109,6 +109,7 @@ class TaskList:
         self.tasks_weights = tasks_weights
         self.tasks_can_end = tasks_can_end
         self.early_stopping = early_stopping
+        self.dones = [False for _ in self.tasks]
 
     def _get_task_weight(self, task, i):
         if isinstance(self.tasks_weights, list):
@@ -124,13 +125,13 @@ class TaskList:
             return self.tasks_can_end[task.name]
         return False
 
-    def _stack_dones(self, dones):
-        if len(dones) == 0:
+    def _stacked_dones(self):
+        if len(self.dones) == 0:
             return False
         if self.early_stopping == "all":
-            return all(dones)
+            return all(self.dones)
         if self.early_stopping == "any":
-            return any(dones)
+            return any(self.dones)
         raise ValueError(f"Unknown value for early_stopping: {self.early_stopping}")
 
     def reset(self):
@@ -154,8 +155,8 @@ class TaskList:
             if self._get_task_can_end(task, i):
                 dones.append(done)
 
-        done = self._stack_dones(dones)
-        return accumulated_reward, done
+        self.dones = dones
+        return accumulated_reward, self._stacked_dones()
 
     def __repr__(self) -> str:
         return "[" + ", ".join(repr(task) for task in self.tasks) + "]"
