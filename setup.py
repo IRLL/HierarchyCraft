@@ -10,14 +10,22 @@ HERE = pathlib.Path(__file__).parent
 # The text of the README file
 README = (HERE / "README.rst").read_text()
 
+
 def get_version():
-    version_file = open('VERSION')
-    return version_file.read().strip()
+    with open("VERSION", encoding="utf-8") as f:
+        version = f.read().strip()
+    return version
+
+
 VERSION = get_version()
 
+
 def get_requirements():
-    requirements_file = open('requirements.txt')
-    return requirements_file.readlines()
+    with open("requirements.txt", encoding="utf-8") as f:
+        requirements = f.readlines()
+    return requirements
+
+
 REQUIREMENTS = get_requirements()
 
 setup(
@@ -29,10 +37,10 @@ setup(
     long_description=README,
     long_description_content_type="text/x-rst",
     url="https://github.com/MathisFederico/Crafting",
-    packages=find_packages(exclude=("tests", "docs")),
+    packages=find_packages(exclude=("tests*", "docs*")),
     include_package_data=True,
-    package_data = {
-        'examples_ressources': ['crafting/examples/**/resources/*'],
+    package_data={
+        "examples_ressources": ["crafting/examples/**/resources/*"],
     },
     install_requires=REQUIREMENTS,
     classifiers=[
@@ -40,5 +48,5 @@ setup(
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
+    python_requires=">=3.6",
 )
