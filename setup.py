@@ -29,7 +29,7 @@ setup(
     long_description=README,
     long_description_content_type="text/x-rst",
     url="https://github.com/MathisFederico/Crafting",
-    packages=find_packages(exclude=("tests", "docs")),
+    packages=find_packages(exclude=("tests*", "docs*")),
     include_package_data=True,
     package_data = {
         'examples_ressources': ['crafting/examples/**/resources/*'],
