@@ -168,4 +168,5 @@ class TaskObtainItem(Task):
 
     def __init__(self, world: "World", item: "Item"):
         super().__init__(f"obtain_{item}", world)
-        self.add_achivement_getitem(item.item_id, 10, end_task=True)
+        self.goal_item = item
+        self.add_achivement_getitem(self.goal_item.item_id, 10, end_task=True)
