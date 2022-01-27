@@ -22,7 +22,7 @@ jobs:
     - name: Build coverage using pytest-cov
       run: |
         pip install -r requirements-dev.txt
-        pytest --cov=crafting --cov-report=xml
+        pytest --cov=crafting --cov-report=xml tests
     - name: Upload coverage-report to codacy
       uses: codacy/codacy-coverage-reporter-action@master
       with:
