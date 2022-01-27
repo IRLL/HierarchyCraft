@@ -12,18 +12,20 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../'))
+
+sys.path.insert(0, os.path.abspath("../"))
 
 # -- Project information -----------------------------------------------------
 
-project = 'Crafting'
-copyright = '2021, Mathïs Fédérico'
-author = 'Mathïs Fédérico'
+project = "Crafting"
+copyright = "2021-2022, Mathïs Fédérico"
+author = "Mathïs Fédérico"
 
 # The full version, including alpha/beta/rc tags
 def get_version():
-    version_file = open('../VERSION')
+    version_file = open("../VERSION")
     return version_file.read().strip()
+
 
 version = get_version()
 release = version
@@ -34,32 +36,32 @@ release = version
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.inheritance_diagram',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.coverage'
+    "sphinx.ext.autodoc",
+    "sphinx.ext.inheritance_diagram",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.coverage",
 ]
 
-master_doc = 'index'
-autoapi_dirs = ['../crafting']
+master_doc = "index"
+autoapi_dirs = ["../crafting"]
 autodoc_mock_imports = ["pygame", "gym", "pygame_menu"]
 autodoc_default_options = {
-    'member-order': 'bysource',
-    'undoc-members': True,
+    "member-order": "bysource",
+    "undoc-members": True,
 }
 add_module_names = False
 # pygments_style = 'monokai'
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/', None),
-    'numpy': ('http://docs.scipy.org/doc/numpy/', None),
-    'networkx': ('https://networkx.org/documentation/latest', None),
-    'matplotlib': ('http://matplotlib.sourceforge.net/', None)
+    "python": ("https://docs.python.org/", None),
+    "numpy": ("http://docs.scipy.org/doc/numpy/", None),
+    "networkx": ("https://networkx.org/documentation/latest", None),
+    "matplotlib": ("http://matplotlib.sourceforge.net/", None),
 }
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -74,30 +76,32 @@ exclude_patterns = []
 #
 html_theme = "sphinx_rtd_theme"
 html_theme_options = {
-    'canonical_url': '',
-    'analytics_id': 'UA-XXXXXXX-1',  #  Provided by Google in your dashboard
-    'logo_only': False,
-    'display_version': True,
-    'prev_next_buttons_location': 'both',
-    'style_external_links': '#ff9900',
-    'style_nav_header_background': '#ff9900',
+    "canonical_url": "",
+    "analytics_id": "UA-XXXXXXX-1",  #  Provided by Google in your dashboard
+    "logo_only": False,
+    "display_version": True,
+    "prev_next_buttons_location": "both",
+    "style_external_links": "#ff9900",
+    "style_nav_header_background": "#ff9900",
     # Toc options
-    'collapse_navigation': False,
-    'sticky_navigation': True,
-    'navigation_depth': 4,
-    'includehidden': True,
-    'titles_only': False
+    "collapse_navigation": False,
+    "sticky_navigation": True,
+    "navigation_depth": 4,
+    "includehidden": True,
+    "titles_only": False,
 }
 
 # -- Version control GitHub --------------------------------------------------
 html_context = {
-    "display_github": True, # Integrate GitHub
-    "github_user": "MathisFederico", # Username
-    "github_repo": "LearnRL", # Repo name
-    "github_version": "dev", # Version
-    "conf_py_path": "/docs/", # Path in the checkout to the docs root
+    "display_github": True,  # Integrate GitHub
+    "github_user": "MathisFederico",  # Username
+    "github_repo": "LearnRL",  # Repo name
+    "github_version": "dev",  # Version
+    "conf_py_path": "/docs/",  # Path in the checkout to the docs root
 }
 
-html_static_path = ['_static']
+html_static_path = ["_static"]
+
+
 def setup(app):
-    app.add_css_file('styles/custom.css')
+    app.add_css_file("styles/custom.css")

@@ -1,5 +1,5 @@
 # Crafting a gym-environment to simultate inventory managment
-# Copyright (C) 2021 Mathïs FEDERICO <https://www.gnu.org/licenses/>
+# Copyright (C) 2021-2022 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 # pylint: disable=no-self-use, missing-function-docstring
 
 """ Module testing that each of the built-in tasks can be done succesfully. """
