@@ -96,7 +96,7 @@ class TestTaskList:
         """should return accumulated rewards and done on call."""
         mocker.patch("crafting.task.TaskList._get_task_weight", lambda *args: 1)
         mocker.patch("crafting.task.TaskList._get_task_can_end", lambda *args: True)
-        mocker.patch("crafting.task.TaskList._stack_dones", lambda *args: True)
+        mocker.patch("crafting.task.TaskList._stacked_dones", lambda *args: True)
         tasks = TaskList(self.tasks)
         reward, done = tasks(self.observation, self.previous_observation, self.action)
         check.equal(reward, 10.2)
@@ -214,29 +214,25 @@ class TestTaskListStackDones:
         """should return True only if all dones are True if early_stopping is 'all'."""
         tests = TaskList(None, early_stopping="all")
 
-        dones = [True, False, True]
-        done = tests._stack_dones(dones)
-        check.is_false(done)
+        done = tests.dones = [True, False, True]
+        check.is_false(tests._stacked_dones())
 
-        dones = [True, True, True]
-        done = tests._stack_dones(dones)
-        check.is_true(done)
+        done = tests.dones = [True, True, True]
+        check.is_true(tests._stacked_dones())
 
     def test_any(self):
         """should return True if any dones is True if early_stopping is 'any'."""
         tests = TaskList(None, early_stopping="any")
 
-        dones = [True, False, True]
-        done = tests._stack_dones(dones)
-        check.is_true(done)
+        tests.dones = [True, False, True]
+        check.is_true(tests._stacked_dones())
 
-        dones = [False, False, False]
-        done = tests._stack_dones(dones)
-        check.is_false(done)
+        tests.dones = [False, False, False]
+        check.is_false(tests._stacked_dones())
 
     def test_raise_othervalue(self):
         """should raise ValueError if early_stopping is not in ('any', 'all')."""
         tests = TaskList(None, early_stopping="x")
-        dones = [True, False, True]
+        tests.dones = [True, False, True]
         with pytest.raises(ValueError, match=r"Unknown value for early_stopping.*"):
-            tests._stack_dones(dones)
+            tests._stacked_dones()
