@@ -35,17 +35,8 @@ class ReachZone(Option):
 
         """
         graph = OptionGraph(option=self)
-
-        is_in_zone = IsInZone(self.zone, self.world)
-        graph.add_node(is_in_zone)
-
         go_to_zone = MoveToZone(self.zone, self.world)
         graph.add_node(go_to_zone)
-        graph.add_edge(is_in_zone, go_to_zone, index=int(False))
-
-        do_nothing = Action(None)
-        graph.add_node(do_nothing)
-        graph.add_edge(is_in_zone, do_nothing, index=int(True))
         return graph
 
 
