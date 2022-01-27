@@ -8,7 +8,7 @@ import numpy as np
 
 from option_graph import Action
 
-from crafting.render.utils import load_image
+from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
     from crafting.world.items import Item
@@ -23,7 +23,7 @@ class SearchItem(Action):
 
     def __init__(self, item: "Item", world: "World") -> None:
         name = f"Search {item}"
-        image = np.array(load_image(world, item))
+        image = np.array(load_or_create_image(world, item))
         action = world.action("get", item.item_id)
         super().__init__(action, name=name, image=image)
 
@@ -34,7 +34,7 @@ class MoveToZone(Action):
 
     def __init__(self, zone: "Zone", world: "World") -> None:
         name = f"Move to {zone}"
-        image = np.array(load_image(world, zone))
+        image = np.array(load_or_create_image(world, zone))
         action = world.action("move", zone.zone_id)
         super().__init__(action, name=name, image=image)
 
@@ -51,6 +51,6 @@ class CraftRecipe(Action):
         else:
             obj = list(recipe.added_properties.keys())[0]
 
-        image = np.array(load_image(world, obj))
+        image = np.array(load_or_create_image(world, obj))
         action = world.action("craft", recipe.recipe_id)
         super().__init__(action, name=name, image=image)

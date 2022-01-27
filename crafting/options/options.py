@@ -8,7 +8,7 @@ import numpy as np
 
 from option_graph import Option, OptionGraph, Action, EmptyNode
 
-from crafting.render.utils import load_image
+from crafting.render.utils import load_or_create_image
 from crafting.options.actions import SearchItem, MoveToZone, CraftRecipe
 from crafting.options.feature_conditions import HasItem, IsInZone, HasProperty
 
@@ -142,7 +142,7 @@ class GetItem(Option):
         item = self.world.item_from_id[item_id]
         has_item = HasItem(item=item, world=self.world, quantity=quantity)
         graph.add_node(has_item)
-        image = np.array(load_image(self.world, item))
+        image = np.array(load_or_create_image(self.world, item))
         get_item = Option(f"Get {item}", image=image)
         graph.add_node(get_item)
         graph.add_edge(has_item, get_item, index=int(False))
@@ -152,7 +152,7 @@ class GetItem(Option):
         zone = self.world.zone_from_id[zone_id]
         is_in_zone = IsInZone(zone, self.world)
         graph.add_node(is_in_zone)
-        image = np.array(load_image(self.world, zone))
+        image = np.array(load_or_create_image(self.world, zone))
         reach_zone = Option(f"Reach {zone}", image=image)
         graph.add_node(reach_zone)
         graph.add_edge(is_in_zone, reach_zone, index=int(False))
@@ -161,7 +161,7 @@ class GetItem(Option):
     def _add_property_needed(self, graph: OptionGraph, prop: str) -> HasProperty:
         has_prop = HasProperty(prop, world=self.world)
         graph.add_node(has_prop)
-        image = np.array(load_image(self.world, prop))
+        image = np.array(load_or_create_image(self.world, prop))
         get_prop = Option(f"Get {prop}", image=image)
         graph.add_node(get_prop)
         graph.add_edge(has_prop, get_prop, index=int(False))

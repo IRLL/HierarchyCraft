@@ -36,17 +36,12 @@ def pilImageToSurface(pilImage: Image.Image):
     ).convert_alpha()
 
 
-def create_image(
-    world: "World",
-    obj: Union[Item, Zone, Recipe, str],
-    with_text: bool = False,
-):
+def create_image(world: "World", obj: Union[Item, Zone, Recipe, str]):
     """Create a PIL image for and obj in a world.
 
     Args:
         world: A crafting World.
         obj: A crafting Item, Zone, Recipe or property.
-        with_text: If True, draw an alternative text on the image center.
 
     Returns:
         A PIL image corresponding to the given object.
@@ -69,11 +64,9 @@ def create_image(
             alt_txt = obj
             color = None
         elif isinstance(obj, Recipe):
-            if obj.outputs is not None:
-                return _get_text_color(obj.outputs)
-            if len(obj.added_properties) > 0:
-                prop, _ = obj.added_properties.popitem()
-                return _get_text_color(prop)
+            return _get_text_color(get_representative_object(obj))
+        else:
+            raise TypeError(f"Unsuported type: {type(obj)} {obj}")
         return alt_txt, color
 
     if isinstance(obj, Zone):
@@ -91,27 +84,18 @@ def create_image(
     if color is not None:
         draw.rectangle(bbox, outline=color, width=5)
 
-    if with_text:
-        text_pt_size = int(0.60 * image_size[1])
-        font = ImageFont.truetype(world.font_path, size=text_pt_size)
-        draw.text((cx, cy), alt_txt, fill=(0, 0, 0), font=font, anchor="mm")
+    text_pt_size = int(0.60 * image_size[1])
+    font = ImageFont.truetype(world.font_path, size=text_pt_size)
+    draw.text((cx, cy), alt_txt, fill=(0, 0, 0), font=font, anchor="mm")
     return image
 
 
-def load_image(
-    world: "World",
-    obj: Union[Item, Zone, Recipe, str],
-    text: Optional[str] = None,
-    text_relative_size: float = 0.3,
-):
+def load_image(world: "World", obj: Union[Item, Zone, Recipe, str]):
     """Load a PIL image for and obj in a world.
 
     Args:
         world: A crafting World.
         obj: A crafting Item, Zone, Recipe or property.
-        text (Optional): Text to draw on top of the image.
-        text_relative_size: If a text is given,
-            this is the relative size of the text compared to the image size.
 
     Returns:
         A PIL image corresponding to the given object.
@@ -127,19 +111,36 @@ def load_image(
     elif isinstance(obj, str):
         image_path = os.path.join(world.resources_path, "properties", f"{obj}.png")
     elif isinstance(obj, Recipe):
-        if obj.outputs is not None:
-            return load_image(world, obj.outputs[0], text, text_relative_size)
-        if len(obj.added_properties) > 0:
-            prop, _ = obj.added_properties.popitem()
-            return load_image(world, prop, text, text_relative_size)
-        raise ValueError(f"Recipe {obj} has no output nor added_properties.")
+        return load_image(world, get_representative_object(obj))
     else:
         raise TypeError(f"Unkowned type {type(obj)}")
 
+    return Image.open(image_path).convert("RGBA")
+
+
+def load_or_create_image(
+    world: "World",
+    obj: Union[Item, Zone, Recipe, str],
+    text: Optional[str] = None,
+    text_relative_size: float = 0.3,
+):
+    """Load or create a PIL image for and obj in a world.
+
+    Args:
+        world: A crafting World.
+        obj: A crafting Item, Zone, Recipe or property.
+        text (Optional): Text to draw on top of the image.
+        text_relative_size: If a text is given,
+            this is the relative size of the text compared to the image size.
+
+    Returns:
+        A PIL image corresponding to the given object.
+
+    """
     try:
-        image = Image.open(image_path).convert("RGBA")
+        image = load_image(world, obj)
     except FileNotFoundError:
-        image = create_image(world, obj, with_text=text is None)
+        image = create_image(world, obj)
 
     if text is not None:
         image_draw = ImageDraw.Draw(image)
@@ -181,3 +182,23 @@ def scale(
 
     new_shape = (int(image_shape[0] * scale_ratio), int(image_shape[1] * scale_ratio))
     return pygame.transform.scale(image, new_shape)
+
+
+def get_representative_object(recipe: Recipe) -> Union[Item, str]:
+    """Get the most representative object for a given recipe.
+
+    Args:
+        recipe (Recipe): The recipe to get the most representative object from.
+
+    Raises:
+        ValueError: The recipe has no output or added_properties, hence no representative object.
+
+    Returns:
+        Union[Item, str]: The most representative object of the given recipe.
+    """
+    if recipe.outputs is not None:
+        return recipe.outputs[0]
+    if len(recipe.added_properties) > 0:
+        prop, _ = recipe.added_properties.popitem()
+        return prop
+    raise ValueError(f"Recipe {recipe} has no output nor added_properties.")

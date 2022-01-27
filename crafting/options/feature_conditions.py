@@ -8,7 +8,7 @@ import numpy as np
 
 from option_graph import FeatureCondition
 
-from crafting.render.utils import load_image
+from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
     from crafting.world.items import Item
@@ -23,8 +23,8 @@ class HasItem(FeatureCondition):
     def __init__(self, item: "Item", world: "World", quantity: int = 1) -> None:
         name = f"Has {quantity} {item}?"
         conditon_text = f"{quantity}" if quantity > 1 else ""
-        image = np.array(load_image(world, item, text=conditon_text))
-        super().__init__(name=name, image=image)
+        image = load_or_create_image(world, item, text=conditon_text)
+        super().__init__(name=name, image=np.array(image))
 
         self.world = world
         self.item = item
@@ -42,7 +42,7 @@ class IsInZone(FeatureCondition):
 
     def __init__(self, zone: "Zone", world: "World") -> None:
         name = f"Is in {zone}?"
-        image = np.array(load_image(world, zone))
+        image = np.array(load_or_create_image(world, zone))
         super().__init__(name=name, image=image)
 
         self.world = world
@@ -60,7 +60,7 @@ class HasProperty(FeatureCondition):
 
     def __init__(self, prop: str, world: "World") -> None:
         name = f"Has property '{prop}' ?"
-        image = np.array(load_image(world, prop))
+        image = np.array(load_or_create_image(world, prop))
         super().__init__(name=name, image=image)
 
         self.world = world

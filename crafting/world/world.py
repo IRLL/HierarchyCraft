@@ -24,7 +24,7 @@ from option_graph.layouts.metabased import leveled_layout_energy
 import crafting
 from crafting.options.options import GetItem, ReachZone, Option
 from crafting.world.items import Tool
-from crafting.render.utils import load_image
+from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
     from crafting.world.zones import Zone
@@ -263,7 +263,7 @@ class World:
                 item.item_id,
                 type="item",
                 color=color,
-                image=np.array(load_image(self, item)),
+                image=np.array(load_or_create_image(self, item)),
                 item_id=item.item_id,
                 label=item.name.capitalize(),
             )
@@ -275,7 +275,7 @@ class World:
                 type="zone_property",
                 color="orange",
                 prop_id=i,
-                image=np.array(load_image(self, prop)),
+                image=np.array(load_or_create_image(self, prop)),
                 label=prop.capitalize(),
             )
 

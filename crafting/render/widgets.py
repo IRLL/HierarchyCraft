@@ -11,7 +11,7 @@ import numpy as np
 import pygame
 from pygame.font import Font
 
-from crafting.render.utils import load_image, scale, pilImageToSurface
+from crafting.render.utils import load_or_create_image, scale, pilImageToSurface
 
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv
@@ -63,7 +63,7 @@ class InventoryWidget(EnvWidget):
         return scale(background_image, window_shape, 0.65)
 
     def _load_image(self, item_id) -> "Surface":
-        image = load_image(self.world, self.world.item_from_id[item_id])
+        image = load_or_create_image(self.world, self.world.item_from_id[item_id])
         image = pilImageToSurface(image)
         return scale(image, self.shape, 0.09)
 
@@ -128,12 +128,12 @@ class ZoneWidget(EnvWidget):
         self.font = Font(world.font_path, int(0.3 * self.shape[1]))
 
     def _load_zone_image(self, zone_id, window_shape):
-        image = load_image(self.world, self.world.zone_from_id[zone_id])
+        image = load_or_create_image(self.world, self.world.zone_from_id[zone_id])
         image = pilImageToSurface(image)
         return scale(image, window_shape, 0.25)
 
     def _load_property_image(self, prop: str):
-        image = load_image(self.world, prop)
+        image = load_or_create_image(self.world, prop)
         image = pilImageToSurface(image)
         return scale(image, self.shape, 0.2)
 

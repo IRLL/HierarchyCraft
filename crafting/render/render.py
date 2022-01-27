@@ -29,7 +29,7 @@ from crafting.render.widgets import (
     ZoneWidget,
     StepLeftWidget,
 )
-from crafting.render.utils import load_image
+from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv
@@ -263,7 +263,7 @@ def make_menus(world: "World", window_shape: tuple):
         add_button(
             items_menu,
             id_to_action,
-            image=load_image(world, item),
+            image=load_or_create_image(world, item),
             scaling=0.5,
             text_width=8,
             action_type="get",
@@ -290,10 +290,11 @@ def make_menus(world: "World", window_shape: tuple):
     )
 
     for recipe in world.recipes:
+        print(recipe)
         add_button(
             recipes_menu,
             id_to_action,
-            image=load_image(world, recipe),
+            image=load_or_create_image(world, recipe),
             scaling=0.5,
             text_width=8,
             action_type="craft",
@@ -320,7 +321,7 @@ def make_menus(world: "World", window_shape: tuple):
         add_button(
             zones_menu,
             id_to_action,
-            image=load_image(world, zone),
+            image=load_or_create_image(world, zone),
             scaling=0.2,
             text_width=19,
             action_type="move",
