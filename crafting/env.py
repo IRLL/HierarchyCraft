@@ -190,8 +190,8 @@ class CraftingEnv(gym.Env):
         observation = self.get_observation()
 
         # Tasks
-        task_reward, task_done = self.tasks(observation, previous_observation, action)
-        reward += task_reward
+        tasks_reward, tasks_done = self.tasks(observation, previous_observation, action)
+        reward += tasks_reward
         reward -= self.timestep_penalty
         if not success:
             reward -= self.fail_penalty
@@ -199,11 +199,15 @@ class CraftingEnv(gym.Env):
         self.player.score += int(100 * reward)
 
         # Termination
-        done = self.steps >= self.max_step or task_done
+        done = self.steps >= self.max_step or tasks_done
 
         # Infos
         action_is_legal = self.action_masks()
-        infos = {"env_step": self.steps, "action_is_legal": action_is_legal}
+        infos = {
+            "env_step": self.steps,
+            "action_is_legal": action_is_legal,
+            "tasks_done": tasks_done,
+        }
 
         self.steps += 1
 
