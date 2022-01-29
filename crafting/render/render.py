@@ -290,7 +290,6 @@ def make_menus(world: "World", window_shape: tuple):
     )
 
     for recipe in world.recipes:
-        print(recipe)
         add_button(
             recipes_menu,
             id_to_action,
