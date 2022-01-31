@@ -102,11 +102,12 @@ class GetItem(Option):
 
         # Any of the zones possibles
         prev_checks_zone = []
-        for zone_id in self.zones_id_needed:
-            is_in_zone = self._add_zone_option(graph, zone_id)
-            prev_checks_zone.append(is_in_zone)
-            for prev in prev_checks:
-                graph.add_edge(prev, is_in_zone, index=int(True))
+        if self.world.n_zones > 1:
+            for zone_id in self.zones_id_needed:
+                is_in_zone = self._add_zone_option(graph, zone_id)
+                prev_checks_zone.append(is_in_zone)
+                for prev in prev_checks:
+                    graph.add_edge(prev, is_in_zone, index=int(True))
         if len(prev_checks_zone) > 0:
             prev_checks = prev_checks_zone
 
