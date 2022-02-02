@@ -294,7 +294,7 @@ class World:
                     out_node,
                     type="craft",
                     color=[1, 0, 0, 1],
-                    index=index,
+                    index=index + 1,
                 )
 
         for recipe in self.recipes:
@@ -308,19 +308,21 @@ class World:
                 out_items_ids = [stack.item_id for stack in recipe.outputs]
 
             in_props = (
-                recipe.needed_properties if recipe.needed_properties is not None else []
+                list(recipe.needed_properties.keys())
+                if recipe.needed_properties is not None
+                else []
             )
             out_props = (
-                recipe.added_properties if recipe.needed_properties is not None else []
+                list(recipe.added_properties.keys())
+                if recipe.needed_properties is not None
+                else []
             )
 
             for out_item in out_items_ids:
-                _add_crafts(in_items_ids, out_item)
-                _add_crafts(in_props, out_item)
+                _add_crafts(in_items_ids + in_props, out_item)
 
             for out_prop in out_props:
-                _add_crafts(in_items_ids, out_prop)
-                _add_crafts(in_props, out_prop)
+                _add_crafts(in_items_ids + in_props, out_prop)
 
         # Add required_tools and drops edges
         for foundable_item in self.foundable_items:
@@ -349,8 +351,6 @@ class World:
                             color=[0, 1, 0, 1],
                             index=0,
                         )
-
-        compute_levels(graph)
         return graph
 
     # pylint: disable=invalid-name
@@ -365,8 +365,9 @@ class World:
 
         """
         graph = self.get_requirements_graph()
-        pos = leveled_layout_energy(graph)
+        compute_levels(graph)
         nodes_by_level = graph.graph["nodes_by_level"]
+        pos = leveled_layout_energy(graph)
         compute_edges_color(graph)
 
         dashed_edges = [
