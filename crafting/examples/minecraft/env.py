@@ -57,6 +57,11 @@ class MineCraftingEnv(CraftingEnv):
         if isinstance(task, Task):
             return task
         if isinstance(task, str):
-            task_class = TASKS[task.lower()]
+            try:
+                task_class = TASKS[task.lower()]
+            except KeyError:
+                raise ValueError(
+                    f"Task {task} is unknowed. Available tasks: {list(TASKS.keys())}"
+                )
             return task_class(world)
         raise TypeError(f"task should be str or Task instances but was {type(task)}")
