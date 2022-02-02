@@ -283,8 +283,8 @@ class RandomCraftingEnv(CraftingEnv):
 
     def _get_tasks(self, task: Task):
         if task == "obtain_random_item":
-            goal_item = np.random.choice(self.world.items)
-            return self.world.tasks[f"obtain_{goal_item}"]
+            goal_item = self.world.items[np.random.randint(self.world.n_items)]
+            return self.world.tasks[f"obtain_{goal_item.name.lower()}"]
         return super()._get_tasks(task)
 
 

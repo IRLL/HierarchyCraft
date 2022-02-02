@@ -116,7 +116,8 @@ class World:
 
         # Tasks
         self.tasks = {
-            f"obtain_{item}": TaskObtainItem(self, item) for item in self.items
+            f"obtain_{item.name.lower()}": TaskObtainItem(self, item)
+            for item in self.items
         }
 
         # Resources path
