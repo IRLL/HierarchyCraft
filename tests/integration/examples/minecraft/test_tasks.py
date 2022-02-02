@@ -4,6 +4,7 @@
 
 """ Module testing that each of the built-in tasks can be done succesfully. """
 
+
 import pytest
 import pytest_check as check
 
@@ -12,7 +13,7 @@ from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.tools import *
 from crafting.examples.minecraft.recipes import *
 from crafting.examples.minecraft.zones import *
-from crafting.examples.minecraft.tasks import TASKS
+from crafting.task import TaskObtainItem
 
 
 class TestTasks:
@@ -20,15 +21,19 @@ class TestTasks:
     """Tasks of the MineCrafting environment"""
 
     @pytest.mark.parametrize(
-        "task_name", [name for name in TASKS if name.startswith("obtain")]
+        "task_name",
+        [
+            name
+            for name in MineCraftingEnv().world.tasks.keys()
+            if name.startswith("obtain_")
+        ],
     )
     def test_completion_of_(self, task_name):
-        env = MineCraftingEnv()
-        task = TASKS[task_name](world=env.world)
+        task: TaskObtainItem = MineCraftingEnv().world.tasks[task_name]
         env = MineCraftingEnv(tasks=task)
 
         all_options = env.world.get_all_options()
-        option_solving_task = all_options[f"Get {task.item}"]
+        option_solving_task = all_options[f"Get {task.goal_item}"]
 
         observation = env.reset()
         done = False
@@ -36,8 +41,10 @@ class TestTasks:
             action = option_solving_task(observation)
             observation, _, done, _ = env.step(action)
 
-        item_slot = env.world.item_id_to_slot[task.item.item_id]
-        check.greater_equal(env.player.inventory.content[item_slot], 1)
+        item_slot = env.world.item_id_to_slot[task.goal_item.item_id]
+        check.greater_equal(
+            env.player.inventory.content[item_slot], 1, f"{task_name} completed."
+        )
 
 
 def test_obtain_getting_wood():

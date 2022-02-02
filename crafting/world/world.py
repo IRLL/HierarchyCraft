@@ -93,6 +93,20 @@ class World:
             recipe.recipe_id: i for i, recipe in enumerate(recipes)
         }
         self.n_recipes = len(recipes)
+        self.craftable_items: List[Item] = []
+        for recipe in recipes:
+            if recipe.outputs is not None:
+                output_items = [stack.item for stack in recipe.outputs]
+                self.craftable_items += output_items
+
+        # Getable items
+        self.getable_items: List[Item] = []
+        for item in self.foundable_items:
+            if hasattr(item, "items_dropped"):
+                self.getable_items += item.items_dropped
+            else:
+                self.getable_items.append(item)
+        self.getable_items += self.craftable_items
 
         # Zone properties
         self.zone_properties = set()
@@ -117,7 +131,7 @@ class World:
         # Tasks
         self.tasks = {
             f"obtain_{item.name.lower()}": TaskObtainItem(self, item)
-            for item in self.items
+            for item in self.getable_items
         }
 
         # Resources path
