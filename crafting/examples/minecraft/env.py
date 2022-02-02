@@ -9,11 +9,9 @@ Crafting environment adapted to the Minecraft inventory
 """
 
 from crafting.env import CraftingEnv
-from crafting.task import Task
 
 from crafting.examples.minecraft.abc import McPlayer
 from crafting.examples.minecraft.world import McWorld
-from crafting.examples.minecraft.tasks import TASKS
 
 
 class MineCraftingEnv(CraftingEnv):
@@ -42,26 +40,4 @@ class MineCraftingEnv(CraftingEnv):
         self.render_variables = None
         self.metadata["video.frames_per_second"] = kwargs.pop("fps", 10)
 
-        tasks = kwargs.pop("tasks", None)
-        if tasks is not None:
-            if not isinstance(tasks, (list, tuple)):
-                tasks = [tasks]
-            tasks = [self._get_tasks(task, world) for task in tasks]
-
-        super().__init__(
-            name="MineCrafting", world=world, player=player, tasks=tasks, **kwargs
-        )
-
-    @staticmethod
-    def _get_tasks(task, world):
-        if isinstance(task, Task):
-            return task
-        if isinstance(task, str):
-            try:
-                task_class = TASKS[task.lower()]
-            except KeyError:
-                raise ValueError(
-                    f"Task {task} is unknowed. Available tasks: {list(TASKS.keys())}"
-                )
-            return task_class(world)
-        raise TypeError(f"task should be str or Task instances but was {type(task)}")
+        super().__init__(name="MineCrafting", world=world, player=player, **kwargs)

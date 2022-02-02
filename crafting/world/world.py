@@ -25,6 +25,7 @@ import crafting
 from crafting.options.options import GetItem, ReachZone, Option
 from crafting.world.items import Tool
 from crafting.render.utils import load_or_create_image
+from crafting.task import TaskObtainItem
 
 if TYPE_CHECKING:
     from crafting.world.zones import Zone
@@ -112,6 +113,11 @@ class World:
 
         self.n_actions = self.n_foundable_items + self.n_recipes + self.n_zones
         self.observation_size = self.n_items + self.n_zones + self.n_zone_properties
+
+        # Tasks
+        self.tasks = {
+            f"obtain_{item}": TaskObtainItem(self, item) for item in self.items
+        }
 
         # Resources path
         render_path = os.path.dirname(crafting.render.__file__)

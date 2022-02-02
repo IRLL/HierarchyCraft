@@ -60,11 +60,19 @@ class CraftingEnv(gym.Env):
         """
         self.name = name
 
+        # World
         self.world = deepcopy(world)
         self.initial_world = deepcopy(world)
 
+        # Player
         self.player = deepcopy(player)
         self.initial_player = deepcopy(player)
+
+        # Tasks
+        if tasks is not None:
+            if not isinstance(tasks, (list, tuple)):
+                tasks = [tasks]
+            tasks = [self._get_tasks(task) for task in tasks]
 
         self.tasks = TaskList(
             tasks=tasks,
@@ -73,10 +81,12 @@ class CraftingEnv(gym.Env):
             early_stopping=tasks_early_stopping,
         )
 
+        # Reward penalties
         self.fail_penalty = fail_penalty
         self.timestep_penalty = timestep_penalty
         self.moving_penalty = moving_penalty
 
+        # Other properties
         self.max_step = max_step
         self.steps = 1
         self.verbose = verbose
@@ -117,6 +127,8 @@ class CraftingEnv(gym.Env):
                 [str(prop) for prop in self.world.zone_properties],
             )
         )
+
+        # Rendering
         self.render_variables = None
 
     def action(self, action_type: str, identification: int) -> int:
@@ -279,6 +291,19 @@ class CraftingEnv(gym.Env):
             rgb_array = surface_to_rgb_array(self.render_variables["screen"])
             return rgb_array
         return super().render(mode=mode)  # just raise an exception
+
+    def _get_tasks(self, task: Union[str, Task]):
+        if isinstance(task, Task):
+            return task
+        if isinstance(task, str):
+            try:
+                return self.world.tasks[task.lower()]
+            except KeyError:
+                raise ValueError(
+                    f"Task {task} is unknowed for env {self}."
+                    f"Available tasks: {list(self.world.tasks.keys())}"
+                )
+        raise TypeError(f"task should be str or Task instances but was {type(task)}")
 
     def __call__(self, action):
         return self.step(action)
