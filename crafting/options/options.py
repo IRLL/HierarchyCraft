@@ -6,7 +6,7 @@
 from typing import TYPE_CHECKING, List, Dict, Union
 import numpy as np
 
-from option_graph import Option, OptionGraph, Action, EmptyNode
+from option_graph import Option, OptionGraph
 
 from crafting.render.utils import load_or_create_image
 from crafting.options.actions import SearchItem, MoveToZone, CraftRecipe
@@ -85,8 +85,8 @@ class GetItem(Option):
         prev_checks = []
 
         # Any of Craft options
-        for craft_option in self.items_needed:
-            if craft_option is not None:
+        if None not in self.items_needed:
+            for craft_option in self.items_needed:
                 prev_check = None
                 for item_id, quantity in craft_option:
                     has_item = self._add_crafting_option(graph, item_id, quantity)
@@ -95,10 +95,6 @@ class GetItem(Option):
                     prev_check = has_item
                 if prev_check is not None:
                     prev_checks.append(prev_check)
-            else:
-                no_item_required = EmptyNode("No item required")
-                graph.add_node(no_item_required)
-                prev_checks.append(no_item_required)
 
         # Any of the zones possibles
         prev_checks_zone = []
