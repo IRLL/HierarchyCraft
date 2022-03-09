@@ -10,7 +10,6 @@ Generate a random Crafting environment using basic constructor rules.
 from typing import List, Tuple, Dict
 
 import numpy as np
-from numpy import random
 
 from crafting.env import CraftingEnv
 from crafting.render.render import get_human_action
@@ -37,6 +36,7 @@ class RandomCraftingEnv(CraftingEnv):
         n_required_tools: List[float],
         n_inputs_per_craft: List[float],
         n_zones: int = 1,
+        seed: int = None,
         **kwargs,
     ):
         """Random Crafting Environment.
@@ -69,6 +69,8 @@ class RandomCraftingEnv(CraftingEnv):
             n_items >= n_tools + n_foundables
         ), "Number of items must be greater than number of tools and foundables."
 
+        (seed,) = super().seed(seed)
+
         world, initial_zone = self.build_world(
             n_items=n_items,
             n_tools=n_tools,
@@ -79,7 +81,7 @@ class RandomCraftingEnv(CraftingEnv):
         )
 
         player = Player(Inventory(world.items), initial_zone)
-        super().__init__(world=world, player=player, **kwargs)
+        super().__init__(world=world, player=player, seed=seed, **kwargs)
 
     def build_world(
         self,
@@ -129,8 +131,8 @@ class RandomCraftingEnv(CraftingEnv):
         world = World(zones=zones, items=items, recipes=recipes)
         return world, zones[0]
 
-    @staticmethod
     def _build_foundables(
+        self,
         n_foundables: int,
         n_required_tools: List[float],
         tools: List[Tool],
@@ -161,10 +163,12 @@ class RandomCraftingEnv(CraftingEnv):
         for _ in range(1, n_foundables):
             # Get required tools
             n_req_probs = np.array(n_required_tools) / np.sum(n_required_tools)
-            n_req_tools = np.random.choice(range(len(n_required_tools)), p=n_req_probs)
+            n_req_tools = self.np_random.choice(
+                range(len(n_required_tools)), p=n_req_probs
+            )
             n_req_tools = min(n_req_tools, len(tools))
             required_tools = list(
-                np.random.choice(tools, size=n_req_tools, replace=False)
+                self.np_random.choice(tools, size=n_req_tools, replace=False)
             )
 
             # Build item
@@ -180,10 +184,10 @@ class RandomCraftingEnv(CraftingEnv):
             if n_zones > 1:
                 n_zones_probs = np.array([1 / (n + 1) for n in range(1, n_zones)])
                 n_zones_probs /= np.sum(n_zones_probs)
-                n_foundable_zones = 1 + np.random.choice(
+                n_foundable_zones = 1 + self.np_random.choice(
                     range(1, n_zones), p=n_zones_probs
                 )
-                foundable_zones = np.random.choice(
+                foundable_zones = self.np_random.choice(
                     range(n_zones), size=n_foundable_zones, replace=False
                 )
             else:
@@ -213,8 +217,8 @@ class RandomCraftingEnv(CraftingEnv):
             zones.append(new_zone)
         return zones
 
-    @staticmethod
     def _build_recipes(
+        self,
         items: List[Item],
         foundables: List[Item],
         n_inputs_per_craft: List[float],
@@ -238,7 +242,7 @@ class RandomCraftingEnv(CraftingEnv):
         )
 
         unaccessible_items = [item for item in items if item not in foundables]
-        random.shuffle(unaccessible_items)
+        self.np_random.shuffle(unaccessible_items)
 
         while len(accessible_items) < len(items):
             new_accessible_item = unaccessible_items.pop()
@@ -255,14 +259,16 @@ class RandomCraftingEnv(CraftingEnv):
 
             # Chooses randomly the number of input items (>=1)
             n_inputs_probs = np.array(n_inputs_per_craft) / np.sum(n_inputs_per_craft)
-            n_inputs = 1 + np.random.choice(
+            n_inputs = 1 + self.np_random.choice(
                 range(len(n_inputs_probs)), p=n_inputs_probs
             )
             n_inputs = min(n_inputs, len(accessible_notool_items))
 
             # Chooses randomly accessible items and build ItemStacks of size 1 (default).
             input_items = list(
-                np.random.choice(accessible_notool_items, size=n_inputs, replace=False)
+                self.np_random.choice(
+                    accessible_notool_items, size=n_inputs, replace=False
+                )
             )
             inputs = [ItemStack(item) for item in input_items]
 
@@ -283,7 +289,7 @@ class RandomCraftingEnv(CraftingEnv):
 
     def _get_tasks(self, task: Task):
         if task == "obtain_random_item":
-            goal_item = self.world.items[np.random.randint(self.world.n_items)]
+            goal_item = self.world.items[self.np_random.randint(self.world.n_items)]
             return self.world.tasks[f"obtain_{goal_item.name.lower()}"]
         return super()._get_tasks(task)
 

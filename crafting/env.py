@@ -6,13 +6,15 @@
 from typing import TYPE_CHECKING, Tuple, List, Union
 from copy import deepcopy
 
-import gym
 import numpy as np
+
+import gym
 from gym import spaces
 
 from crafting.player.player import Player
 from crafting.task import Task, TaskList
 from crafting.render.render import update_rendering, surface_to_rgb_array, create_window
+
 
 if TYPE_CHECKING:
     from crafting.world.world import World
@@ -39,6 +41,7 @@ class CraftingEnv(gym.Env):
         fail_penalty: float = 0.09,
         timestep_penalty: float = 0.01,
         moving_penalty: float = 0.09,
+        seed: int = None,
     ):
         """Generic Crafting Environment.
 
@@ -131,6 +134,24 @@ class CraftingEnv(gym.Env):
         # Rendering
         self.render_variables = None
 
+        # Seeding
+        self.rng_seeds = self.seed(seed)
+        self.action_space.seed(seed)
+        self.observation_space.seed(seed)
+
+    def seed(self, seed: int = None) -> List[int]:
+        """Seed the environment for random reproductibility.
+
+        Args:
+            seed (int, optional): Seed to base the randomness on, if None generate a random seed.
+                Defaults to None.
+
+        Returns:
+            List[int]: List of seeds used by this environment.
+        """
+        self.np_random = np.random.RandomState(seed)
+        return [seed]
+
     def action(self, action_type: str, identification: int) -> int:
         """Return action_id from action type and identifier.
 
@@ -208,7 +229,7 @@ class CraftingEnv(gym.Env):
         if not success:
             reward -= self.fail_penalty
 
-        self.player.score += int(100 * reward)
+        self.player.score += int(reward)
 
         # Termination
         done = self.steps >= self.max_step or tasks_done
