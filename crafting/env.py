@@ -139,7 +139,16 @@ class CraftingEnv(gym.Env):
         self.action_space.seed(seed)
         self.observation_space.seed(seed)
 
-    def seed(self, seed=None):
+    def seed(self, seed: int = None) -> List[int]:
+        """Seed the environment for random reproductibility.
+
+        Args:
+            seed (int, optional): Seed to base the randomness on, if None generate a random seed.
+                Defaults to None.
+
+        Returns:
+            List[int]: List of seeds used by this environment.
+        """
         self.np_random = np.random.RandomState(seed)
         return [seed]
 
