@@ -6,10 +6,11 @@
 
 import pytest
 import pytest_check as check
+from pytest_mock import MockerFixture
 
 import numpy as np
 
-from crafting.task import Task, TaskList
+from crafting.task import RewardShaping, Task, TaskList, TaskObtainItem
 
 
 class DummyWorld:
@@ -36,7 +37,7 @@ class TestTask:
         check.equal(task.name, "task_name")
         check.equal(task.world, self.world)
 
-    def test_call(self, mocker):
+    def test_call(self, mocker: MockerFixture):
         """should call `done` and `reward` on call."""
         mocker.patch("crafting.task.Task.reward", lambda *args: 1)
         mocker.patch("crafting.task.Task.done", lambda *args: True)
@@ -92,7 +93,7 @@ class TestTaskList:
         check.equal(reward, 0)
         check.is_false(done)
 
-    def test_call(self, mocker):
+    def test_call(self, mocker: MockerFixture):
         """should return accumulated rewards and done on call."""
         mocker.patch("crafting.task.TaskList._get_task_weight", lambda *args: 1)
         mocker.patch("crafting.task.TaskList._get_task_can_end", lambda *args: True)
@@ -236,3 +237,64 @@ class TestTaskListStackDones:
         tests.dones = [True, False, True]
         with pytest.raises(ValueError, match=r"Unknown value for early_stopping.*"):
             tests._stacked_dones()
+
+
+class TestTaskObtainItem:
+    """TaskObtainItem"""
+
+    def test_goal_item(self, mocker: MockerFixture):
+        """should have given item as goal_item and ending achivement."""
+        init_mocker = mocker.patch("crafting.task.Task.__init__")
+        add_achivement_mocker = mocker.patch(
+            "crafting.task.Task.add_achivement_getitem"
+        )
+
+        class DummyItem:
+            item_id = 0
+
+        dummy_item = DummyItem()
+        dummy_world = "dummy_world"
+
+        task = TaskObtainItem(world=dummy_world, item=dummy_item)
+        init_mocker.assert_called_with(f"obtain_{dummy_item}", dummy_world)
+        check.equal(task.goal_item, dummy_item)
+        add_achivement_mocker.assert_called_with(dummy_item.item_id, 10, end_task=True)
+
+    def test_reward_shaping_all(self, mocker: MockerFixture):
+        """should give achivement value for every world item."""
+        mocker.patch("crafting.task.Task.__init__")
+        add_achivement_mocker = mocker.patch(
+            "crafting.task.Task.add_achivement_getitem"
+        )
+
+        class DummyItem:
+            def __init__(self, item_id: int) -> None:
+                self.item_id = item_id
+
+        dummy_items = [DummyItem(i) for i in range(5)]
+        dummy_item = dummy_items[1]
+
+        class DummyWorld:
+            items = dummy_items
+
+        dummy_world = DummyWorld()
+
+        shaping_value = 42
+
+        TaskObtainItem(
+            world=dummy_world,
+            item=dummy_item,
+            reward_shaping=RewardShaping.ALL,
+            shaping_value=shaping_value,
+        )
+
+        is_called = {item.item_id: False for item in dummy_items}
+        check.equal(
+            add_achivement_mocker.call_args_list[0].args, (dummy_item.item_id, 10)
+        )
+        check.equal(add_achivement_mocker.call_args_list[0].kwargs, {"end_task": True})
+
+        for call in add_achivement_mocker.call_args_list[1:]:
+            is_called[call.args[0]] = True
+            check.equal(call.args[1], shaping_value)
+        check.is_true(all(is_called.values()))
