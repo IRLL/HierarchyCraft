@@ -13,6 +13,14 @@ from crafting.options.options import GetItem
 
 
 def get_items_in_graph(graph: OptionGraph) -> Set[Item]:
+    """Get items in a Crafting option graph.
+
+    Args:
+        graph (OptionGraph): An option graph of the Crafting environment.
+
+    Returns:
+        Set[Item]: Set of items that appears in the given graph.
+    """
     items_in_graph = set()
     for node in graph.nodes():
         if isinstance(node, (SearchItem, GetItem)):
