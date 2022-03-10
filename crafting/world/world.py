@@ -93,7 +93,7 @@ class World:
             recipe.recipe_id: i for i, recipe in enumerate(recipes)
         }
         self.n_recipes = len(recipes)
-        self.craftable_items: List[Item] = []
+        self.craftable_items: List["Item"] = []
         for recipe in recipes:
             if recipe.outputs is not None:
                 output_items = [stack.item for stack in recipe.outputs]

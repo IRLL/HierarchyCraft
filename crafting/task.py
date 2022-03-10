@@ -192,7 +192,7 @@ class TaskObtainItem(Task):
         Args:
             world (World): World in which the task will be defined.
             item (Item): Goal Item to obtain.
-            reward_shaping (RewardShaping, optional): Type of reward shaping, no reward shaping by default.
+            reward_shaping (RewardShaping, optional): Type of reward shaping.
                 Defaults to RewardShaping.NONE.
             shaping_value (float, optional): Value used for reward shaping if any.
                 Defaults to 0.
@@ -202,7 +202,7 @@ class TaskObtainItem(Task):
         self.add_achivement_getitem(self.goal_item.item_id, 10, end_task=True)
 
         # Reward shaping
-        achivement_items: List[Item] = []
+        achivement_items: List["Item"] = []
         if reward_shaping == RewardShaping.ALL:
             achivement_items = world.items
         elif reward_shaping in (RewardShaping.ALL_USEFUL, RewardShaping.DIRECT_USEFUL):
@@ -212,5 +212,5 @@ class TaskObtainItem(Task):
                 graph = graph.unrolled_graph
             achivement_items = list(get_items_in_graph(graph))
 
-        for item in achivement_items:
-            self.add_achivement_getitem(item.item_id, shaping_value)
+        for success_item in achivement_items:
+            self.add_achivement_getitem(success_item.item_id, shaping_value)

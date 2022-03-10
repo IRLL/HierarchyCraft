@@ -319,11 +319,11 @@ class CraftingEnv(gym.Env):
         if isinstance(task, str):
             try:
                 return self.world.tasks[task.lower()]
-            except KeyError:
+            except KeyError as error:
                 raise ValueError(
                     f"Task {task} is unknowed for env {self}."
                     f"Available tasks: {list(self.world.tasks.keys())}"
-                )
+                ) from error
         raise TypeError(f"task should be str or Task instances but was {type(task)}")
 
     def __call__(self, action):
