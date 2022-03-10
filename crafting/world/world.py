@@ -100,7 +100,7 @@ class World:
                 self.craftable_items += output_items
 
         # Getable items
-        self.getable_items: List[Item] = []
+        self.getable_items: List["Item"] = []
         for item in self.foundable_items:
             if hasattr(item, "items_dropped"):
                 self.getable_items += item.items_dropped
