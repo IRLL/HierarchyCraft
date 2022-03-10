@@ -6,9 +6,10 @@
 
 from typing import TYPE_CHECKING, List, Union, Dict
 from enum import Enum
-from crafting.world.items import ItemStack
 
 import numpy as np
+
+from crafting.options.utils import get_items_in_graph
 
 if TYPE_CHECKING:
     from crafting.world.world import World
@@ -209,9 +210,7 @@ class TaskObtainItem(Task):
             graph = solving_option.graph
             if reward_shaping == RewardShaping.ALL_USEFUL:
                 graph = graph.unrolled_graph
-            achivement_items = list(
-                set(node.item for node in graph.nodes() if isinstance(node, ItemStack))
-            )
+            achivement_items = list(get_items_in_graph(graph))
 
         for item in achivement_items:
             self.add_achivement_getitem(item.item_id, shaping_value)
