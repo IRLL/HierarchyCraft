@@ -8,9 +8,8 @@ from typing import Set
 from option_graph import OptionGraph
 
 from crafting.world.items import Item
-from crafting.options.feature_conditions import HasItem, HasProperty, IsInZone
-from crafting.options.actions import SearchItem, CraftRecipe, MoveToZone
-from crafting.options.options import GetItem, ReachZone
+from crafting.options.actions import SearchItem, CraftRecipe
+from crafting.options.options import GetItem
 
 
 def get_items_in_graph(graph: OptionGraph) -> Set[Item]:
