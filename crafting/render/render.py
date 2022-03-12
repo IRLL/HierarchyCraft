@@ -331,33 +331,48 @@ def make_menus(world: "World", window_shape: tuple):
     return (items_menu, recipes_menu, zones_menu), id_to_action
 
 
-if __name__ == "__main__":
-    from crafting.examples.minecraft.items import ENCHANTING_TABLE
-    from crafting.examples import MineCraftingEnv
+def render_env_with_human(env: "CraftingEnv", n_episodes: int = 1):
+    """Render the given environment with human iteractions.
 
-    env = MineCraftingEnv(
-        verbose=1, max_step=100, tasks=["obtain_enchanting_table"], tasks_can_end=[True]
-    )
+    Args:
+        env (CraftingEnv): The Crafting environment to run.
+        n_episodes (int, optional): Number of episodes to run. Defaults to 1.
+    """
+    print("Tasks: ", env.tasks)
 
-    draw_requirements_graph = False
-    if draw_requirements_graph:
-        import matplotlib.pyplot as plt
+    # all_options = env.world.get_all_options()
+    # all_options_list = list(all_options.values())
+    # used_nodes_all = nodes_histograms(all_options_list)
 
-        fig, ax = plt.subplots()
-        env.world.draw_requirements_graph(ax)
-        plt.show()
+    # plot_options_graphs = False
+    # plot_requirement_graph = False
+    # if plot_options_graphs:
+    #     ncols = min(5, len(all_options) + 1)
+    #     fig, axes = plt.subplots(1 + (len(all_options) + 1) // 6, ncols)
+    # else:
+    #     fig, axes = plt.subplots(1, 1)
+    #     axes = [axes]
 
-    ALL_GET_OPTIONS = env.world.get_all_options()
+    # for i, (option_name, option) in enumerate(all_options.items()):
+    #     if plot_options_graphs:
+    #         ax = axes[i // ncols, i % ncols]
+    #         option.graph.draw(ax)
+    #     lcomp, comp_saved = learning_complexity(option, used_nodes_all)
+    #     print(f"{option_name}: {lcomp} ({comp_saved})")
 
-    enchant_table_option = ALL_GET_OPTIONS[f"Get {ENCHANTING_TABLE}"]
-    # print(enchant_table_option)
+    # if plot_requirement_graph:
+    #     env.world.draw_requirements_graph(axes[-1])
 
-    for _ in range(2):
+    for _ in range(n_episodes):
         observation = env.reset()
         done = False
         total_reward = 0
         while not done:
-            rgb_array = env.render(mode="rgb_array")
+            env.render(mode="rgb_array")
+
+            # if plot_options_graphs or plot_requirement_graph:
+            #     plt.show(block=False)
+            #     plt.pause(0.001)
 
             # enchant_action_id = enchant_table_option(observation)
             # print(f'For Enchanting Table: {env.action_from_id(enchant_action_id)}')
