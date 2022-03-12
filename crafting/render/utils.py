@@ -199,6 +199,5 @@ def get_representative_object(recipe: Recipe) -> Union[Item, str]:
     if recipe.outputs is not None:
         return recipe.outputs[0]
     if len(recipe.added_properties) > 0:
-        prop, _ = recipe.added_properties.popitem()
-        return prop
+        return list(recipe.added_properties.keys())[0]
     raise ValueError(f"Recipe {recipe} has no output nor added_properties.")
