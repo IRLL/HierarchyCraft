@@ -251,7 +251,7 @@ class TestTaskObtainItem:
             "crafting.task.Task.add_achivement_getitem"
         )
 
-        def dummy_get_items_in_graph(graph: "DummyGraph"):
+        def dummy_get_items_in_graph(graph: "DummyGraph", *args, **kwargs):
             return graph.items_in_graph
 
         self.get_items_in_graph_mocker = mocker.patch(
@@ -315,7 +315,9 @@ class TestTaskObtainItem:
         """should have given item as goal_item and ending achivement."""
 
         task = TaskObtainItem(world=self.dummy_world, item=self.dummy_item)
-        self.init_mocker.assert_called_with(f"obtain_{self.dummy_item}", self.dummy_world)
+        self.init_mocker.assert_called_with(
+            f"obtain_{self.dummy_item}", self.dummy_world
+        )
         check.equal(task.goal_item, self.dummy_item)
         self.add_achivement_mocker.assert_called_with(
             self.dummy_item.item_id, 10, end_task=True
@@ -333,9 +335,12 @@ class TestTaskObtainItem:
 
         is_called = {item.item_id: False for item in self.dummy_items}
         check.equal(
-            self.add_achivement_mocker.call_args_list[0].args, (self.dummy_item.item_id, 10)
+            self.add_achivement_mocker.call_args_list[0].args,
+            (self.dummy_item.item_id, 10),
         )
-        check.equal(self.add_achivement_mocker.call_args_list[0].kwargs, {"end_task": True})
+        check.equal(
+            self.add_achivement_mocker.call_args_list[0].kwargs, {"end_task": True}
+        )
 
         for call in self.add_achivement_mocker.call_args_list[1:]:
             is_called[call.args[0]] = True
@@ -356,9 +361,12 @@ class TestTaskObtainItem:
         expected_called_items = [self.dummy_items[2].item_id]
 
         check.equal(
-            self.add_achivement_mocker.call_args_list[0].args, (self.dummy_item.item_id, 10)
+            self.add_achivement_mocker.call_args_list[0].args,
+            (self.dummy_item.item_id, 10),
         )
-        check.equal(self.add_achivement_mocker.call_args_list[0].kwargs, {"end_task": True})
+        check.equal(
+            self.add_achivement_mocker.call_args_list[0].kwargs, {"end_task": True}
+        )
         for call in self.add_achivement_mocker.call_args_list[1:]:
             is_called[call.args[0]] = True
             check.equal(call.args[1], self.shaping_value)
@@ -384,9 +392,12 @@ class TestTaskObtainItem:
         expected_called_items = [item.item_id for item in self.dummy_items[2:]]
 
         check.equal(
-            self.add_achivement_mocker.call_args_list[0].args, (self.dummy_item.item_id, 10)
+            self.add_achivement_mocker.call_args_list[0].args,
+            (self.dummy_item.item_id, 10),
         )
-        check.equal(self.add_achivement_mocker.call_args_list[0].kwargs, {"end_task": True})
+        check.equal(
+            self.add_achivement_mocker.call_args_list[0].kwargs, {"end_task": True}
+        )
         for call in self.add_achivement_mocker.call_args_list[1:]:
             is_called[call.args[0]] = True
             check.equal(call.args[1], self.shaping_value)
