@@ -206,11 +206,12 @@ class TaskObtainItem(Task):
         if reward_shaping == RewardShaping.ALL:
             achivement_items = world.items
         elif reward_shaping in (RewardShaping.ALL_USEFUL, RewardShaping.DIRECT_USEFUL):
-            solving_option = world.get_all_options()[f"Get {item}"]
+            all_options = world.get_all_options()
+            solving_option = all_options[f"Get {item}"]
             graph = solving_option.graph
             if reward_shaping == RewardShaping.ALL_USEFUL:
                 graph = graph.unrolled_graph
-            achivement_items = list(get_items_in_graph(graph))
+            achivement_items = list(get_items_in_graph(graph, all_options=all_options))
 
         for success_item in achivement_items:
             self.add_achivement_getitem(success_item.item_id, shaping_value)
