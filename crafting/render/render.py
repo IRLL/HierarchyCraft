@@ -364,7 +364,7 @@ def render_env_with_human(env: "CraftingEnv", n_episodes: int = 1):
     #     env.world.draw_requirements_graph(axes[-1])
 
     for _ in range(n_episodes):
-        observation = env.reset()
+        env.reset()
         done = False
         total_reward = 0
         while not done:
@@ -381,7 +381,7 @@ def render_env_with_human(env: "CraftingEnv", n_episodes: int = 1):
             action_id = env.action(*action)
             print(f"Human did: {env.action_from_id(action_id)}")
 
-            observation, reward, done, infos = env(action_id)
+            _, reward, done, _ = env(action_id)
             total_reward += reward
 
         print("SCORE: ", total_reward)
