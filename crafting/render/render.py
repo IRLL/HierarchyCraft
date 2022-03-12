@@ -340,29 +340,6 @@ def render_env_with_human(env: "CraftingEnv", n_episodes: int = 1):
     """
     print("Tasks: ", env.tasks)
 
-    # all_options = env.world.get_all_options()
-    # all_options_list = list(all_options.values())
-    # used_nodes_all = nodes_histograms(all_options_list)
-
-    # plot_options_graphs = False
-    # plot_requirement_graph = False
-    # if plot_options_graphs:
-    #     ncols = min(5, len(all_options) + 1)
-    #     fig, axes = plt.subplots(1 + (len(all_options) + 1) // 6, ncols)
-    # else:
-    #     fig, axes = plt.subplots(1, 1)
-    #     axes = [axes]
-
-    # for i, (option_name, option) in enumerate(all_options.items()):
-    #     if plot_options_graphs:
-    #         ax = axes[i // ncols, i % ncols]
-    #         option.graph.draw(ax)
-    #     lcomp, comp_saved = learning_complexity(option, used_nodes_all)
-    #     print(f"{option_name}: {lcomp} ({comp_saved})")
-
-    # if plot_requirement_graph:
-    #     env.world.draw_requirements_graph(axes[-1])
-
     for _ in range(n_episodes):
         env.reset()
         done = False
