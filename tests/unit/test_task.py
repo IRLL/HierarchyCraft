@@ -122,38 +122,29 @@ class TestTaskListGetTaskWeight:
 
     def test_list(self):
         """should assign weights correctly if tasks_weights is a list."""
-        self.tasklist = TaskList(self.tasks)
-
         expected_tasks_weights = [0.2, 0.1, 5]
-        self.tasklist.tasks_weights = expected_tasks_weights
-
-        tasks_weights = [
-            self.tasklist._get_task_weight(task, i)
-            for i, task in enumerate(self.tasklist.tasks)
-        ]
-
-        for value, expected in zip(tasks_weights, expected_tasks_weights):
+        self.tasklist = TaskList(self.tasks, weights=expected_tasks_weights)
+        for i, task in enumerate(self.tasklist.tasks):
+            value = self.tasklist._get_task_weight(task)
+            expected = expected_tasks_weights[i]
             check.equal(value, expected)
 
     def test_dict(self):
         """should assign weights correctly if tasks_weights is a dict."""
-        self.tasklist = TaskList(self.tasks)
-
         expected_tasks_weights = {
             task.name: weight for task, weight in zip(self.tasks, [0.2, 0.1, 5])
         }
-        self.tasklist.tasks_weights = expected_tasks_weights
-
-        for i, task in enumerate(self.tasklist.tasks):
-            value = self.tasklist._get_task_weight(task, i)
+        self.tasklist = TaskList(self.tasks, weights=expected_tasks_weights)
+        for task in self.tasklist.tasks:
+            value = self.tasklist._get_task_weight(task)
             expected = expected_tasks_weights[task.name]
             check.equal(value, expected)
 
     def test_none(self):
         """should assign weights of 1 if tasks_weights is None."""
         self.tasklist = TaskList(self.tasks)
-        for i, task in enumerate(self.tasklist.tasks):
-            value = self.tasklist._get_task_weight(task, i)
+        for task in self.tasklist.tasks:
+            value = self.tasklist._get_task_weight(task)
             check.equal(value, 1)
 
 
@@ -174,39 +165,28 @@ class TestTaskListGetTaskCanEnd:
 
     def test_list(self):
         """should assign `can_end` correctly if tasks_can_end is a list."""
-        self.tasklist = TaskList(self.tasks)
-
         expected_tasks_can_end = [True, False, True]
-        self.tasklist.tasks_can_end = expected_tasks_can_end
-
-        tasks_weights = [
-            self.tasklist._get_task_can_end(task, i)
-            for i, task in enumerate(self.tasklist.tasks)
-        ]
-
-        for value, expected in zip(tasks_weights, expected_tasks_can_end):
-            check.equal(value, expected)
+        self.tasklist = TaskList(self.tasks, can_end=expected_tasks_can_end)
+        for i, task in enumerate(self.tasklist.tasks):
+            value = self.tasklist._get_task_can_end(task)
+            check.equal(value, expected_tasks_can_end[i])
 
     def test_dict(self):
         """should assign `can_end` correctly if tasks_can_end is a dict."""
-        self.tasklist = TaskList(self.tasks)
-
         expected_tasks_can_end = {
             task.name: can_end for task, can_end in zip(self.tasks, [True, False, True])
         }
-        self.tasklist.tasks_can_end = expected_tasks_can_end
-
-        for i, task in enumerate(self.tasklist.tasks):
-            value = self.tasklist._get_task_can_end(task, i)
+        self.tasklist = TaskList(self.tasks, can_end=expected_tasks_can_end)
+        for task in self.tasklist.tasks:
+            value = self.tasklist._get_task_can_end(task)
             expected = expected_tasks_can_end[task.name]
             check.equal(value, expected)
 
     def test_none(self):
         """should assign False to all if tasks_can_end is None."""
         self.tasklist = TaskList(self.tasks)
-        for i, task in enumerate(self.tasklist.tasks):
-            value = self.tasklist._get_task_can_end(task, i)
-            check.is_false(value)
+        for task in self.tasklist.tasks:
+            check.is_false(self.tasklist._get_task_can_end(task))
 
 
 class TestTaskListStackDones:

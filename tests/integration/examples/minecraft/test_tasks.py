@@ -13,7 +13,8 @@ from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.tools import *
 from crafting.examples.minecraft.recipes import *
 from crafting.examples.minecraft.zones import *
-from crafting.task import TaskObtainItem
+
+from crafting.task import TaskList, TaskObtainItem, get_task_from_name
 
 
 class TestTasks:
@@ -22,15 +23,12 @@ class TestTasks:
 
     @pytest.mark.parametrize(
         "task_name",
-        [
-            name
-            for name in MineCraftingEnv().world.tasks.keys()
-            if name.startswith("obtain_")
-        ],
+        [f"obtain_{item}" for item in MineCraftingEnv().world.getable_items],
     )
     def test_completion_of_(self, task_name):
-        task: TaskObtainItem = MineCraftingEnv().world.tasks[task_name]
-        env = MineCraftingEnv(tasks=task)
+        env = MineCraftingEnv()
+        task: TaskObtainItem = get_task_from_name(task_name, env.world)
+        env.add_task(task, can_end=True)
 
         all_options = env.world.get_all_options()
         option_solving_task = all_options[f"Get {task.goal_item}"]
