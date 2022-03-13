@@ -5,8 +5,11 @@
 """ Task to defines objectives """
 
 from typing import TYPE_CHECKING, List, Union, Dict
+from enum import Enum
 
 import numpy as np
+
+from crafting.options.utils import get_items_in_graph
 
 if TYPE_CHECKING:
     from crafting.world.world import World
@@ -162,11 +165,53 @@ class TaskList:
         return "[" + ", ".join(repr(task) for task in self.tasks) + "]"
 
 
+class RewardShaping(Enum):
+    """Enumeration of all posible reward shaping types."""
+
+    NONE = 0  # No reward shaping
+    ALL = 1  # Items give rewards when first obtained.
+    ALL_USEFUL = 2  # Items in unrolled solving option give rewards when first obtained.
+    DIRECT_USEFUL = 3  # Items in solving option give rewards when first obtained.
+
+
 class TaskObtainItem(Task):
 
     """Obtaining a given item_id"""
 
-    def __init__(self, world: "World", item: "Item"):
+    def __init__(
+        self,
+        world: "World",
+        item: "Item",
+        reward_shaping: RewardShaping = RewardShaping.NONE,
+        shaping_value: float = 0.0,
+    ):
+        """Task of obtaining a given item.
+
+        Can have reward shaping of different types.
+
+        Args:
+            world (World): World in which the task will be defined.
+            item (Item): Goal Item to obtain.
+            reward_shaping (RewardShaping, optional): Type of reward shaping.
+                Defaults to RewardShaping.NONE.
+            shaping_value (float, optional): Value used for reward shaping if any.
+                Defaults to 0.
+        """
         super().__init__(f"obtain_{item}", world)
         self.goal_item = item
         self.add_achivement_getitem(self.goal_item.item_id, 10, end_task=True)
+
+        # Reward shaping
+        achivement_items: List["Item"] = []
+        if reward_shaping == RewardShaping.ALL:
+            achivement_items = world.items
+        elif reward_shaping in (RewardShaping.ALL_USEFUL, RewardShaping.DIRECT_USEFUL):
+            all_options = world.get_all_options()
+            solving_option = all_options[f"Get {item}"]
+            graph = solving_option.graph
+            if reward_shaping == RewardShaping.ALL_USEFUL:
+                graph = graph.unrolled_graph
+            achivement_items = list(get_items_in_graph(graph, all_options=all_options))
+
+        for success_item in achivement_items:
+            self.add_achivement_getitem(success_item.item_id, shaping_value)

@@ -25,7 +25,9 @@ R_HAND = [R_WOOD_PLANK, R_STICK]
 # Zone modifiers
 #: Recipe of CRAFTING_TABLE (enable 'has_crafting' zone property)
 R_CRAFTING_TABLE = Recipe(
-    58, inputs=[ItemStack(WOOD_PLANK, 4)], added_properties={"has_crafting": True}
+    58,
+    inputs=[ItemStack(WOOD_PLANK, 4)],
+    added_properties={"has_crafting": True},
 )
 #: Recipe of FURNACE (enable 'has_furnace' zone property)
 R_FURNACE = Recipe(

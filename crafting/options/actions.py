@@ -26,6 +26,7 @@ class SearchItem(Action):
         image = np.array(load_or_create_image(world, item))
         action = world.action("get", item.item_id)
         super().__init__(action, name=name, image=image)
+        self.item = item
 
 
 class MoveToZone(Action):
@@ -37,6 +38,7 @@ class MoveToZone(Action):
         image = np.array(load_or_create_image(world, zone))
         action = world.action("move", zone.zone_id)
         super().__init__(action, name=name, image=image)
+        self.zone = zone
 
 
 class CraftRecipe(Action):
@@ -54,3 +56,4 @@ class CraftRecipe(Action):
         image = np.array(load_or_create_image(world, obj))
         action = world.action("craft", recipe.recipe_id)
         super().__init__(action, name=name, image=image)
+        self.recipe = recipe

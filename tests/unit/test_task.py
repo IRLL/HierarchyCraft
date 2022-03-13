@@ -4,12 +4,14 @@
 
 """ Test of abstract Task classes behavior """
 
+from typing import List
 import pytest
 import pytest_check as check
+from pytest_mock import MockerFixture
 
 import numpy as np
 
-from crafting.task import Task, TaskList
+from crafting.task import RewardShaping, Task, TaskList, TaskObtainItem
 
 
 class DummyWorld:
@@ -36,7 +38,7 @@ class TestTask:
         check.equal(task.name, "task_name")
         check.equal(task.world, self.world)
 
-    def test_call(self, mocker):
+    def test_call(self, mocker: MockerFixture):
         """should call `done` and `reward` on call."""
         mocker.patch("crafting.task.Task.reward", lambda *args: 1)
         mocker.patch("crafting.task.Task.done", lambda *args: True)
@@ -92,7 +94,7 @@ class TestTaskList:
         check.equal(reward, 0)
         check.is_false(done)
 
-    def test_call(self, mocker):
+    def test_call(self, mocker: MockerFixture):
         """should return accumulated rewards and done on call."""
         mocker.patch("crafting.task.TaskList._get_task_weight", lambda *args: 1)
         mocker.patch("crafting.task.TaskList._get_task_can_end", lambda *args: True)
@@ -236,3 +238,173 @@ class TestTaskListStackDones:
         tests.dones = [True, False, True]
         with pytest.raises(ValueError, match=r"Unknown value for early_stopping.*"):
             tests._stacked_dones()
+
+
+class TestTaskObtainItem:
+    """TaskObtainItem"""
+
+    @pytest.fixture(autouse=True)
+    def setup(self, mocker: MockerFixture):
+        """Setup reused fixtures."""
+        self.init_mocker = mocker.patch("crafting.task.Task.__init__")
+        self.add_achivement_mocker = mocker.patch(
+            "crafting.task.Task.add_achivement_getitem"
+        )
+
+        def dummy_get_items_in_graph(graph: "DummyGraph", *args, **kwargs):
+            return graph.items_in_graph
+
+        self.get_items_in_graph_mocker = mocker.patch(
+            "crafting.task.get_items_in_graph", dummy_get_items_in_graph
+        )
+
+        class DummyItem:
+            def __init__(self, item_id: int) -> None:
+                self.item_id = item_id
+
+            def __repr__(self) -> str:
+                return f"DummyItem({self.item_id})"
+
+        self.dummy_items = [DummyItem(i) for i in range(5)]
+        self.dummy_item = self.dummy_items[1]
+
+        class DummyGraph:
+            def __init__(
+                self,
+                item: DummyItem,
+                direct_needed_items: List[DummyItem],
+                all_needed_items: List[DummyItem],
+                graph_type: str = "rolled",
+            ) -> None:
+                self.graph_type = graph_type
+                self.item = item
+
+                if graph_type == "rolled":
+                    self.items_in_graph = direct_needed_items
+                    self.unrolled_graph = DummyGraph(
+                        item, direct_needed_items, all_needed_items, "unrolled"
+                    )
+                else:
+                    self.items_in_graph = all_needed_items
+
+        class DummyGetItem:
+            def __init__(
+                self,
+                item: DummyItem,
+                direct_needed_items: List[DummyItem],
+                all_needed_items: List[DummyItem],
+            ) -> None:
+                self.item = item
+                self.graph = DummyGraph(item, direct_needed_items, all_needed_items)
+
+        class DummyWorld:
+            items = self.dummy_items
+
+            def get_all_options(self):
+                return {
+                    f"Get {item}": DummyGetItem(
+                        item, [self.items[i + 1]], self.items[i + 1 :]
+                    )
+                    for i, item in enumerate(self.items[:-1])
+                }
+
+        self.dummy_world = DummyWorld()
+        self.shaping_value = 42
+
+    def test_goal_item(self, mocker: MockerFixture):
+        """should have given item as goal_item and ending achivement."""
+
+        task = TaskObtainItem(world=self.dummy_world, item=self.dummy_item)
+        self.init_mocker.assert_called_with(
+            f"obtain_{self.dummy_item}", self.dummy_world
+        )
+        check.equal(task.goal_item, self.dummy_item)
+        self.add_achivement_mocker.assert_called_with(
+            self.dummy_item.item_id, 10, end_task=True
+        )
+
+    def test_reward_shaping_all(self, mocker: MockerFixture):
+        """should give achivement value for every world item."""
+
+        TaskObtainItem(
+            world=self.dummy_world,
+            item=self.dummy_item,
+            reward_shaping=RewardShaping.ALL,
+            shaping_value=self.shaping_value,
+        )
+
+        is_called = {item.item_id: False for item in self.dummy_items}
+        check.equal(
+            self.add_achivement_mocker.call_args_list[0].args,
+            (self.dummy_item.item_id, 10),
+        )
+        check.equal(
+            self.add_achivement_mocker.call_args_list[0].kwargs, {"end_task": True}
+        )
+
+        for call in self.add_achivement_mocker.call_args_list[1:]:
+            is_called[call.args[0]] = True
+            check.equal(call.args[1], self.shaping_value)
+        check.is_true(all(is_called.values()))
+
+    def test_reward_shaping_direct_useful(self, mocker: MockerFixture):
+        """should give achivement value for items in solving option rolled graph."""
+
+        TaskObtainItem(
+            world=self.dummy_world,
+            item=self.dummy_item,
+            reward_shaping=RewardShaping.DIRECT_USEFUL,
+            shaping_value=self.shaping_value,
+        )
+
+        is_called = {item.item_id: False for item in self.dummy_items}
+        expected_called_items = [self.dummy_items[2].item_id]
+
+        check.equal(
+            self.add_achivement_mocker.call_args_list[0].args,
+            (self.dummy_item.item_id, 10),
+        )
+        check.equal(
+            self.add_achivement_mocker.call_args_list[0].kwargs, {"end_task": True}
+        )
+        for call in self.add_achivement_mocker.call_args_list[1:]:
+            is_called[call.args[0]] = True
+            check.equal(call.args[1], self.shaping_value)
+
+        for item in self.dummy_items:
+            item_is_called = is_called[item.item_id]
+            if item.item_id in expected_called_items:
+                check.is_true(item_is_called, f"{item} was not called when expected.")
+            else:
+                check.is_false(item_is_called, f"{item} was called when not expected.")
+
+    def test_reward_shaping_all_useful(self, mocker: MockerFixture):
+        """should give achivement value for every item in solving option unrolled graph."""
+
+        TaskObtainItem(
+            world=self.dummy_world,
+            item=self.dummy_item,
+            reward_shaping=RewardShaping.ALL_USEFUL,
+            shaping_value=self.shaping_value,
+        )
+
+        is_called = {item.item_id: False for item in self.dummy_items}
+        expected_called_items = [item.item_id for item in self.dummy_items[2:]]
+
+        check.equal(
+            self.add_achivement_mocker.call_args_list[0].args,
+            (self.dummy_item.item_id, 10),
+        )
+        check.equal(
+            self.add_achivement_mocker.call_args_list[0].kwargs, {"end_task": True}
+        )
+        for call in self.add_achivement_mocker.call_args_list[1:]:
+            is_called[call.args[0]] = True
+            check.equal(call.args[1], self.shaping_value)
+
+        for item in self.dummy_items:
+            item_is_called = is_called[item.item_id]
+            if item.item_id in expected_called_items:
+                check.is_true(item_is_called, f"{item} was not called when expected.")
+            else:
+                check.is_false(item_is_called, f"{item} was called when not expected.")

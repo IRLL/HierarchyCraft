@@ -331,33 +331,25 @@ def make_menus(world: "World", window_shape: tuple):
     return (items_menu, recipes_menu, zones_menu), id_to_action
 
 
-if __name__ == "__main__":
-    from crafting.examples.minecraft.items import ENCHANTING_TABLE
-    from crafting.examples import MineCraftingEnv
+def render_env_with_human(env: "CraftingEnv", n_episodes: int = 1):
+    """Render the given environment with human iteractions.
 
-    env = MineCraftingEnv(
-        verbose=1, max_step=100, tasks=["obtain_enchanting_table"], tasks_can_end=[True]
-    )
+    Args:
+        env (CraftingEnv): The Crafting environment to run.
+        n_episodes (int, optional): Number of episodes to run. Defaults to 1.
+    """
+    print("Tasks: ", env.tasks)
 
-    draw_requirements_graph = False
-    if draw_requirements_graph:
-        import matplotlib.pyplot as plt
-
-        fig, ax = plt.subplots()
-        env.world.draw_requirements_graph(ax)
-        plt.show()
-
-    ALL_GET_OPTIONS = env.world.get_all_options()
-
-    enchant_table_option = ALL_GET_OPTIONS[f"Get {ENCHANTING_TABLE}"]
-    # print(enchant_table_option)
-
-    for _ in range(2):
-        observation = env.reset()
+    for _ in range(n_episodes):
+        env.reset()
         done = False
         total_reward = 0
         while not done:
-            rgb_array = env.render(mode="rgb_array")
+            env.render(mode="rgb_array")
+
+            # if plot_options_graphs or plot_requirement_graph:
+            #     plt.show(block=False)
+            #     plt.pause(0.001)
 
             # enchant_action_id = enchant_table_option(observation)
             # print(f'For Enchanting Table: {env.action_from_id(enchant_action_id)}')
@@ -366,7 +358,7 @@ if __name__ == "__main__":
             action_id = env.action(*action)
             print(f"Human did: {env.action_from_id(action_id)}")
 
-            observation, reward, done, infos = env(action_id)
+            _, reward, done, _ = env(action_id)
             total_reward += reward
 
         print("SCORE: ", total_reward)
