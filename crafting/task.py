@@ -251,9 +251,13 @@ class TaskObtainItem(Task):
             self.add_achivement_getitem(success_item.item_id, shaping_value)
 
 
-def get_task_from_name(task_name: str, world: "World", **kwargs):
+def get_task_from_name(task_name: str, world: "World", **kwargs) -> TaskObtainItem:
+    rng = np.random.RandomState(kwargs.pop("seed", None))
     if task_name.startswith("obtain_"):
         item_name = "".join(task_name.split("_")[1:])
+        if "random" in item_name:
+            random_item = rng.choice(world.getable_items)
+            return TaskObtainItem(world, random_item, **kwargs)
         if "(" in item_name:
             item_id = int(item_name.split("(")[1].split(")")[0])
             item = world.item_from_id[item_id]

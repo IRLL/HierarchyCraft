@@ -35,7 +35,7 @@ class CraftingEnv(gym.Env):
         max_step: int = 500,
         verbose: int = 0,
         observe_legal_actions: bool = False,
-        tasks: List[Union[str, Task]] = None,
+        tasks: List[Union[str, "Task"]] = None,
         fail_penalty: float = 0.09,
         timestep_penalty: float = 0.01,
         moving_penalty: float = 0.09,
