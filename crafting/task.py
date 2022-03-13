@@ -186,7 +186,7 @@ class TaskList:
         accumulated_reward = 0
         dones = []
 
-        for i, task in enumerate(self.tasks):
+        for task in self.tasks:
             reward, done = task(observation, previous_observation, action)
             accumulated_reward += reward * self._get_task_weight(task)
             if self._get_task_can_end(task):
