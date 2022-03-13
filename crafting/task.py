@@ -251,7 +251,31 @@ class TaskObtainItem(Task):
             self.add_achivement_getitem(success_item.item_id, shaping_value)
 
 
-def get_task_from_name(task_name: str, world: "World", **kwargs) -> TaskObtainItem:
+def get_task_from_name(
+    task_name: str, world: "World", **kwargs
+) -> Union[Task, TaskObtainItem]:
+    """Build a Task in the given World from a given name.
+
+    Examples:
+        # To build a TaskObtainItem:
+        task = get_task_from_name('obtain_*(itemid)')
+        # To build a TaskObtainItem for a random item:
+        task = get_task_from_name('obtain_*random*')
+
+    Args:
+        task_name (str): Name of the task to build.
+        world (World): World in which to build the task.
+
+    Kwargs:
+        Are passed to Task constructor.
+
+    Raises:
+        ValueError: If the task name could not be resolved.
+        ValueError: If the item name after 'obtain_' tag could not be resolved.
+
+    Returns:
+        Task: Built task.
+    """
     rng = np.random.RandomState(kwargs.pop("seed", None))
     if task_name.startswith("obtain_"):
         item_name = "".join(task_name.split("_")[1:])
