@@ -97,10 +97,25 @@ class TaskList:
     def __init__(
         self,
         tasks: List[Task],
-        tasks_weights: Union[List[float], Dict[str, float]] = None,
-        tasks_can_end: Union[List[bool], Dict[str, bool]] = None,
+        weights: Union[List[float], Dict[str, float]] = None,
+        can_end: Union[List[bool], Dict[str, bool]] = None,
         early_stopping: str = "all",
     ):
+        """_summary_
+
+        Args:
+            tasks (List[Task]): List of tasks to compose the list.
+            weights (Union[List[float], Dict[str, float]], optional):
+                Weight of tasks used for reward. Defaults to one.
+            can_end (Union[List[bool], Dict[str, bool]], optional):
+                Whether task can end the environment. Defaults to all False.
+            early_stopping (str, optional):
+                If 'all', all task that can end have to be done to stop the environment.
+                If 'any', any task that can end will stop the environment when done.
+                Defaults to "all".
+        Raises:
+            TypeError: A given task is not an instance of Task.
+        """
 
         self.tasks = tasks if tasks is not None else []
         for task in self.tasks:
@@ -109,24 +124,29 @@ class TaskList:
                     f"tasks must be subclassed from :class:`crafting.Task` but was {type(task)}"
                 )
 
-        self.tasks_weights = tasks_weights
-        self.tasks_can_end = tasks_can_end
+        self.weights = self._build_dict(weights, 1)
+        self.can_end = self._build_dict(can_end, False)
         self.early_stopping = early_stopping
         self.dones = [False for _ in self.tasks]
 
-    def _get_task_weight(self, task, i):
-        if isinstance(self.tasks_weights, list):
-            return self.tasks_weights[i]
-        if isinstance(self.tasks_weights, dict):
-            return self.tasks_weights[task.name]
-        return 1
+    def _build_dict(self, values, default) -> dict:
+        if values is None:
+            values = {task.name: default for task in self.tasks}
+        elif isinstance(values, list):
+            values = {task.name: end for task, end in zip(self.tasks, values)}
 
-    def _get_task_can_end(self, task, i):
-        if isinstance(self.tasks_can_end, list):
-            return self.tasks_can_end[i]
-        if isinstance(self.tasks_can_end, dict):
-            return self.tasks_can_end[task.name]
-        return False
+        if isinstance(values, dict):
+            for task in self.tasks:
+                if task.name not in values:
+                    values[task.name] = default
+            return values
+        raise TypeError("Cannot map given values to tasks.")
+
+    def _get_task_weight(self, task: Task):
+        return self.weights[task.name]
+
+    def _get_task_can_end(self, task: Task):
+        return self.can_end[task.name]
 
     def _stacked_dones(self):
         if len(self.dones) == 0:
@@ -145,6 +165,20 @@ class TaskList:
     def __getitem__(self, index: int):
         return self.tasks[index]
 
+    def add(self, task: Task, weight: float = 1.0, can_end: bool = False):
+        """Add a new task to the TaskList.
+
+        Args:
+            task (Task): Task to be added, must be an instance of Task.
+            weight (float, optional): Weight of this task rewards. Defaults to 1.0.
+            can_end (bool, optional): If True, this task could make the env done when completed.
+                See TaskList early_stopping for more details. Defaults to False.
+        """
+        assert isinstance(task, Task), "Can only add Task to TaskList."
+        self.tasks += [task]
+        self.weights[task.name] = weight
+        self.can_end[task.name] = can_end
+
     def __call__(self, observation, previous_observation, action):
         if self.tasks is None:
             return 0, False
@@ -154,8 +188,8 @@ class TaskList:
 
         for i, task in enumerate(self.tasks):
             reward, done = task(observation, previous_observation, action)
-            accumulated_reward += reward * self._get_task_weight(task, i)
-            if self._get_task_can_end(task, i):
+            accumulated_reward += reward * self._get_task_weight(task)
+            if self._get_task_can_end(task):
                 dones.append(done)
 
         self.dones = dones
@@ -215,3 +249,44 @@ class TaskObtainItem(Task):
 
         for success_item in achivement_items:
             self.add_achivement_getitem(success_item.item_id, shaping_value)
+
+
+def get_task_from_name(
+    task_name: str, world: "World", **kwargs
+) -> Union[Task, TaskObtainItem]:
+    """Build a Task in the given World from a given name.
+
+    Examples:
+        # To build a TaskObtainItem:
+        task = get_task_from_name('obtain_*(itemid)')
+        # To build a TaskObtainItem for a random item:
+        task = get_task_from_name('obtain_*random*')
+
+    Args:
+        task_name (str): Name of the task to build.
+        world (World): World in which to build the task.
+
+    Kwargs:
+        Are passed to Task constructor.
+
+    Raises:
+        ValueError: If the task name could not be resolved.
+        ValueError: If the item name after 'obtain_' tag could not be resolved.
+
+    Returns:
+        Task: Built task.
+    """
+    rng = np.random.RandomState(kwargs.pop("seed", None))
+    if task_name.startswith("obtain_"):
+        item_name = "".join(task_name.split("_")[1:])
+        if "random" in item_name:
+            random_item = rng.choice(world.getable_items)
+            return TaskObtainItem(world, random_item, **kwargs)
+        if "(" in item_name:
+            item_id = int(item_name.split("(")[1].split(")")[0])
+            item = world.item_from_id[item_id]
+            return TaskObtainItem(world, item, **kwargs)
+        raise ValueError(
+            f"No item found with name {item_name}." f"Available items: {world.items}"
+        )
+    raise ValueError(f"Could not resolve task name: {task_name}.")

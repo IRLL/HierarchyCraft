@@ -20,7 +20,6 @@ from crafting.player.inventory import Inventory
 from crafting.world.zones import Zone
 from crafting.world.items import Item, Tool, ItemStack
 from crafting.world.recipes import Recipe
-from crafting.task import Task
 
 
 class RandomCraftingEnv(CraftingEnv):
@@ -53,10 +52,6 @@ class RandomCraftingEnv(CraftingEnv):
             verbose: Verbosity level. {0: quiet, 1: print actions results}.
             observe_legal_actions: If True, add legal actions to observations.
             tasks: List of tasks.
-            tasks_weights: Weight of tasks used for reward.
-            tasks_can_end: Whether task can end the environment.
-            tasks_early_stopping: If 'all', all task that can end have to be done to stop the
-                environment. If 'any', any task that can end will stop the environment when done.
             fail_penalty: Reward penalty for each non-successful action.
             timestep_penalty: Reward penalty for each timestep.
             moving_penalty: Reward penalty for moving to an other zone.
@@ -285,9 +280,3 @@ class RandomCraftingEnv(CraftingEnv):
             accessible_items.add(new_accessible_item)
 
         return recipes
-
-    def _get_tasks(self, task: Task):
-        if task == "obtain_random_item":
-            goal_item = self.world.items[self.np_random.randint(self.world.n_items)]
-            return self.world.tasks[f"obtain_{goal_item.name.lower()}"]
-        return super()._get_tasks(task)
