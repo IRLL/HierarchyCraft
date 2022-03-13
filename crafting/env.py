@@ -12,12 +12,13 @@ import gym
 from gym import spaces
 
 from crafting.player.player import Player
-from crafting.task import Task, TaskList
+from crafting.task import TaskList
 from crafting.render.render import update_rendering, surface_to_rgb_array, create_window
 
 
 if TYPE_CHECKING:
     from crafting.world.world import World
+    from crafting.task import Task
 
 
 class CraftingEnv(gym.Env):
@@ -35,9 +36,6 @@ class CraftingEnv(gym.Env):
         verbose: int = 0,
         observe_legal_actions: bool = False,
         tasks: List[Union[str, Task]] = None,
-        tasks_weights: Union[list, dict] = None,
-        tasks_can_end: Union[list, dict] = None,
-        tasks_early_stopping: str = "all",
         fail_penalty: float = 0.09,
         timestep_penalty: float = 0.01,
         moving_penalty: float = 0.09,
@@ -52,10 +50,6 @@ class CraftingEnv(gym.Env):
             verbose: Verbosity level. {0: quiet, 1: print actions results}.
             observe_legal_actions: If True, add legal actions to observations.
             tasks: List of tasks.
-            tasks_weights: Weight of tasks used for reward.
-            tasks_can_end: Whether task can end the environment.
-            tasks_early_stopping: If 'all', all task that can end have to be done to stop the
-                environment. If 'any', any task that can end will stop the environment when done.
             fail_penalty: Reward penalty for each non-successful action.
             timestep_penalty: Reward penalty for each timestep.
             moving_penalty: Reward penalty for moving to an other zone.
@@ -72,17 +66,10 @@ class CraftingEnv(gym.Env):
         self.initial_player = deepcopy(player)
 
         # Tasks
-        if tasks is not None:
-            if not isinstance(tasks, (list, tuple)):
-                tasks = [tasks]
-            tasks = [self._get_tasks(task) for task in tasks]
-
-        self.tasks = TaskList(
-            tasks=tasks,
-            tasks_weights=tasks_weights,
-            tasks_can_end=tasks_can_end,
-            early_stopping=tasks_early_stopping,
-        )
+        if not isinstance(tasks, TaskList):
+            self.tasks = TaskList(tasks=tasks)
+        else:
+            self.tasks = tasks
 
         # Reward penalties
         self.fail_penalty = fail_penalty
@@ -249,6 +236,17 @@ class CraftingEnv(gym.Env):
 
         return observation, reward, done, infos
 
+    def add_task(self, task: "Task", weight: float = 1.0, can_end: bool = False):
+        """Add a new task to the Crafting environment.
+
+        Args:
+            task (Task): Task to be added, must be an instance of Task.
+            weight (float, optional): Weight of this task rewards. Defaults to 1.0.
+            can_end (bool, optional): If True, this task could make the env done when completed.
+                See TaskList early_stopping for more details. Defaults to False.
+        """
+        self.tasks.add(task, weight, can_end)
+
     def action_masks(self) -> np.ndarray:
         """Return the legal actions"""
         can_get = np.array(
@@ -312,19 +310,6 @@ class CraftingEnv(gym.Env):
             rgb_array = surface_to_rgb_array(self.render_variables["screen"])
             return rgb_array
         return super().render(mode=mode)  # just raise an exception
-
-    def _get_tasks(self, task: Union[str, Task]):
-        if isinstance(task, Task):
-            return task
-        if isinstance(task, str):
-            try:
-                return self.world.tasks[task.lower()]
-            except KeyError as error:
-                raise ValueError(
-                    f"Task {task} is unknowed for env {self}."
-                    f"Available tasks: {list(self.world.tasks.keys())}"
-                ) from error
-        raise TypeError(f"task should be str or Task instances but was {type(task)}")
 
     def __call__(self, action):
         return self.step(action)
