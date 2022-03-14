@@ -218,8 +218,9 @@ class TaskObtainItem(Task):
         self,
         world: "World",
         item: "Item",
+        goal_reward: float = 10.0,
         reward_shaping: RewardShaping = RewardShaping.NONE,
-        shaping_value: float = 0.0,
+        shaping_value: float = 1.0,
     ):
         """Task of obtaining a given item.
 
@@ -228,14 +229,16 @@ class TaskObtainItem(Task):
         Args:
             world (World): World in which the task will be defined.
             item (Item): Goal Item to obtain.
+            goal_reward (float, optional): Reward given when item is obtained.
+                Defaults to 10.
             reward_shaping (RewardShaping, optional): Type of reward shaping.
                 Defaults to RewardShaping.NONE.
             shaping_value (float, optional): Value used for reward shaping if any.
-                Defaults to 0.
+                Defaults to 1.
         """
         super().__init__(f"obtain_{item}", world)
         self.goal_item = item
-        self.add_achivement_getitem(self.goal_item, 10, end_task=True)
+        self.add_achivement_getitem(self.goal_item, goal_reward, end_task=True)
 
         # Reward shaping
         achivement_items: List["Item"] = []

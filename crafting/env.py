@@ -36,9 +36,9 @@ class CraftingEnv(gym.Env):
         verbose: int = 0,
         observe_legal_actions: bool = False,
         tasks: List[Union[str, "Task"]] = None,
-        fail_penalty: float = 0.09,
-        timestep_penalty: float = 0.01,
-        moving_penalty: float = 0.09,
+        fail_penalty: float = 9,
+        timestep_penalty: float = 1,
+        moving_penalty: float = 9,
         seed: int = None,
     ):
         """Generic Crafting Environment.
