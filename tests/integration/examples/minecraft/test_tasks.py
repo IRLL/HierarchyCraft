@@ -14,7 +14,7 @@ from crafting.examples.minecraft.tools import *
 from crafting.examples.minecraft.recipes import *
 from crafting.examples.minecraft.zones import *
 
-from crafting.task import TaskList, TaskObtainItem, get_task_from_name
+from crafting.task import TaskObtainItem, get_task_from_name
 
 
 class TestTasks:

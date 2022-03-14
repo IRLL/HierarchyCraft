@@ -24,6 +24,7 @@ class Task:
         self.name = name
         self.world = world
 
+        self.achievements_items = set()
         self.achievements_items_values = np.zeros(self.world.n_items)
         self.achievements_items_done = np.zeros(self.world.n_items, dtype=bool)
 
@@ -35,9 +36,10 @@ class Task:
 
         self.reset()
 
-    def add_achivement_getitem(self, item_id, value, end_task=False):
+    def add_achivement_getitem(self, item: "Item", value, end_task=False):
         """Makes getting `item_id` for the first time an achievement with reward `value`."""
-        item_slot = self.world.item_id_to_slot[item_id]
+        self.achievements_items.add(item)
+        item_slot = self.world.item_id_to_slot[item.item_id]
         self.achievements_items_values[item_slot] += value
         if end_task:
             self.items_end_task_at[item_slot] = 1
@@ -233,11 +235,13 @@ class TaskObtainItem(Task):
         """
         super().__init__(f"obtain_{item}", world)
         self.goal_item = item
-        self.add_achivement_getitem(self.goal_item.item_id, 10, end_task=True)
+        self.add_achivement_getitem(self.goal_item, 10, end_task=True)
 
         # Reward shaping
         achivement_items: List["Item"] = []
-        if reward_shaping == RewardShaping.ALL:
+        if reward_shaping is None or reward_shaping == RewardShaping.NONE:
+            pass
+        elif reward_shaping == RewardShaping.ALL:
             achivement_items = world.items
         elif reward_shaping in (RewardShaping.ALL_USEFUL, RewardShaping.DIRECT_USEFUL):
             all_options = world.get_all_options()
@@ -246,9 +250,13 @@ class TaskObtainItem(Task):
             if reward_shaping == RewardShaping.ALL_USEFUL:
                 graph = graph.unrolled_graph
             achivement_items = list(get_items_in_graph(graph, all_options=all_options))
+        else:
+            raise ValueError(
+                f"Unknown reward_shaping: {reward_shaping} of type {type(reward_shaping)}"
+            )
 
         for success_item in achivement_items:
-            self.add_achivement_getitem(success_item.item_id, shaping_value)
+            self.add_achivement_getitem(success_item, shaping_value)
 
 
 def get_task_from_name(

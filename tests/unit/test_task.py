@@ -5,6 +5,7 @@
 """ Test of abstract Task classes behavior """
 
 from typing import List
+
 import pytest
 import pytest_check as check
 from pytest_mock import MockerFixture
@@ -12,6 +13,7 @@ from pytest_mock import MockerFixture
 import numpy as np
 
 from crafting.task import RewardShaping, Task, TaskList, TaskObtainItem
+from crafting.world.items import Item
 
 
 class DummyWorld:
@@ -300,7 +302,7 @@ class TestTaskObtainItem:
         )
         check.equal(task.goal_item, self.dummy_item)
         self.add_achivement_mocker.assert_called_with(
-            self.dummy_item.item_id, 10, end_task=True
+            self.dummy_item, 10, end_task=True
         )
 
     def test_reward_shaping_all(self, mocker: MockerFixture):
@@ -316,15 +318,17 @@ class TestTaskObtainItem:
         is_called = {item.item_id: False for item in self.dummy_items}
         check.equal(
             self.add_achivement_mocker.call_args_list[0].args,
-            (self.dummy_item.item_id, 10),
+            (self.dummy_item, 10),
         )
         check.equal(
             self.add_achivement_mocker.call_args_list[0].kwargs, {"end_task": True}
         )
 
         for call in self.add_achivement_mocker.call_args_list[1:]:
-            is_called[call.args[0]] = True
+            item_called: Item = call.args[0]
+            is_called[item_called.item_id] = True
             check.equal(call.args[1], self.shaping_value)
+
         check.is_true(all(is_called.values()))
 
     def test_reward_shaping_direct_useful(self, mocker: MockerFixture):
@@ -342,13 +346,14 @@ class TestTaskObtainItem:
 
         check.equal(
             self.add_achivement_mocker.call_args_list[0].args,
-            (self.dummy_item.item_id, 10),
+            (self.dummy_item, 10),
         )
         check.equal(
             self.add_achivement_mocker.call_args_list[0].kwargs, {"end_task": True}
         )
         for call in self.add_achivement_mocker.call_args_list[1:]:
-            is_called[call.args[0]] = True
+            item_called: Item = call.args[0]
+            is_called[item_called.item_id] = True
             check.equal(call.args[1], self.shaping_value)
 
         for item in self.dummy_items:
@@ -373,13 +378,14 @@ class TestTaskObtainItem:
 
         check.equal(
             self.add_achivement_mocker.call_args_list[0].args,
-            (self.dummy_item.item_id, 10),
+            (self.dummy_item, 10),
         )
         check.equal(
             self.add_achivement_mocker.call_args_list[0].kwargs, {"end_task": True}
         )
         for call in self.add_achivement_mocker.call_args_list[1:]:
-            is_called[call.args[0]] = True
+            item_called: Item = call.args[0]
+            is_called[item_called.item_id] = True
             check.equal(call.args[1], self.shaping_value)
 
         for item in self.dummy_items:
