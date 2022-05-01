@@ -30,7 +30,7 @@ class RandomCraftingEnv(CraftingEnv):
         self,
         n_items: int,
         n_tools: int,
-        n_foundables: int,
+        n_findables: int,
         n_required_tools: List[float],
         n_inputs_per_craft: List[float],
         n_zones: int = 1,
@@ -42,7 +42,7 @@ class RandomCraftingEnv(CraftingEnv):
         Args:
             n_items: Total number of items to generate.
             n_tools: Number of random tools to generate.
-            n_foundables: Number of random foundable items to generate.
+            n_findables: Number of random findable items to generate.
             n_required_tools: List of probabilities of having x requirements where x is the index.
             n_inputs_per_craft: List of probabilities of having x+1 inputs where x is the index.
             n_zones: Number of random zones to generate.
@@ -60,15 +60,15 @@ class RandomCraftingEnv(CraftingEnv):
 
         assert n_zones > 0, "Must have at lease one zone."
         assert (
-            n_items >= n_tools + n_foundables
-        ), "Number of items must be greater than number of tools and foundables."
+            n_items >= n_tools + n_findables
+        ), "Number of items must be greater than number of tools and findables."
 
         (seed,) = super().seed(seed)
 
         world, initial_zone = self.build_world(
             n_items=n_items,
             n_tools=n_tools,
-            n_foundables=n_foundables,
+            n_findables=n_findables,
             n_zones=n_zones,
             n_required_tools=n_required_tools,
             n_inputs_per_craft=n_inputs_per_craft,
@@ -81,7 +81,7 @@ class RandomCraftingEnv(CraftingEnv):
         self,
         n_items: int,
         n_tools: int,
-        n_foundables: int,
+        n_findables: int,
         n_zones: int,
         n_required_tools: List[float],
         n_inputs_per_craft: List[float],
@@ -91,7 +91,7 @@ class RandomCraftingEnv(CraftingEnv):
         Args:
             n_items: Total number of items to generate.
             n_tools: Number of random tools to generate.
-            n_foundables: Number of random foundable items to generate.
+            n_findables: Number of random findable items to generate.
             n_zones: Number of random zones to generate.
             n_required_tools: List of probabilities of having x requirements where x is the index.
             n_inputs_per_craft: List of probabilities of having x+1 inputs where x is the index.
@@ -101,60 +101,60 @@ class RandomCraftingEnv(CraftingEnv):
 
         """
 
-        if n_items < n_tools + n_foundables:
-            raise ValueError("n_items must be >= n_tools + n_foundables")
+        if n_items < n_tools + n_findables:
+            raise ValueError("n_items must be >= n_tools + n_findables")
 
         tools = [Tool(i, "tool") for i in range(n_tools)]
-        foundables, items_per_zones, items_per_tool = self._build_foundables(
-            n_foundables,
+        findables, items_per_zones, items_per_tool = self._build_findables(
+            n_findables,
             n_required_tools,
             tools,
             n_zones,
-            offset_id=n_items - n_foundables,
+            offset_id=n_items - n_findables,
         )
         zones = self._build_zones(n_zones, items_per_zones)
 
         craftables = [
-            Item(n_tools + i, "item") for i in range(n_items - n_foundables - n_tools)
+            Item(n_tools + i, "item") for i in range(n_items - n_findables - n_tools)
         ]
-        items = tools + craftables + foundables
+        items = tools + craftables + findables
         recipes = self._build_recipes(
-            items, foundables, n_inputs_per_craft, items_per_tool
+            items, findables, n_inputs_per_craft, items_per_tool
         )
 
         world = World(zones=zones, items=items, recipes=recipes)
         return world, zones[0]
 
-    def _build_foundables(
+    def _build_findables(
         self,
-        n_foundables: int,
+        n_findables: int,
         n_required_tools: List[float],
         tools: List[Tool],
         n_zones: int,
         offset_id: int = 0,
     ) -> Tuple[List[Item], Dict[int, List[Item]]]:
-        """Build a random list of foundable items scattered accross potential zones.
+        """Build a random list of findable items scattered accross potential zones.
 
         Args:
-            n_foundables: Number of random foundable items to generate.
+            n_findables: Number of random findable items to generate.
             n_required_tools: List of probabilities of having x requirements where x is the index.
             tools: List of tools that can be requirements.
             n_zones: Number of zones to scatter items into.
-            offset_id: Offset added to each item_id of generated foundable items.
+            offset_id: Offset added to each item_id of generated findable items.
 
         Returns:
-            foundables: List of generated Items.
+            findables: List of generated Items.
             items_per_zones: List of attributed zones for each Item generated.
-            items_per_tool: Dictionary mapping tool.item_id to all foundable items that requires it.
+            items_per_tool: Dictionary mapping tool.item_id to all findable items that requires it.
 
         """
-        original_item = Item(offset_id, "found")
-        foundables = [original_item]
+        original_item = Item(offset_id, "find")
+        findables = [original_item]
         items_per_zones = [[] for _ in range(n_zones)]
         items_per_zones[0].append(original_item)
         items_per_tool = {tool.item_id: [] for tool in tools}
 
-        for _ in range(1, n_foundables):
+        for _ in range(1, n_findables):
             # Get required tools
             n_req_probs = np.array(n_required_tools) / np.sum(n_required_tools)
             n_req_tools = self.np_random.choice(
@@ -166,31 +166,31 @@ class RandomCraftingEnv(CraftingEnv):
             )
 
             # Build item
-            item_id = offset_id + len(foundables)
-            new_foundable = Item(item_id, "found", required_tools=required_tools)
-            foundables.append(new_foundable)
+            item_id = offset_id + len(findables)
+            new_findable = Item(item_id, "find", required_tools=required_tools)
+            findables.append(new_findable)
 
             # Assign item to each required_tool
             for tool in required_tools:
-                items_per_tool[tool.item_id].append(new_foundable)
+                items_per_tool[tool.item_id].append(new_findable)
 
             # Place item in (futur?) zones
             if n_zones > 1:
                 n_zones_probs = np.array([1 / (n + 1) for n in range(1, n_zones)])
                 n_zones_probs /= np.sum(n_zones_probs)
-                n_foundable_zones = 1 + self.np_random.choice(
+                n_findable_zones = 1 + self.np_random.choice(
                     range(1, n_zones), p=n_zones_probs
                 )
-                foundable_zones = self.np_random.choice(
-                    range(n_zones), size=n_foundable_zones, replace=False
+                findable_zones = self.np_random.choice(
+                    range(n_zones), size=n_findable_zones, replace=False
                 )
             else:
-                foundable_zones = [0]
+                findable_zones = [0]
 
-            for foundable_zone in foundable_zones:
-                items_per_zones[foundable_zone].append(new_foundable)
+            for findable_zone in findable_zones:
+                items_per_zones[findable_zone].append(new_findable)
 
-        return foundables, items_per_zones, items_per_tool
+        return findables, items_per_zones, items_per_tool
 
     @staticmethod
     def _build_zones(n_zones: int, items_per_zones: List[List[Item]]) -> List[Zone]:
@@ -214,7 +214,7 @@ class RandomCraftingEnv(CraftingEnv):
     def _build_recipes(
         self,
         items: List[Item],
-        foundables: List[Item],
+        findables: List[Item],
         n_inputs_per_craft: List[float],
         items_per_tool: Dict[int, List[Item]],
     ) -> List[Recipe]:
@@ -222,9 +222,9 @@ class RandomCraftingEnv(CraftingEnv):
 
         Args:
             items: List of items.
-            foundables: List of foundable items.
+            findables: List of findable items.
             n_inputs_per_craft: List of probabilities of having x+1 inputs where x is the index.
-            items_per_tool: Dictionary mapping tool item_id to all foundable items that requires it.
+            items_per_tool: Dictionary mapping tool item_id to all findable items that requires it.
 
         Returns:
             List of random recipes.
@@ -232,10 +232,10 @@ class RandomCraftingEnv(CraftingEnv):
         """
         recipes = []
         accessible_items = set(
-            foundable for foundable in foundables if foundable.required_tools is None
+            findable for findable in findables if findable.required_tools is None
         )
 
-        unaccessible_items = [item for item in items if item not in foundables]
+        unaccessible_items = [item for item in items if item not in findables]
         self.np_random.shuffle(unaccessible_items)
 
         while len(accessible_items) < len(items):
@@ -271,7 +271,7 @@ class RandomCraftingEnv(CraftingEnv):
             recipes.append(new_recipe)
 
             # If new accessible item is a tool,
-            #   add foundables that can be gathered with it in accessible items
+            #   add findables that can be gathered with it in accessible items
             if new_is_tool:
                 for new_accessible_item_by_tool in items_per_tool[
                     new_accessible_item.item_id
