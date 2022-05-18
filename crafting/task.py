@@ -262,7 +262,19 @@ class TaskObtainItem(Task):
             self.add_achivement_getitem(success_item, shaping_value)
 
 
-def get_task_from_name(world: "World", task_name: Optional[str] = None, **kwargs):
+def get_task_from_name(world: "World", task_name: str, **kwargs):
+    """Get Task for a given task name.
+
+    Args:
+        world (World): _description_
+        task_name (str): Name of the task to find.
+
+    Raises:
+        ValueError: If the item name after task name could not be resolved.
+
+    Returns:
+        Task: The Task object corresponding in the given World.
+    """
     item_name = "".join(task_name.split("_")[1:])
     if "(" in item_name:
         item_id = int(item_name.split("(")[1].split(")")[0])
@@ -276,41 +288,45 @@ def get_task_from_name(world: "World", task_name: Optional[str] = None, **kwargs
 def get_task(
     world: "World",
     task_name: Optional[str] = None,
-    random_task: bool = False,
     task_complexity: float = None,
+    random_task: bool = False,
+    seed: int = None,
     **kwargs,
 ) -> Union[Task, TaskObtainItem]:
     """Build a Task in the given World from given instructions.
 
     Examples:
-        # To build a TaskObtainItem:
-        task = get_task_from_name('obtain_(itemid)')
-        # To build a TaskObtainItem for a random item:
-        task = get_task_from_name('obtain_random')
+        # To build a TaskObtainItem to get item with id 2:
+        task = get_task(world, 'obtain_2')
+        # To build a TaskObtainItem for a random item with seed 42:
+        task = get_task(world, random_task=True, seed=42)
+        # To build a TaskObtainItem for an item with complexity as close as possible to 243:
+        task = get_task(world, task_complexity=243)
 
     Args:
-        task_name (str): Name of the task to build.
         world (World): World in which to build the task.
+        task_name (str, optional): Name of the task to build.
+        task_complexity (float, optional): .
+        random_task (bool): Force random task to be chosen.
+        seed (int, optional): Seed used for random task selection if random.
 
     Kwargs:
-        seed (int): Seed used for random task selection if random.
-        Are passed to Task constructor.
+        Passed to Task constructor.
 
     Raises:
-        ValueError: If the task name could not be resolved.
-        ValueError: If the item name after 'obtain_' tag could not be resolved.
+        AssertionError: If none of task_name, task_complexity or random_task was given.
+        ValueError: If the item name after task name could not be resolved.
 
     Returns:
         Task: Built task.
     """
+    assert random_task or task_name is not None or task_complexity is not None
     random_task = random_task or "random" in task_name
-    if task_name.startswith("obtain_"):
-        if random_task:
-            seed = kwargs.pop("seed", None)
-            rng = np.random.RandomState(seed)  # pylint: disable=no-member
-            random_item = rng.choice(world.getable_items)
-            return TaskObtainItem(world, random_item, **kwargs)
-        if task_complexity is not None:
-            raise NotImplementedError
-        return get_task_from_name(world, task_name, **kwargs)
-    raise ValueError(f"Could not resolve task name: {task_name}.")
+    if random_task:
+        seed = kwargs.pop("seed", None)
+        rng = np.random.RandomState(seed)  # pylint: disable=no-member
+        random_item = rng.choice(world.getable_items)
+        return TaskObtainItem(world, random_item, **kwargs)
+    if task_complexity is not None:
+        raise NotImplementedError
+    return get_task_from_name(world, task_name, **kwargs)
