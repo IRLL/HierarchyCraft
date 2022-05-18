@@ -4,7 +4,7 @@
 
 """ Task to defines objectives """
 
-from typing import TYPE_CHECKING, List, Union, Dict
+from typing import TYPE_CHECKING, List, Optional, Union, Dict
 from enum import Enum
 
 import numpy as np
@@ -262,22 +262,38 @@ class TaskObtainItem(Task):
             self.add_achivement_getitem(success_item, shaping_value)
 
 
-def get_task_from_name(
-    task_name: str, world: "World", **kwargs
+def get_task_from_name(world: "World", task_name: Optional[str] = None, **kwargs):
+    item_name = "".join(task_name.split("_")[1:])
+    if "(" in item_name:
+        item_id = int(item_name.split("(")[1].split(")")[0])
+        item = world.item_from_id[item_id]
+        return TaskObtainItem(world, item, **kwargs)
+    raise ValueError(
+        f"No item found with name {item_name}." f"Available items: {world.items}"
+    )
+
+
+def get_task(
+    world: "World",
+    task_name: Optional[str] = None,
+    random_task: bool = False,
+    task_complexity: float = None,
+    **kwargs,
 ) -> Union[Task, TaskObtainItem]:
-    """Build a Task in the given World from a given name.
+    """Build a Task in the given World from given instructions.
 
     Examples:
         # To build a TaskObtainItem:
-        task = get_task_from_name('obtain_*(itemid)')
+        task = get_task_from_name('obtain_(itemid)')
         # To build a TaskObtainItem for a random item:
-        task = get_task_from_name('obtain_*random*')
+        task = get_task_from_name('obtain_random')
 
     Args:
         task_name (str): Name of the task to build.
         world (World): World in which to build the task.
 
     Kwargs:
+        seed (int): Seed used for random task selection if random.
         Are passed to Task constructor.
 
     Raises:
@@ -287,17 +303,14 @@ def get_task_from_name(
     Returns:
         Task: Built task.
     """
-    rng = np.random.RandomState(kwargs.pop("seed", None))
+    random_task = random_task or "random" in task_name
     if task_name.startswith("obtain_"):
-        item_name = "".join(task_name.split("_")[1:])
-        if "random" in item_name:
+        if random_task:
+            seed = kwargs.pop("seed", None)
+            rng = np.random.RandomState(seed)  # pylint: disable=no-member
             random_item = rng.choice(world.getable_items)
             return TaskObtainItem(world, random_item, **kwargs)
-        if "(" in item_name:
-            item_id = int(item_name.split("(")[1].split(")")[0])
-            item = world.item_from_id[item_id]
-            return TaskObtainItem(world, item, **kwargs)
-        raise ValueError(
-            f"No item found with name {item_name}." f"Available items: {world.items}"
-        )
+        if task_complexity is not None:
+            raise NotImplementedError
+        return get_task_from_name(world, task_name, **kwargs)
     raise ValueError(f"Could not resolve task name: {task_name}.")
