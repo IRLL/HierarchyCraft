@@ -293,7 +293,7 @@ class TestTaskObtainItem:
         self.dummy_world = DummyWorld()
         self.shaping_value = 42
 
-    def test_goal_item(self, mocker: MockerFixture):
+    def test_goal_item(self):
         """should have given item as goal_item and ending achivement."""
 
         task = TaskObtainItem(world=self.dummy_world, item=self.dummy_item)
@@ -305,7 +305,7 @@ class TestTaskObtainItem:
             self.dummy_item, 10, end_task=True
         )
 
-    def test_reward_shaping_all(self, mocker: MockerFixture):
+    def test_reward_shaping_all(self):
         """should give achivement value for every world item."""
 
         TaskObtainItem(
@@ -331,7 +331,7 @@ class TestTaskObtainItem:
 
         check.is_true(all(is_called.values()))
 
-    def test_reward_shaping_direct_useful(self, mocker: MockerFixture):
+    def test_reward_shaping_direct_useful(self):
         """should give achivement value for items in solving option rolled graph."""
 
         TaskObtainItem(
@@ -363,7 +363,7 @@ class TestTaskObtainItem:
             else:
                 check.is_false(item_is_called, f"{item} was called when not expected.")
 
-    def test_reward_shaping_all_useful(self, mocker: MockerFixture):
+    def test_reward_shaping_all_useful(self):
         """should give achivement value for every item in solving option unrolled graph."""
 
         TaskObtainItem(
