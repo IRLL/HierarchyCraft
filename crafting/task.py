@@ -285,6 +285,23 @@ def get_task_from_name(world: "World", task_name: str, **kwargs):
     )
 
 
+def get_random_task(world: "World", seed: int = None, **kwargs):
+    """Get a random Task from a given World.
+
+    Args:
+        world (World): The world in which to pick an item for the obtainitem task.
+        seed (int, optional): Seed for randomness reproductibility, random seed if None.
+            Defaults to None.
+
+    Returns:
+        TaskObtainItem: The task of obtaining a random item from the given World.
+    """
+    seed = kwargs.pop("seed", None)
+    rng = np.random.RandomState(seed)  # pylint: disable=no-member
+    random_item = rng.choice(world.getable_items)
+    return TaskObtainItem(world, random_item, **kwargs)
+
+
 def get_task(
     world: "World",
     task_name: Optional[str] = None,
@@ -306,7 +323,7 @@ def get_task(
     Args:
         world (World): World in which to build the task.
         task_name (str, optional): Name of the task to build.
-        task_complexity (float, optional): .
+        task_complexity (float, optional): Complexity of the task wanted.
         random_task (bool): Force random task to be chosen.
         seed (int, optional): Seed used for random task selection if random.
 
@@ -320,13 +337,11 @@ def get_task(
     Returns:
         Task: Built task.
     """
-    assert random_task or task_name is not None or task_complexity is not None
     random_task = random_task or "random" in task_name
+    assert random_task or task_name is not None or task_complexity is not None
+
     if random_task:
-        seed = kwargs.pop("seed", None)
-        rng = np.random.RandomState(seed)  # pylint: disable=no-member
-        random_item = rng.choice(world.getable_items)
-        return TaskObtainItem(world, random_item, **kwargs)
+        return get_random_task(world, seed, **kwargs)
     if task_complexity is not None:
         raise NotImplementedError
     return get_task_from_name(world, task_name, **kwargs)
