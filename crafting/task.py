@@ -299,7 +299,6 @@ def get_random_task(world: "World", seed: int = None, **kwargs):
     Returns:
         TaskObtainItem: The task of obtaining a random item from the given World.
     """
-    seed = kwargs.pop("seed", None)
     rng = np.random.RandomState(seed)  # pylint: disable=no-member
     random_item = rng.choice(world.getable_items)
     return TaskObtainItem(world, random_item, **kwargs)

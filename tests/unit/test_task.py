@@ -18,6 +18,7 @@ from crafting.task import (
     Task,
     TaskList,
     TaskObtainItem,
+    get_random_task,
     get_task_from_name,
 )
 from crafting.world.items import Item
@@ -40,6 +41,7 @@ class DummyWorld:
         self.items = [DummyItem(i, f"item_{i}") for i in range(self.n_items)]
         self.item_from_id = {item.item_id: item for item in self.items}
         self.item_from_name = {item.name: item for item in self.items}
+        self.getable_items = self.items
 
 
 class TestTask:
@@ -445,3 +447,27 @@ class TestGetTaskFromName:
         """should raise error if unknowed task."""
         with pytest.raises(ValueError, match=".* could not be resolved."):
             get_task_from_name(self.world, "x")
+
+
+class TestGetRandomTask:
+    "get_random_task"
+
+    @pytest.fixture(autouse=True)
+    def setup(self, mocker: MockerFixture):
+        self.world = DummyWorld()
+        self.task_obtain_item_mocker = mocker.patch(
+            "crafting.task.TaskObtainItem", lambda world, item, **kwargs: item.item_id
+        )
+
+    def test_obtain_random_item_same_seed(self):
+        """should get the same random item for the same seed."""
+        seed = 42
+        item_id_1 = get_random_task(self.world, seed=seed)
+        item_id_2 = get_random_task(self.world, seed=seed)
+        check.equal(item_id_1, item_id_2)
+
+    def test_obtain_random_item_diff_seed(self):
+        """should get different random item for different seeds."""
+        item_id_1 = get_random_task(self.world, seed=42)
+        item_id_2 = get_random_task(self.world, seed=43)
+        check.not_equal(item_id_1, item_id_2)
