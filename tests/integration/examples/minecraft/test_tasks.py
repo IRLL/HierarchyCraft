@@ -27,7 +27,7 @@ class TestTasks:
     )
     def test_completion_of_(self, task_name):
         env = MineCraftingEnv()
-        task: TaskObtainItem = get_task_from_name(task_name, env.world)
+        task: TaskObtainItem = get_task_from_name(env.world, task_name)
         env.add_task(task, can_end=True)
 
         all_options = env.world.get_all_options()
