@@ -275,14 +275,17 @@ def get_task_from_name(world: "World", task_name: str, **kwargs):
     Returns:
         Task: The Task object corresponding in the given World.
     """
-    item_name = "".join(task_name.split("_")[1:])
-    if "(" in item_name:
-        item_id = int(item_name.split("(")[1].split(")")[0])
-        item = world.item_from_id[item_id]
+    if "obtain_" in task_name:
+        item_name = task_name[len("obtain_") :]
+        # With id
+        if item_name.isnumeric():
+            item_id = int(item_name)
+            item = world.item_from_id[item_id]
+        # With name
+        else:
+            item = world.item_from_name[item_name]
         return TaskObtainItem(world, item, **kwargs)
-    raise ValueError(
-        f"No item found with name {item_name}." f"Available items: {world.items}"
-    )
+    raise ValueError(f"Task with name {task_name} could not be resolved.")
 
 
 def get_random_task(world: "World", seed: int = None, **kwargs):
@@ -300,6 +303,20 @@ def get_random_task(world: "World", seed: int = None, **kwargs):
     rng = np.random.RandomState(seed)  # pylint: disable=no-member
     random_item = rng.choice(world.getable_items)
     return TaskObtainItem(world, random_item, **kwargs)
+
+
+def get_task_by_complexity(world: "World", task_complexity: float, **kwargs):
+    """Get the obtain item task with the closest complexity to the one given.
+
+    Args:
+        world (World): The world in which to pick items for the obtain item tasks.
+        task_complexity (float): The wanted task complexity.
+
+    Returns:
+        TaskObtainItem: The task of obtaining an item from the given World
+            with the closest complexity to the one wanted.
+    """
+    raise NotImplementedError
 
 
 def get_task(
@@ -343,5 +360,5 @@ def get_task(
     if random_task:
         return get_random_task(world, seed, **kwargs)
     if task_complexity is not None:
-        raise NotImplementedError
+        return get_task_by_complexity(world, task_complexity, **kwargs)
     return get_task_from_name(world, task_name, **kwargs)

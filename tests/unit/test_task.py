@@ -4,6 +4,7 @@
 
 """ Test of abstract Task classes behavior """
 
+from dataclasses import dataclass
 from typing import List
 
 import pytest
@@ -12,16 +13,33 @@ from pytest_mock import MockerFixture
 
 import numpy as np
 
-from crafting.task import RewardShaping, Task, TaskList, TaskObtainItem
+from crafting.task import (
+    RewardShaping,
+    Task,
+    TaskList,
+    TaskObtainItem,
+    get_task_from_name,
+)
 from crafting.world.items import Item
+
+
+@dataclass
+class DummyItem:
+    """DummyItem"""
+
+    item_id: int
+    name: str
 
 
 class DummyWorld:
     """DummyWorld"""
 
-    def __init__(self):
-        self.n_items = 7
-        self.n_actions = 5
+    def __init__(self, n_items=7, n_action=5):
+        self.n_items = n_items
+        self.n_actions = n_action
+        self.items = [DummyItem(i, f"item_{i}") for i in range(self.n_items)]
+        self.item_from_id = {item.item_id: item for item in self.items}
+        self.item_from_name = {item.name: item for item in self.items}
 
 
 class TestTask:
@@ -394,3 +412,36 @@ class TestTaskObtainItem:
                 check.is_true(item_is_called, f"{item} was not called when expected.")
             else:
                 check.is_false(item_is_called, f"{item} was called when not expected.")
+
+
+class TestGetTaskFromName:
+    "get_task_from_name"
+
+    @pytest.fixture(autouse=True)
+    def setup(self, mocker: MockerFixture):
+        self.world = DummyWorld()
+        self.task_obtain_item_mocker = mocker.patch(
+            "crafting.task.TaskObtainItem", lambda world, item, **kwargs: item.item_id
+        )
+
+    def test_obtain_item_by_id(self):
+        """should get correct item by id for TaskObtainItem."""
+        wanted_item_id = 2
+        task_name = f"obtain_{wanted_item_id}"
+
+        item_id = get_task_from_name(self.world, task_name)
+        check.equal(item_id, wanted_item_id)
+
+    def test_obtain_item_by_literal(self):
+        """should get correct item by literal name for TaskObtainItem."""
+        wanted_item_id = 2
+        wanted_item_name = self.world.item_from_id[wanted_item_id].name
+        task_name = f"obtain_{wanted_item_name}"
+
+        item_id = get_task_from_name(self.world, task_name)
+        check.equal(item_id, wanted_item_id)
+
+    def test_raise_could_not_resolve(self):
+        """should raise error if unknowed task."""
+        with pytest.raises(ValueError, match=".* could not be resolved."):
+            get_task_from_name(self.world, "x")

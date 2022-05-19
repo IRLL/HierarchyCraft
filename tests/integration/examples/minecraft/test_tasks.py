@@ -23,7 +23,7 @@ class TestTasks:
 
     @pytest.mark.parametrize(
         "task_name",
-        [f"obtain_{item}" for item in MineCraftingEnv().world.getable_items],
+        [f"obtain_{item.name}" for item in MineCraftingEnv().world.getable_items],
     )
     def test_completion_of_(self, task_name):
         env = MineCraftingEnv()
