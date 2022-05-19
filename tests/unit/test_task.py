@@ -19,6 +19,7 @@ from crafting.task import (
     TaskList,
     TaskObtainItem,
     get_random_task,
+    get_task,
     get_task_from_name,
 )
 from crafting.world.items import Item
@@ -471,3 +472,59 @@ class TestGetRandomTask:
         item_id_1 = get_random_task(self.world, seed=42)
         item_id_2 = get_random_task(self.world, seed=43)
         check.not_equal(item_id_1, item_id_2)
+
+
+class TestGetTaskByComplexity:
+    "get_task_by_complexity"
+
+
+class TestGetTask:
+    "get_task"
+
+    @pytest.fixture(autouse=True)
+    def setup(self, mocker: MockerFixture):
+        self.world = DummyWorld()
+        self.random_mocker = mocker.patch("crafting.task.get_random_task")
+        self.complexity_mocker = mocker.patch("crafting.task.get_task_by_complexity")
+        self.name_mocker = mocker.patch("crafting.task.get_task_from_name")
+
+    def test_by_name(self):
+        """should get task by name by default."""
+        get_task(self.world, "obtain_2")
+
+        check.is_false(self.random_mocker.called)
+        check.is_false(self.complexity_mocker.called)
+        check.is_true(self.name_mocker.called)
+
+    def test_random_task(self):
+        """should get a random obtain_item task if random_task is True."""
+        seed = 42
+        get_task(self.world, random_task=True, seed=seed)
+
+        check.is_true(self.random_mocker.called)
+        check.is_false(self.complexity_mocker.called)
+        check.is_false(self.name_mocker.called)
+
+        check.equal(self.random_mocker.call_args[0][1], seed)
+
+    def test_random_in_name(self):
+        """should get a random obtain_item task if random in task_name."""
+        seed = 42
+        get_task(self.world, "obtain_random", seed=seed)
+
+        check.is_true(self.random_mocker.called)
+        check.is_false(self.complexity_mocker.called)
+        check.is_false(self.name_mocker.called)
+
+        check.equal(self.random_mocker.call_args[0][1], seed)
+
+    def test_by_complexity(self):
+        """should get a task by complexity if task_complexity is given."""
+        task_complexity = 243
+        get_task(self.world, task_complexity=task_complexity)
+
+        check.is_false(self.random_mocker.called)
+        check.is_true(self.complexity_mocker.called)
+        check.is_false(self.name_mocker.called)
+
+        check.equal(self.complexity_mocker.call_args[0][1], task_complexity)

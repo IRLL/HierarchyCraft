@@ -320,7 +320,7 @@ def get_task_by_complexity(world: "World", task_complexity: float, **kwargs):
 
 def get_task(
     world: "World",
-    task_name: Optional[str] = None,
+    task_name: Optional[str] = "",
     task_complexity: float = None,
     random_task: bool = False,
     seed: int = None,
