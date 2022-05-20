@@ -6,17 +6,17 @@
 
 from typing import TYPE_CHECKING, List, Optional, Union, Dict
 from enum import Enum
-from crafting.options.options import GetItem
 
+from tqdm import tqdm
 import numpy as np
 
 from option_graph.metrics.complexity import learning_complexity
 from option_graph.metrics.complexity.histograms import nodes_histograms
 
 from crafting.options.utils import get_items_in_graph
-from tqdm import tqdm
 
 if TYPE_CHECKING:
+    from crafting.options.options import GetItem
     from crafting.world.world import World
     from crafting.world.items import Item
 
@@ -340,7 +340,7 @@ def get_task_by_complexity(world: "World", task_complexity: float, **kwargs):
         get_items_complexities.append(total_comp)
 
     order = np.argsort((np.array(get_items_complexities) - task_complexity) ** 2)
-    ordered_options: List[GetItem] = np.array(get_item_options)[order]
+    ordered_options: List["GetItem"] = np.array(get_item_options)[order]
     return TaskObtainItem(world, ordered_options[0].item, **kwargs)
 
 
