@@ -6,10 +6,15 @@
 
 from typing import TYPE_CHECKING, List, Optional, Union, Dict
 from enum import Enum
+from crafting.options.options import GetItem
 
 import numpy as np
 
+from option_graph.metrics.complexity import learning_complexity
+from option_graph.metrics.complexity.histograms import nodes_histograms
+
 from crafting.options.utils import get_items_in_graph
+from tqdm import tqdm
 
 if TYPE_CHECKING:
     from crafting.world.world import World
@@ -307,6 +312,8 @@ def get_random_task(world: "World", seed: int = None, **kwargs):
 def get_task_by_complexity(world: "World", task_complexity: float, **kwargs):
     """Get the obtain item task with the closest complexity to the one given.
 
+    If the two closest tasks have the same complexity, this will only ever return the first one.
+
     Args:
         world (World): The world in which to pick items for the obtain item tasks.
         task_complexity (float): The wanted task complexity.
@@ -315,7 +322,26 @@ def get_task_by_complexity(world: "World", task_complexity: float, **kwargs):
         TaskObtainItem: The task of obtaining an item from the given World
             with the closest complexity to the one wanted.
     """
-    raise NotImplementedError
+    # Get & save solving option
+    all_options = world.get_all_options()
+    all_options_list = list(all_options.values())
+
+    # Compute complexities
+    used_nodes_all = nodes_histograms(all_options_list)
+
+    get_item_options = [
+        option for option in all_options_list if hasattr(option, "item")
+    ]
+    get_items_complexities = []
+
+    for option in tqdm(get_item_options, desc="Computing complexities"):
+        learn_comp, saved_comp = learning_complexity(option, used_nodes_all)
+        total_comp = learn_comp + saved_comp
+        get_items_complexities.append(total_comp)
+
+    order = np.argsort((np.array(get_items_complexities) - task_complexity) ** 2)
+    ordered_options: List[GetItem] = np.array(get_item_options)[order]
+    return TaskObtainItem(world, ordered_options[0].item, **kwargs)
 
 
 def get_task(

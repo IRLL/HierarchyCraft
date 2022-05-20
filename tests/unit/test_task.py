@@ -20,6 +20,7 @@ from crafting.task import (
     TaskObtainItem,
     get_random_task,
     get_task,
+    get_task_by_complexity,
     get_task_from_name,
 )
 from crafting.world.items import Item
@@ -33,6 +34,14 @@ class DummyItem:
     name: str
 
 
+@dataclass
+class DummyOption:
+    """DummyItem"""
+
+    item: DummyItem
+    complexity: int
+
+
 class DummyWorld:
     """DummyWorld"""
 
@@ -43,6 +52,13 @@ class DummyWorld:
         self.item_from_id = {item.item_id: item for item in self.items}
         self.item_from_name = {item.name: item for item in self.items}
         self.getable_items = self.items
+
+    def get_all_options(self):
+        """Create dummy options from the DummyWorld"""
+        return {
+            f"Get {item.name}": DummyOption(item, (i // 2 * 2) ** 2)
+            for i, item in enumerate(self.items)
+        }
 
 
 class TestTask:
@@ -476,6 +492,25 @@ class TestGetRandomTask:
 
 class TestGetTaskByComplexity:
     "get_task_by_complexity"
+
+    @pytest.fixture(autouse=True)
+    def setup(self, mocker: MockerFixture):
+        self.world = DummyWorld()
+        self.task_obtain_item_mocker = mocker.patch(
+            "crafting.task.TaskObtainItem", lambda world, item, **kwargs: item.item_id
+        )
+        self.lcomplexity_mocker = mocker.patch(
+            "crafting.task.learning_complexity",
+            lambda option, used_nodes_all: (option.complexity, 0),
+        )
+        self.nodes_histograms = mocker.patch("crafting.task.nodes_histograms")
+
+    def test_get_best(self):
+        """should retrieve the closest TaskObtainItem in terms of complexity."""
+        wanted_complexity = 5
+        expected_item_id = 2
+        item_id = get_task_by_complexity(self.world, wanted_complexity)
+        check.equal(item_id, expected_item_id)
 
 
 class TestGetTask:
