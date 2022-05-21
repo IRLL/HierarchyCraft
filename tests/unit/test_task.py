@@ -4,6 +4,7 @@
 
 """ Test of abstract Task classes behavior """
 
+from dataclasses import dataclass
 from typing import List
 
 import pytest
@@ -12,16 +13,52 @@ from pytest_mock import MockerFixture
 
 import numpy as np
 
-from crafting.task import RewardShaping, Task, TaskList, TaskObtainItem
+from crafting.task import (
+    RewardShaping,
+    Task,
+    TaskList,
+    TaskObtainItem,
+    get_random_task,
+    get_task,
+    get_task_by_complexity,
+    get_task_from_name,
+)
 from crafting.world.items import Item
+
+
+@dataclass
+class DummyItem:
+    """DummyItem"""
+
+    item_id: int
+    name: str
+
+
+@dataclass
+class DummyOption:
+    """DummyItem"""
+
+    item: DummyItem
+    complexity: int
 
 
 class DummyWorld:
     """DummyWorld"""
 
-    def __init__(self):
-        self.n_items = 7
-        self.n_actions = 5
+    def __init__(self, n_items=7, n_action=5):
+        self.n_items = n_items
+        self.n_actions = n_action
+        self.items = [DummyItem(i, f"item_{i}") for i in range(self.n_items)]
+        self.item_from_id = {item.item_id: item for item in self.items}
+        self.item_from_name = {item.name: item for item in self.items}
+        self.getable_items = self.items
+
+    def get_all_options(self):
+        """Create dummy options from the DummyWorld"""
+        return {
+            f"Get {item.name}": DummyOption(item, (i // 2 * 2) ** 2)
+            for i, item in enumerate(self.items)
+        }
 
 
 class TestTask:
@@ -293,7 +330,7 @@ class TestTaskObtainItem:
         self.dummy_world = DummyWorld()
         self.shaping_value = 42
 
-    def test_goal_item(self, mocker: MockerFixture):
+    def test_goal_item(self):
         """should have given item as goal_item and ending achivement."""
 
         task = TaskObtainItem(world=self.dummy_world, item=self.dummy_item)
@@ -305,7 +342,7 @@ class TestTaskObtainItem:
             self.dummy_item, 10, end_task=True
         )
 
-    def test_reward_shaping_all(self, mocker: MockerFixture):
+    def test_reward_shaping_all(self):
         """should give achivement value for every world item."""
 
         TaskObtainItem(
@@ -331,7 +368,7 @@ class TestTaskObtainItem:
 
         check.is_true(all(is_called.values()))
 
-    def test_reward_shaping_direct_useful(self, mocker: MockerFixture):
+    def test_reward_shaping_direct_useful(self):
         """should give achivement value for items in solving option rolled graph."""
 
         TaskObtainItem(
@@ -363,7 +400,7 @@ class TestTaskObtainItem:
             else:
                 check.is_false(item_is_called, f"{item} was called when not expected.")
 
-    def test_reward_shaping_all_useful(self, mocker: MockerFixture):
+    def test_reward_shaping_all_useful(self):
         """should give achivement value for every item in solving option unrolled graph."""
 
         TaskObtainItem(
@@ -394,3 +431,135 @@ class TestTaskObtainItem:
                 check.is_true(item_is_called, f"{item} was not called when expected.")
             else:
                 check.is_false(item_is_called, f"{item} was called when not expected.")
+
+
+class TestGetTaskFromName:
+    "get_task_from_name"
+
+    @pytest.fixture(autouse=True)
+    def setup(self, mocker: MockerFixture):
+        self.world = DummyWorld()
+        self.task_obtain_item_mocker = mocker.patch(
+            "crafting.task.TaskObtainItem", lambda world, item, **kwargs: item.item_id
+        )
+
+    def test_obtain_item_by_id(self):
+        """should get correct item by id for TaskObtainItem."""
+        wanted_item_id = 2
+        task_name = f"obtain_{wanted_item_id}"
+
+        item_id = get_task_from_name(self.world, task_name)
+        check.equal(item_id, wanted_item_id)
+
+    def test_obtain_item_by_literal(self):
+        """should get correct item by literal name for TaskObtainItem."""
+        wanted_item_id = 2
+        wanted_item_name = self.world.item_from_id[wanted_item_id].name
+        task_name = f"obtain_{wanted_item_name}"
+
+        item_id = get_task_from_name(self.world, task_name)
+        check.equal(item_id, wanted_item_id)
+
+    def test_raise_could_not_resolve(self):
+        """should raise error if unknowed task."""
+        with pytest.raises(ValueError, match=".* could not be resolved."):
+            get_task_from_name(self.world, "x")
+
+
+class TestGetRandomTask:
+    "get_random_task"
+
+    @pytest.fixture(autouse=True)
+    def setup(self, mocker: MockerFixture):
+        self.world = DummyWorld()
+        self.task_obtain_item_mocker = mocker.patch(
+            "crafting.task.TaskObtainItem", lambda world, item, **kwargs: item.item_id
+        )
+
+    def test_obtain_random_item_same_seed(self):
+        """should get the same random item for the same seed."""
+        seed = 42
+        item_id_1 = get_random_task(self.world, seed=seed)
+        item_id_2 = get_random_task(self.world, seed=seed)
+        check.equal(item_id_1, item_id_2)
+
+    def test_obtain_random_item_diff_seed(self):
+        """should get different random item for different seeds."""
+        item_id_1 = get_random_task(self.world, seed=42)
+        item_id_2 = get_random_task(self.world, seed=43)
+        check.not_equal(item_id_1, item_id_2)
+
+
+class TestGetTaskByComplexity:
+    "get_task_by_complexity"
+
+    @pytest.fixture(autouse=True)
+    def setup(self, mocker: MockerFixture):
+        self.world = DummyWorld()
+        self.task_obtain_item_mocker = mocker.patch(
+            "crafting.task.TaskObtainItem", lambda world, item, **kwargs: item.item_id
+        )
+        self.lcomplexity_mocker = mocker.patch(
+            "crafting.task.learning_complexity",
+            lambda option, used_nodes_all: (option.complexity, 0),
+        )
+        self.nodes_histograms = mocker.patch("crafting.task.nodes_histograms")
+
+    def test_get_best(self):
+        """should retrieve the closest TaskObtainItem in terms of complexity."""
+        wanted_complexity = 5
+        expected_item_id = 2
+        item_id = get_task_by_complexity(self.world, wanted_complexity)
+        check.equal(item_id, expected_item_id)
+
+
+class TestGetTask:
+    "get_task"
+
+    @pytest.fixture(autouse=True)
+    def setup(self, mocker: MockerFixture):
+        self.world = DummyWorld()
+        self.random_mocker = mocker.patch("crafting.task.get_random_task")
+        self.complexity_mocker = mocker.patch("crafting.task.get_task_by_complexity")
+        self.name_mocker = mocker.patch("crafting.task.get_task_from_name")
+
+    def test_by_name(self):
+        """should get task by name by default."""
+        get_task(self.world, "obtain_2")
+
+        check.is_false(self.random_mocker.called)
+        check.is_false(self.complexity_mocker.called)
+        check.is_true(self.name_mocker.called)
+
+    def test_random_task(self):
+        """should get a random obtain_item task if random_task is True."""
+        seed = 42
+        get_task(self.world, random_task=True, seed=seed)
+
+        check.is_true(self.random_mocker.called)
+        check.is_false(self.complexity_mocker.called)
+        check.is_false(self.name_mocker.called)
+
+        check.equal(self.random_mocker.call_args[0][1], seed)
+
+    def test_random_in_name(self):
+        """should get a random obtain_item task if random in task_name."""
+        seed = 42
+        get_task(self.world, "obtain_random", seed=seed)
+
+        check.is_true(self.random_mocker.called)
+        check.is_false(self.complexity_mocker.called)
+        check.is_false(self.name_mocker.called)
+
+        check.equal(self.random_mocker.call_args[0][1], seed)
+
+    def test_by_complexity(self):
+        """should get a task by complexity if task_complexity is given."""
+        task_complexity = 243
+        get_task(self.world, task_complexity=task_complexity)
+
+        check.is_false(self.random_mocker.called)
+        check.is_true(self.complexity_mocker.called)
+        check.is_false(self.name_mocker.called)
+
+        check.equal(self.complexity_mocker.call_args[0][1], task_complexity)

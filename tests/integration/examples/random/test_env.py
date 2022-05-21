@@ -20,7 +20,7 @@ class TestTasks:
         self.env_settings = {
             'n_items': n_items,
             'n_tools': int(0.1*n_items),
-            'n_foundables': int(0.3*n_items),
+            'n_findables': int(0.3*n_items),
             'n_required_tools': [0.25, 0.4, 0.2, 0.1, 0.05],
             'n_inputs_per_craft': [0.1, 0.6, 0.3],
         }

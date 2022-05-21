@@ -4,14 +4,19 @@
 
 """ Task to defines objectives """
 
-from typing import TYPE_CHECKING, List, Union, Dict
+from typing import TYPE_CHECKING, List, Optional, Union, Dict
 from enum import Enum
 
+from tqdm import tqdm
 import numpy as np
+
+from option_graph.metrics.complexity import learning_complexity
+from option_graph.metrics.complexity.histograms import nodes_histograms
 
 from crafting.options.utils import get_items_in_graph
 
 if TYPE_CHECKING:
+    from crafting.options.options import GetItem
     from crafting.world.world import World
     from crafting.world.items import Item
 
@@ -262,42 +267,123 @@ class TaskObtainItem(Task):
             self.add_achivement_getitem(success_item, shaping_value)
 
 
-def get_task_from_name(
-    task_name: str, world: "World", **kwargs
-) -> Union[Task, TaskObtainItem]:
-    """Build a Task in the given World from a given name.
-
-    Examples:
-        # To build a TaskObtainItem:
-        task = get_task_from_name('obtain_*(itemid)')
-        # To build a TaskObtainItem for a random item:
-        task = get_task_from_name('obtain_*random*')
+def get_task_from_name(world: "World", task_name: str, **kwargs):
+    """Get Task for a given task name.
 
     Args:
-        task_name (str): Name of the task to build.
-        world (World): World in which to build the task.
-
-    Kwargs:
-        Are passed to Task constructor.
+        world (World): _description_
+        task_name (str): Name of the task to find.
 
     Raises:
-        ValueError: If the task name could not be resolved.
-        ValueError: If the item name after 'obtain_' tag could not be resolved.
+        ValueError: If the item name after task name could not be resolved.
+
+    Returns:
+        Task: The Task object corresponding in the given World.
+    """
+    if "obtain_" in task_name:
+        item_name = task_name[len("obtain_") :]
+        # With id
+        if item_name.isnumeric():
+            item_id = int(item_name)
+            item = world.item_from_id[item_id]
+        # With name
+        else:
+            item = world.item_from_name[item_name]
+        return TaskObtainItem(world, item, **kwargs)
+    raise ValueError(f"Task with name {task_name} could not be resolved.")
+
+
+def get_random_task(world: "World", seed: int = None, **kwargs):
+    """Get a random Task from a given World.
+
+    Args:
+        world (World): The world in which to pick an item for the obtainitem task.
+        seed (int, optional): Seed for randomness reproductibility, random seed if None.
+            Defaults to None.
+
+    Returns:
+        TaskObtainItem: The task of obtaining a random item from the given World.
+    """
+    rng = np.random.RandomState(seed)  # pylint: disable=no-member
+    random_item = rng.choice(world.getable_items)
+    return TaskObtainItem(world, random_item, **kwargs)
+
+
+def get_task_by_complexity(world: "World", task_complexity: float, **kwargs):
+    """Get the obtain item task with the closest complexity to the one given.
+
+    If the two closest tasks have the same complexity, this will only ever return the first one.
+
+    Args:
+        world (World): The world in which to pick items for the obtain item tasks.
+        task_complexity (float): The wanted task complexity.
+
+    Returns:
+        TaskObtainItem: The task of obtaining an item from the given World
+            with the closest complexity to the one wanted.
+    """
+    # Get & save solving option
+    all_options = world.get_all_options()
+    all_options_list = list(all_options.values())
+
+    # Compute complexities
+    used_nodes_all = nodes_histograms(all_options_list)
+
+    get_item_options = [
+        option for option in all_options_list if hasattr(option, "item")
+    ]
+    get_items_complexities = []
+
+    for option in tqdm(get_item_options, desc="Computing complexities"):
+        learn_comp, saved_comp = learning_complexity(option, used_nodes_all)
+        total_comp = learn_comp + saved_comp
+        get_items_complexities.append(total_comp)
+
+    order = np.argsort((np.array(get_items_complexities) - task_complexity) ** 2)
+    ordered_options: List["GetItem"] = np.array(get_item_options)[order]
+    return TaskObtainItem(world, ordered_options[0].item, **kwargs)
+
+
+def get_task(
+    world: "World",
+    task_name: Optional[str] = "",
+    task_complexity: float = None,
+    random_task: bool = False,
+    seed: int = None,
+    **kwargs,
+) -> Union[Task, TaskObtainItem]:
+    """Build a Task in the given World from given instructions.
+
+    Examples:
+        # To build a TaskObtainItem to get item with id 2:
+        task = get_task(world, 'obtain_2')
+        # To build a TaskObtainItem for a random item with seed 42:
+        task = get_task(world, random_task=True, seed=42)
+        # To build a TaskObtainItem for an item with complexity as close as possible to 243:
+        task = get_task(world, task_complexity=243)
+
+    Args:
+        world (World): World in which to build the task.
+        task_name (str, optional): Name of the task to build.
+        task_complexity (float, optional): Complexity of the task wanted.
+        random_task (bool): Force random task to be chosen.
+        seed (int, optional): Seed used for random task selection if random.
+
+    Kwargs:
+        Passed to Task constructor.
+
+    Raises:
+        AssertionError: If none of task_name, task_complexity or random_task was given.
+        ValueError: If the item name after task name could not be resolved.
 
     Returns:
         Task: Built task.
     """
-    rng = np.random.RandomState(kwargs.pop("seed", None))
-    if task_name.startswith("obtain_"):
-        item_name = "".join(task_name.split("_")[1:])
-        if "random" in item_name:
-            random_item = rng.choice(world.getable_items)
-            return TaskObtainItem(world, random_item, **kwargs)
-        if "(" in item_name:
-            item_id = int(item_name.split("(")[1].split(")")[0])
-            item = world.item_from_id[item_id]
-            return TaskObtainItem(world, item, **kwargs)
-        raise ValueError(
-            f"No item found with name {item_name}." f"Available items: {world.items}"
-        )
-    raise ValueError(f"Could not resolve task name: {task_name}.")
+    random_task = random_task or "random" in task_name
+    assert random_task or task_name is not None or task_complexity is not None
+
+    if random_task:
+        return get_random_task(world, seed, **kwargs)
+    if task_complexity is not None:
+        return get_task_by_complexity(world, task_complexity, **kwargs)
+    return get_task_from_name(world, task_name, **kwargs)

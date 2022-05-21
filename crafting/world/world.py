@@ -62,6 +62,7 @@ class World:
         # Items
         self.items = items
         self.item_from_id = {item.item_id: item for item in items}
+        self.item_from_name = {item.name: item for item in items}
         self.item_id_to_slot = {item.item_id: i for i, item in enumerate(items)}
         self.n_items = len(items)
 
