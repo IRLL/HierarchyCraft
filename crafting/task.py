@@ -4,6 +4,7 @@
 
 """ Task to defines objectives """
 
+import logging
 import os
 import pickle
 from typing import TYPE_CHECKING, List, Optional, Union, Dict
@@ -339,10 +340,16 @@ def get_task_by_complexity(
         return items_complexities
 
     def _load_or_build_cache(cache_path: str, item_options: List["Option"]):
+        if not cache_path.endswith(".pickle"):
+            cache_path += ".pickle"
         if not os.path.isfile(cache_path):
             items_complexities = _get_items_complexities(item_options)
+
+            os.makedirs(os.path.split(cache_path)[0], exist_ok=True)
             with open(cache_path, "wb") as cache:
                 pickle.dump(items_complexities, cache)
+                logging.info("Cached complexities to %s", cache_path)
+
         else:
             with open(cache_path, "rb") as cache:
                 items_complexities = pickle.load(cache)
@@ -364,7 +371,6 @@ def get_task_by_complexity(
     items_options_arr = np.array(list(items_complexities.keys()))
 
     order = np.argsort((items_complexities_arr - task_complexity) ** 2)
-    print(items_options_arr[order])
     ordered_options: List["GetItem"] = items_options_arr[order]
 
     return TaskObtainItem(world, ordered_options[0].item, **kwargs)
