@@ -4,6 +4,9 @@
 
 """ Task to defines objectives """
 
+import logging
+import os
+import pickle
 from typing import TYPE_CHECKING, List, Optional, Union, Dict
 from enum import Enum
 
@@ -19,6 +22,7 @@ if TYPE_CHECKING:
     from crafting.options.options import GetItem
     from crafting.world.world import World
     from crafting.world.items import Item
+    from option_graph.option import Option
 
 
 class Task:
@@ -309,7 +313,9 @@ def get_random_task(world: "World", seed: int = None, **kwargs):
     return TaskObtainItem(world, random_item, **kwargs)
 
 
-def get_task_by_complexity(world: "World", task_complexity: float, **kwargs):
+def get_task_by_complexity(
+    world: "World", task_complexity: float, cache_path: str = None, **kwargs
+):
     """Get the obtain item task with the closest complexity to the one given.
 
     If the two closest tasks have the same complexity, this will only ever return the first one.
@@ -317,37 +323,64 @@ def get_task_by_complexity(world: "World", task_complexity: float, **kwargs):
     Args:
         world (World): The world in which to pick items for the obtain item tasks.
         task_complexity (float): The wanted task complexity.
+        cache_path (str, optional): Path to caching file. No caching if None. Defaut to None.
 
     Returns:
         TaskObtainItem: The task of obtaining an item from the given World
             with the closest complexity to the one wanted.
     """
+
+    def _get_items_complexities(item_options: List["Option"]):
+        items_complexities = {}
+        used_nodes_all = nodes_histograms(all_options_list)
+        for option in tqdm(item_options, desc="Computing complexities"):
+            learn_comp, saved_comp = learning_complexity(option, used_nodes_all)
+            total_comp = learn_comp + saved_comp
+            items_complexities[option] = total_comp
+        return items_complexities
+
+    def _load_or_build_cache(cache_path: str, item_options: List["Option"]):
+        if not cache_path.endswith(".pickle"):
+            cache_path += ".pickle"
+        if not os.path.isfile(cache_path):
+            items_complexities = _get_items_complexities(item_options)
+
+            os.makedirs(os.path.split(cache_path)[0], exist_ok=True)
+            with open(cache_path, "wb") as cache:
+                pickle.dump(items_complexities, cache)
+                logging.info("Cached complexities to %s", cache_path)
+
+        else:
+            with open(cache_path, "rb") as cache:
+                items_complexities = pickle.load(cache)
+        return items_complexities
+
     # Get & save solving option
     all_options = world.get_all_options()
     all_options_list = list(all_options.values())
+    item_options = [option for option in all_options_list if hasattr(option, "item")]
 
     # Compute complexities
-    used_nodes_all = nodes_histograms(all_options_list)
+    if cache_path:
+        items_complexities = _load_or_build_cache(cache_path, item_options)
+    else:
+        items_complexities = _get_items_complexities(item_options)
 
-    get_item_options = [
-        option for option in all_options_list if hasattr(option, "item")
-    ]
-    get_items_complexities = []
+    # Get closest item
+    items_complexities_arr = np.array(list(items_complexities.values()))
+    items_options_arr = np.array(list(items_complexities.keys()))
 
-    for option in tqdm(get_item_options, desc="Computing complexities"):
-        learn_comp, saved_comp = learning_complexity(option, used_nodes_all)
-        total_comp = learn_comp + saved_comp
-        get_items_complexities.append(total_comp)
+    order = np.argsort((items_complexities_arr - task_complexity) ** 2)
+    ordered_options: List["GetItem"] = items_options_arr[order]
 
-    order = np.argsort((np.array(get_items_complexities) - task_complexity) ** 2)
-    ordered_options: List["GetItem"] = np.array(get_item_options)[order]
     return TaskObtainItem(world, ordered_options[0].item, **kwargs)
 
 
 def get_task(
     world: "World",
-    task_name: Optional[str] = "",
+    task_name: str = "",
     task_complexity: float = None,
+    cache_path: Optional[str] = None,
     random_task: bool = False,
     seed: int = None,
     **kwargs,
@@ -366,6 +399,8 @@ def get_task(
         world (World): World in which to build the task.
         task_name (str, optional): Name of the task to build.
         task_complexity (float, optional): Complexity of the task wanted.
+        cache_path (str, optional): Path to caching file for complexities.
+            No caching if None. Defaut to None.
         random_task (bool): Force random task to be chosen.
         seed (int, optional): Seed used for random task selection if random.
 
@@ -385,5 +420,7 @@ def get_task(
     if random_task:
         return get_random_task(world, seed, **kwargs)
     if task_complexity is not None:
-        return get_task_by_complexity(world, task_complexity, **kwargs)
+        return get_task_by_complexity(
+            world, task_complexity, cache_path=cache_path, **kwargs
+        )
     return get_task_from_name(world, task_name, **kwargs)
