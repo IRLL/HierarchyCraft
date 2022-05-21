@@ -33,6 +33,8 @@ class DummyItem:
     item_id: int
     name: str
 
+    def __hash__(self) -> int:
+        return self.name.__hash__()
 
 @dataclass
 class DummyOption:
@@ -41,6 +43,11 @@ class DummyOption:
     item: DummyItem
     complexity: int
 
+    def __post_init__(self):
+        self.name = f"Get {self.item.name}"
+
+    def __hash__(self) -> int:
+        return self.name.__hash__()
 
 class DummyWorld:
     """DummyWorld"""
