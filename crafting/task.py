@@ -427,10 +427,10 @@ def get_task(
 
 
 def adaptative_max_episode_step(
-    world: World,
+    world: "World",
     task: TaskObtainItem,
     time_factor: float = 1.0,
 ) -> int:
     all_options = world.get_all_options()
-    solving_option: Option = all_options[f"Get {task.goal_item}"]
+    solving_option: "Option" = all_options[f"Get {task.goal_item}"]
     return int(time_factor * len(list(solving_option.graph.nodes())))
