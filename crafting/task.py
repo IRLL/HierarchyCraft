@@ -424,3 +424,13 @@ def get_task(
             world, task_complexity, cache_path=cache_path, **kwargs
         )
     return get_task_from_name(world, task_name, **kwargs)
+
+
+def adaptative_max_episode_step(
+    world: World,
+    task: TaskObtainItem,
+    time_factor: float = 1.0,
+) -> int:
+    all_options = world.get_all_options()
+    solving_option: Option = all_options[f"Get {task.goal_item}"]
+    return int(time_factor * len(list(solving_option.graph.nodes())))
