@@ -433,4 +433,10 @@ def adaptative_max_episode_step(
 ) -> int:
     all_options = world.get_all_options()
     solving_option: "Option" = all_options[f"Get {task.goal_item}"]
-    return int(time_factor * len(list(solving_option.graph.nodes())))
+    unrolled_graph = solving_option.graph.unrolled_graph
+    leafs = list(
+        node
+        for (node, _) in unrolled_graph.nodes.items()
+        if len(list(unrolled_graph.successors(node))) == 0
+    )
+    return int(time_factor * len(leafs))
