@@ -120,6 +120,7 @@ class CraftingEnv(gym.Env):
 
         # Rendering
         self.render_variables = None
+        self._rgb_array = None
 
         # Seeding
         self.rng_seeds = self.seed(seed)
@@ -234,6 +235,7 @@ class CraftingEnv(gym.Env):
         if self.observe_legal_actions:
             observation = (observation, action_is_legal)
 
+        self._rgb_array = None
         return observation, reward, done, infos
 
     def add_task(self, task: "Task", weight: float = 1.0, can_end: bool = False):
@@ -292,24 +294,31 @@ class CraftingEnv(gym.Env):
         if self.observe_legal_actions:
             observation = (observation, self.action_masks())
 
+        self._rgb_array = None
         return observation
 
-    def render(self, mode="rgb_array"):
+    def render(self, mode="rgb_array") -> Union[str, np.ndarray]:
         if mode == "human":  # for human interaction
             raise NotImplementedError
         if mode == "console":  # for console print
             return str(self.player)
         if mode == "rgb_array":
-            if self.render_variables is None:
-                self.render_variables = create_window(self)
-            update_rendering(
-                env=self,
-                fps=self.metadata["video.frames_per_second"],
-                **self.render_variables,
-            )
-            rgb_array = surface_to_rgb_array(self.render_variables["screen"])
-            return rgb_array
+            return self.rgb_array
         return super().render(mode=mode)  # just raise an exception
+
+    @property
+    def rgb_array(self) -> np.ndarray:
+        if self._rgb_array is not None:
+            return self._rgb_array
+        if self.render_variables is None:
+            self.render_variables = create_window(self)
+        update_rendering(
+            env=self,
+            fps=self.metadata["video.frames_per_second"],
+            **self.render_variables,
+        )
+        self._rgb_array = surface_to_rgb_array(self.render_variables["screen"])
+        return self._rgb_array
 
     def __call__(self, action):
         return self.step(action)
