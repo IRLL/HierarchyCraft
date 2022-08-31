@@ -4,6 +4,7 @@
 """Main module for MineCrafting environment."""
 
 import os
+from crafting.task import TaskObtainItem
 import matplotlib.pyplot as plt
 
 from option_graph.metrics.complexity.histograms import nodes_histograms
@@ -14,10 +15,9 @@ from crafting.examples.minecraft.env import MineCraftingEnv
 
 env = MineCraftingEnv(
     verbose=1,
-    max_step=50,
-    tasks=["obtain_enchanting_table"],
-    tasks_can_end=[True],
+    max_step=50
 )
+env.add_task(TaskObtainItem(env.world, env.world.item_from_name["enchanting_table"]))
 
 plot_options_graphs_path = os.path.join("Images", "OptionsGraphs")
 unrolled_graphs = True
