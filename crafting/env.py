@@ -300,16 +300,19 @@ class CraftingEnv(gym.Env):
         if mode == "console":  # for console print
             return str(self.player)
         if mode == "rgb_array":
-            return self.rgb_array
+            return self.render_rgb_array()
         return super().render(mode=mode)  # just raise an exception
 
-    @property
-    def rgb_array(self) -> np.ndarray:
+    def render_rgb_array(self) -> np.ndarray:
+        """Render an image of the game.
+
+        Create the rendering window if not existing yet.
+        """
         if self.render_variables is None:
             self.render_variables = create_window(self)
         update_rendering(
             env=self,
-            fps=self.metadata["video.frames_per_second"],
+            fps=self.metadata.get("video.frames_per_second", 30),
             **self.render_variables,
         )
         return surface_to_rgb_array(self.render_variables["screen"])
