@@ -312,7 +312,7 @@ class CraftingEnv(gym.Env):
             self.render_variables = create_window(self)
         update_rendering(
             env=self,
-            fps=self.metadata.get("video.frames_per_second", 30),
+            fps=self.metadata.get("video.frames_per_second"),
             **self.render_variables,
         )
         return surface_to_rgb_array(self.render_variables["screen"])

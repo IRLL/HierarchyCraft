@@ -6,7 +6,7 @@
 import os
 import sys
 
-from typing import TYPE_CHECKING, Dict, List, Any, Union
+from typing import TYPE_CHECKING, Dict, List, Any, Optional, Union
 from io import BytesIO
 
 import numpy as np
@@ -75,7 +75,7 @@ def create_window(env: "CraftingEnv") -> Dict[str, Any]:
     window_shape = (int(16 / 9 * 600), 720)
 
     pygame.init()
-    clock = pygame.time.Clock()
+    clock = Clock()
 
     # Create window
     screen = pygame.display.set_mode(window_shape)
@@ -130,7 +130,7 @@ def update_rendering(
     widgets: List[EnvWidget],
     id_to_action: Dict[str, Any],
     additional_events: List[Event] = None,
-    fps: float = 60,
+    fps: Optional[float] = None,
 ) -> Union[int, None]:
     """Update the User Interface returning action if one was found.
 
@@ -149,7 +149,8 @@ def update_rendering(
 
     """
     # Tick
-    clock.tick(fps)
+    if fps is not None:
+        clock.tick(fps)
 
     # Paint background
     screen.fill((198, 198, 198))
