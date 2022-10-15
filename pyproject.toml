@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+
+[project]
+name = "crafting"
+description = "A gym-environment to simultate inventory managment"
+
+dynamic = ["version", "readme", "dependencies"]
+license = { text = "GNU General Public License v3 or later (GPLv3+)" }
+requires-python = ">=3.8"
+authors = [{ name = "Mathïs Fédérico", email = "mathfederico@gmail.com" }]
+keywords = [
+    "gym",
+    "crafting",
+    "minecraft",
+    "hierachical",
+    "reinforcement",
+    "learning",
+]
+
+[project.urls]
+Source = "https://github.com/IRLL/Crafting"
+
+[tool.setuptools]
+license-files = ['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']
+
+[project.scripts]
+
+[tool.setuptools.dynamic]
+readme = { file = ["README.rst"] }
+dependencies = { file = ["requirements.txt"] }
+
+[tool.setuptools_scm]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+log_level = "DEBUG"
+
+[tool.coverage.run]
+source = ["src"]
+
+[tool.mypy]
+files = "src"
+plugins = "numpy.typing.mypy_plugin"
+check_untyped_defs = false
+disallow_any_generics = false
+disallow_incomplete_defs = true
+no_implicit_optional = false
+no_implicit_reexport = true
+strict_equality = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+ignore_missing_imports = true
