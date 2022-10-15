@@ -168,7 +168,7 @@ class CraftingEnv(gym.Env):
 
     def step(
         self, action: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
+    ) -> Tuple[np.ndarray, np.ndarray, bool, bool, dict]:
         previous_observation = self.get_observation()
         reward = 0
 
@@ -221,7 +221,8 @@ class CraftingEnv(gym.Env):
         self.player.score += int(reward)
 
         # Termination
-        done = self.steps >= self.max_step or tasks_done
+        terminated = tasks_done
+        truncated = self.steps >= self.max_step
 
         # Infos
         action_is_legal = self.action_masks()
@@ -236,7 +237,7 @@ class CraftingEnv(gym.Env):
         if self.observe_legal_actions:
             observation = (observation, action_is_legal)
 
-        return observation, reward, done, infos
+        return observation, reward, terminated, truncated, infos
 
     def add_task(self, task: "Task", weight: float = 1.0, can_end: bool = False):
         """Add a new task to the Crafting environment.
@@ -284,17 +285,24 @@ class CraftingEnv(gym.Env):
 
         return observation
 
-    def reset(self) -> np.ndarray:
+    def reset(self) -> Tuple[np.ndarray, dict]:
         self.steps = 0
         self.player = deepcopy(self.initial_player)
         self.world = deepcopy(self.initial_world)
         self.tasks.reset()
 
         observation = self.get_observation()
+        legal_actions = self.action_masks()
         if self.observe_legal_actions:
-            observation = (observation, self.action_masks())
+            observation = (observation, legal_actions)
 
-        return observation
+        infos = {
+            "env_step": self.steps,
+            "action_is_legal": legal_actions,
+            "tasks_done": False,
+        }
+
+        return observation, infos
 
     def render(self) -> Union[str, np.ndarray]:
         if self.render_mode == "human":  # for human interaction
