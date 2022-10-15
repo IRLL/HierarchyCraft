@@ -7,7 +7,7 @@ from typing import Tuple, List, Union
 
 import numpy as np
 
-from crafting.world.items import ItemStack
+from crafting.world.items import Item, ItemStack
 
 
 class Inventory:
@@ -31,20 +31,17 @@ class Inventory:
 
         """
         self.items = items
-        self.items_ids = tuple(map(lambda x: x.item_id, items))
-        self.items_max_stack = np.array(map(lambda x: x.max_stack, items))
+        self.items_ids = tuple(item.item_id for item in items)
         self.content = np.zeros(len(items), dtype=np.int32)
 
-        self._item_id_to_slot_dict = {
-            item.item_id: self.items_ids.index(item.item_id) for item in items
-        }
+        self._item_id_to_slot_dict = {item.item_id: i for i, item in enumerate(items)}
 
         def item_id_to_slot(item_id):
             return self._item_id_to_slot_dict[item_id]
 
         self.item_id_to_slot = np.vectorize(item_id_to_slot)
 
-    def stacks_id_and_size(self, stacks: "ItemStack") -> Tuple[np.ndarray]:
+    def stacks_id_and_size(self, stacks: List["ItemStack"]) -> Tuple[np.ndarray]:
         """Gather the item_id and size of a list of stacks."""
         stack_ids = np.array([stack.item_id for stack in stacks])
         stack_ind = self.item_id_to_slot(stack_ids)
