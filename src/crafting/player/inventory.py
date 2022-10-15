@@ -35,11 +35,10 @@ class Inventory:
         self.content = np.zeros(len(items), dtype=np.int32)
 
         self._item_id_to_slot_dict = {item.item_id: i for i, item in enumerate(items)}
+        self.item_id_to_slot = np.vectorize(self._item_id_to_slot)
 
-        def item_id_to_slot(item_id):
-            return self._item_id_to_slot_dict[item_id]
-
-        self.item_id_to_slot = np.vectorize(item_id_to_slot)
+    def _item_id_to_slot(self, item_id: int):
+        return self._item_id_to_slot_dict[item_id]
 
     def stacks_id_and_size(self, stacks: List["ItemStack"]) -> Tuple[np.ndarray]:
         """Gather the item_id and size of a list of stacks."""
