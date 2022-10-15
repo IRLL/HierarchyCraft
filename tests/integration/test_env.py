@@ -89,7 +89,7 @@ def test_env_obtain_stone(world, player):
     print(env.world.zones)
     print(env.observation_legend)
 
-    print(env.render("console"))
+    print(env.render())
     observation, _, _, _ = env(env.action("get", WOOD.item_id))  # (Success)
 
     print(observation)
@@ -98,7 +98,7 @@ def test_env_obtain_stone(world, player):
         raise ValueError(
             f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
         )
-    print(env.render("console"))
+    print(env.render())
 
     observation, _, _, _ = env(env.action("get", DIRT.item_id))  # (Fail)
 
@@ -108,7 +108,7 @@ def test_env_obtain_stone(world, player):
         raise ValueError(
             f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
         )
-    print(env.render("console"))
+    print(env.render())
 
     observation, _, _, _ = env(env.action("craft", WOOD_PLANK.item_id))  # (Success)
 
@@ -118,7 +118,7 @@ def test_env_obtain_stone(world, player):
         raise ValueError(
             f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
         )
-    print(env.render("console"))
+    print(env.render())
 
     observation, _, _, _ = env(env.action("craft", WOOD_PLANK.item_id))  # (Fail)
 
@@ -128,7 +128,7 @@ def test_env_obtain_stone(world, player):
         raise ValueError(
             f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
         )
-    print(env.render("console"))
+    print(env.render())
 
     for _ in range(2):
         observation, _, _, _ = env(env.action("get", WOOD.item_id))
@@ -140,7 +140,7 @@ def test_env_obtain_stone(world, player):
         raise ValueError(
             f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
         )
-    print(env.render("console"))
+    print(env.render())
 
     observation, _, _, _ = env(env.action("move", UNDERGROUND.zone_id))
 
@@ -150,7 +150,7 @@ def test_env_obtain_stone(world, player):
         raise ValueError(
             f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
         )
-    print(env.render("console"))
+    print(env.render())
 
     observation, _, _, _ = env(
         env.action("craft", R_WOODEN_PICKAXE.recipe_id)
@@ -162,7 +162,7 @@ def test_env_obtain_stone(world, player):
         raise ValueError(
             f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
         )
-    print(env.render("console"))
+    print(env.render())
 
     observation, _, _, _ = env(
         env.action("craft", R_CRAFTING_TABLE.recipe_id)
@@ -174,7 +174,7 @@ def test_env_obtain_stone(world, player):
         raise ValueError(
             f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
         )
-    print(env.render("console"))
+    print(env.render())
 
     observation, _, _, _ = env(env.action("get", STONE.item_id))  # (Fail)
 
@@ -184,7 +184,7 @@ def test_env_obtain_stone(world, player):
         raise ValueError(
             f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
         )
-    print(env.render("console"))
+    print(env.render())
 
     observation, _, _, _ = env(env.action("craft", R_STICK.recipe_id))  # (Success)
     observation, _, _, _ = env(
@@ -197,7 +197,7 @@ def test_env_obtain_stone(world, player):
         raise ValueError(
             f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
         )
-    print(env.render("console"))
+    print(env.render())
 
     observation, _, _, _ = env(env.action("get", STONE.item_id))  # (Success)
 
@@ -207,7 +207,7 @@ def test_env_obtain_stone(world, player):
         raise ValueError(
             f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
         )
-    print(env.render("console"))
+    print(env.render())
 
 
 def test_env_zone_consistency(world, player):

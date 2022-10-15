@@ -346,7 +346,7 @@ def render_env_with_human(env: "CraftingEnv", n_episodes: int = 1):
         done = False
         total_reward = 0
         while not done:
-            env.render(mode="rgb_array")
+            env.render()
 
             # if plot_options_graphs or plot_requirement_graph:
             #     plt.show(block=False)

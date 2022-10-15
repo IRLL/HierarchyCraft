@@ -13,10 +13,7 @@ from option_graph.metrics.complexity.complexities import learning_complexity
 from crafting.render.render import render_env_with_human
 from crafting.examples.minecraft.env import MineCraftingEnv
 
-env = MineCraftingEnv(
-    verbose=1,
-    max_step=50
-)
+env = MineCraftingEnv(verbose=1, max_step=50, render_mode="rgb_array")
 env.add_task(TaskObtainItem(env.world, env.world.item_from_name["enchanting_table"]))
 
 plot_options_graphs_path = os.path.join("Images", "OptionsGraphs")

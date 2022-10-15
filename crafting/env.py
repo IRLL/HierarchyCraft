@@ -39,6 +39,7 @@ class CraftingEnv(gym.Env):
         fail_penalty: float = 9,
         timestep_penalty: float = 1,
         moving_penalty: float = 9,
+        render_mode: str = "console",
         seed: int = None,
     ):
         """Generic Crafting Environment.
@@ -119,6 +120,7 @@ class CraftingEnv(gym.Env):
         )
 
         # Rendering
+        self.render_mode = render_mode
         self.render_variables = None
 
         # Seeding
@@ -294,14 +296,14 @@ class CraftingEnv(gym.Env):
 
         return observation
 
-    def render(self, mode="rgb_array") -> Union[str, np.ndarray]:
-        if mode == "human":  # for human interaction
+    def render(self) -> Union[str, np.ndarray]:
+        if self.render_mode == "human":  # for human interaction
             raise NotImplementedError
-        if mode == "console":  # for console print
+        if self.render_mode == "console":  # for console print
             return str(self.player)
-        if mode == "rgb_array":
+        if self.render_mode == "rgb_array":
             return self.render_rgb_array()
-        return super().render(mode=mode)  # just raise an exception
+        return super().render()  # just raise an exception
 
     def render_rgb_array(self) -> np.ndarray:
         """Render an image of the game.
