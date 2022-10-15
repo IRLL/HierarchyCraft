@@ -82,7 +82,7 @@ def player(inv):
 
 
 def test_env_obtain_stone(world, player):
-    env = CraftingEnv(world, player, max_step=50, verbose=1)
+    env = CraftingEnv(world, player, max_step=50, verbose=1, render_mode="console")
 
     print(env.world.foundable_items)
     print(env.world.recipes)
@@ -211,7 +211,7 @@ def test_env_obtain_stone(world, player):
 
 
 def test_env_zone_consistency(world, player):
-    env = CraftingEnv(world, player, max_step=50, verbose=1)
+    env = CraftingEnv(world, player, max_step=50, verbose=1, render_mode="console")
 
     env(env.action("get", WOOD.item_id))
     env(env.action("craft", R_WOOD_PLANK.recipe_id))

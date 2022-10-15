@@ -39,7 +39,7 @@ class CraftingEnv(gym.Env):
         fail_penalty: float = 9,
         timestep_penalty: float = 1,
         moving_penalty: float = 9,
-        render_mode: str = "console",
+        render_mode: str = "rgb_array",
         seed: int = None,
     ):
         """Generic Crafting Environment.
