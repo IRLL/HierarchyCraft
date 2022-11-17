@@ -133,3 +133,5 @@ dmypy.json
 
 # xcf
 *.xcf
+
+.DS_store
