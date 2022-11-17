@@ -2,8 +2,7 @@
 # Copyright (C) 2021-2022 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
 """  Module for the base gym environment of any crafting environement. """
-
-from typing import TYPE_CHECKING, Tuple, List, Union
+from typing import TYPE_CHECKING, Tuple, List, Union, Optional
 from copy import deepcopy
 
 import numpy as np
@@ -41,6 +40,7 @@ class CraftingEnv(gym.Env):
         moving_penalty: float = 9,
         render_mode: str = "rgb_array",
         seed: int = None,
+        use_old_gym_format: bool = True,
     ):
         """Generic Crafting Environment.
 
@@ -82,6 +82,7 @@ class CraftingEnv(gym.Env):
         self.steps = 1
         self.verbose = verbose
         self.observe_legal_actions = observe_legal_actions
+        self.use_old_gym_format = use_old_gym_format
 
         # Action space
         # (get_item or use_recipe or move_to_zone)
@@ -237,6 +238,10 @@ class CraftingEnv(gym.Env):
         if self.observe_legal_actions:
             observation = (observation, action_is_legal)
 
+        if self.use_old_gym_format:
+            done = terminated or truncated
+            return observation, reward, done, infos
+
         return observation, reward, terminated, truncated, infos
 
     def add_task(self, task: "Task", weight: float = 1.0, can_end: bool = False):
@@ -302,9 +307,15 @@ class CraftingEnv(gym.Env):
             "tasks_done": False,
         }
 
+        if self.use_old_gym_format:
+            return observation
+
         return observation, infos
 
-    def render(self) -> Union[str, np.ndarray]:
+    def render(self, mode: Optional[str] = None, **kwargs) -> Union[str, np.ndarray]:
+        if mode is not None:
+            self.render_mode = mode
+
         if self.render_mode == "human":  # for human interaction
             raise NotImplementedError
         if self.render_mode == "console":  # for console print
