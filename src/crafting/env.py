@@ -40,7 +40,7 @@ class CraftingEnv(gym.Env):
         moving_penalty: float = 9,
         render_mode: str = "rgb_array",
         seed: int = None,
-        use_old_gym_format: bool = True,
+        use_old_gym_format: bool = False,
     ):
         """Generic Crafting Environment.
 
