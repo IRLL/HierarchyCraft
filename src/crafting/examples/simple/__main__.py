@@ -32,7 +32,7 @@ def save_solve_graph(env: CraftingEnv, plot_path: Path, unrolled_graphs=True):
     print(f"{option_name}: {lcomp} ({comp_saved})")
 
     figsize = (16 / 2 * (env.world.n_items + 1), 9 / 2 * (env.world.n_items + 1))
-    _, ax = plt.subplots(figsize=figsize)
+    fig, ax = plt.subplots(figsize=figsize)
     fname = f"n={env.world.n_items}"
     fname += f"_t={lcomp + comp_saved}_s={comp_saved}_l={lcomp}"
 
@@ -47,20 +47,22 @@ def save_solve_graph(env: CraftingEnv, plot_path: Path, unrolled_graphs=True):
     os.makedirs(plot_path, exist_ok=True)
     plt.savefig(path, dpi=240)
     print(f"Saved solve_graph at {path}")
+    plt.close(fig)
 
 
 def save_requirement_graph(env: CraftingEnv, plot_path: Path):
-    _, ax = plt.subplots(figsize=(16, 9))
+    fig, ax = plt.subplots(figsize=(16, 9))
     env.world.draw_requirements_graph(ax)
     path = plot_path / f"n={n_items}_requirement_graph"
     os.makedirs(plot_path, exist_ok=True)
     plt.savefig(path, dpi=240)
     print(f"Saved requirement_graph at {path}")
+    plt.close(fig)
 
 
 if __name__ == "__main__":
 
-    for n_items in range(9, 11):
+    for n_items in range(3, 11):
         envs = [
             LightStackedCraftingEnv(n_items, 1),
             LightStackedCraftingEnv(n_items, 2),
