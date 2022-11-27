@@ -24,7 +24,7 @@ class HasItem(FeatureCondition):
         name = f"Has {quantity} {item}?"
         conditon_text = f"{quantity}" if quantity > 1 else ""
         image = load_or_create_image(world, item, text=conditon_text)
-        super().__init__(name=name, image=np.array(image))
+        super().__init__(name=name, image=np.array(image), complexity=1)
 
         self.world = world
         self.item = item
@@ -43,7 +43,7 @@ class IsInZone(FeatureCondition):
     def __init__(self, zone: "Zone", world: "World") -> None:
         name = f"Is in {zone}?"
         image = np.array(load_or_create_image(world, zone))
-        super().__init__(name=name, image=image)
+        super().__init__(name=name, image=image, complexity=1)
 
         self.world = world
         self.zone = zone
@@ -61,7 +61,7 @@ class HasProperty(FeatureCondition):
     def __init__(self, prop: str, world: "World") -> None:
         name = f"Has property '{prop}' ?"
         image = np.array(load_or_create_image(world, prop))
-        super().__init__(name=name, image=image)
+        super().__init__(name=name, image=image, complexity=1)
 
         self.world = world
         self.prop = prop
