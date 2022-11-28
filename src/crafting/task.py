@@ -112,7 +112,7 @@ class TaskList:
         can_end: Union[List[bool], Dict[str, bool]] = None,
         early_stopping: str = "all",
     ):
-        """_summary_
+        """A list of tasks of a Crafting environment.
 
         Args:
             tasks (List[Task]): List of tasks to compose the list.
@@ -378,8 +378,8 @@ def get_task_by_complexity(
 
 def get_task(
     world: "World",
-    task_name: str = "",
     task_complexity: float = None,
+    task_name: Optional[str] = None,
     cache_path: Optional[str] = None,
     random_task: bool = False,
     seed: int = None,
@@ -414,6 +414,7 @@ def get_task(
     Returns:
         Task: Built task.
     """
+    task_name = task_name if task_name is not None else ""
     random_task = random_task or "random" in task_name
     assert random_task or task_name is not None or task_complexity is not None
 
