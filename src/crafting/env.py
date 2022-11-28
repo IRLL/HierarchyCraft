@@ -125,6 +125,7 @@ class CraftingEnv(gym.Env):
         self.render_variables = None
 
         # Seeding
+        self.original_seed = seed
         self.rng_seeds = self.seed(seed)
         self.action_space.seed(seed)
         self.observation_space.seed(seed)
