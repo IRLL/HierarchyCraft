@@ -15,8 +15,9 @@ from crafting.examples.simple.env import (
 )
 
 
-def test_stacked_requirements_graph():
-    env = StackedCraftingEnv(n_items=4)
+@given(integers(3, 8))
+def test_stacked_requirements_graph(n_items: int):
+    env = StackedCraftingEnv(n_items=n_items)
     expected_graph = DiGraph()
     for item in env.world.items:
         for required_id in range(item.item_id):
@@ -25,9 +26,11 @@ def test_stacked_requirements_graph():
     check.is_true(is_isomorphic(env.world.get_requirements_graph(), expected_graph))
 
 
-@given(integers(2, 6))
-def test_lightstacked_requirements_graph(n_required_previous: int):
-    env = LightStackedCraftingEnv(n_items=4, n_required_previous=n_required_previous)
+@given(integers(3, 8), integers(2, 6))
+def test_lightstacked_requirements_graph(n_items: int, n_required_previous: int):
+    env = LightStackedCraftingEnv(
+        n_items=n_items, n_required_previous=n_required_previous
+    )
     expected_graph = DiGraph()
     for item in env.world.items:
         min_idx = max(0, item.item_id - n_required_previous)
@@ -37,9 +40,11 @@ def test_lightstacked_requirements_graph(n_required_previous: int):
     check.is_true(is_isomorphic(env.world.get_requirements_graph(), expected_graph))
 
 
-@given(integers(3, 6))
-def test_lighterstacked_requirements_graph(n_required_previous: int):
-    env = LighterStackedCraftingEnv(n_items=4, n_required_previous=n_required_previous)
+@given(integers(3, 8), integers(3, 6))
+def test_lighterstacked_requirements_graph(n_items: int, n_required_previous: int):
+    env = LighterStackedCraftingEnv(
+        n_items=n_items, n_required_previous=n_required_previous
+    )
     expected_graph = DiGraph()
     for item in env.world.items:
         if item.item_id > 0:
