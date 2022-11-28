@@ -248,16 +248,21 @@ class TaskObtainItem(Task):
         super().__init__(f"obtain_{item}", world)
         self.goal_item = item
         self.add_achivement_getitem(self.goal_item, goal_reward, end_task=True)
+        self._init_reward_shaping(reward_shaping, shaping_value)
 
-        # Reward shaping
+    def _init_reward_shaping(self, reward_shaping: RewardShaping, shaping_value: float):
         achivement_items: List["Item"] = []
-        if reward_shaping is None or reward_shaping == RewardShaping.NONE:
+        if reward_shaping is None:
+            reward_shaping = RewardShaping.NONE
+
+        reward_shaping = RewardShaping(reward_shaping)
+        if reward_shaping == RewardShaping.NONE:
             pass
         elif reward_shaping == RewardShaping.ALL:
-            achivement_items = world.items
+            achivement_items = self.world.items
         elif reward_shaping in (RewardShaping.ALL_USEFUL, RewardShaping.DIRECT_USEFUL):
-            all_options = world.get_all_options()
-            solving_option = all_options[f"Get {item}"]
+            all_options = self.world.get_all_options()
+            solving_option = all_options[f"Get {self.goal_item}"]
             graph = solving_option.graph
             if reward_shaping == RewardShaping.ALL_USEFUL:
                 graph = graph.unrolled_graph
