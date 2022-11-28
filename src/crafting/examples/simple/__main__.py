@@ -53,15 +53,14 @@ def save_solve_graph(env: CraftingEnv, plot_path: Path, unrolled_graphs=True):
 def save_requirement_graph(env: CraftingEnv, plot_path: Path):
     fig, ax = plt.subplots(figsize=(16, 9))
     env.world.draw_requirements_graph(ax)
-    path = plot_path / f"n={n_items}_requirement_graph"
+    path = plot_path / f"n={env.world.n_items}_requirement_graph"
     os.makedirs(plot_path, exist_ok=True)
     plt.savefig(path, dpi=240)
     print(f"Saved requirement_graph at {path}")
     plt.close(fig)
 
 
-if __name__ == "__main__":
-
+def save__all_envs_graphs():
     for n_items in range(3, 11):
         envs = [
             LightStackedCraftingEnv(n_items, 1),
@@ -75,3 +74,7 @@ if __name__ == "__main__":
             plot_path = Path("Images") / "graphs" / env.name
             save_solve_graph(env, plot_path / "solve", unrolled_graphs=True)
             save_requirement_graph(env, plot_path / "requirement_graph")
+
+
+if __name__ == "__main__":
+    save__all_envs_graphs()
