@@ -16,7 +16,7 @@ from crafting.world.world import World
 from crafting.player.player import Player
 from crafting.player.inventory import Inventory
 
-from crafting.task import TaskList, TaskObtainItem
+from crafting.task import TaskList, TaskObtainItem, RewardShaping
 
 from crafting.world.zones import Zone
 from crafting.world.items import Item, ItemStack
@@ -52,15 +52,18 @@ class BaseSimpleCraftingEnv(CraftingEnv):
         if "max_step" not in kwargs:
             kwargs["max_step"] = 2**n_items
         player = Player(Inventory(world.items), initial_zone)
-        tasks = TaskList(
-            [TaskObtainItem(world, world.items[-1], goal_reward=2**n_items)],
-            can_end=[True],
+        reward_shaping = kwargs.pop("reward_shaping", 0)
+        task = TaskObtainItem(
+            world,
+            world.items[-1],
+            goal_reward=2**n_items,
+            reward_shaping=reward_shaping,
         )
         super().__init__(
             world=world,
             player=player,
             seed=0,
-            tasks=tasks,
+            tasks=TaskList([task], can_end=[True]),
             **kwargs,
         )
 
