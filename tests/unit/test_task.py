@@ -36,6 +36,7 @@ class DummyItem:
     def __hash__(self) -> int:
         return self.name.__hash__()
 
+
 @dataclass
 class DummyOption:
     """DummyItem"""
@@ -48,6 +49,7 @@ class DummyOption:
 
     def __hash__(self) -> int:
         return self.name.__hash__()
+
 
 class DummyWorld:
     """DummyWorld"""
@@ -532,7 +534,7 @@ class TestGetTask:
 
     def test_by_name(self):
         """should get task by name by default."""
-        get_task(self.world, "obtain_2")
+        get_task(self.world, task_name="obtain_2")
 
         check.is_false(self.random_mocker.called)
         check.is_false(self.complexity_mocker.called)
@@ -552,7 +554,7 @@ class TestGetTask:
     def test_random_in_name(self):
         """should get a random obtain_item task if random in task_name."""
         seed = 42
-        get_task(self.world, "obtain_random", seed=seed)
+        get_task(self.world, task_name="obtain_random", seed=seed)
 
         check.is_true(self.random_mocker.called)
         check.is_false(self.complexity_mocker.called)
