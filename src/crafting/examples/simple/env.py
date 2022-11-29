@@ -133,7 +133,10 @@ class LightStackedCraftingEnv(BaseSimpleCraftingEnv):
 
     def __init__(self, n_items: int, n_required_previous: int = 2, **kwargs):
         self.n_required_previous = n_required_previous
-        env_name = f"LightStackedCrafting-{self.n_required_previous}"
+        if self.n_required_previous == 1:
+            env_name = "LinearStackedCrafting"
+        else:
+            env_name = f"LightStackedCrafting-{self.n_required_previous}"
         super().__init__(n_items, name=env_name, **kwargs)
 
     def _build_recipes(self, items: List[Item]) -> List[Recipe]:
@@ -172,7 +175,10 @@ class LighterStackedCraftingEnv(BaseSimpleCraftingEnv):
 
     def __init__(self, n_items: int, n_required_previous: int = 3, **kwargs):
         self.n_required_previous = n_required_previous
-        env_name = f"LighterStackedCrafting-{self.n_required_previous}"
+        if self.n_required_previous <= 2:
+            env_name = "LinearStackedCrafting"
+        else:
+            env_name = f"LighterStackedCrafting-{self.n_required_previous}"
         super().__init__(n_items, name=env_name, **kwargs)
 
     def _build_recipes(self, items: List[Item]) -> List[Recipe]:
