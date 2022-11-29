@@ -383,8 +383,8 @@ def get_task_by_complexity(
 
 def get_task(
     world: "World",
-    task_complexity: float = None,
     task_name: Optional[str] = None,
+    task_complexity: float = None,
     cache_path: Optional[str] = None,
     random_task: bool = False,
     seed: int = None,
