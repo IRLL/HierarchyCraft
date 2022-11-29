@@ -268,13 +268,18 @@ class TestTaskListStackDones:
             tests._stacked_dones()
 
 
+def dummy_init(self, **kwargs):
+    for arg_name, arg_value in kwargs.items():
+        setattr(self, arg_name, arg_value)
+
+
 class TestTaskObtainItem:
     """TaskObtainItem"""
 
     @pytest.fixture(autouse=True)
     def setup(self, mocker: MockerFixture):
         """Setup reused fixtures."""
-        self.init_mocker = mocker.patch("crafting.task.Task.__init__")
+        self.init_mocker = mocker.patch("crafting.task.Task.__init__", dummy_init)
         self.add_achivement_mocker = mocker.patch(
             "crafting.task.Task.add_achivement_getitem"
         )
@@ -343,9 +348,6 @@ class TestTaskObtainItem:
         """should have given item as goal_item and ending achivement."""
 
         task = TaskObtainItem(world=self.dummy_world, item=self.dummy_item)
-        self.init_mocker.assert_called_with(
-            f"obtain_{self.dummy_item}", self.dummy_world
-        )
         check.equal(task.goal_item, self.dummy_item)
         self.add_achivement_mocker.assert_called_with(
             self.dummy_item, 10, end_task=True

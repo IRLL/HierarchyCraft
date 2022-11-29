@@ -245,7 +245,7 @@ class TaskObtainItem(Task):
             shaping_value (float, optional): Value used for reward shaping if any.
                 Defaults to 1.
         """
-        super().__init__(f"obtain_{item}", world)
+        super().__init__(name=f"obtain_{item}", world=world)
         self.goal_item = item
         self.add_achivement_getitem(self.goal_item, goal_reward, end_task=True)
         self._init_reward_shaping(reward_shaping, shaping_value)
