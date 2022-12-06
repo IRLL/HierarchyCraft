@@ -37,12 +37,13 @@ class TowerCraftingEnv(SimpleCraftingEnv):
             height (int): Number of layers of the tower (ignoring goal item).
             width (int): Number of items per layer.
         """
-        self.height = height
-        self.width = width
+        self.height = int(height)
+        self.width = int(width)
         assert self.height > 0
         assert self.width > 0
         n_items = self.height * self.width + 1
-        super().__init__(n_items, name="TowerCrafting", **kwargs)
+        name = f"TowerCrafting-v1-H{self.height}-W{self.width}"
+        super().__init__(n_items, name=name, **kwargs)
 
     def _build_recipes(self, items: List[Item]) -> List[Recipe]:
         """Build recipes to make every item accessible.
