@@ -78,12 +78,28 @@ class SimpleCraftingEnv(CraftingEnv):
 
         """
         items = [Item(i, f"{i}") for i in range(n_items)]
-        zone = Zone(0, "zone", items=[items[0]])
-
         recipes = self._build_recipes(items)
+        zone = self._build_zone(items, recipes)
 
         world = World(zones=[zone], items=items, recipes=recipes)
         return world, zone
+
+    @staticmethod
+    def _build_zone(items: List[Item], recipes: List[Recipe]):
+        # Search for items that should be foundable
+        available_items = set()
+        needed_items = set()
+        for item in items:
+            for recipe in recipes:
+                items_produced = [stack.item for stack in recipe.outputs]
+                if item in items_produced:
+                    available_items.add(item)
+                items_needed = [stack.item for stack in recipe.inputs]
+                if item in items_needed:
+                    needed_items.add(item)
+
+        foundable_items = [item for item in needed_items if item not in available_items]
+        return Zone(0, "zone", items=foundable_items)
 
     def _build_recipes(self, items: List[Item]) -> List[Recipe]:
         raise NotImplementedError
