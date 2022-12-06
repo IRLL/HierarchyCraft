@@ -5,3 +5,5 @@ from crafting.examples.simple.recursive import (
     LightRecursiveCraftingEnv,
     LighterRecursiveCraftingEnv,
 )
+
+from crafting.examples.simple.tower import TowerCraftingEnv
