@@ -43,6 +43,10 @@ class TowerCraftingEnv(SimpleCraftingEnv):
         assert self.width > 0
         n_items = self.height * self.width + 1
         name = f"TowerCrafting-v1-H{self.height}-W{self.width}"
+        if "max_step" not in kwargs:
+            kwargs["max_step"] = (
+                sum(self.width**h for h in range(self.height + 1)) + 1
+            )
         super().__init__(n_items, name=name, **kwargs)
 
     def _build_recipes(self, items: List[Item]) -> List[Recipe]:
