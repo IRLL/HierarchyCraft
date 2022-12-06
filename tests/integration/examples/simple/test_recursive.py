@@ -16,7 +16,7 @@ from crafting.examples.simple import (
 
 
 @given(integers(3, 8))
-def test_stacked_requirements_graph(n_items: int):
+def test_recursive_requirements_graph(n_items: int):
     env = RecursiveCraftingEnv(n_items=n_items)
     expected_graph = DiGraph()
     for item in env.world.items:
@@ -27,7 +27,7 @@ def test_stacked_requirements_graph(n_items: int):
 
 
 @given(integers(3, 8), integers(2, 6))
-def test_lightstacked_requirements_graph(n_items: int, n_required_previous: int):
+def test_light_recursive_requirements_graph(n_items: int, n_required_previous: int):
     env = LightRecursiveCraftingEnv(
         n_items=n_items, n_required_previous=n_required_previous
     )
@@ -41,7 +41,7 @@ def test_lightstacked_requirements_graph(n_items: int, n_required_previous: int)
 
 
 @given(integers(3, 8), integers(3, 6))
-def test_lighterstacked_requirements_graph(n_items: int, n_required_previous: int):
+def test_lighter_recursive_requirements_graph(n_items: int, n_required_previous: int):
     env = LighterRecursiveCraftingEnv(
         n_items=n_items, n_required_previous=n_required_previous
     )
