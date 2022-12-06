@@ -54,6 +54,9 @@ class Item:
         return self.item_id
 
     def __repr__(self):
+        if self.name.capitalize() == str(self.item_id):
+            return f"Item({self.item_id})"
+
         return f"{self.name.capitalize()}({self.item_id})"
 
 
@@ -84,7 +87,10 @@ class ItemStack(Item):
         self.size = size
 
     def __repr__(self) -> str:
-        return f"{self.name.capitalize()}({self.item_id})[{self.size}]"
+        item_name = repr(self.item)
+        if self.size == 1:
+            return item_name
+        return f"{item_name}[{self.size}]"
 
 
 class Tool(Item):
