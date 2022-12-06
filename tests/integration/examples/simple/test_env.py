@@ -8,16 +8,16 @@ from hypothesis.strategies import integers
 
 from networkx import is_isomorphic, DiGraph
 
-from crafting.examples.simple.env import (
-    StackedCraftingEnv,
-    LightStackedCraftingEnv,
-    LighterStackedCraftingEnv,
+from crafting.examples.simple import (
+    RecursiveCraftingEnv,
+    LightRecursiveCraftingEnv,
+    LighterRecursiveCraftingEnv,
 )
 
 
 @given(integers(3, 8))
 def test_stacked_requirements_graph(n_items: int):
-    env = StackedCraftingEnv(n_items=n_items)
+    env = RecursiveCraftingEnv(n_items=n_items)
     expected_graph = DiGraph()
     for item in env.world.items:
         for required_id in range(item.item_id):
@@ -28,7 +28,7 @@ def test_stacked_requirements_graph(n_items: int):
 
 @given(integers(3, 8), integers(2, 6))
 def test_lightstacked_requirements_graph(n_items: int, n_required_previous: int):
-    env = LightStackedCraftingEnv(
+    env = LightRecursiveCraftingEnv(
         n_items=n_items, n_required_previous=n_required_previous
     )
     expected_graph = DiGraph()
@@ -42,7 +42,7 @@ def test_lightstacked_requirements_graph(n_items: int, n_required_previous: int)
 
 @given(integers(3, 8), integers(3, 6))
 def test_lighterstacked_requirements_graph(n_items: int, n_required_previous: int):
-    env = LighterStackedCraftingEnv(
+    env = LighterRecursiveCraftingEnv(
         n_items=n_items, n_required_previous=n_required_previous
     )
     expected_graph = DiGraph()
