@@ -7,8 +7,8 @@ import os
 from crafting.task import TaskObtainItem
 import matplotlib.pyplot as plt
 
-from option_graph.metrics.complexity.histograms import nodes_histograms
-from option_graph.metrics.complexity.complexities import learning_complexity
+from hebg.metrics.complexity.histograms import nodes_histograms
+from hebg.metrics.complexity.complexities import learning_complexity
 
 from crafting.render.render import render_env_with_human
 from crafting.examples.minecraft.env import MineCraftingEnv
@@ -44,7 +44,7 @@ for option_name, option in all_options.items():
             path = os.path.join(plot_options_graphs_path, fname)
             plt.tight_layout()
             plt.savefig(path, dpi=240)
-            print(f"Saved option_graph at {path}")
+            print(f"Saved heb_graph at {path}")
 
 if plot_requirement_graph:
     env.world.draw_requirements_graph()

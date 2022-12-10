@@ -13,8 +13,8 @@ from enum import Enum
 from tqdm import tqdm
 import numpy as np
 
-from option_graph.metrics.complexity import learning_complexity
-from option_graph.metrics.complexity.histograms import nodes_histograms
+from hebg.metrics.complexity import learning_complexity
+from hebg.metrics.complexity.histograms import nodes_histograms
 
 from crafting.options.utils import get_items_in_graph
 
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from crafting.options.options import GetItem
     from crafting.world.world import World
     from crafting.world.items import Item
-    from option_graph.option import Option
+    from hebg.option import Option
 
 
 class Task:

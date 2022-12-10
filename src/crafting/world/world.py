@@ -14,12 +14,12 @@ import networkx as nx
 import matplotlib.patches as mpatches
 from matplotlib.legend_handler import HandlerPatch
 
-from option_graph.graph import (
+from hebg.graph import (
     compute_levels,
     draw_networkx_nodes_images,
     compute_edges_color,
 )
-from option_graph.layouts.metabased import leveled_layout_energy
+from hebg.layouts.metabased import leveled_layout_energy
 
 import crafting
 from crafting.options.options import GetItem, ReachZone, Option

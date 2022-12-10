@@ -8,8 +8,8 @@ import os
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-from option_graph.metrics.complexity.histograms import nodes_histograms
-from option_graph.metrics.complexity.complexities import learning_complexity
+from hebg.metrics.complexity.histograms import nodes_histograms
+from hebg.metrics.complexity.complexities import learning_complexity
 
 from crafting.env import CraftingEnv
 from crafting.examples.simple import (

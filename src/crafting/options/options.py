@@ -1,12 +1,12 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021-2022 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
-""" Module for handcrafted Option with OptionGraph in any Crafting environment. """
+""" Module for handcrafted Option with HEBGraph in any Crafting environment. """
 
 from typing import TYPE_CHECKING, List, Dict, Union
 import numpy as np
 
-from option_graph import Option, OptionGraph
+from hebg import Option, HEBGraph
 
 from crafting.render.utils import load_or_create_image
 from crafting.options.actions import SearchItem, MoveToZone, CraftRecipe
@@ -27,14 +27,14 @@ class ReachZone(Option):
         self.world = world
         self.zone = zone
 
-    def build_graph(self) -> OptionGraph:
-        """Build the OptionGraph of this Option.
+    def build_graph(self) -> HEBGraph:
+        """Build the HEBGraph of this Option.
 
         Returns:
-            The built OptionGraph.
+            The built HEBGraph.
 
         """
-        graph = OptionGraph(option=self)
+        graph = HEBGraph(option=self)
         go_to_zone = MoveToZone(self.zone, self.world)
         graph.add_node(go_to_zone)
         return graph
@@ -74,14 +74,14 @@ class GetItem(Option):
         self.last_action = last_action
         self.all_options = all_options
 
-    def build_graph(self) -> OptionGraph:
-        """Build the OptionGraph of this Option.
+    def build_graph(self) -> HEBGraph:
+        """Build the HEBGraph of this Option.
 
         Returns:
-            The built OptionGraph.
+            The built HEBGraph.
 
         """
-        graph = OptionGraph(option=self, all_options=self.all_options)
+        graph = HEBGraph(option=self, all_options=self.all_options)
         prev_checks = []
 
         # Any of Craft options
@@ -134,7 +134,7 @@ class GetItem(Option):
         return graph
 
     def _add_crafting_option(
-        self, graph: OptionGraph, item_id: int, quantity: int
+        self, graph: HEBGraph, item_id: int, quantity: int
     ) -> HasItem:
         item = self.world.item_from_id[item_id]
         has_item = HasItem(item=item, world=self.world, quantity=quantity)
@@ -145,7 +145,7 @@ class GetItem(Option):
         graph.add_edge(has_item, get_item, index=int(False))
         return has_item
 
-    def _add_zone_option(self, graph: OptionGraph, zone_id: int) -> IsInZone:
+    def _add_zone_option(self, graph: HEBGraph, zone_id: int) -> IsInZone:
         zone = self.world.zone_from_id[zone_id]
         is_in_zone = IsInZone(zone, self.world)
         graph.add_node(is_in_zone)
@@ -155,7 +155,7 @@ class GetItem(Option):
         graph.add_edge(is_in_zone, reach_zone, index=int(False))
         return is_in_zone
 
-    def _add_property_needed(self, graph: OptionGraph, prop: str) -> HasProperty:
+    def _add_property_needed(self, graph: HEBGraph, prop: str) -> HasProperty:
         has_prop = HasProperty(prop, world=self.world)
         graph.add_node(has_prop)
         image = np.array(load_or_create_image(self.world, prop))
