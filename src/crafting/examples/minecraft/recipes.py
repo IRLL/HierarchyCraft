@@ -7,11 +7,10 @@ All used Minecraft recipies.
 
 """
 
-from crafting.world.items import ItemStack
-from crafting.world.recipes import Recipe
-
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.tools import *
+from crafting.world.items import ItemStack
+from crafting.world.recipes import Recipe
 
 # Hand-Crafting items
 #: Recipe of WOOD_PLANK

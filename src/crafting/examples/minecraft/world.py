@@ -6,12 +6,11 @@
 import os
 
 import crafting
-from crafting.world.world import World
-
 from crafting.examples.minecraft.items import MC_ITEMS, MC_SEARCHABLE_ITEMS
+from crafting.examples.minecraft.recipes import MC_RECIPES
 from crafting.examples.minecraft.tools import MC_TOOLS
 from crafting.examples.minecraft.zones import MC_ZONES
-from crafting.examples.minecraft.recipes import MC_RECIPES
+from crafting.world.world import World
 
 
 class McWorld(World):

@@ -3,19 +3,19 @@
 
 """ Module for handcrafted Option with HEBGraph in any Crafting environment. """
 
-from typing import TYPE_CHECKING, List, Dict, Union
+from typing import TYPE_CHECKING, Dict, List, Union
+
 import numpy as np
+from hebg import HEBGraph, Option
 
-from hebg import Option, HEBGraph
-
+from crafting.options.actions import CraftRecipe, MoveToZone, SearchItem
+from crafting.options.feature_conditions import HasItem, HasProperty, IsInZone
 from crafting.render.utils import load_or_create_image
-from crafting.options.actions import SearchItem, MoveToZone, CraftRecipe
-from crafting.options.feature_conditions import HasItem, IsInZone, HasProperty
 
 if TYPE_CHECKING:
     from crafting.world.items import Item
-    from crafting.world.zones import Zone
     from crafting.world.world import World
+    from crafting.world.zones import Zone
 
 
 class ReachZone(Option):

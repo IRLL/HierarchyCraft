@@ -3,10 +3,10 @@
 
 """ Player """
 
-from crafting.world.items import Item, Tool
-from crafting.world.zones import Zone
-from crafting.world.recipes import Recipe
 from crafting.player.inventory import Inventory
+from crafting.world.items import Item, Tool
+from crafting.world.recipes import Recipe
+from crafting.world.zones import Zone
 
 
 class Player:

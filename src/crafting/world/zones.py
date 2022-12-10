@@ -10,7 +10,7 @@ The Zones have special properties for finding or crafting items.
 
 from typing import List
 
-from crafting.world.items import Item, Tool, ItemStack
+from crafting.world.items import Item, ItemStack, Tool
 
 
 class Zone:

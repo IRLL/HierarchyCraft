@@ -9,18 +9,14 @@ A collection of simple environments using basic constructor rules.
 
 from typing import List, Tuple
 
-
 from crafting.env import CraftingEnv
-from crafting.world.world import World
-
-from crafting.player.player import Player
 from crafting.player.inventory import Inventory
-
+from crafting.player.player import Player
 from crafting.task import TaskList, TaskObtainItem
-
-from crafting.world.zones import Zone
 from crafting.world.items import Item, ItemStack
 from crafting.world.recipes import Recipe
+from crafting.world.world import World
+from crafting.world.zones import Zone
 
 
 class SimpleCraftingEnv(CraftingEnv):

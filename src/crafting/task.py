@@ -7,22 +7,22 @@
 import logging
 import os
 import pickle
-from typing import TYPE_CHECKING, List, Optional, Union, Dict
 from enum import Enum
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
-from tqdm import tqdm
 import numpy as np
-
 from hebg.metrics.complexity import learning_complexity
 from hebg.metrics.complexity.histograms import nodes_histograms
+from tqdm import tqdm
 
 from crafting.options.utils import get_items_in_graph
 
 if TYPE_CHECKING:
-    from crafting.options.options import GetItem
-    from crafting.world.world import World
-    from crafting.world.items import Item
     from hebg.option import Option
+
+    from crafting.options.options import GetItem
+    from crafting.world.items import Item
+    from crafting.world.world import World
 
 
 class Task:

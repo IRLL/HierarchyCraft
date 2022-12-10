@@ -4,14 +4,14 @@
 """Main module for MineCrafting environment."""
 
 import os
-from crafting.task import TaskObtainItem
+
 import matplotlib.pyplot as plt
-
-from hebg.metrics.complexity.histograms import nodes_histograms
 from hebg.metrics.complexity.complexities import learning_complexity
+from hebg.metrics.complexity.histograms import nodes_histograms
 
-from crafting.render.render import render_env_with_human
 from crafting.examples.minecraft.env import MineCraftingEnv
+from crafting.render.render import render_env_with_human
+from crafting.task import TaskObtainItem
 
 env = MineCraftingEnv(verbose=1, max_step=50, render_mode="rgb_array")
 env.add_task(TaskObtainItem(env.world, env.world.item_from_name["enchanting_table"]))

@@ -3,22 +3,22 @@
 
 """ Widgets for rendering of the Crafting environments """
 
+import os
 from typing import TYPE_CHECKING, List, Tuple
 
-import os
 import numpy as np
-
 import pygame
 from pygame.font import Font
 
-from crafting.render.utils import load_or_create_image, scale, pilImageToSurface
+from crafting.render.utils import load_or_create_image, pilImageToSurface, scale
 
 if TYPE_CHECKING:
+    from pygame.surface import Surface
+
     from crafting.env import CraftingEnv
     from crafting.player.inventory import Inventory
-    from crafting.world.zones import Zone
     from crafting.world.world import World
-    from pygame.surface import Surface
+    from crafting.world.zones import Zone
 
 
 class EnvWidget:

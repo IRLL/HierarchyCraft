@@ -4,16 +4,16 @@
 """ Module to define FeatureCondition nodes for the HEBGraph of the Crafting environment. """
 
 from typing import TYPE_CHECKING
-import numpy as np
 
+import numpy as np
 from hebg import FeatureCondition
 
 from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
     from crafting.world.items import Item
-    from crafting.world.zones import Zone
     from crafting.world.world import World
+    from crafting.world.zones import Zone
 
 
 class HasItem(FeatureCondition):

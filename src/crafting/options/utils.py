@@ -7,9 +7,9 @@ from typing import Dict, Set, Union
 
 from hebg import HEBGraph, Option
 
-from crafting.world.items import Item
-from crafting.options.actions import SearchItem, CraftRecipe
+from crafting.options.actions import CraftRecipe, SearchItem
 from crafting.options.options import GetItem, ReachZone
+from crafting.world.items import Item
 
 
 def get_items_in_graph(

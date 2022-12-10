@@ -3,19 +3,17 @@
 
 """ Utilitaries functions for rendering of the Crafting environments """
 
+import os
 from typing import TYPE_CHECKING, Optional, Tuple, Union
 
-import os
 import numpy as np
-
 import pygame
+from PIL import Image, ImageDraw, ImageFont
 from pygame.surface import Surface
 
-from PIL import Image, ImageFont, ImageDraw
-
-from crafting.world.zones import Zone
 from crafting.world.items import Item, Tool
 from crafting.world.recipes import Recipe
+from crafting.world.zones import Zone
 
 if TYPE_CHECKING:
     from crafting.world.world import World

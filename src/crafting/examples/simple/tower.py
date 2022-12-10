@@ -9,10 +9,9 @@ Simple environment with tower-structured constructor rules.
 
 from typing import List
 
+from crafting.examples.simple.env import SimpleCraftingEnv
 from crafting.world.items import Item, ItemStack
 from crafting.world.recipes import Recipe
-
-from crafting.examples.simple.env import SimpleCraftingEnv
 
 
 class TowerCraftingEnv(SimpleCraftingEnv):

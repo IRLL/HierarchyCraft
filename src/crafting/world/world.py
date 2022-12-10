@@ -6,30 +6,24 @@
 """
 
 import os
-from typing import TYPE_CHECKING, List, Dict
-
-import numpy as np
-import networkx as nx
+from typing import TYPE_CHECKING, Dict, List
 
 import matplotlib.patches as mpatches
+import networkx as nx
+import numpy as np
+from hebg.graph import compute_edges_color, compute_levels, draw_networkx_nodes_images
+from hebg.layouts.metabased import leveled_layout_energy
 from matplotlib.legend_handler import HandlerPatch
 
-from hebg.graph import (
-    compute_levels,
-    draw_networkx_nodes_images,
-    compute_edges_color,
-)
-from hebg.layouts.metabased import leveled_layout_energy
-
 import crafting
-from crafting.options.options import GetItem, ReachZone, Option
-from crafting.world.items import Tool
+from crafting.options.options import GetItem, Option, ReachZone
 from crafting.render.utils import load_or_create_image
+from crafting.world.items import Tool
 
 if TYPE_CHECKING:
-    from crafting.world.zones import Zone
-    from crafting.world.recipes import Recipe
     from crafting.world.items import Item
+    from crafting.world.recipes import Recipe
+    from crafting.world.zones import Zone
 
 
 class World:
