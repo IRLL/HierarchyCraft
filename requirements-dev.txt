@@ -4,3 +4,4 @@ pytest-mock
 pytest-check
 pylint
 black
+hypothesis

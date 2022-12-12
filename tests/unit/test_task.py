@@ -36,6 +36,7 @@ class DummyItem:
     def __hash__(self) -> int:
         return self.name.__hash__()
 
+
 @dataclass
 class DummyOption:
     """DummyItem"""
@@ -48,6 +49,7 @@ class DummyOption:
 
     def __hash__(self) -> int:
         return self.name.__hash__()
+
 
 class DummyWorld:
     """DummyWorld"""
@@ -266,13 +268,18 @@ class TestTaskListStackDones:
             tests._stacked_dones()
 
 
+def dummy_init(self, **kwargs):
+    for arg_name, arg_value in kwargs.items():
+        setattr(self, arg_name, arg_value)
+
+
 class TestTaskObtainItem:
     """TaskObtainItem"""
 
     @pytest.fixture(autouse=True)
     def setup(self, mocker: MockerFixture):
         """Setup reused fixtures."""
-        self.init_mocker = mocker.patch("crafting.task.Task.__init__")
+        self.init_mocker = mocker.patch("crafting.task.Task.__init__", dummy_init)
         self.add_achivement_mocker = mocker.patch(
             "crafting.task.Task.add_achivement_getitem"
         )
@@ -341,9 +348,6 @@ class TestTaskObtainItem:
         """should have given item as goal_item and ending achivement."""
 
         task = TaskObtainItem(world=self.dummy_world, item=self.dummy_item)
-        self.init_mocker.assert_called_with(
-            f"obtain_{self.dummy_item}", self.dummy_world
-        )
         check.equal(task.goal_item, self.dummy_item)
         self.add_achivement_mocker.assert_called_with(
             self.dummy_item, 10, end_task=True
@@ -532,7 +536,7 @@ class TestGetTask:
 
     def test_by_name(self):
         """should get task by name by default."""
-        get_task(self.world, "obtain_2")
+        get_task(self.world, task_name="obtain_2")
 
         check.is_false(self.random_mocker.called)
         check.is_false(self.complexity_mocker.called)
@@ -552,7 +556,7 @@ class TestGetTask:
     def test_random_in_name(self):
         """should get a random obtain_item task if random in task_name."""
         seed = 42
-        get_task(self.world, "obtain_random", seed=seed)
+        get_task(self.world, task_name="obtain_random", seed=seed)
 
         check.is_true(self.random_mocker.called)
         check.is_false(self.complexity_mocker.called)
