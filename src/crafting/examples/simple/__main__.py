@@ -12,10 +12,10 @@ from option_graph.metrics.complexity.histograms import nodes_histograms
 from option_graph.metrics.complexity.complexities import learning_complexity
 
 from crafting.env import CraftingEnv
-from crafting.examples.simple.env import (
-    StackedCraftingEnv,
-    LightStackedCraftingEnv,
-    LighterStackedCraftingEnv,
+from crafting.examples.simple import (
+    RecursiveCraftingEnv,
+    LightRecursiveCraftingEnv,
+    LighterRecursiveCraftingEnv,
 )
 
 
@@ -63,12 +63,12 @@ def save_requirement_graph(env: CraftingEnv, plot_path: Path):
 def save__all_envs_graphs():
     for n_items in range(3, 11):
         envs = [
-            LightStackedCraftingEnv(n_items, 1),
-            LightStackedCraftingEnv(n_items, 2),
-            LightStackedCraftingEnv(n_items, 3),
-            LighterStackedCraftingEnv(n_items, 3),
-            LighterStackedCraftingEnv(n_items, 4),
-            StackedCraftingEnv(n_items),
+            LightRecursiveCraftingEnv(n_items, 1),
+            LightRecursiveCraftingEnv(n_items, 2),
+            LightRecursiveCraftingEnv(n_items, 3),
+            LighterRecursiveCraftingEnv(n_items, 3),
+            LighterRecursiveCraftingEnv(n_items, 4),
+            RecursiveCraftingEnv(n_items),
         ]
         for env in envs:
             plot_path = Path("Images") / "graphs" / env.name

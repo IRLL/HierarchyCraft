@@ -1,9 +1,9 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021-2022 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
-""" Random Crafting Environment
+""" Simple Crafting Environment
 
-Generate a random Crafting environment using basic constructor rules.
+A collection of simple environments using basic constructor rules.
 
 """
 
@@ -16,14 +16,14 @@ from crafting.world.world import World
 from crafting.player.player import Player
 from crafting.player.inventory import Inventory
 
-from crafting.task import TaskList, TaskObtainItem, RewardShaping
+from crafting.task import TaskList, TaskObtainItem
 
 from crafting.world.zones import Zone
 from crafting.world.items import Item, ItemStack
 from crafting.world.recipes import Recipe
 
 
-class BaseSimpleCraftingEnv(CraftingEnv):
+class SimpleCraftingEnv(CraftingEnv):
 
     """Base for simple handcrafted environments."""
 
@@ -78,133 +78,28 @@ class BaseSimpleCraftingEnv(CraftingEnv):
 
         """
         items = [Item(i, f"{i}") for i in range(n_items)]
-        zone = Zone(0, "zone", items=[items[0]])
-
         recipes = self._build_recipes(items)
+        zone = self._build_zone(items, recipes)
 
         world = World(zones=[zone], items=items, recipes=recipes)
         return world, zone
 
+    @staticmethod
+    def _build_zone(items: List[Item], recipes: List[Recipe]):
+        # Search for items that should be foundable
+        available_items = set()
+        needed_items = set()
+        for item in items:
+            for recipe in recipes:
+                items_produced = [stack.item for stack in recipe.outputs]
+                if item in items_produced:
+                    available_items.add(item)
+                items_needed = [stack.item for stack in recipe.inputs]
+                if item in items_needed:
+                    needed_items.add(item)
+
+        foundable_items = [item for item in needed_items if item not in available_items]
+        return Zone(0, "zone", items=foundable_items)
+
     def _build_recipes(self, items: List[Item]) -> List[Recipe]:
         raise NotImplementedError
-
-
-class StackedCraftingEnv(BaseSimpleCraftingEnv):
-
-    """Stacked, an exponentially hierarchical Environment.
-
-    Item n requires all previous items (0 to n-1).
-
-    """
-
-    def __init__(self, n_items: int, **kwargs):
-        super().__init__(n_items, name="StackedCrafting", **kwargs)
-
-    def _build_recipes(self, items: List[Item]) -> List[Recipe]:
-        """Build recipes to make every item accessible.
-
-        Args:
-            items: List of items.
-
-        Returns:
-            List of craft recipes.
-
-        """
-        recipes = []
-
-        for item in items[1:]:
-            inputs = [ItemStack(items[item_id]) for item_id in range(item.item_id)]
-            outputs = [ItemStack(items[item.item_id])]
-
-            # Build recipe
-            new_recipe = Recipe(len(recipes), inputs=inputs, outputs=outputs)
-            recipes.append(new_recipe)
-
-        return recipes
-
-
-class LightStackedCraftingEnv(BaseSimpleCraftingEnv):
-
-    """LightStacked, a lighter version of the StackedCrafting Environment.
-
-    Item n requires the k previous items (n-k to n-1).
-
-    """
-
-    def __init__(self, n_items: int, n_required_previous: int = 2, **kwargs):
-        self.n_required_previous = n_required_previous
-        if self.n_required_previous == 1:
-            env_name = "LinearStackedCrafting"
-        else:
-            env_name = f"LightStackedCrafting-{self.n_required_previous}"
-        super().__init__(n_items, name=env_name, **kwargs)
-
-    def _build_recipes(self, items: List[Item]) -> List[Recipe]:
-        """Build recipes to make every item accessible.
-
-        Args:
-            items: List of items.
-
-        Returns:
-            List of craft recipes.
-
-        """
-        recipes = []
-
-        for item in items[1:]:
-            low_id = max(0, item.item_id - self.n_required_previous)
-            inputs = [
-                ItemStack(items[item_id]) for item_id in range(low_id, item.item_id)
-            ]
-            outputs = [ItemStack(items[item.item_id])]
-
-            # Build recipe
-            new_recipe = Recipe(len(recipes), inputs=inputs, outputs=outputs)
-            recipes.append(new_recipe)
-
-        return recipes
-
-
-class LighterStackedCraftingEnv(BaseSimpleCraftingEnv):
-
-    """LighterStacked, a lighter version of the LightStackedCraftingEnv Environment.
-
-    Item n requires the k previous items except the item n-2 (n-k to n-3 and n-1).
-
-    """
-
-    def __init__(self, n_items: int, n_required_previous: int = 3, **kwargs):
-        self.n_required_previous = n_required_previous
-        if self.n_required_previous <= 2:
-            env_name = "LinearStackedCrafting"
-        else:
-            env_name = f"LighterStackedCrafting-{self.n_required_previous}"
-        super().__init__(n_items, name=env_name, **kwargs)
-
-    def _build_recipes(self, items: List[Item]) -> List[Recipe]:
-        """Build recipes to make every item accessible.
-
-        Args:
-            items: List of items.
-
-        Returns:
-            List of craft recipes.
-
-        """
-        recipes = []
-
-        for item in items[1:]:
-            inputs = [ItemStack(items[item.item_id - 1])]
-            if item.item_id >= 3:
-                low_id = max(0, item.item_id - self.n_required_previous)
-                inputs += [
-                    ItemStack(items[item_id])
-                    for item_id in range(low_id, item.item_id - 2)
-                ]
-            outputs = [ItemStack(items[item.item_id])]
-
-            # Build recipe
-            new_recipe = Recipe(len(recipes), inputs=inputs, outputs=outputs)
-            recipes.append(new_recipe)
-
-        return recipes

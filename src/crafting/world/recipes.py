@@ -156,10 +156,17 @@ class Recipe:
         return self.craft(inventory, zone)
 
     def __repr__(self):
-        inputs = self.inputs if len(self.inputs) > 1 else self.inputs[0]
-        inputs_msg = f"{inputs}"
+        # Format inputs
+        inputs = self.inputs
+        if len(self.inputs) == 1:
+            inputs_msg = f"{self.inputs[0]}"
+        elif len(self.inputs) > 1:
+            inputs_msg = f"{inputs}"
+
         if self.needed_properties is not None and len(self.needed_properties) > 0:
             inputs_msg += f"{self.needed_properties}"
+
+        # Format outputs
         outputs_msg = ""
         if self.outputs is not None:
             if len(self.outputs) == 1:
@@ -168,4 +175,5 @@ class Recipe:
                 outputs_msg += f"{self.outputs}"
         if self.added_properties is not None and len(self.added_properties) > 0:
             outputs_msg += f"{self.added_properties}"
+
         return outputs_msg + " <- " + inputs_msg
