@@ -1,17 +1,20 @@
 Crafting - A gym environment for inventory management
 =====================================================
 
-.. image:: https://app.codacy.com/project/badge/Grade/4fa05a65050540429272de129e8f8a90
-   :target: https://www.codacy.com/gh/MathisFederico/Crafting/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MathisFederico/Crafting&amp;utm_campaign=Badge_Grade
+.. image:: https://app.codacy.com/project/badge/Grade/b5010ccc46274c0eb1e3ae563934efdd
+   :alt: [Codacy - grade]
+   :target: https://www.codacy.com/gh/IRLL/Crafting/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=IRLL/Crafting&amp;utm_campaign=Badge_Grade
 
-.. image:: https://app.codacy.com/project/badge/Coverage/4fa05a65050540429272de129e8f8a90
-   :target: https://www.codacy.com/gh/MathisFederico/Crafting/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=MathisFederico/Crafting&amp;utm_campaign=Badge_Coverage
+.. image:: https://app.codacy.com/project/badge/Coverage/b5010ccc46274c0eb1e3ae563934efdd
+   :alt: [Codacy - coverage]
+   :target: https://www.codacy.com/gh/IRLL/Crafting/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=IRLL/Crafting&amp;utm_campaign=Badge_Coverage
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :target: https://github.com/psf/black
+   :alt: [CodeStyle - Black]
+   :target: https://github.com/psf/black
 
 .. image:: https://img.shields.io/github/license/MathisFederico/Crafting?style=plastic
-   :alt: Licence - GPLv3
+   :alt: [Licence - GPLv3]
    :target: https://www.gnu.org/licenses/
 
 Why the Crafting environment ?
