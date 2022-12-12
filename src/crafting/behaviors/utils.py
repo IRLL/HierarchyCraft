@@ -7,8 +7,8 @@ from typing import Dict, Set, Union
 
 from hebg import HEBGraph, Behavior
 
-from crafting.options.actions import CraftRecipe, SearchItem
-from crafting.options.options import GetItem, ReachZone
+from crafting.behaviors.actions import CraftRecipe, SearchItem
+from crafting.behaviors.behaviors import GetItem, ReachZone
 from crafting.world.items import Item
 
 

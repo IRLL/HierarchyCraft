@@ -16,7 +16,7 @@ from hebg.layouts.metabased import leveled_layout_energy
 from matplotlib.legend_handler import HandlerPatch
 
 import crafting
-from crafting.options.options import GetItem, Behavior, ReachZone
+from crafting.behaviors.behaviors import GetItem, Behavior, ReachZone
 from crafting.render.utils import load_or_create_image
 from crafting.world.items import Tool
 

@@ -9,7 +9,7 @@ import pytest_check as check
 from crafting.examples.minecraft.world import McWorld
 from crafting.examples.minecraft.items import WOODEN_PICKAXE, WOOD, WOOD_PLANK, STICK
 
-from crafting.options.utils import get_items_in_graph
+from crafting.behaviors.utils import get_items_in_graph
 
 
 class TestGetItemsInGraphMineCrafting:

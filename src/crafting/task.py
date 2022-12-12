@@ -15,12 +15,12 @@ from hebg.metrics.complexity import learning_complexity
 from hebg.metrics.complexity.histograms import nodes_histograms
 from tqdm import tqdm
 
-from crafting.options.utils import get_items_in_graph
+from crafting.behaviors.utils import get_items_in_graph
 
 if TYPE_CHECKING:
     from hebg.behavior import Behavior
 
-    from crafting.options.options import GetItem
+    from crafting.behaviors.behaviors import GetItem
     from crafting.world.items import Item
     from crafting.world.world import World
 

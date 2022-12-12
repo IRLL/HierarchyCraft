@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING, Dict, List, Union
 import numpy as np
 from hebg import HEBGraph, Behavior
 
-from crafting.options.actions import CraftRecipe, MoveToZone, SearchItem
-from crafting.options.feature_conditions import HasItem, HasProperty, IsInZone
+from crafting.behaviors.actions import CraftRecipe, MoveToZone, SearchItem
+from crafting.behaviors.feature_conditions import HasItem, HasProperty, IsInZone
 from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
@@ -34,7 +34,7 @@ class ReachZone(Behavior):
             The built HEBGraph.
 
         """
-        graph = HEBGraph(option=self)
+        graph = HEBGraph(behavior=self)
         go_to_zone = MoveToZone(self.zone, self.world)
         graph.add_node(go_to_zone)
         return graph
@@ -81,7 +81,7 @@ class GetItem(Behavior):
             The built HEBGraph.
 
         """
-        graph = HEBGraph(option=self, all_options=self.all_options)
+        graph = HEBGraph(behavior=self, all_behaviors=self.all_options)
         prev_checks = []
 
         # Any of Craft options
