@@ -30,13 +30,13 @@ class TestTasks:
         task: TaskObtainItem = get_task_from_name(env.world, task_name)
         env.add_task(task, can_end=True)
 
-        all_options = env.world.get_all_options()
-        option_solving_task = all_options[f"Get {task.goal_item}"]
+        all_behaviors = env.world.get_all_behaviors()
+        behavior_solving_task = all_behaviors[f"Get {task.goal_item}"]
 
         observation, _ = env.reset()
         done = False
         while not done:
-            action = option_solving_task(observation)
+            action = behavior_solving_task(observation)
             observation, _, terminated, truncated, _ = env.step(action)
             done = terminated or truncated
 

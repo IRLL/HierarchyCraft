@@ -9,7 +9,7 @@ from hypothesis.strategies import integers
 from networkx import is_isomorphic, DiGraph
 
 from crafting.examples.simple import TowerCraftingEnv
-from hebg.option import Option
+from hebg.behavior import Behavior
 
 
 def test_tower_requirements_graph_1_1():
@@ -78,12 +78,12 @@ def test_tower_requirements_graph_3_2():
     check.is_true(is_isomorphic(env.world.get_requirements_graph(), expected_graph))
 
 
-def run_solve(env: TowerCraftingEnv, solver: Option) -> int:
+def run_solve(env: TowerCraftingEnv, solver: Behavior) -> int:
     """Count how much steps are needed for the solver to finish.
 
     Args:
         env (CraftingEnv): The Crafting environment containing an finishing task.
-        solver (Option): The solver to test the lenght of.
+        solver (Behavior): The solver to test the lenght of.
 
     Returns:
         int: Number of steps needed for the solver to complete the task.
@@ -103,9 +103,9 @@ def run_solve(env: TowerCraftingEnv, solver: Option) -> int:
 @given(integers(1, 3), integers(1, 3))
 def test_tower_can_solve(height: int, width: int):
     env = TowerCraftingEnv(height=height, width=width, use_old_gym_format=True)
-    all_options = env.world.get_all_options()
-    solving_option: Option = all_options[f"Get {env.tasks[0].goal_item}"]
-    n_steps = run_solve(env, solver=solving_option)
+    all_behaviors = env.world.get_all_behaviors()
+    solving_behavior: Behavior = all_behaviors[f"Get {env.tasks[0].goal_item}"]
+    n_steps = run_solve(env, solver=solving_behavior)
 
 
 def test_tower_accessible_items():

@@ -15,12 +15,12 @@ from hebg.metrics.complexity import learning_complexity
 from hebg.metrics.complexity.histograms import nodes_histograms
 from tqdm import tqdm
 
-from crafting.options.utils import get_items_in_graph
+from crafting.behaviors.utils import get_items_in_graph
 
 if TYPE_CHECKING:
-    from hebg.option import Option
+    from hebg.behavior import Behavior
 
-    from crafting.options.options import GetItem
+    from crafting.behaviors.behaviors import GetItem
     from crafting.world.items import Item
     from crafting.world.world import World
 
@@ -215,8 +215,8 @@ class RewardShaping(Enum):
 
     NONE = 0  # No reward shaping
     ALL = 1  # Items give rewards when first obtained.
-    ALL_USEFUL = 2  # Items in unrolled solving option give rewards when first obtained.
-    DIRECT_USEFUL = 3  # Items in solving option give rewards when first obtained.
+    ALL_USEFUL = 2  # Items in unrolled solving behavior rewards when first obtained.
+    DIRECT_USEFUL = 3  # Items in solving behavior rewards when first obtained.
 
 
 class TaskObtainItem(Task):
@@ -261,12 +261,14 @@ class TaskObtainItem(Task):
         elif reward_shaping == RewardShaping.ALL:
             achivement_items = self.world.items
         elif reward_shaping in (RewardShaping.ALL_USEFUL, RewardShaping.DIRECT_USEFUL):
-            all_options = self.world.get_all_options()
-            solving_option = all_options[f"Get {self.goal_item}"]
-            graph = solving_option.graph
+            all_behaviors = self.world.get_all_behaviors()
+            solving_behavior = all_behaviors[f"Get {self.goal_item}"]
+            graph = solving_behavior.graph
             if reward_shaping == RewardShaping.ALL_USEFUL:
                 graph = graph.unrolled_graph
-            achivement_items = list(get_items_in_graph(graph, all_options=all_options))
+            achivement_items = list(
+                get_items_in_graph(graph, all_behaviors=all_behaviors)
+            )
         else:
             raise ValueError(
                 f"Unknown reward_shaping: {reward_shaping} of type {type(reward_shaping)}"
@@ -335,20 +337,20 @@ def get_task_by_complexity(
             with the closest complexity to the one wanted.
     """
 
-    def _get_items_complexities(item_options: List["Option"]):
+    def _get_items_complexities(item_behaviors: List["Behavior"]):
         items_complexities = {}
-        used_nodes_all = nodes_histograms(all_options_list)
-        for option in tqdm(item_options, desc="Computing complexities"):
-            learn_comp, saved_comp = learning_complexity(option, used_nodes_all)
+        used_nodes_all = nodes_histograms(all_behaviors_list)
+        for behavior in tqdm(item_behaviors, desc="Computing complexities"):
+            learn_comp, saved_comp = learning_complexity(behavior, used_nodes_all)
             total_comp = learn_comp + saved_comp
-            items_complexities[option] = total_comp
+            items_complexities[behavior] = total_comp
         return items_complexities
 
-    def _load_or_build_cache(cache_path: str, item_options: List["Option"]):
+    def _load_or_build_cache(cache_path: str, item_behaviors: List["Behavior"]):
         if not cache_path.endswith(".pickle"):
             cache_path += ".pickle"
         if not os.path.isfile(cache_path):
-            items_complexities = _get_items_complexities(item_options)
+            items_complexities = _get_items_complexities(item_behaviors)
 
             os.makedirs(os.path.split(cache_path)[0], exist_ok=True)
             with open(cache_path, "wb") as cache:
@@ -360,25 +362,27 @@ def get_task_by_complexity(
                 items_complexities = pickle.load(cache)
         return items_complexities
 
-    # Get & save solving option
-    all_options = world.get_all_options()
-    all_options_list = list(all_options.values())
-    item_options = [option for option in all_options_list if hasattr(option, "item")]
+    # Get & save solving behavior
+    all_behaviors = world.get_all_behaviors()
+    all_behaviors_list = list(all_behaviors.values())
+    item_behaviors = [
+        behavior for behavior in all_behaviors_list if hasattr(behavior, "item")
+    ]
 
     # Compute complexities
     if cache_path:
-        items_complexities = _load_or_build_cache(cache_path, item_options)
+        items_complexities = _load_or_build_cache(cache_path, item_behaviors)
     else:
-        items_complexities = _get_items_complexities(item_options)
+        items_complexities = _get_items_complexities(item_behaviors)
 
     # Get closest item
     items_complexities_arr = np.array(list(items_complexities.values()))
-    items_options_arr = np.array(list(items_complexities.keys()))
+    items_behaviors_arr = np.array(list(items_complexities.keys()))
 
     order = np.argsort((items_complexities_arr - task_complexity) ** 2)
-    ordered_options: List["GetItem"] = items_options_arr[order]
+    ordered_behaviors: List["GetItem"] = items_behaviors_arr[order]
 
-    return TaskObtainItem(world, ordered_options[0].item, **kwargs)
+    return TaskObtainItem(world, ordered_behaviors[0].item, **kwargs)
 
 
 def get_task(
@@ -437,9 +441,9 @@ def adaptative_max_episode_step(
     task: TaskObtainItem,
     time_factor: float = 1.0,
 ) -> int:
-    all_options = world.get_all_options()
-    solving_option: "Option" = all_options[f"Get {task.goal_item}"]
-    unrolled_graph = solving_option.graph.unrolled_graph
+    all_behaviors = world.get_all_behaviors()
+    solving_behavior: "Behavior" = all_behaviors[f"Get {task.goal_item}"]
+    unrolled_graph = solving_behavior.graph.unrolled_graph
     leafs = list(
         node
         for (node, _) in unrolled_graph.nodes.items()

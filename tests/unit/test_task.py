@@ -38,7 +38,7 @@ class DummyItem:
 
 
 @dataclass
-class DummyOption:
+class DummyBehavior:
     """DummyItem"""
 
     item: DummyItem
@@ -62,10 +62,10 @@ class DummyWorld:
         self.item_from_name = {item.name: item for item in self.items}
         self.getable_items = self.items
 
-    def get_all_options(self):
-        """Create dummy options from the DummyWorld"""
+    def get_all_behaviors(self):
+        """Create dummy behaviors from the DummyWorld"""
         return {
-            f"Get {item.name}": DummyOption(item, (i // 2 * 2) ** 2)
+            f"Get {item.name}": DummyBehavior(item, (i // 2 * 2) ** 2)
             for i, item in enumerate(self.items)
         }
 
@@ -333,7 +333,7 @@ class TestTaskObtainItem:
         class DummyWorld:
             items = self.dummy_items
 
-            def get_all_options(self):
+            def get_all_behaviors(self):
                 return {
                     f"Get {item}": DummyGetItem(
                         item, [self.items[i + 1]], self.items[i + 1 :]
@@ -380,7 +380,7 @@ class TestTaskObtainItem:
         check.is_true(all(is_called.values()))
 
     def test_reward_shaping_direct_useful(self):
-        """should give achivement value for items in solving option rolled graph."""
+        """should give achivement value for items in solving behavior rolled graph."""
 
         TaskObtainItem(
             world=self.dummy_world,
@@ -412,7 +412,7 @@ class TestTaskObtainItem:
                 check.is_false(item_is_called, f"{item} was called when not expected.")
 
     def test_reward_shaping_all_useful(self):
-        """should give achivement value for every item in solving option unrolled graph."""
+        """should give achivement value for every item in solving behavior unrolled graph."""
 
         TaskObtainItem(
             world=self.dummy_world,
@@ -512,7 +512,7 @@ class TestGetTaskByComplexity:
         )
         self.lcomplexity_mocker = mocker.patch(
             "crafting.task.learning_complexity",
-            lambda option, used_nodes_all: (option.complexity, 0),
+            lambda behavior, used_nodes_all: (behavior.complexity, 0),
         )
         self.nodes_histograms = mocker.patch("crafting.task.nodes_histograms")
 

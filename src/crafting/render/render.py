@@ -345,13 +345,6 @@ def render_env_with_human(env: "CraftingEnv", n_episodes: int = 1):
         while not done:
             env.render()
 
-            # if plot_options_graphs or plot_requirement_graph:
-            #     plt.show(block=False)
-            #     plt.pause(0.001)
-
-            # enchant_action_id = enchant_table_option(observation)
-            # print(f'For Enchanting Table: {env.action_from_id(enchant_action_id)}')
-
             action = get_human_action(env, **env.render_variables)
             action_id = env.action(*action)
             print(f"Human did: {env.action_from_id(action_id)}")

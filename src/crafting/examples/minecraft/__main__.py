@@ -16,32 +16,32 @@ from crafting.task import TaskObtainItem
 env = MineCraftingEnv(verbose=1, max_step=50, render_mode="rgb_array")
 env.add_task(TaskObtainItem(env.world, env.world.item_from_name["enchanting_table"]))
 
-plot_options_graphs_path = os.path.join("Images", "OptionsGraphs")
+plot_hebgraphs_path = os.path.join("Images", "HEBGraphs")
 unrolled_graphs = True
 plot_requirement_graph = False
 
-if plot_options_graphs_path is not None:
-    os.makedirs(plot_options_graphs_path, exist_ok=True)
+if plot_hebgraphs_path is not None:
+    os.makedirs(plot_hebgraphs_path, exist_ok=True)
 
-all_options = env.world.get_all_options()
-all_options_list = list(all_options.values())
-used_nodes_all = nodes_histograms(all_options_list)
+all_behaviors = env.world.get_all_behaviors()
+all_behaviors_list = list(all_behaviors.values())
+used_nodes_all = nodes_histograms(all_behaviors_list)
 
-for option_name, option in all_options.items():
-    if option_name == f"Get {env.world.item_from_id[270]}":
-        lcomp, comp_saved = learning_complexity(option, used_nodes_all)
-        print(f"{option_name}: {lcomp} ({comp_saved})")
-        if plot_options_graphs_path is not None:
+for behavior_name, behavior in all_behaviors.items():
+    if behavior_name == f"Get {env.world.item_from_id[270]}":
+        lcomp, comp_saved = learning_complexity(behavior, used_nodes_all)
+        print(f"{behavior_name}: {lcomp} ({comp_saved})")
+        if plot_hebgraphs_path is not None:
             fig, ax = plt.subplots(figsize=(16, 9))
-            fname = option_name.replace(" ", "_").lower()
+            fname = behavior_name.replace(" ", "_").lower()
 
-            graph = option.graph
+            graph = behavior.graph
             if unrolled_graphs:
                 graph = graph.unrolled_graph
                 fname += "_unrolled"
 
-            graph.draw(ax, draw_options_hulls=True)
-            path = os.path.join(plot_options_graphs_path, fname)
+            graph.draw(ax, draw_hulls=True)
+            path = os.path.join(plot_hebgraphs_path, fname)
             plt.tight_layout()
             plt.savefig(path, dpi=240)
             print(f"Saved heb_graph at {path}")
