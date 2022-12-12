@@ -19,28 +19,28 @@ from crafting.examples.simple import (
 
 
 def save_solve_graph(env: CraftingEnv, plot_path: Path, unrolled_graphs=True):
-    all_options = env.world.get_all_options()
-    all_options_list = list(all_options.values())
-    used_nodes_all = nodes_histograms(all_options_list)
+    all_behaviors = env.world.get_all_behaviors()
+    all_behaviors_list = list(all_behaviors.values())
+    used_nodes_all = nodes_histograms(all_behaviors_list)
 
     goal_item = env.tasks[0].goal_item
-    option_name = f"Get {goal_item}"
-    option = all_options.get(option_name)
+    behavior_name = f"Get {goal_item}"
+    behavior = all_behaviors.get(behavior_name)
 
-    lcomp, comp_saved = learning_complexity(option, used_nodes_all)
-    print(f"{option_name}: {lcomp} ({comp_saved})")
+    lcomp, comp_saved = learning_complexity(behavior, used_nodes_all)
+    print(f"{behavior_name}: {lcomp} ({comp_saved})")
 
     figsize = (16 / 2 * (env.world.n_items + 1), 9 / 2 * (env.world.n_items + 1))
     fig, ax = plt.subplots(figsize=figsize)
     fname = f"n={env.world.n_items}"
     fname += f"_t={lcomp + comp_saved}_s={comp_saved}_l={lcomp}"
 
-    graph = option.graph
+    graph = behavior.graph
     if unrolled_graphs:
         graph = graph.unrolled_graph
         fname += "_unrolled"
 
-    graph.draw(ax, draw_options_hulls=True)
+    graph.draw(ax, draw_hulls=True)
     path = plot_path / fname
     plt.tight_layout()
     os.makedirs(plot_path, exist_ok=True)

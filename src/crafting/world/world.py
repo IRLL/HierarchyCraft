@@ -177,13 +177,13 @@ class World:
         props_slot = np.where(one_hot_props)
         return self.zone_properties[props_slot]
 
-    def get_all_options(self) -> Dict[str, Behavior]:
-        """Return a dictionary of handcrafted options to get each item, zone and property."""
-        all_options = {}
+    def get_all_behaviors(self) -> Dict[str, Behavior]:
+        """Return a dictionary of handcrafted behaviors to get each item, zone and property."""
+        all_behaviors = {}
 
         for zone in self.zones:
-            zone_option = ReachZone(zone, self)
-            all_options[str(zone_option)] = zone_option
+            zone_behavior = ReachZone(zone, self)
+            all_behaviors[str(zone_behavior)] = zone_behavior
 
         for item in self.foundable_items:
             zones_id_needed = []
@@ -194,29 +194,31 @@ class World:
             items_needed = []
             if item.required_tools is not None:
                 for tool in item.required_tools:
-                    crafting_option = [(tool.item_id, 1)] if tool is not None else None
-                    items_needed.append(crafting_option)
+                    crafting_behavior = (
+                        [(tool.item_id, 1)] if tool is not None else None
+                    )
+                    items_needed.append(crafting_behavior)
 
             if hasattr(item, "items_dropped"):
                 for dropped_item in item.items_dropped:
-                    item_option = GetItem(
+                    item_behavior = GetItem(
                         world=self,
                         item=dropped_item,
-                        all_options=all_options,
+                        all_behaviors=all_behaviors,
                         items_needed=items_needed,
                         last_action=("get", item.item_id),
                         zones_id_needed=zones_id_needed,
                     )
             else:
-                item_option = GetItem(
+                item_behavior = GetItem(
                     world=self,
                     item=item,
-                    all_options=all_options,
+                    all_behaviors=all_behaviors,
                     items_needed=items_needed,
                     last_action=("get", item.item_id),
                     zones_id_needed=zones_id_needed,
                 )
-            all_options[str(item_option)] = item_option
+            all_behaviors[str(item_behavior)] = item_behavior
 
         for recipe in self.recipes:
 
@@ -226,29 +228,29 @@ class World:
 
             if recipe.outputs is not None:
                 for output in recipe.outputs:
-                    recipe_option = GetItem(
+                    recipe_behavior = GetItem(
                         world=self,
                         item=output.item,
-                        all_options=all_options,
+                        all_behaviors=all_behaviors,
                         items_needed=items_needed,
                         zones_properties_needed=recipe.needed_properties,
                         last_action=("craft", recipe.recipe_id),
                     )
-                    all_options[str(recipe_option)] = recipe_option
+                    all_behaviors[str(recipe_behavior)] = recipe_behavior
 
             if recipe.added_properties is not None:
                 for zone_property in recipe.added_properties:
-                    zone_property_option = GetItem(
+                    zone_property_behavior = GetItem(
                         world=self,
                         item=zone_property,
-                        all_options=all_options,
+                        all_behaviors=all_behaviors,
                         items_needed=items_needed,
                         zones_properties_needed=recipe.needed_properties,
                         last_action=("craft", recipe.recipe_id),
                     )
-                    all_options[str(zone_property_option)] = zone_property_option
+                    all_behaviors[str(zone_property_behavior)] = zone_property_behavior
 
-        return all_options
+        return all_behaviors
 
     def get_requirements_graph(self) -> nx.DiGraph:
         """Build the world requirements graph.

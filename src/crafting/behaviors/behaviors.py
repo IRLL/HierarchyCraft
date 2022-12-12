@@ -1,7 +1,7 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021-2022 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
-""" Module for handcrafted Option with HEBGraph in any Crafting environment. """
+""" Module for handcrafted Behavior with HEBGraph in any Crafting environment. """
 
 from typing import TYPE_CHECKING, Dict, List, Union
 
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 class ReachZone(Behavior):
 
-    """Option for moving to a Zone"""
+    """Behavior for moving to a Zone"""
 
     def __init__(self, zone: "Zone", world: "World"):
         super().__init__(f"Reach {str(zone)}")
@@ -28,7 +28,7 @@ class ReachZone(Behavior):
         self.zone = zone
 
     def build_graph(self) -> HEBGraph:
-        """Build the HEBGraph of this Option.
+        """Build the HEBGraph of this Behavior.
 
         Returns:
             The built HEBGraph.
@@ -42,13 +42,13 @@ class ReachZone(Behavior):
 
 class GetItem(Behavior):
 
-    """Option for getting an item"""
+    """Behavior for getting an item"""
 
     def __init__(
         self,
         world: "World",
         item: "Item",
-        all_options: Dict[Union[int, str], Behavior],
+        all_behaviors: Dict[Union[int, str], Behavior],
         items_needed: List[List[tuple]],
         last_action: tuple,
         zones_id_needed: list = None,
@@ -72,24 +72,24 @@ class GetItem(Behavior):
             self.zones_properties_needed = {}
 
         self.last_action = last_action
-        self.all_options = all_options
+        self.all_behaviors = all_behaviors
 
     def build_graph(self) -> HEBGraph:
-        """Build the HEBGraph of this Option.
+        """Build the HEBGraph of this Behavior.
 
         Returns:
             The built HEBGraph.
 
         """
-        graph = HEBGraph(behavior=self, all_behaviors=self.all_options)
+        graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
         prev_checks = []
 
-        # Any of Craft options
+        # Any of Craft behaviors
         if None not in self.items_needed:
-            for craft_option in self.items_needed:
+            for craft_behavior in self.items_needed:
                 prev_check = None
-                for item_id, quantity in craft_option:
-                    has_item = self._add_crafting_option(graph, item_id, quantity)
+                for item_id, quantity in craft_behavior:
+                    has_item = self._add_crafting_behavior(graph, item_id, quantity)
                     if prev_check is not None:
                         graph.add_edge(prev_check, has_item, index=int(True))
                     prev_check = has_item
@@ -100,7 +100,7 @@ class GetItem(Behavior):
         prev_checks_zone = []
         if self.world.n_zones > 1:
             for zone_id in self.zones_id_needed:
-                is_in_zone = self._add_zone_option(graph, zone_id)
+                is_in_zone = self._add_zone_behavior(graph, zone_id)
                 prev_checks_zone.append(is_in_zone)
                 for prev in prev_checks:
                     graph.add_edge(prev, is_in_zone, index=int(True))
@@ -133,7 +133,7 @@ class GetItem(Behavior):
             graph.add_edge(prev, action, index=int(True))
         return graph
 
-    def _add_crafting_option(
+    def _add_crafting_behavior(
         self, graph: HEBGraph, item_id: int, quantity: int
     ) -> HasItem:
         item = self.world.item_from_id[item_id]
@@ -145,7 +145,7 @@ class GetItem(Behavior):
         graph.add_edge(has_item, get_item, index=int(False))
         return has_item
 
-    def _add_zone_option(self, graph: HEBGraph, zone_id: int) -> IsInZone:
+    def _add_zone_behavior(self, graph: HEBGraph, zone_id: int) -> IsInZone:
         zone = self.world.zone_from_id[zone_id]
         is_in_zone = IsInZone(zone, self.world)
         graph.add_node(is_in_zone)

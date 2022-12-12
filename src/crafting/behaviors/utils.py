@@ -1,7 +1,7 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021-2022 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
-""" Module for utility functions to apply on handcrafted Option. """
+""" Module for utility functions to apply on handcrafted Behavior. """
 
 from typing import Dict, Set, Union
 
@@ -14,21 +14,21 @@ from crafting.world.items import Item
 
 def get_items_in_graph(
     graph: HEBGraph,
-    all_options: Dict[str, Union[GetItem, ReachZone]] = None,
+    all_behaviors: Dict[str, Union[GetItem, ReachZone]] = None,
 ) -> Set[Item]:
-    """Get items in a Crafting option graph.
+    """Get items in a Crafting HEBGraph.
 
     Args:
-        graph (HEBGraph): An option graph of the Crafting environment.
+        graph (HEBGraph): An  of the Crafting environment.
 
     Returns:
         Set[Item]: Set of items that appears in the given graph.
     """
-    all_options = all_options if all_options is not None else {}
+    all_behaviors = all_behaviors if all_behaviors is not None else {}
     items_in_graph = set()
     for node in graph.nodes():
-        if isinstance(node, Behavior) and str(node) in all_options:
-            node = all_options[str(node)]
+        if isinstance(node, Behavior) and str(node) in all_behaviors:
+            node = all_behaviors[str(node)]
         if isinstance(node, (SearchItem, GetItem)):
             if isinstance(node.item, Item):
                 items_in_graph.add(node.item)
