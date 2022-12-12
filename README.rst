@@ -20,8 +20,9 @@ Crafting - A gym environment for inventory management
 Why the Crafting environment ?
 ------------------------------
 
-Because it's nearly a pure hierarchical environment !
-Indeed, with simple options you can make this environment trivial, whereas without a HRL component, this environment is very hard !
+The Crafting environment is a meta-environment allowing to generate 
+arbitrary hierarchical tasks for research purpose.
+
 
 Installation
 ------------

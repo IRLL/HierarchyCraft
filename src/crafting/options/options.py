@@ -6,7 +6,7 @@
 from typing import TYPE_CHECKING, Dict, List, Union
 
 import numpy as np
-from hebg import HEBGraph, Option
+from hebg import HEBGraph, Behavior
 
 from crafting.options.actions import CraftRecipe, MoveToZone, SearchItem
 from crafting.options.feature_conditions import HasItem, HasProperty, IsInZone
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from crafting.world.zones import Zone
 
 
-class ReachZone(Option):
+class ReachZone(Behavior):
 
     """Option for moving to a Zone"""
 
@@ -40,7 +40,7 @@ class ReachZone(Option):
         return graph
 
 
-class GetItem(Option):
+class GetItem(Behavior):
 
     """Option for getting an item"""
 
@@ -48,7 +48,7 @@ class GetItem(Option):
         self,
         world: "World",
         item: "Item",
-        all_options: Dict[Union[int, str], Option],
+        all_options: Dict[Union[int, str], Behavior],
         items_needed: List[List[tuple]],
         last_action: tuple,
         zones_id_needed: list = None,
@@ -140,7 +140,7 @@ class GetItem(Option):
         has_item = HasItem(item=item, world=self.world, quantity=quantity)
         graph.add_node(has_item)
         image = np.array(load_or_create_image(self.world, item))
-        get_item = Option(f"Get {item}", image=image)
+        get_item = Behavior(f"Get {item}", image=image)
         graph.add_node(get_item)
         graph.add_edge(has_item, get_item, index=int(False))
         return has_item
@@ -150,7 +150,7 @@ class GetItem(Option):
         is_in_zone = IsInZone(zone, self.world)
         graph.add_node(is_in_zone)
         image = np.array(load_or_create_image(self.world, zone))
-        reach_zone = Option(f"Reach {zone}", image=image)
+        reach_zone = Behavior(f"Reach {zone}", image=image)
         graph.add_node(reach_zone)
         graph.add_edge(is_in_zone, reach_zone, index=int(False))
         return is_in_zone
@@ -159,7 +159,7 @@ class GetItem(Option):
         has_prop = HasProperty(prop, world=self.world)
         graph.add_node(has_prop)
         image = np.array(load_or_create_image(self.world, prop))
-        get_prop = Option(f"Get {prop}", image=image)
+        get_prop = Behavior(f"Get {prop}", image=image)
         graph.add_node(get_prop)
         graph.add_edge(has_prop, get_prop, index=int(False))
         return has_prop

@@ -16,7 +16,7 @@ from hebg.layouts.metabased import leveled_layout_energy
 from matplotlib.legend_handler import HandlerPatch
 
 import crafting
-from crafting.options.options import GetItem, Option, ReachZone
+from crafting.options.options import GetItem, Behavior, ReachZone
 from crafting.render.utils import load_or_create_image
 from crafting.world.items import Tool
 
@@ -177,7 +177,7 @@ class World:
         props_slot = np.where(one_hot_props)
         return self.zone_properties[props_slot]
 
-    def get_all_options(self) -> Dict[str, Option]:
+    def get_all_options(self) -> Dict[str, Behavior]:
         """Return a dictionary of handcrafted options to get each item, zone and property."""
         all_options = {}
 

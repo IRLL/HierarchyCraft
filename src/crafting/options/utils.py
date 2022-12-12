@@ -5,7 +5,7 @@
 
 from typing import Dict, Set, Union
 
-from hebg import HEBGraph, Option
+from hebg import HEBGraph, Behavior
 
 from crafting.options.actions import CraftRecipe, SearchItem
 from crafting.options.options import GetItem, ReachZone
@@ -27,7 +27,7 @@ def get_items_in_graph(
     all_options = all_options if all_options is not None else {}
     items_in_graph = set()
     for node in graph.nodes():
-        if isinstance(node, Option) and str(node) in all_options:
+        if isinstance(node, Behavior) and str(node) in all_options:
             node = all_options[str(node)]
         if isinstance(node, (SearchItem, GetItem)):
             if isinstance(node.item, Item):

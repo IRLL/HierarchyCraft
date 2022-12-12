@@ -18,7 +18,7 @@ from tqdm import tqdm
 from crafting.options.utils import get_items_in_graph
 
 if TYPE_CHECKING:
-    from hebg.option import Option
+    from hebg.behavior import Behavior
 
     from crafting.options.options import GetItem
     from crafting.world.items import Item
@@ -335,7 +335,7 @@ def get_task_by_complexity(
             with the closest complexity to the one wanted.
     """
 
-    def _get_items_complexities(item_options: List["Option"]):
+    def _get_items_complexities(item_options: List["Behavior"]):
         items_complexities = {}
         used_nodes_all = nodes_histograms(all_options_list)
         for option in tqdm(item_options, desc="Computing complexities"):
@@ -344,7 +344,7 @@ def get_task_by_complexity(
             items_complexities[option] = total_comp
         return items_complexities
 
-    def _load_or_build_cache(cache_path: str, item_options: List["Option"]):
+    def _load_or_build_cache(cache_path: str, item_options: List["Behavior"]):
         if not cache_path.endswith(".pickle"):
             cache_path += ".pickle"
         if not os.path.isfile(cache_path):
@@ -438,7 +438,7 @@ def adaptative_max_episode_step(
     time_factor: float = 1.0,
 ) -> int:
     all_options = world.get_all_options()
-    solving_option: "Option" = all_options[f"Get {task.goal_item}"]
+    solving_option: "Behavior" = all_options[f"Get {task.goal_item}"]
     unrolled_graph = solving_option.graph.unrolled_graph
     leafs = list(
         node
