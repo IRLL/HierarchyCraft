@@ -1,19 +1,19 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021-2022 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
-""" Module to define FeatureCondition nodes for the OptionGraph of the Crafting environment. """
+""" Module to define FeatureCondition nodes for the HEBGraph of the Crafting environment. """
 
 from typing import TYPE_CHECKING
-import numpy as np
 
-from option_graph import FeatureCondition
+import numpy as np
+from hebg import FeatureCondition
 
 from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
     from crafting.world.items import Item
-    from crafting.world.zones import Zone
     from crafting.world.world import World
+    from crafting.world.zones import Zone
 
 
 class HasItem(FeatureCondition):

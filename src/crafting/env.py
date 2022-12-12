@@ -2,22 +2,20 @@
 # Copyright (C) 2021-2022 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
 """  Module for the base gym environment of any crafting environement. """
-from typing import TYPE_CHECKING, Tuple, List, Union, Optional
 from copy import deepcopy
-
-import numpy as np
+from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
 import gym
+import numpy as np
 from gym import spaces
 
 from crafting.player.player import Player
+from crafting.render.render import create_window, surface_to_rgb_array, update_rendering
 from crafting.task import TaskList
-from crafting.render.render import update_rendering, surface_to_rgb_array, create_window
-
 
 if TYPE_CHECKING:
-    from crafting.world.world import World
     from crafting.task import Task
+    from crafting.world.world import World
 
 
 class CraftingEnv(gym.Env):

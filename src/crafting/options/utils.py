@@ -5,21 +5,21 @@
 
 from typing import Dict, Set, Union
 
-from option_graph import OptionGraph, Option
+from hebg import HEBGraph, Option
 
-from crafting.world.items import Item
-from crafting.options.actions import SearchItem, CraftRecipe
+from crafting.options.actions import CraftRecipe, SearchItem
 from crafting.options.options import GetItem, ReachZone
+from crafting.world.items import Item
 
 
 def get_items_in_graph(
-    graph: OptionGraph,
+    graph: HEBGraph,
     all_options: Dict[str, Union[GetItem, ReachZone]] = None,
 ) -> Set[Item]:
     """Get items in a Crafting option graph.
 
     Args:
-        graph (OptionGraph): An option graph of the Crafting environment.
+        graph (HEBGraph): An option graph of the Crafting environment.
 
     Returns:
         Set[Item]: Set of items that appears in the given graph.

@@ -7,19 +7,17 @@ Generate a random Crafting environment using basic constructor rules.
 
 """
 
-from typing import List, Tuple, Dict
+from typing import Dict, List, Tuple
 
 import numpy as np
 
 from crafting.env import CraftingEnv
-from crafting.world.world import World
-
-from crafting.player.player import Player
 from crafting.player.inventory import Inventory
-
-from crafting.world.zones import Zone
-from crafting.world.items import Item, Tool, ItemStack
+from crafting.player.player import Player
+from crafting.world.items import Item, ItemStack, Tool
 from crafting.world.recipes import Recipe
+from crafting.world.world import World
+from crafting.world.zones import Zone
 
 
 class RandomCraftingEnv(CraftingEnv):

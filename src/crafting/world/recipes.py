@@ -9,11 +9,12 @@ but they can also affect and be affected by the Zone in which the craft is done.
 """
 
 from typing import List
+
 import numpy as np
 
+from crafting.player.inventory import Inventory
 from crafting.world.items import ItemStack
 from crafting.world.zones import Zone
-from crafting.player.inventory import Inventory
 
 
 class Recipe:

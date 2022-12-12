@@ -7,8 +7,8 @@ Here are defined abstract classes for items, tools and item-stacks
 
 """
 
-from typing import List
 from operator import index
+from typing import List
 
 
 class Item:

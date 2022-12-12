@@ -2,7 +2,7 @@
 # Copyright (C) 2021-2022 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 # pylint: disable=attribute-defined-outside-init, no-self-use, missing-function-docstring
 
-""" Module to test that all OptionGraph can be drawn. """
+""" Module to test that all HEBGraph can be drawn. """
 
 import pytest
 import matplotlib.pyplot as plt
@@ -11,9 +11,9 @@ from crafting.examples.minecraft.world import McWorld
 ALL_OPTIONS = McWorld().get_all_options()
 
 
-class TestDrawOptionGraphs:
+class TestDrawHEBGraphs:
 
-    """OptionGraph of the MineCrafting environment should be drawn correctly."""
+    """HEBGraph of the MineCrafting environment should be drawn correctly."""
 
     @pytest.mark.parametrize("option_name", list(ALL_OPTIONS.keys()))
     def test_can_draw_(self, option_name):

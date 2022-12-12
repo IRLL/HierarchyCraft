@@ -5,31 +5,28 @@
 
 import os
 import sys
-
-from typing import TYPE_CHECKING, Dict, List, Any, Optional, Union
 from io import BytesIO
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import numpy as np
-from PIL.Image import Image
-
 import pygame
+from PIL.Image import Image
 from pygame import Surface
-from pygame.time import Clock
 from pygame.event import Event
-
+from pygame.time import Clock
 from pygame_menu.baseimage import BaseImage
 from pygame_menu.menu import Menu
-from pygame_menu.widgets import Button
 from pygame_menu.themes import THEME_BLUE, THEME_GREEN, THEME_ORANGE
+from pygame_menu.widgets import Button
 
+from crafting.render.utils import load_or_create_image
 from crafting.render.widgets import (
     EnvWidget,
     InventoryWidget,
     ScoreWidget,
-    ZoneWidget,
     StepLeftWidget,
+    ZoneWidget,
 )
-from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv

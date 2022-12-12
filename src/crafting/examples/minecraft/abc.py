@@ -8,11 +8,12 @@ All redifined specialized objects used for the MineCrafting environment.
 """
 
 from typing import TYPE_CHECKING, List, Optional, Union
+
 import numpy as np
 
-from crafting.world.items import Item, Tool, ItemStack
-from crafting.player.player import Player
 from crafting.player.inventory import Inventory
+from crafting.player.player import Player
+from crafting.world.items import Item, ItemStack, Tool
 
 if TYPE_CHECKING:
     from crafting.examples.minecraft.world import McWorld

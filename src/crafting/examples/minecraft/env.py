@@ -9,7 +9,6 @@ Crafting environment adapted to the Minecraft inventory
 """
 
 from crafting.env import CraftingEnv
-
 from crafting.examples.minecraft.abc import McPlayer
 from crafting.examples.minecraft.world import McWorld
 

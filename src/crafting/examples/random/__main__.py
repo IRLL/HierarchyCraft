@@ -3,8 +3,8 @@
 
 """Main module for RandomCrafting environment."""
 
-from crafting.render.render import render_env_with_human
 from crafting.examples.random.env import RandomCraftingEnv
+from crafting.render.render import render_env_with_human
 
 env = RandomCraftingEnv(
     n_items=12,

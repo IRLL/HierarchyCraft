@@ -7,9 +7,9 @@ Abstract zones to simulate simply a Minecraft environment.
 
 """
 
-from crafting.world.zones import Zone
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.tools import *
+from crafting.world.zones import Zone
 
 # Zones
 

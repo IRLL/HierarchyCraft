@@ -3,7 +3,7 @@
 
 """ Inventory """
 
-from typing import Tuple, List, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 

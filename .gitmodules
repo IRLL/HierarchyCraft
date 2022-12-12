@@ -1,3 +1,3 @@
-[submodule "options_graphs"]
-	path = options_graphs
-	url = https://github.com/IRLL/options_graphs.git
+[submodule "HEB_graphs"]
+	path = HEB_graphs
+	url = https://github.com/IRLL/HEB_graphs

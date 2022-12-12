@@ -9,7 +9,7 @@ from hypothesis.strategies import integers
 from networkx import is_isomorphic, DiGraph
 
 from crafting.examples.simple import TowerCraftingEnv
-from option_graph.option import Option
+from hebg.option import Option
 
 
 def test_tower_requirements_graph_1_1():
