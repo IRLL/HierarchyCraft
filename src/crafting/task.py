@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import numpy as np
 from hebg.metrics.complexity import learning_complexity
-from hebg.metrics.complexity.histograms import nodes_histograms
+from hebg.metrics.histograms import nodes_histograms
 from tqdm import tqdm
 
 from crafting.behaviors.utils import get_items_in_graph

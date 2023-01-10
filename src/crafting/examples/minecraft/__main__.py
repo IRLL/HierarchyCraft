@@ -7,7 +7,7 @@ import os
 
 import matplotlib.pyplot as plt
 from hebg.metrics.complexity.complexities import learning_complexity
-from hebg.metrics.complexity.histograms import nodes_histograms
+from hebg.metrics.histograms import nodes_histograms
 
 from crafting.examples.minecraft.env import MineCraftingEnv
 from crafting.render.render import render_env_with_human
