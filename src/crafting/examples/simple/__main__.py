@@ -5,10 +5,13 @@
 
 import os
 from pathlib import Path
+from typing import List
 
 import matplotlib.pyplot as plt
 from hebg.metrics.complexity.complexities import learning_complexity
-from hebg.metrics.complexity.histograms import nodes_histograms
+from hebg.metrics.histograms import nodes_histograms
+from hebg.unrolling import unroll_graph
+from hebg import HEBGraph, Behavior
 
 from crafting.env import CraftingEnv
 from crafting.examples.simple import (
@@ -18,42 +21,41 @@ from crafting.examples.simple import (
 )
 
 
-def save_solve_graph(env: CraftingEnv, plot_path: Path, unrolled_graphs=True):
+def get_solving_behavior(env: CraftingEnv) -> Behavior:
     all_behaviors = env.world.get_all_behaviors()
-    all_behaviors_list = list(all_behaviors.values())
-    used_nodes_all = nodes_histograms(all_behaviors_list)
-
     goal_item = env.tasks[0].goal_item
     behavior_name = f"Get {goal_item}"
-    behavior = all_behaviors.get(behavior_name)
+    return all_behaviors.get(behavior_name)
 
-    lcomp, comp_saved = learning_complexity(behavior, used_nodes_all)
-    print(f"{behavior_name}: {lcomp} ({comp_saved})")
 
-    figsize = (16 / 2 * (env.world.n_items + 1), 9 / 2 * (env.world.n_items + 1))
+def get_nodes_histograms(env: CraftingEnv):
+    all_behaviors = env.world.get_all_behaviors()
+    all_behaviors_list = list(all_behaviors.values())
+    return nodes_histograms(all_behaviors_list)
+
+
+def save_solve_codegens(graph: HEBGraph, savepath: Path):
+    os.makedirs(savepath.parent, exist_ok=True)
+    with open(savepath, "w", encoding="utf-8") as file:
+        file.write(graph.generate_source_code())
+        print(f"Saved generated source code at {savepath}")
+
+
+def save_solve_graph(graph: HEBGraph, savepath: Path, figsize=(16, 3)):
     fig, ax = plt.subplots(figsize=figsize)
-    fname = f"n={env.world.n_items}"
-    fname += f"_t={lcomp + comp_saved}_s={comp_saved}_l={lcomp}"
-
-    graph = behavior.graph
-    if unrolled_graphs:
-        graph = graph.unrolled_graph
-        fname += "_unrolled"
-
     graph.draw(ax, draw_hulls=True)
-    path = plot_path / fname
     plt.tight_layout()
-    os.makedirs(plot_path, exist_ok=True)
-    plt.savefig(path, dpi=240)
-    print(f"Saved solve_graph at {path}")
+    os.makedirs(savepath.parent, exist_ok=True)
+    plt.savefig(savepath, dpi=240)
+    print(f"Saved solve_graph at {savepath}")
     plt.close(fig)
 
 
-def save_requirement_graph(env: CraftingEnv, plot_path: Path):
+def save_requirement_graph(env: CraftingEnv, savepath: Path):
     fig, ax = plt.subplots(figsize=(16, 9))
     env.world.draw_requirements_graph(ax)
-    path = plot_path / f"n={env.world.n_items}_requirement_graph"
-    os.makedirs(plot_path, exist_ok=True)
+    path = savepath / f"n={env.world.n_items}_requirement_graph"
+    os.makedirs(savepath, exist_ok=True)
     plt.savefig(path, dpi=240)
     print(f"Saved requirement_graph at {path}")
     plt.close(fig)
@@ -61,7 +63,7 @@ def save_requirement_graph(env: CraftingEnv, plot_path: Path):
 
 def save__all_envs_graphs():
     for n_items in range(3, 11):
-        envs = [
+        envs: List[CraftingEnv] = [
             LightRecursiveCraftingEnv(n_items, 1),
             LightRecursiveCraftingEnv(n_items, 2),
             LightRecursiveCraftingEnv(n_items, 3),
@@ -70,9 +72,27 @@ def save__all_envs_graphs():
             RecursiveCraftingEnv(n_items),
         ]
         for env in envs:
+            used_nodes_all = get_nodes_histograms(env)
+            solving_behavior = get_solving_behavior(env)
+            lcomp, comp_saved = learning_complexity(solving_behavior, used_nodes_all)
+            print(f"{solving_behavior}: {lcomp} ({comp_saved})")
+            filename = f"n={env.world.n_items}"
+            filename += f"_t={lcomp + comp_saved}_s={comp_saved}_l={lcomp}"
             plot_path = Path("Images") / "graphs" / env.name
-            save_solve_graph(env, plot_path / "solve", unrolled_graphs=True)
-            save_requirement_graph(env, plot_path / "requirement_graph")
+            figsize = (
+                16 / 2 * (env.world.n_items + 1),
+                9 / 2 * (env.world.n_items + 1),
+            )
+            # save_requirement_graph(env, plot_path / "requirement_graph")
+            # save_solve_graph(
+            #     solving_behavior.graph, plot_path / "solve" / filename, figsize=figsize
+            # )
+            codepath = Path("generated_codes/simple")
+            save_solve_codegens(solving_behavior.graph, codepath / f"{filename}.py")
+            save_solve_codegens(
+                unroll_graph(solving_behavior.graph),
+                codepath / f"{filename}_unrolled.py",
+            )
 
 
 if __name__ == "__main__":
