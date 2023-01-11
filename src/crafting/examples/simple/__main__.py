@@ -54,7 +54,7 @@ def save_solve_graph(graph: HEBGraph, savepath: Path, figsize=(16, 3)):
 def save_requirement_graph(env: CraftingEnv, savepath: Path):
     fig, ax = plt.subplots(figsize=(16, 9))
     env.world.draw_requirements_graph(ax)
-    path = savepath / f"n={env.world.n_items}_requirement_graph"
+    path = savepath / f"n={env.world.n_items}_requirement_graph.png"
     os.makedirs(savepath, exist_ok=True)
     plt.savefig(path, dpi=240)
     print(f"Saved requirement_graph at {path}")
@@ -83,10 +83,12 @@ def save__all_envs_graphs():
                 16 / 2 * (env.world.n_items + 1),
                 9 / 2 * (env.world.n_items + 1),
             )
-            # save_requirement_graph(env, plot_path / "requirement_graph")
-            # save_solve_graph(
-            #     solving_behavior.graph, plot_path / "solve" / filename, figsize=figsize
-            # )
+            save_requirement_graph(env, plot_path / "requirement_graph")
+            save_solve_graph(
+                solving_behavior.graph,
+                plot_path / "solve" / (filename + ".png"),
+                figsize=figsize,
+            )
             codepath = Path("generated_codes/simple")
             save_solve_codegens(solving_behavior.graph, codepath / f"{filename}.py")
             save_solve_codegens(
