@@ -514,7 +514,7 @@ class TestGetTaskByComplexity:
             "crafting.task.learning_complexity",
             lambda behavior, used_nodes_all: (behavior.complexity, 0),
         )
-        self.nodes_histograms = mocker.patch("crafting.task.nodes_histograms")
+        self.behaviors_histograms = mocker.patch("crafting.task.behaviors_histograms")
 
     def test_get_best(self):
         """should retrieve the closest TaskObtainItem in terms of complexity."""
