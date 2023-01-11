@@ -9,7 +9,7 @@ from typing import List
 
 import matplotlib.pyplot as plt
 from hebg.metrics.complexity.complexities import learning_complexity
-from hebg.metrics.histograms import nodes_histograms
+from hebg.metrics.histograms import behaviors_histograms
 from hebg.unrolling import unroll_graph
 from hebg import HEBGraph, Behavior
 
@@ -31,7 +31,7 @@ def get_solving_behavior(env: CraftingEnv) -> Behavior:
 def get_nodes_histograms(env: CraftingEnv):
     all_behaviors = env.world.get_all_behaviors()
     all_behaviors_list = list(all_behaviors.values())
-    return nodes_histograms(all_behaviors_list)
+    return behaviors_histograms(all_behaviors_list)
 
 
 def save_solve_codegens(graph: HEBGraph, savepath: Path):
@@ -75,7 +75,7 @@ def save__all_envs_graphs():
             used_nodes_all = get_nodes_histograms(env)
             solving_behavior = get_solving_behavior(env)
             lcomp, comp_saved = learning_complexity(solving_behavior, used_nodes_all)
-            print(f"{solving_behavior}: {lcomp} ({comp_saved})")
+            print(f"|-|{env.name}|-| {solving_behavior}: {lcomp} ({comp_saved})")
             filename = f"n={env.world.n_items}"
             filename += f"_t={lcomp + comp_saved}_s={comp_saved}_l={lcomp}"
             plot_path = Path("Images") / "graphs" / env.name

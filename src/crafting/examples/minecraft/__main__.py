@@ -7,7 +7,7 @@ import os
 
 import matplotlib.pyplot as plt
 from hebg.metrics.complexity.complexities import learning_complexity
-from hebg.metrics.histograms import nodes_histograms
+from hebg.metrics.histograms import behaviors_histograms
 
 from crafting.examples.minecraft.env import MineCraftingEnv
 from crafting.render.render import render_env_with_human
@@ -25,7 +25,7 @@ if plot_hebgraphs_path is not None:
 
 all_behaviors = env.world.get_all_behaviors()
 all_behaviors_list = list(all_behaviors.values())
-used_nodes_all = nodes_histograms(all_behaviors_list)
+used_nodes_all = behaviors_histograms(all_behaviors_list)
 
 for behavior_name, behavior in all_behaviors.items():
     if behavior_name == f"Get {env.world.item_from_id[270]}":

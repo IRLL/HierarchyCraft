@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import numpy as np
 from hebg.metrics.complexity import learning_complexity
-from hebg.metrics.histograms import nodes_histograms
+from hebg.metrics.histograms import behaviors_histograms
 from tqdm import tqdm
 
 from crafting.behaviors.utils import get_items_in_graph
@@ -339,7 +339,7 @@ def get_task_by_complexity(
 
     def _get_items_complexities(item_behaviors: List["Behavior"]):
         items_complexities = {}
-        used_nodes_all = nodes_histograms(all_behaviors_list)
+        used_nodes_all = behaviors_histograms(all_behaviors_list)
         for behavior in tqdm(item_behaviors, desc="Computing complexities"):
             learn_comp, saved_comp = learning_complexity(behavior, used_nodes_all)
             total_comp = learn_comp + saved_comp
