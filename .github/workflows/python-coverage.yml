@@ -25,8 +25,8 @@ jobs:
     - name: Build coverage using pytest-cov
       run: |
         pytest --cov=crafting --cov-report=xml tests
-    - name: Upload coverage-report to codacy
-      uses: codacy/codacy-coverage-reporter-action@master
+    - name: Codacy Coverage Reporter
+      uses: codacy/codacy-coverage-reporter-action@v1.3.0
       with:
         project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
         coverage-reports: coverage.xml
