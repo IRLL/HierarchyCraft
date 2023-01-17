@@ -39,6 +39,7 @@ Interactions of elements of a Crafting environment can be summarized like this:
 .. figure:: docs/_static/images/General_crafting.png
    :align: center
    :alt: MineCrafting craft hierarchy
+   :width: 400
 
 
 The main example of Crafting environment is the MineCrafting environment 
