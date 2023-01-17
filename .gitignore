@@ -136,4 +136,4 @@ dmypy.json
 
 .DS_store
 
-Images
+/images

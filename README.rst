@@ -17,11 +17,36 @@ Crafting - A gym environment for inventory management
    :alt: [Licence - GPLv3]
    :target: https://www.gnu.org/licenses/
 
-Why the Crafting environment ?
-------------------------------
+Why Crafting ?
+--------------
 
-The Crafting environment is a meta-environment allowing to generate 
-arbitrary hierarchical tasks for research purpose.
+Crafting is a meta-environment allowing to generate 
+arbitrarely hierarchical environments for research purpose.
+
+A Crafting environment is a sandbox environment composed of
+items, zones, and recipes.
+Zones are abstractions of a physical environment
+that can be accessed with or without a tool,
+they contain findable items that can be gathered with or
+without a tool.
+Zones have specific properties that can be modified by
+the agent.
+Recipes are transformations of items to craft new items
+or to modify the current zone properties.
+
+Interactions of elements of a Crafting environment can be summarized like this:
+
+.. figure:: docs/_static/images/General_crafting.png
+   :align: center
+   :alt: MineCrafting craft hierarchy
+
+
+The main example of Crafting environment is the MineCrafting environment 
+that mimics the craft hierarchy of the popular game Minecraft:
+
+.. figure:: docs/_static/images/minecrafting_crafts_hierarchy.png
+   :align: center
+   :alt: MineCrafting craft hierarchy
 
 
 Installation
