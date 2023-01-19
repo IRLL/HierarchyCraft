@@ -64,20 +64,7 @@ class CraftingEnv(gym.Env):
         self.initial_player = deepcopy(player)
 
         # Tasks
-        if tasks is None:
-            tasks = []
-
-        if not isinstance(tasks, TaskList):
-            for i, task in enumerate(tasks):
-                if isinstance(task, Task):
-                    continue
-                if isinstance(task, str):
-                    tasks[i] = get_task_from_name(self.world, task)
-                    continue
-                raise TypeError(f"Unsupported type for task: {type(task)} of {task}")
-
-            tasks = TaskList(tasks=tasks)
-        self.tasks = tasks
+        self.tasks = self._init_tasklist(tasks)
 
         # Reward penalties
         self.fail_penalty = fail_penalty
@@ -345,6 +332,23 @@ class CraftingEnv(gym.Env):
             **self.render_variables,
         )
         return surface_to_rgb_array(self.render_variables["screen"])
+
+    def _init_tasklist(self, tasks: Optional[List[Union[Task, str]]]):
+        if isinstance(tasks, TaskList):
+            return tasks
+
+        if tasks is None:
+            tasks = []
+
+        for i, task in enumerate(tasks):
+            if isinstance(task, Task):
+                continue
+            if isinstance(task, str):
+                tasks[i] = get_task_from_name(self.world, task)
+                continue
+            raise TypeError(f"Unsupported type for task: {type(task)} of {task}")
+
+        return TaskList(tasks=tasks)
 
     def __call__(self, action):
         return self.step(action)
