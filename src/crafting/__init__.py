@@ -29,5 +29,12 @@ try:
             "n_inputs_per_craft": [0.1, 0.6, 0.3],
         },
     )
+
+    gym.register(
+        id="RecursiveCrafting-v1",
+        entry_point="crafting.examples.simple.recursive:RecursiveCraftingEnv",
+        max_episode_steps=200,
+    )
+
 except ImportError:
     pass
