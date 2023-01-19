@@ -285,7 +285,7 @@ def get_task_from_name(world: "World", task_name: str, **kwargs):
     """Get Task for a given task name.
 
     Args:
-        world (World): _description_
+        world (World): World of the Crafting environement.
         task_name (str): Name of the task to find.
 
     Raises:
