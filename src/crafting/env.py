@@ -11,10 +11,9 @@ from gym import spaces
 
 from crafting.player.player import Player
 from crafting.render.render import create_window, surface_to_rgb_array, update_rendering
-from crafting.task import TaskList
+from crafting.task import TaskList, Task, get_task_from_name
 
 if TYPE_CHECKING:
-    from crafting.task import Task
     from crafting.world.world import World
 
 
@@ -32,7 +31,7 @@ class CraftingEnv(gym.Env):
         max_step: int = 500,
         verbose: int = 0,
         observe_legal_actions: bool = False,
-        tasks: List[Union[str, "Task"]] = None,
+        tasks: Optional[List[Union[str, "Task"]]] = None,
         fail_penalty: float = 9,
         timestep_penalty: float = 1,
         moving_penalty: float = 9,
@@ -65,10 +64,20 @@ class CraftingEnv(gym.Env):
         self.initial_player = deepcopy(player)
 
         # Tasks
+        if tasks is None:
+            tasks = []
+
         if not isinstance(tasks, TaskList):
-            self.tasks = TaskList(tasks=tasks)
-        else:
-            self.tasks = tasks
+            for i, task in enumerate(tasks):
+                if isinstance(task, Task):
+                    continue
+                if isinstance(task, str):
+                    tasks[i] = get_task_from_name(self.world, task)
+                    continue
+                raise TypeError(f"Unsupported type for task: {type(task)} of {task}")
+
+            tasks = TaskList(tasks=tasks)
+        self.tasks = tasks
 
         # Reward penalties
         self.fail_penalty = fail_penalty

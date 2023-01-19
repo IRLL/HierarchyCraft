@@ -24,6 +24,18 @@ try:
     )
 
     gym.register(
+        id="MineCrafting-EnchantingTable-v1",
+        entry_point="crafting.examples.minecraft.env:MineCraftingEnv",
+        max_episode_steps=200,
+        kwargs={
+            "tasks": ["obtain_enchanting_table"],
+            "fail_penalty": 1,
+            "timestep_penalty": 0.1,
+            "moving_penalty": 0.4,
+        },
+    )
+
+    gym.register(
         id="RandomCrafting-v1",
         entry_point="crafting.examples.random.env:RandomCraftingEnv",
         max_episode_steps=200,
