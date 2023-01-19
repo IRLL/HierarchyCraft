@@ -152,6 +152,9 @@ class TestTaskList:
         check.equal(reward, 10.2)
         check.is_true(done)
 
+    def test_len(self):
+        tasklist = TaskList(self.tasks)
+        check.equal(len(tasklist), 3)
 
 class TestTaskListGetTaskWeight:
     """TaskList._get_task_weight"""
