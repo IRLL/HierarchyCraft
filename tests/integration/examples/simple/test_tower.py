@@ -10,6 +10,15 @@ from networkx import is_isomorphic, DiGraph
 
 from crafting.examples.simple import TowerCraftingEnv
 from hebg.behavior import Behavior
+import gym
+
+
+def test_gym_make():
+    env: TowerCraftingEnv = gym.make("TowerCrafting-v1", height=3, width=2)
+    check.equal(env.height, 3)
+    check.equal(env.width, 2)
+    check.equal(env.world.n_items, 7)
+    check.is_in("TowerCrafting", env.name)
 
 
 def test_tower_requirements_graph_1_1():
