@@ -209,6 +209,9 @@ class TaskList:
     def __repr__(self) -> str:
         return "[" + ", ".join(repr(task) for task in self.tasks) + "]"
 
+    def __len__(self) -> int:
+        return len(self.tasks)
+
 
 class RewardShaping(Enum):
     """Enumeration of all posible reward shaping types."""
