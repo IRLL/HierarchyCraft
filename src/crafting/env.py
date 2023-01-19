@@ -134,7 +134,7 @@ class CraftingEnv(gym.Env):
         Returns:
             List[int]: List of seeds used by this environment.
         """
-        self.np_random = np.random.RandomState(seed)
+        self.np_random = np.random.RandomState(seed)  # pylint: disable=no-member
         return [seed]
 
     def action(self, action_type: str, identification: int) -> int:
