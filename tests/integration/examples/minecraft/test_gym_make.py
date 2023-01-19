@@ -21,4 +21,4 @@ def test_enchanting_table_gym_make():
     check.equal(env.timestep_penalty, 0.1)
     check.equal(len(env.tasks), 1)
     task = env.tasks[0]
-    check.equal(task.name, "obtain_enchanting_table")
+    check.equal(task.name, "obtain_Enchanting_table(116)")
