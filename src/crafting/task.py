@@ -209,6 +209,9 @@ class TaskList:
     def __repr__(self) -> str:
         return "[" + ", ".join(repr(task) for task in self.tasks) + "]"
 
+    def __len__(self) -> int:
+        return len(self.tasks)
+
 
 class RewardShaping(Enum):
     """Enumeration of all posible reward shaping types."""
@@ -282,7 +285,7 @@ def get_task_from_name(world: "World", task_name: str, **kwargs):
     """Get Task for a given task name.
 
     Args:
-        world (World): _description_
+        world (World): World of the Crafting environement.
         task_name (str): Name of the task to find.
 
     Raises:

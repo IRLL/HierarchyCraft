@@ -10,6 +10,15 @@ from networkx import is_isomorphic, DiGraph
 
 from crafting.examples.simple import TowerCraftingEnv
 from hebg.behavior import Behavior
+import gym
+
+
+def test_gym_make():
+    env: TowerCraftingEnv = gym.make("TowerCrafting-v1", height=3, width=2)
+    check.equal(env.height, 3)
+    check.equal(env.width, 2)
+    check.equal(env.world.n_items, 7)
+    check.is_in("TowerCrafting", env.name)
 
 
 def test_tower_requirements_graph_1_1():
@@ -102,7 +111,7 @@ def run_solve(env: TowerCraftingEnv, solver: Behavior) -> int:
 
 @given(integers(1, 3), integers(1, 3))
 def test_tower_can_solve(height: int, width: int):
-    env = TowerCraftingEnv(height=height, width=width, use_old_gym_format=True)
+    env = TowerCraftingEnv(height=height, width=width)
     all_behaviors = env.world.get_all_behaviors()
     solving_behavior: Behavior = all_behaviors[f"Get {env.tasks[0].goal_item}"]
     n_steps = run_solve(env, solver=solving_behavior)

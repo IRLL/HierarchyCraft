@@ -8,6 +8,8 @@ from networkx import is_isomorphic
 
 from crafting.examples.random.env import RandomCraftingEnv
 
+import gym
+
 
 class TestRandomCrafting:
 
@@ -24,6 +26,11 @@ class TestRandomCrafting:
             "n_required_tools": [0.25, 0.4, 0.2, 0.1, 0.05],
             "n_inputs_per_craft": [0.1, 0.6, 0.3],
         }
+
+    def test_gym_make(self):
+        env: RandomCraftingEnv = gym.make("RandomCrafting-v1", n_items=10, seed=42)
+        check.equal(len(env.world.items), 10)
+        check.equal(env.original_seed, 42)
 
     def test_same_seed_same_requirements_graph(self):
         env = RandomCraftingEnv(seed=42, **self.env_settings)

@@ -11,10 +11,9 @@ from gym import spaces
 
 from crafting.player.player import Player
 from crafting.render.render import create_window, surface_to_rgb_array, update_rendering
-from crafting.task import TaskList
+from crafting.task import TaskList, Task, get_task_from_name
 
 if TYPE_CHECKING:
-    from crafting.task import Task
     from crafting.world.world import World
 
 
@@ -29,16 +28,16 @@ class CraftingEnv(gym.Env):
         world: "World",
         player: Player,
         name: str = "Crafting",
-        max_step: int = 500,
+        max_step: int = 100,
         verbose: int = 0,
         observe_legal_actions: bool = False,
-        tasks: List[Union[str, "Task"]] = None,
+        tasks: Optional[List[Union[str, "Task"]]] = None,
         fail_penalty: float = 9,
         timestep_penalty: float = 1,
         moving_penalty: float = 9,
         render_mode: str = "rgb_array",
         seed: int = None,
-        use_old_gym_format: bool = False,
+        gymnasium_interface: bool = False,
     ):
         """Generic Crafting Environment.
 
@@ -65,10 +64,7 @@ class CraftingEnv(gym.Env):
         self.initial_player = deepcopy(player)
 
         # Tasks
-        if not isinstance(tasks, TaskList):
-            self.tasks = TaskList(tasks=tasks)
-        else:
-            self.tasks = tasks
+        self.tasks = self._init_tasklist(tasks)
 
         # Reward penalties
         self.fail_penalty = fail_penalty
@@ -80,7 +76,7 @@ class CraftingEnv(gym.Env):
         self.steps = 1
         self.verbose = verbose
         self.observe_legal_actions = observe_legal_actions
-        self.use_old_gym_format = use_old_gym_format
+        self.gymnasium_interface = gymnasium_interface
 
         # Action space
         # (get_item or use_recipe or move_to_zone)
@@ -138,7 +134,7 @@ class CraftingEnv(gym.Env):
         Returns:
             List[int]: List of seeds used by this environment.
         """
-        self.np_random = np.random.RandomState(seed)
+        self.np_random = np.random.RandomState(seed)  # pylint: disable=no-member
         return [seed]
 
     def action(self, action_type: str, identification: int) -> int:
@@ -237,7 +233,7 @@ class CraftingEnv(gym.Env):
         if self.observe_legal_actions:
             observation = (observation, action_is_legal)
 
-        if self.use_old_gym_format:
+        if not self.gymnasium_interface:
             done = terminated or truncated
             return observation, reward, done, infos
 
@@ -306,7 +302,7 @@ class CraftingEnv(gym.Env):
             "tasks_done": False,
         }
 
-        if self.use_old_gym_format:
+        if not self.gymnasium_interface:
             return observation
 
         return observation, infos
@@ -316,7 +312,7 @@ class CraftingEnv(gym.Env):
             self.render_mode = mode
 
         if self.render_mode == "human":  # for human interaction
-            raise NotImplementedError
+            return self.render_rgb_array()
         if self.render_mode == "console":  # for console print
             return str(self.player)
         if self.render_mode == "rgb_array":
@@ -336,6 +332,23 @@ class CraftingEnv(gym.Env):
             **self.render_variables,
         )
         return surface_to_rgb_array(self.render_variables["screen"])
+
+    def _init_tasklist(self, tasks: Optional[List[Union[Task, str]]]):
+        if isinstance(tasks, TaskList):
+            return tasks
+
+        if tasks is None:
+            tasks = []
+
+        for i, task in enumerate(tasks):
+            if isinstance(task, Task):
+                continue
+            if isinstance(task, str):
+                tasks[i] = get_task_from_name(self.world, task)
+                continue
+            raise TypeError(f"Unsupported type for task: {type(task)} of {task}")
+
+        return TaskList(tasks=tasks)
 
     def __call__(self, action):
         return self.step(action)

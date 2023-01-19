@@ -1,7 +1,9 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021-2022 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
+import pytest
 import pytest_check as check
+import gym
 
 from hypothesis import given
 from hypothesis.strategies import integers
@@ -13,6 +15,19 @@ from crafting.examples.simple import (
     LightRecursiveCraftingEnv,
     LighterRecursiveCraftingEnv,
 )
+
+
+def test_gym_make():
+    env: RecursiveCraftingEnv = gym.make("RecursiveCrafting-v1", n_items=10)
+    check.equal(len(env.world.items), 10)
+    check.equal(env.name, "RecursiveCrafting")
+
+
+def test_gym_make_without_n_items():
+    with pytest.raises(
+        TypeError, match="missing 1 required positional argument: 'n_items'"
+    ):
+        gym.make("RecursiveCrafting-v1")
 
 
 @given(integers(3, 8))

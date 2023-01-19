@@ -42,7 +42,7 @@ class TowerCraftingEnv(SimpleCraftingEnv):
         assert self.width > 0
         n_items = self.height * self.width + 1
         name = f"TowerCrafting-v1-H{self.height}"
-        if "max_step" not in kwargs:
+        if "max_step" not in kwargs or not isinstance(kwargs["max_step"], int):
             if self.width == 1:
                 kwargs["max_step"] = 1 + int(self.width * (self.height + 1))
             else:
@@ -93,3 +93,11 @@ class TowerCraftingEnv(SimpleCraftingEnv):
         recipes.append(new_recipe)
 
         return recipes
+
+
+if __name__ == "__main__":
+    import gym
+    from crafting.render.render import render_env_with_human
+
+    env = gym.make("TowerCrafting-v1", height=4, width=2, max_step="auto")
+    render_env_with_human(env)

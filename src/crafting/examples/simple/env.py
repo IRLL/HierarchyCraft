@@ -45,7 +45,7 @@ class SimpleCraftingEnv(CraftingEnv):
         """
 
         world, initial_zone = self.build_world(n_items=n_items)
-        if "max_step" not in kwargs:
+        if "max_step" not in kwargs or not isinstance(kwargs["max_step"], int):
             kwargs["max_step"] = 2**n_items
         player = Player(Inventory(world.items), initial_zone)
         reward_shaping = kwargs.pop("reward_shaping", 0)

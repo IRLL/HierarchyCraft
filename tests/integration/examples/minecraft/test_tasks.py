@@ -33,12 +33,11 @@ class TestTasks:
         all_behaviors = env.world.get_all_behaviors()
         behavior_solving_task = all_behaviors[f"Get {task.goal_item}"]
 
-        observation, _ = env.reset()
+        observation = env.reset()
         done = False
         while not done:
             action = behavior_solving_task(observation)
-            observation, _, terminated, truncated, _ = env.step(action)
-            done = terminated or truncated
+            observation, _, done, _ = env.step(action)
 
         item_slot = env.world.item_id_to_slot[task.goal_item.item_id]
         check.greater_equal(
@@ -52,8 +51,7 @@ def test_obtain_getting_wood():
 
     done = False
     while not done:
-        _, _, terminated, truncated, _ = env(env.action("get", WOOD.item_id))
-        done = terminated or truncated
+        _, _, done, _ = env(env.action("get", WOOD.item_id))
 
     if env.player.inventory.content[5] != 100:
         raise ValueError("Unexpected number of wood got after 100 steps (No tool)")
@@ -89,8 +87,7 @@ def test_obtain_getting_wood():
     print(env.player)
 
     while not done:
-        _, _, terminated, truncated, _ = env(env.action("get", WOOD.item_id))
-        done = terminated or truncated
+        _, _, done, _ = env(env.action("get", WOOD.item_id))
 
     print(env.player.inventory)
     if env.player.inventory.content[5] != 268:

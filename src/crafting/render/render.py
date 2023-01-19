@@ -349,8 +349,7 @@ def render_env_with_human(env: "CraftingEnv", n_episodes: int = 1):
             action_id = env.action(*action)
             print(f"Human did: {env.action_from_id(action_id)}")
 
-            _, reward, terminated, truncated, _ = env(action_id)
-            done = terminated or truncated
+            _observation, reward, done, _info = env.step(action_id)
             total_reward += reward
 
         print("SCORE: ", total_reward)
