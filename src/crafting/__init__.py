@@ -11,11 +11,16 @@ from crafting.task import Task
 try:
     import gym
 
+    # Simple MineCrafting with no reward, only penalty on illegal actions
     gym.register(
-        id="CraftingEnchantingTable-v1",
+        id="MineCrafting-NoReward-v1",
         entry_point="crafting.examples.minecraft.env:MineCraftingEnv",
         max_episode_steps=200,
-        kwargs={"observe_legal_actions": False},
+        kwargs={
+            "fail_penalty": 1,
+            "timestep_penalty": 0,
+            "moving_penalty": 0,
+        },
     )
 
     gym.register(
