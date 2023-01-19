@@ -28,7 +28,7 @@ class TestRandomCrafting:
         }
 
     def test_gym_make(self):
-        env: RandomCraftingEnv = gym.make("RandomCrafting-n10-v1", seed=42)
+        env: RandomCraftingEnv = gym.make("RandomCrafting-v1", n_items=10, seed=42)
         check.equal(len(env.world.items), 10)
         check.equal(env.original_seed, 42)
 
