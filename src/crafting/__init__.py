@@ -15,7 +15,6 @@ try:
     gym.register(
         id="MineCrafting-NoReward-v1",
         entry_point="crafting.examples.minecraft.env:MineCraftingEnv",
-        max_episode_steps=200,
         kwargs={
             "fail_penalty": 1,
             "timestep_penalty": 0,
@@ -26,7 +25,6 @@ try:
     gym.register(
         id="MineCrafting-EnchantingTable-v1",
         entry_point="crafting.examples.minecraft.env:MineCraftingEnv",
-        max_episode_steps=200,
         kwargs={
             "tasks": ["obtain_enchanting_table"],
             "fail_penalty": 1,
@@ -38,7 +36,6 @@ try:
     gym.register(
         id="RandomCrafting-v1",
         entry_point="crafting.examples.random.env:RandomCraftingEnv",
-        max_episode_steps=200,
         kwargs={
             "n_tools": 0,
             "n_findables": 1,
@@ -50,13 +47,11 @@ try:
     gym.register(
         id="RecursiveCrafting-v1",
         entry_point="crafting.examples.simple.recursive:RecursiveCraftingEnv",
-        max_episode_steps=200,
     )
 
     gym.register(
         id="TowerCrafting-v1",
         entry_point="crafting.examples.simple.tower:TowerCraftingEnv",
-        max_episode_steps=200,
     )
 
 except ImportError:

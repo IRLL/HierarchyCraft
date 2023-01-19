@@ -28,7 +28,7 @@ class CraftingEnv(gym.Env):
         world: "World",
         player: Player,
         name: str = "Crafting",
-        max_step: int = 500,
+        max_step: int = 100,
         verbose: int = 0,
         observe_legal_actions: bool = False,
         tasks: Optional[List[Union[str, "Task"]]] = None,
@@ -37,7 +37,7 @@ class CraftingEnv(gym.Env):
         moving_penalty: float = 9,
         render_mode: str = "rgb_array",
         seed: int = None,
-        use_old_gym_format: bool = False,
+        gymnasium_interface: bool = False,
     ):
         """Generic Crafting Environment.
 
@@ -76,7 +76,7 @@ class CraftingEnv(gym.Env):
         self.steps = 1
         self.verbose = verbose
         self.observe_legal_actions = observe_legal_actions
-        self.use_old_gym_format = use_old_gym_format
+        self.gymnasium_interface = gymnasium_interface
 
         # Action space
         # (get_item or use_recipe or move_to_zone)
@@ -233,7 +233,7 @@ class CraftingEnv(gym.Env):
         if self.observe_legal_actions:
             observation = (observation, action_is_legal)
 
-        if self.use_old_gym_format:
+        if not self.gymnasium_interface:
             done = terminated or truncated
             return observation, reward, done, infos
 
@@ -302,7 +302,7 @@ class CraftingEnv(gym.Env):
             "tasks_done": False,
         }
 
-        if self.use_old_gym_format:
+        if not self.gymnasium_interface:
             return observation
 
         return observation, infos
@@ -312,7 +312,7 @@ class CraftingEnv(gym.Env):
             self.render_mode = mode
 
         if self.render_mode == "human":  # for human interaction
-            raise NotImplementedError
+            return self.render_rgb_array()
         if self.render_mode == "console":  # for console print
             return str(self.player)
         if self.render_mode == "rgb_array":

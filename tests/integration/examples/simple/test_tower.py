@@ -111,7 +111,7 @@ def run_solve(env: TowerCraftingEnv, solver: Behavior) -> int:
 
 @given(integers(1, 3), integers(1, 3))
 def test_tower_can_solve(height: int, width: int):
-    env = TowerCraftingEnv(height=height, width=width, use_old_gym_format=True)
+    env = TowerCraftingEnv(height=height, width=width)
     all_behaviors = env.world.get_all_behaviors()
     solving_behavior: Behavior = all_behaviors[f"Get {env.tasks[0].goal_item}"]
     n_steps = run_solve(env, solver=solving_behavior)
