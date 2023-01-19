@@ -36,5 +36,11 @@ try:
         max_episode_steps=200,
     )
 
+    gym.register(
+        id="TowerCrafting-v1",
+        entry_point="crafting.examples.simple.tower:TowerCraftingEnv",
+        max_episode_steps=200,
+    )
+
 except ImportError:
     pass
