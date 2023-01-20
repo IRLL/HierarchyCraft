@@ -26,6 +26,13 @@ except ImportError:
     Env = object
 
 
+try:
+    import gymnasium as gym
+
+    USING_GYMNASIUM = True
+except ImportError:
+    USING_GYMNASIUM = False
+
 from crafting.player.player import Player
 from crafting.render.render import create_window, surface_to_rgb_array, update_rendering
 from crafting.task import TaskList, Task, get_task_from_name
@@ -54,7 +61,7 @@ class CraftingEnv(Env):
         moving_penalty: float = 9,
         render_mode: str = "rgb_array",
         seed: int = None,
-        gymnasium_interface: bool = False,
+        gymnasium_interface: bool = USING_GYMNASIUM,
     ):
         """Generic Crafting Environment.
 
