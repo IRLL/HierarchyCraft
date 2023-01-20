@@ -11,9 +11,20 @@ from enum import Enum
 from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import numpy as np
-from hebg.metrics.complexity import learning_complexity
-from hebg.metrics.histograms import behaviors_histograms
 from tqdm import tqdm
+
+# hebg is an optional dependency
+try:
+    from hebg.metrics.complexity import learning_complexity
+    from hebg.metrics.histograms import behaviors_histograms
+except ImportError:
+
+    def _error_should_install_hebg(*args, **kwargs):
+        raise ImportError("Missing package hebg. Install using 'pip install hebg'")
+
+    learning_complexity = _error_should_install_hebg
+    behaviors_histograms = _error_should_install_hebg
+
 
 from crafting.behaviors.utils import get_items_in_graph
 
