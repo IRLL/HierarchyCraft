@@ -77,7 +77,14 @@ def create_window(env: "CraftingEnv") -> Dict[str, Any]:
     os.environ["SDL_VIDEO_CENTERED"] = "1"
     window_shape = (int(16 / 9 * 600), 720)
 
-    pygame.init()
+    try:
+        pygame.init()
+    except NameError as error:
+        raise ImportError(
+            "Missing import for rendering user interface. "
+            "Install using 'pip install crafting-gym[gui]'."
+        ) from error
+
     clock = Clock()
 
     # Create window
