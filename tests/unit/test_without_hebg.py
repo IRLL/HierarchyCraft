@@ -32,6 +32,7 @@ def no_hebg():
 
 @pytest.fixture(autouse=True)
 def cleanup_imports():
+    sys.modules.pop("crafting", None)
     yield
     sys.modules.pop("hebg", None)
 
