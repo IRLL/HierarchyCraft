@@ -11,7 +11,6 @@ from enum import Enum
 from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import numpy as np
-from tqdm import tqdm
 
 # hebg is an optional dependency
 try:
@@ -354,7 +353,7 @@ def get_task_by_complexity(
     def _get_items_complexities(item_behaviors: List["Behavior"]):
         items_complexities = {}
         used_nodes_all = behaviors_histograms(all_behaviors_list)
-        for behavior in tqdm(item_behaviors, desc="Computing complexities"):
+        for behavior in item_behaviors:
             learn_comp, saved_comp = learning_complexity(behavior, used_nodes_all)
             total_comp = learn_comp + saved_comp
             items_complexities[behavior] = total_comp
