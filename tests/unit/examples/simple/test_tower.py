@@ -1,16 +1,16 @@
 # Crafting a gym-environment to simultate inventory managment
 # Copyright (C) 2021-2022 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
+import pytest
 import pytest_check as check
 
 from networkx import is_isomorphic, DiGraph
 
 from crafting.examples.simple import TowerCraftingEnv
 
-import gym
-
 
 def test_gym_make():
+    gym = pytest.importorskip("gym")
     env: TowerCraftingEnv = gym.make("TowerCrafting-v1", height=3, width=2)
     check.equal(env.height, 3)
     check.equal(env.width, 2)
@@ -33,7 +33,7 @@ def test_tower_requirements_graph_1_1():
 
     for recipe in env.world.recipes:
         print(recipe)
-    check.is_true(is_isomorphic(env.world.get_requirements_graph(), expected_graph))
+    check.is_true(is_isomorphic(env.world.requirements_graph, expected_graph))
 
 
 def test_tower_requirements_graph_1_2():
@@ -52,7 +52,7 @@ def test_tower_requirements_graph_1_2():
 
     for recipe in env.world.recipes:
         print(recipe)
-    check.is_true(is_isomorphic(env.world.get_requirements_graph(), expected_graph))
+    check.is_true(is_isomorphic(env.world.requirements_graph, expected_graph))
 
 
 def test_tower_requirements_graph_3_2():
@@ -81,7 +81,7 @@ def test_tower_requirements_graph_3_2():
 
     for recipe in env.world.recipes:
         print(recipe)
-    check.is_true(is_isomorphic(env.world.get_requirements_graph(), expected_graph))
+    check.is_true(is_isomorphic(env.world.requirements_graph, expected_graph))
 
 
 def test_tower_accessible_items():

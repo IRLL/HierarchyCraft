@@ -1,7 +1,7 @@
+import pytest
 import pytest_check as check
 
-
-import gym
+gym = pytest.importorskip("gym")
 
 from crafting.examples.minecraft.env import MineCraftingEnv
 

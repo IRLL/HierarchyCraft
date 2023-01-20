@@ -3,7 +3,6 @@
 
 import pytest
 import pytest_check as check
-import gym
 
 from hypothesis import given
 from hypothesis.strategies import integers
@@ -18,12 +17,14 @@ from crafting.examples.simple import (
 
 
 def test_gym_make():
+    gym = pytest.importorskip("gym")
     env: RecursiveCraftingEnv = gym.make("RecursiveCrafting-v1", n_items=10)
     check.equal(len(env.world.items), 10)
     check.equal(env.name, "RecursiveCrafting")
 
 
 def test_gym_make_without_n_items():
+    gym = pytest.importorskip("gym")
     with pytest.raises(
         TypeError, match="missing 1 required positional argument: 'n_items'"
     ):
@@ -38,7 +39,7 @@ def test_recursive_requirements_graph(n_items: int):
         for required_id in range(item.item_id):
             expected_graph.add_edge(required_id, item.item_id)
 
-    check.is_true(is_isomorphic(env.world.get_requirements_graph(), expected_graph))
+    check.is_true(is_isomorphic(env.world.requirements_graph, expected_graph))
 
 
 @given(integers(3, 8), integers(2, 6))
@@ -52,7 +53,7 @@ def test_light_recursive_requirements_graph(n_items: int, n_required_previous: i
         for required_id in range(min_idx, item.item_id):
             expected_graph.add_edge(required_id, item.item_id)
 
-    check.is_true(is_isomorphic(env.world.get_requirements_graph(), expected_graph))
+    check.is_true(is_isomorphic(env.world.requirements_graph, expected_graph))
 
 
 @given(integers(3, 8), integers(3, 6))
@@ -68,4 +69,4 @@ def test_lighter_recursive_requirements_graph(n_items: int, n_required_previous:
         for required_id in range(min_idx, item.item_id - 2):
             expected_graph.add_edge(required_id, item.item_id)
 
-    check.is_true(is_isomorphic(env.world.get_requirements_graph(), expected_graph))
+    check.is_true(is_isomorphic(env.world.requirements_graph, expected_graph))

@@ -8,8 +8,6 @@ from networkx import is_isomorphic
 
 from crafting.examples.random.env import RandomCraftingEnv
 
-import gym
-
 
 class TestRandomCrafting:
 
@@ -28,6 +26,7 @@ class TestRandomCrafting:
         }
 
     def test_gym_make(self):
+        gym = pytest.importorskip("gym")
         env: RandomCraftingEnv = gym.make("RandomCrafting-v1", n_items=10, seed=42)
         check.equal(len(env.world.items), 10)
         check.equal(env.original_seed, 42)
@@ -39,7 +38,7 @@ class TestRandomCrafting:
         check.equal(env.rng_seeds, env2.rng_seeds)
 
         for rd_env in (env, env2):
-            edges = list(rd_env.world.get_requirements_graph().edges())
+            edges = list(rd_env.world.requirements_graph.edges())
             edges.sort()
             print(rd_env.rng_seeds, rd_env.np_random)
             print(edges)
@@ -47,8 +46,8 @@ class TestRandomCrafting:
 
         check.is_true(
             is_isomorphic(
-                env.world.get_requirements_graph(),
-                env2.world.get_requirements_graph(),
+                env.world.requirements_graph,
+                env2.world.requirements_graph,
             )
         )
 
@@ -60,7 +59,7 @@ class TestRandomCrafting:
 
         check.is_false(
             is_isomorphic(
-                env.world.get_requirements_graph(),
-                env2.world.get_requirements_graph(),
+                env.world.requirements_graph,
+                env2.world.requirements_graph,
             )
         )
