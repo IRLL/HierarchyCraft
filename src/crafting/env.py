@@ -2,12 +2,29 @@
 # Copyright (C) 2021-2022 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
 """  Module for the base gym environment of any crafting environement. """
+import collections
 from copy import deepcopy
 from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
-import gym
+
 import numpy as np
-from gym import spaces
+
+# Gym is an optional dependency.
+try:
+    import gym
+
+    DiscreteSpace = gym.spaces.Discrete
+    BoxSpace = gym.spaces.Box
+    TupleSpace = gym.spaces.Tuple
+    MultiBinarySpace = gym.spaces.MultiBinary
+    Env = gym.Env
+except ImportError:
+    DiscreteSpace = collections.namedtuple("DiscreteSpace", "n")
+    BoxSpace = collections.namedtuple("BoxSpace", "low, high, shape, dtype")
+    TupleSpace = collections.namedtuple("TupleSpace", "spaces")
+    MultiBinarySpace = collections.namedtuple("MultiBinary", "n")
+    Env = object
+
 
 from crafting.player.player import Player
 from crafting.render.render import create_window, surface_to_rgb_array, update_rendering
@@ -17,7 +34,7 @@ if TYPE_CHECKING:
     from crafting.world.world import World
 
 
-class CraftingEnv(gym.Env):
+class CraftingEnv(Env):
 
     """Generic Crafting Environment"""
 
@@ -78,34 +95,7 @@ class CraftingEnv(gym.Env):
         self.observe_legal_actions = observe_legal_actions
         self.gymnasium_interface = gymnasium_interface
 
-        # Action space
-        # (get_item or use_recipe or move_to_zone)
-        self.action_space = spaces.Discrete(
-            self.world.n_foundable_items + self.world.n_recipes + self.world.n_zones
-        )
-
-        # Observation space
-        # (n_stacks_per_item, inv_filled_proportion, one_hot_zone)
-        self.observation_space = spaces.Box(
-            low=np.array(
-                [0 for _ in range(self.world.n_items)]
-                + [0 for _ in range(self.world.n_zones)]
-                + [0 for _ in range(self.world.n_zone_properties)]
-            ),
-            high=np.array(
-                [np.inf for _ in range(self.world.n_items)]
-                + [1 for _ in range(self.world.n_zones)]
-                + [1 for _ in range(self.world.n_zone_properties)]
-            ),
-            dtype=np.float32,
-        )
-
-        if self.observe_legal_actions:
-            self.legal_actions_space = spaces.MultiBinary(self.action_space.n)
-            self.observation_space = spaces.Tuple(
-                (self.observation_space, self.legal_actions_space)
-            )
-
+        self.n_actions = world.n_foundable_items + world.n_recipes + world.n_zones
         self.observation_legend = np.concatenate(
             (
                 [str(item) for item in self.world.items],
@@ -332,6 +322,42 @@ class CraftingEnv(gym.Env):
             **self.render_variables,
         )
         return surface_to_rgb_array(self.render_variables["screen"])
+
+    @property
+    def observation_space(self) -> Union[BoxSpace, TupleSpace]:
+        """Observation space for the Agent in the Crafting environment."""
+        obs_space = BoxSpace(
+            low=np.array(
+                [0 for _ in range(self.world.n_items)]
+                + [0 for _ in range(self.world.n_zones)]
+                + [0 for _ in range(self.world.n_zone_properties)]
+            ),
+            high=np.array(
+                [np.inf for _ in range(self.world.n_items)]
+                + [1 for _ in range(self.world.n_zones)]
+                + [1 for _ in range(self.world.n_zone_properties)]
+            ),
+            dtype=np.float32,
+        )
+
+        if self.observe_legal_actions:
+            legal_actions_space = MultiBinarySpace(self.n_actions)
+            obs_space = TupleSpace((obs_space, legal_actions_space))
+
+        return obs_space
+
+    @property
+    def action_space(self) -> DiscreteSpace:
+        """Action space for the Agent in the Crafting environment.
+
+        There is three type of actions:
+        - get_item
+        - use_recipe
+        - move_to_zone
+
+        Actions are expected to often be invalid.
+        """
+        return DiscreteSpace(self.n_actions)
 
     def _init_tasklist(self, tasks: Optional[List[Union[Task, str]]]):
         if isinstance(tasks, TaskList):
