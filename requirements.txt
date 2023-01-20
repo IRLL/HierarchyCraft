@@ -1,7 +1,4 @@
-gym >= 0.17.3
 numpy
 networkx >= 2.5.1
 matplotlib
-pygame >= 2.1.0
-pygame-menu >= 4.2.8
 hebg @ git+https://github.com/IRLL/HEB_graphs.git#egg=hebg
