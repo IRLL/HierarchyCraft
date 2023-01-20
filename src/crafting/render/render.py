@@ -9,15 +9,19 @@ from io import BytesIO
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import numpy as np
-import pygame
+
 from PIL.Image import Image
-from pygame import Surface
-from pygame.event import Event
-from pygame.time import Clock
-from pygame_menu.baseimage import BaseImage
-from pygame_menu.menu import Menu
-from pygame_menu.themes import THEME_BLUE, THEME_GREEN, THEME_ORANGE
-from pygame_menu.widgets import Button
+
+try:
+    import pygame
+    from pygame import Surface
+    from pygame.time import Clock
+    from pygame_menu.baseimage import BaseImage
+    from pygame_menu.menu import Menu
+    from pygame_menu.themes import THEME_BLUE, THEME_GREEN, THEME_ORANGE
+    from pygame_menu.widgets import Button
+except ImportError:
+    pass
 
 from crafting.render.utils import load_or_create_image
 from crafting.render.widgets import (
@@ -29,13 +33,15 @@ from crafting.render.widgets import (
 )
 
 if TYPE_CHECKING:
+    from pygame.event import Event
+
     from crafting.env import CraftingEnv
     from crafting.world.world import World
 
 
 def get_human_action(
     env: "CraftingEnv",
-    additional_events: List[Event] = None,
+    additional_events: List["Event"] = None,
     can_be_none: bool = False,
     **kwargs,
 ):
@@ -121,12 +127,12 @@ def create_window(env: "CraftingEnv") -> Dict[str, Any]:
 
 def update_rendering(
     env: "CraftingEnv",
-    clock: Clock,
-    screen: Surface,
-    menus: List[Menu],
+    clock: "Clock",
+    screen: "Surface",
+    menus: List["Menu"],
     widgets: List[EnvWidget],
     id_to_action: Dict[str, Any],
-    additional_events: List[Event] = None,
+    additional_events: List["Event"] = None,
     fps: Optional[float] = None,
 ) -> Union[int, None]:
     """Update the User Interface returning action if one was found.
@@ -191,7 +197,7 @@ def update_rendering(
     return action
 
 
-def surface_to_rgb_array(surface: pygame.Surface) -> np.ndarray:
+def surface_to_rgb_array(surface: "Surface") -> np.ndarray:
     """Transforms a pygame surface to a conventional rgb array.
 
     Args:
@@ -214,7 +220,7 @@ def make_menus(world: "World", window_shape: tuple):
     """
 
     def add_button(
-        menu: Menu,
+        menu: "Menu",
         id_to_action: Dict[str, Any],
         image: Image,
         scaling: float,

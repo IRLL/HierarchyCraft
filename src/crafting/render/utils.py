@@ -7,15 +7,22 @@ import os
 from typing import TYPE_CHECKING, Optional, Tuple, Union
 
 import numpy as np
-import pygame
+
 from PIL import Image, ImageDraw, ImageFont
-from pygame.surface import Surface
+
+# pygame is an optional dependency
+try:
+    import pygame
+except ImportError:
+    pass
 
 from crafting.world.items import Item, Tool
 from crafting.world.recipes import Recipe
 from crafting.world.zones import Zone
 
 if TYPE_CHECKING:
+    from pygame.surface import Surface
+
     from crafting.world.world import World
 
 
@@ -153,11 +160,11 @@ def load_or_create_image(
 
 
 def scale(
-    image: Surface,
+    image: "Surface",
     canevas_shape: Tuple[int],
     size_ratio: float,
     relative_to: str = "width",
-) -> Surface:
+) -> "Surface":
     """Load and rescales an image using pygame.
 
     Load and rescales an image relatively to canevas_shape preserving aspect ratio.

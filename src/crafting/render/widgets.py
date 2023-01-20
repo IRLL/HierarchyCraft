@@ -7,8 +7,12 @@ import os
 from typing import TYPE_CHECKING, List, Tuple
 
 import numpy as np
-import pygame
-from pygame.font import Font
+
+try:
+    from pygame.image import load as load_pygame_image
+    from pygame.font import Font
+except ImportError:
+    pass
 
 from crafting.render.utils import load_or_create_image, pilImageToSurface, scale
 
@@ -59,7 +63,7 @@ class InventoryWidget(EnvWidget):
 
     def _load_background(self, window_shape) -> "Surface":
         background_path = os.path.join(self.world.resources_path, "inventory.png")
-        background_image = pygame.image.load(background_path)
+        background_image = load_pygame_image(background_path)
         return scale(background_image, window_shape, 0.65)
 
     def _load_image(self, item_id) -> "Surface":
