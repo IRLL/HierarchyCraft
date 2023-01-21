@@ -140,16 +140,17 @@ def _add_recipe_edges(graph: nx.DiGraph, recipe: "Recipe"):
     if recipe.outputs is not None:
         out_items_ids = [stack.item_id for stack in recipe.outputs]
 
-    in_props = (
-        list(recipe.needed_properties.keys())
-        if recipe.needed_properties is not None
-        else []
-    )
-    out_props = (
-        list(recipe.added_properties.keys())
-        if recipe.needed_properties is not None
-        else []
-    )
+    in_props = []
+    if recipe.needed_properties is not None:
+        in_props = list(recipe.needed_properties.keys())
+
+    out_props = []
+    if recipe.needed_properties is not None:
+        for prop, value in recipe.added_properties.items():
+            if prop in in_props and recipe.needed_properties[prop] == value:
+                continue
+            if value:
+                out_props.append(prop)
 
     for out_item in out_items_ids:
         _add_crafts(graph, in_items_ids + in_props, out_item)
@@ -244,7 +245,7 @@ def _add_already_present_properties(graph: nx.DiGraph, zone: "Zone"):
             present_property,
             type="present_zone_property",
             color=[0.7, 0.7, 0.7, 1],
-            index=-1,
+            index=0,
         )
 
 
