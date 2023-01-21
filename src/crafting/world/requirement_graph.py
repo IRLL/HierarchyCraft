@@ -79,7 +79,7 @@ def _add_zones_requirements_edges(world: "World", graph: nx.DiGraph):
     for zone in world.zones:
         _add_required_tool_for_zone(graph, zone)
         _add_required_property_for_zone(graph, zone)
-        _add_already_present_properties(graph, zone)
+        _add_already_present_properties(graph, zone, world.recipes)
 
 
 def _add_items_nodes(world: "World", graph: nx.DiGraph):
@@ -238,8 +238,18 @@ def _add_required_property_for_zone(graph: nx.DiGraph, zone: "Zone"):
         )
 
 
-def _add_already_present_properties(graph: nx.DiGraph, zone: "Zone"):
+def _add_already_present_properties(
+    graph: nx.DiGraph, zone: "Zone", recipes: List["Recipe"]
+):
     for present_property in zone.properties.keys():
+        # If a property is craftable, we skip this.
+        craft_outputs = []
+        for recipe in recipes:
+            craft_outputs += [
+                prop for prop, value in recipe.added_properties.items() if value
+            ]
+        if present_property in craft_outputs:
+            continue
         graph.add_edge(
             zone.name,
             present_property,
