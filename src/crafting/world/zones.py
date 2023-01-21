@@ -38,6 +38,7 @@ class Zone:
         items: List[Item],
         properties: Optional[Dict[str, bool]] = None,
         required_properties: Optional[Dict[str, bool]] = None,
+        required_tools: Optional[List[Tool]] = None,
     ):
         """Zones are to represent abstract places in the world.
 
@@ -49,13 +50,18 @@ class Zone:
             name: Zone name.
             items: List of all available items.
             properties: List of all properties names.
+            required_properties: Required properties in the previous zone.
+            required_tools: Required tool (any) to access the zone.
 
         """
         self.zone_id = zone_id
         self.name = name
         self.items = items
         self.properties = properties if properties is not None else {}
-        self.required_properties = required_properties
+        self.required_properties = (
+            required_properties if required_properties is not None else {}
+        )
+        self.required_tools = required_tools
 
     def can_search_for(self, item: Item, tool: Tool = None) -> bool:
         """Check if the item can be found using a tool
@@ -74,6 +80,20 @@ class Zone:
         no_tool_is_required = required_tools is None or None in required_tools
         tool_in_required = tool is not None and tool in required_tools
         return no_tool_is_required or tool_in_required
+
+    def can_access_with(self, tool: Optional[Tool] = None) -> bool:
+        """Check if the Zone can be accessed using a tool
+
+        Args:
+            tool: The tool to use to access the zone.
+
+        Returns:
+            True if the Zone can be accessed, False otherwise.
+
+        """
+        if self.required_tools is None:
+            return True
+        return tool in self.required_tools
 
     def search_for(self, item: Item, tool: Tool = None) -> List[ItemStack]:
         """Searches for the given item using a tool
@@ -111,12 +131,11 @@ class Zone:
         """
         if not isinstance(other_zone, Zone):
             return False
-        if self.required_properties is not None:
-            for required_prop, prop_value in self.required_properties.items():
-                if required_prop not in other_zone.properties:
-                    return False
-                if other_zone.properties[required_prop] != prop_value:
-                    return False
+        for required_prop, prop_value in self.required_properties.items():
+            if required_prop not in other_zone.properties:
+                return False
+            if other_zone.properties[required_prop] != prop_value:
+                return False
         return self.zone_id != other_zone.zone_id
 
     def __eq__(self, zone):

@@ -83,6 +83,11 @@ class TestZone:
         check.is_true(self.forest.can_be_reach_from(Zone(1, "otherzone", items=[])))
         check.is_false(self.forest.can_be_reach_from(self.forest))
 
+    def test_accessible_by_default(self):
+        """should be accessible using any Tool (even None)."""
+        check.is_true(self.forest.can_access_with(Tool(0, "random_tool")))
+        check.is_true(self.forest.can_access_with(None))
+
 
 def test_reach_with_required_property():
     """should be reachable by any other zone
@@ -95,3 +100,16 @@ def test_reach_with_required_property():
     check.is_false(goal_zone.can_be_reach_from(nokey_zone))
     check.is_false(goal_zone.can_be_reach_from(false_key_zone))
     check.is_true(goal_zone.can_be_reach_from(key_zone))
+
+
+def test_accessible_with_required_tool():
+    """should be accessible if and only if using any of the required Tool."""
+    rock = Tool(0, "rock")
+    key = Tool(1, "key")
+    master_key = Tool(2, "master_key")
+
+    zone = Zone(0, "nokey", items=[], required_tools=[key, master_key])
+    check.is_false(zone.can_access_with(None))
+    check.is_false(zone.can_access_with(rock))
+    check.is_true(zone.can_access_with(key))
+    check.is_true(zone.can_access_with(master_key))
