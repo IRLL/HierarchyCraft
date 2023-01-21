@@ -44,13 +44,14 @@ NETHER = Zone(
     5,
     "nether",
     items=[NETHERRACK, BLAZE_ROD],
+    properties={"open_nether_portal": True},
     required_properties={"open_nether_portal": True},
 )
 
 #: ENDER
-ENDER = Zone(
+END = Zone(
     6,
-    "ender",
+    "end",
     items=[ENDER_PEARL, ENDER_DRAGON_HEAD],
     required_properties={"open_ender_portal": True},
 )
@@ -62,7 +63,7 @@ MC_ZONES = [
     UNDERGROUND,
     BEDROCK,
     NETHER,
-    ENDER,
+    END,
 ]
 
 if __name__ == "__main__":
