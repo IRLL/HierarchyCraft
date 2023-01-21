@@ -65,16 +65,17 @@ def _add_requirements_nodes(world: "World", graph: nx.DiGraph):
             label=prop.capitalize(),
         )
 
-    # # Add zones nodes
-    # for zone in world.zones:
-    #     graph.add_node(
-    #         zone,
-    #         type="zone",
-    #         color="yellow",
-    #         zone_id=zone.zone_id,
-    #         image=np.array(load_or_create_image(world, zone)),
-    #         label=zone.name.capitalize(),
-    #     )
+    # Add zones nodes (if more than the start zone)
+    if len(world.zones) > 1:
+        for zone in world.zones:
+            graph.add_node(
+                zone,
+                type="zone",
+                color="yellow",
+                zone_id=zone.zone_id,
+                image=np.array(load_or_create_image(world, zone)),
+                label=zone.name.capitalize(),
+            )
 
 
 def _add_recipes_edges(world: "World", graph: nx.DiGraph):
@@ -132,6 +133,20 @@ def _add_findable_items_edges(world: "World", graph: nx.DiGraph):
                     foundable_item.item_id,
                     type="tool_requirement",
                     color=[0, 1, 1, 1],
+                    index=0,
+                )
+
+        zones_where_item_is = [
+            zone for zone in world.zones if foundable_item in zone.items
+        ]
+        in_every_zone = zones_where_item_is == world.zones
+        if not in_every_zone:
+            for zone in zones_where_item_is:
+                graph.add_edge(
+                    zone,
+                    foundable_item,
+                    type="findable_in_zone",
+                    color=[1, 1, 0, 1],
                     index=0,
                 )
 
