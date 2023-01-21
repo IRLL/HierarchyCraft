@@ -25,6 +25,7 @@ keywords = [
 [project.optional-dependencies]
 gym = ["gym >= 0.17.3"]
 gui = ["pygame >= 2.1.0", "pygame-menu >= 4.2.8"]
+all = ["gym >= 0.17.3", "pygame >= 2.1.0", "pygame-menu >= 4.2.8"]
 
 [project.urls]
 Source = "https://github.com/IRLL/Crafting"
