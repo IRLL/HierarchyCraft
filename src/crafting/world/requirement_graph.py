@@ -7,26 +7,12 @@ import matplotlib.patches as mpatches
 from matplotlib.legend_handler import HandlerPatch
 from matplotlib.axes import Axes
 
-# HEBG is an optional dependency
-try:
-    from hebg.graph import (
-        compute_edges_color,
-        compute_levels,
-        draw_networkx_nodes_images,
-    )
-    from hebg.layouts.metabased import leveled_layout_energy
-except ImportError:
-
-    def _should_install_hebg(*args, **kwargs):
-        raise ImportError(
-            "Missing dependency for graph visualizations: hebg."
-            "Install using 'pip install hebg'."
-        )
-
-    compute_edges_color = _should_install_hebg
-    compute_levels = _should_install_hebg
-    draw_networkx_nodes_images = _should_install_hebg
-    leveled_layout_energy = _should_install_hebg
+from hebg.graph import (
+    compute_edges_color,
+    compute_levels,
+    draw_networkx_nodes_images,
+)
+from hebg.layouts.metabased import leveled_layout_energy
 
 from crafting.world.items import Tool
 from crafting.render.utils import load_or_create_image
