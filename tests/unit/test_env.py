@@ -92,116 +92,48 @@ def test_env_obtain_stone(world, player):
     print(env.render())
     observation = env(env.action("get", WOOD.item_id))[0]  # (Success)
 
-    print(observation)
-    expected_obs = [0, 1, 0, 0, 0, 0, 0, 1, 0, 0]
-    if np.any(observation != expected_obs):
-        raise ValueError(
-            f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
-        )
-    print(env.render())
+    _check_expected_observation(env, observation, [0, 1, 0, 0, 0, 0, 0, 1, 0, 0])
 
     observation = env(env.action("get", DIRT.item_id))[0]  # (Fail)
 
-    print(observation)
-    expected_obs = [0, 1, 0, 0, 0, 0, 0, 1, 0, 0]
-    if np.any(observation != expected_obs):
-        raise ValueError(
-            f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
-        )
-    print(env.render())
+    _check_expected_observation(env, observation, [0, 1, 0, 0, 0, 0, 0, 1, 0, 0])
 
     observation = env(env.action("craft", WOOD_PLANK.item_id))[0]  # (Success)
 
-    print(observation)
-    expected_obs = [0, 0, 0, 4, 0, 0, 0, 1, 0, 0]
-    if np.any(observation != expected_obs):
-        raise ValueError(
-            f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
-        )
-    print(env.render())
+    _check_expected_observation(env, observation, [0, 0, 0, 4, 0, 0, 0, 1, 0, 0])
 
     observation = env(env.action("craft", WOOD_PLANK.item_id))[0]  # (Fail)
 
-    print(observation)
-    expected_obs = [0, 0, 0, 4, 0, 0, 0, 1, 0, 0]
-    if np.any(observation != expected_obs):
-        raise ValueError(
-            f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
-        )
-    print(env.render())
+    _check_expected_observation(env, observation, [0, 0, 0, 4, 0, 0, 0, 1, 0, 0])
 
     for _ in range(2):
         observation = env(env.action("get", WOOD.item_id))[0]
         observation = env(env.action("craft", WOOD_PLANK.item_id))[0]
 
-    print(observation)
-    expected_obs = [0, 0, 0, 12, 0, 0, 0, 1, 0, 0]
-    if np.any(observation != expected_obs):
-        raise ValueError(
-            f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
-        )
-    print(env.render())
+    _check_expected_observation(env, observation, [0, 0, 0, 12, 0, 0, 0, 1, 0, 0])
 
     observation = env(env.action("move", UNDERGROUND.zone_id))[0]
 
-    print(observation)
-    expected_obs = [0, 0, 0, 12, 0, 0, 0, 0, 1, 0]
-    if np.any(observation != expected_obs):
-        raise ValueError(
-            f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
-        )
-    print(env.render())
+    _check_expected_observation(env, observation, [0, 0, 0, 12, 0, 0, 0, 0, 1, 0])
 
     observation = env(env.action("craft", R_WOODEN_PICKAXE.recipe_id))[0]  # (Fail)
 
-    print(observation)
-    expected_obs = [0, 0, 0, 12, 0, 0, 0, 0, 1, 0]
-    if np.any(observation != expected_obs):
-        raise ValueError(
-            f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
-        )
-    print(env.render())
+    _check_expected_observation(env, observation, [0, 0, 0, 12, 0, 0, 0, 0, 1, 0])
 
     observation = env(env.action("craft", R_CRAFTING_TABLE.recipe_id))[0]  # (Success)
 
-    print(observation)
-    expected_obs = [0, 0, 0, 8, 0, 0, 0, 0, 1, 1]
-    if np.any(observation != expected_obs):
-        raise ValueError(
-            f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
-        )
-    print(env.render())
+    _check_expected_observation(env, observation, [0, 0, 0, 8, 0, 0, 0, 0, 1, 1])
 
     observation = env(env.action("get", STONE.item_id))[0]  # (Fail)
 
-    print(observation)
-    expected_obs = [0, 0, 0, 8, 0, 0, 0, 0, 1, 1]
-    if np.any(observation != expected_obs):
-        raise ValueError(
-            f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
-        )
-    print(env.render())
+    _check_expected_observation(env, observation, [0, 0, 0, 8, 0, 0, 0, 0, 1, 1])
 
     observation = env(env.action("craft", R_STICK.recipe_id))[0]  # (Success)
     observation = env(env.action("craft", R_WOODEN_PICKAXE.recipe_id))[0]  # (Success)
 
-    print(observation)
-    expected_obs = [0, 0, 0, 3, 2, 0, 1, 0, 1, 1]
-    if np.any(observation != expected_obs):
-        raise ValueError(
-            f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
-        )
-    print(env.render())
-
     observation = env(env.action("get", STONE.item_id))[0]  # (Success)
 
-    print(observation)
-    expected_obs = [0, 0, 1, 3, 2, 0, 1, 0, 1, 1]
-    if np.any(observation != expected_obs):
-        raise ValueError(
-            f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
-        )
-    print(env.render())
+    _check_expected_observation(env, observation, [0, 0, 1, 3, 2, 0, 1, 0, 1, 1])
 
 
 def test_env_zone_consistency(world, player):
@@ -221,3 +153,17 @@ def test_env_zone_consistency(world, player):
     env(env.action("move", FOREST.zone_id))
     if "has_crafting" not in env.player.zone.properties:
         raise ValueError("FOREST should still have the has_crafting property")
+
+
+def _check_expected_observation(
+    env: "CraftingEnv", observation, expected, verbose=True
+):
+    if verbose:
+        print(observation)
+    expected_obs = [0, 0, 0, 3, 2, 0, 1, 0, 1, 1]
+    if np.any(observation != expected):
+        raise ValueError(
+            f"Unexpected observation {observation}" f"\nInstead of {expected_obs}"
+        )
+    if verbose:
+        print(env.render())
