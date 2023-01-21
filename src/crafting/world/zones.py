@@ -8,7 +8,7 @@ The Zones have special properties for finding or crafting items.
 
 """
 
-from typing import List
+from typing import List, Dict, Optional
 
 from crafting.world.items import Item, ItemStack, Tool
 
@@ -32,7 +32,12 @@ class Zone:
     """
 
     def __init__(
-        self, zone_id: int, name: str, items: List[Item], properties: dict = None
+        self,
+        zone_id: int,
+        name: str,
+        items: List[Item],
+        properties: Optional[Dict[str, bool]] = None,
+        required_properties: Optional[Dict[str, bool]] = None,
     ):
         """Zones are to represent abstract places in the world.
 
@@ -50,6 +55,7 @@ class Zone:
         self.name = name
         self.items = items
         self.properties = properties if properties is not None else {}
+        self.required_properties = required_properties
 
     def can_search_for(self, item: Item, tool: Tool = None) -> bool:
         """Check if the item can be found using a tool
@@ -105,6 +111,12 @@ class Zone:
         """
         if not isinstance(other_zone, Zone):
             return False
+        if self.required_properties is not None:
+            for required_prop, prop_value in self.required_properties.items():
+                if required_prop not in other_zone.properties:
+                    return False
+                if other_zone.properties[required_prop] != prop_value:
+                    return False
         return self.zone_id != other_zone.zone_id
 
     def __eq__(self, zone):

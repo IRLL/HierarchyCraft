@@ -82,3 +82,16 @@ class TestZone:
         """should be reachable by any other zone by default (except itself)."""
         check.is_true(self.forest.can_be_reach_from(Zone(1, "otherzone", items=[])))
         check.is_false(self.forest.can_be_reach_from(self.forest))
+
+
+def test_reach_with_required_property():
+    """should be reachable by any other zone
+    if and only if the current zone has required properties."""
+    nokey_zone = Zone(0, "nokey", items=[])
+    false_key_zone = Zone(1, "false_key", items=[], properties={"key": False})
+    key_zone = Zone(2, "key", items=[], properties={"key": True})
+    goal_zone = Zone(3, "goal", items=[], required_properties={"key": True})
+
+    check.is_false(goal_zone.can_be_reach_from(nokey_zone))
+    check.is_false(goal_zone.can_be_reach_from(false_key_zone))
+    check.is_true(goal_zone.can_be_reach_from(key_zone))
