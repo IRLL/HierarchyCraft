@@ -18,6 +18,7 @@ from crafting.world.items import Tool, Item
 from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
+    from crafting.world.recipes import Recipe
     from crafting.world.zones import Zone
     from crafting.world.world import World
 
@@ -41,6 +42,43 @@ def _add_requirements_nodes(world: "World", graph: nx.DiGraph):
     _add_items_nodes(world, graph)
     _add_properties_nodes(world, graph)
     _add_zones_nodes(world, graph)
+
+
+def _add_recipes_edges(world: "World", graph: nx.DiGraph):
+    """Add recipes edges"""
+
+    for recipe in world.recipes:
+        _add_recipe_edges(graph, recipe)
+
+
+def _add_findable_items_edges(world: "World", graph: nx.DiGraph):
+    """Add required_tools and drops edges"""
+
+    for foundable_item in world.foundable_items:
+
+        need_tool = (
+            foundable_item.required_tools is not None
+            and None not in foundable_item.required_tools
+        )
+        if need_tool:
+            _add_needed_tools_edges(
+                graph, foundable_item, foundable_item.required_tools
+            )
+
+        zones_where_item_is = [
+            zone for zone in world.zones if foundable_item in zone.items
+        ]
+        _add_needed_zone_edges(graph, foundable_item, zones_where_item_is, world.zones)
+
+        if hasattr(foundable_item, "items_dropped"):
+            _add_drop_item_edges(graph, foundable_item, foundable_item.items_dropped)
+
+
+def _add_zones_requirements_edges(world: "World", graph: nx.DiGraph):
+    """Add required_tools and required_properties edges"""
+    for zone in world.zones:
+        _add_required_tool_for_zone(graph, zone)
+        _add_required_property_for_zone(graph, zone)
 
 
 def _add_items_nodes(world: "World", graph: nx.DiGraph):
@@ -91,68 +129,43 @@ def _add_zones_nodes(world: "World", graph: nx.DiGraph):
         )
 
 
-def _add_recipes_edges(world: "World", graph: nx.DiGraph):
-    """Add recipes edges"""
+def _add_recipe_edges(graph: nx.DiGraph, recipe: "Recipe"):
+    """Add edges induced by a Crafting recipe."""
+    in_items_ids = []
+    if recipe.inputs is not None:
+        in_items_ids = [stack.item_id for stack in recipe.inputs]
 
-    def _add_crafts(in_nodes, out_node):
-        for index, node in enumerate(in_nodes):
-            graph.add_edge(
-                node,
-                out_node,
-                type="craft",
-                color=[1, 0, 0, 1],
-                index=index + 1,
-            )
+    out_items_ids = []
+    if recipe.outputs is not None:
+        out_items_ids = [stack.item_id for stack in recipe.outputs]
 
-    for recipe in world.recipes:
+    in_props = (
+        list(recipe.needed_properties.keys())
+        if recipe.needed_properties is not None
+        else []
+    )
+    out_props = (
+        list(recipe.added_properties.keys())
+        if recipe.needed_properties is not None
+        else []
+    )
 
-        in_items_ids = []
-        if recipe.inputs is not None:
-            in_items_ids = [stack.item_id for stack in recipe.inputs]
+    for out_item in out_items_ids:
+        _add_crafts(graph, in_items_ids + in_props, out_item)
 
-        out_items_ids = []
-        if recipe.outputs is not None:
-            out_items_ids = [stack.item_id for stack in recipe.outputs]
+    for out_prop in out_props:
+        _add_crafts(graph, in_items_ids + in_props, out_prop)
 
-        in_props = (
-            list(recipe.needed_properties.keys())
-            if recipe.needed_properties is not None
-            else []
+
+def _add_crafts(graph: nx.DiGraph, in_nodes, out_node):
+    for index, node in enumerate(in_nodes):
+        graph.add_edge(
+            node,
+            out_node,
+            type="craft",
+            color=[1, 0, 0, 1],
+            index=index + 1,
         )
-        out_props = (
-            list(recipe.added_properties.keys())
-            if recipe.needed_properties is not None
-            else []
-        )
-
-        for out_item in out_items_ids:
-            _add_crafts(in_items_ids + in_props, out_item)
-
-        for out_prop in out_props:
-            _add_crafts(in_items_ids + in_props, out_prop)
-
-
-def _add_findable_items_edges(world: "World", graph: nx.DiGraph):
-    """Add required_tools and drops edges"""
-
-    for foundable_item in world.foundable_items:
-
-        need_tool = (
-            foundable_item.required_tools is not None
-            and None not in foundable_item.required_tools
-        )
-        if need_tool:
-            _add_needed_tools_edges(
-                graph, foundable_item, foundable_item.required_tools
-            )
-
-        zones_where_item_is = [
-            zone for zone in world.zones if foundable_item in zone.items
-        ]
-        _add_needed_zone_edges(graph, foundable_item, zones_where_item_is, world.zones)
-
-        if hasattr(foundable_item, "items_dropped"):
-            _add_drop_item_edges(graph, foundable_item, foundable_item.items_dropped)
 
 
 def _add_needed_tools_edges(
@@ -199,13 +212,6 @@ def _add_drop_item_edges(
             color=[0, 1, 0, 1],
             index=0,
         )
-
-
-def _add_zones_requirements_edges(world: "World", graph: nx.DiGraph):
-    """Add required_tools and required_properties edges"""
-    for zone in world.zones:
-        _add_required_tool_for_zone(graph, zone)
-        _add_required_property_for_zone(graph, zone)
 
 
 def _add_required_tool_for_zone(graph: nx.DiGraph, zone: "Zone"):
