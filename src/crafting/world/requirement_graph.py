@@ -146,7 +146,7 @@ def _add_findable_items_edges(world: "World", graph: nx.DiGraph):
                     zone.name,
                     foundable_item.item_id,
                     type="findable_in_zone",
-                    color=[0.3, 0.3, 0.3, 1],
+                    color=[0.7, 0.7, 0.7, 1],
                     index=1,
                 )
 
