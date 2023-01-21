@@ -39,7 +39,6 @@ class TestRandomCrafting:
 
         for rd_env in (env, env2):
             edges = list(rd_env.world.requirements_graph.edges())
-            edges.sort()
             print(rd_env.rng_seeds, rd_env.np_random)
             print(edges)
             print()
