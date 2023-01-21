@@ -43,9 +43,15 @@ def build_requirements_graph(world: "World") -> nx.DiGraph:
 
     """
     graph = nx.DiGraph()
+    _add_requirements_nodes(world, graph)
+    _add_recipes_edges(world, graph)
+    _add_findable_items_edges(world, graph)
+    return graph
 
+
+def _add_requirements_nodes(world: "World", graph: nx.DiGraph):
     # Add items nodes
-    for i, item in enumerate(world.items):
+    for item in world.items:
 
         color = "blue"
         if item in world.foundable_items:
@@ -73,6 +79,19 @@ def build_requirements_graph(world: "World") -> nx.DiGraph:
             label=prop.capitalize(),
         )
 
+    # # Add zones nodes
+    # for zone in world.zones:
+    #     graph.add_node(
+    #         zone,
+    #         type="zone",
+    #         color="yellow",
+    #         zone_id=zone.zone_id,
+    #         image=np.array(load_or_create_image(world, zone)),
+    #         label=zone.name.capitalize(),
+    #     )
+
+
+def _add_recipes_edges(world: "World", graph: nx.DiGraph):
     # Add recipes edges
     def _add_crafts(in_nodes, out_node):
         for index, node in enumerate(in_nodes):
@@ -111,7 +130,9 @@ def build_requirements_graph(world: "World") -> nx.DiGraph:
         for out_prop in out_props:
             _add_crafts(in_items_ids + in_props, out_prop)
 
-    # Add required_tools and drops edges
+
+def _add_findable_items_edges(world: "World", graph: nx.DiGraph):
+    """Add required_tools and drops edges"""
     for foundable_item in world.foundable_items:
 
         need_tool = (
@@ -138,7 +159,6 @@ def build_requirements_graph(world: "World") -> nx.DiGraph:
                         color=[0, 1, 0, 1],
                         index=0,
                     )
-    return graph
 
 
 def draw_requirements_graph(ax: Axes, graph: nx.DiGraph):
