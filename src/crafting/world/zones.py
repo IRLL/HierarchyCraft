@@ -94,6 +94,16 @@ class Zone:
                 return [ItemStack(item)]
         return []
 
+    def __eq__(self, zone):
+        if isinstance(zone, Zone):
+            return self.zone_id == zone.zone_id
+        if isinstance(zone, str):
+            return self.name == zone
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        return hash(self.name)
+
     def __str__(self):
         return f"{self.name.capitalize()}({self.zone_id})"
 
