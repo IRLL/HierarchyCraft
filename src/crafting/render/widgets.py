@@ -152,14 +152,15 @@ class ZoneWidget(EnvWidget):
         font_shift = np.array([int(0.05 * self.shape[0]), 0])
         surface.blit(zone_name_img, self.position + font_shift)
 
-        prop_shift = np.array([int(0.02 * self.shape[0]), int(0.55 * self.shape[1])])
+        prop_shift = np.array([int(0.02 * self.shape[0]), int(0.90 * self.shape[1])])
         x_step = int(0.22 * self.shape[0])
 
         n_active_props = 0
         for prop, prop_is_true in self.zone.properties.items():
             if prop_is_true:
                 prop_image = self.properties_images[prop]
-                shift = np.array([n_active_props * x_step, 0])
+                _, prop_img_height = prop_image.get_size()
+                shift = np.array([n_active_props * x_step, -prop_img_height])
                 prop_position = self.position + prop_shift + shift
                 surface.blit(prop_image, prop_position)
                 n_active_props += 1
