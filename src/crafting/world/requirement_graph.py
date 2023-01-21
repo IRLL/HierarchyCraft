@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 import numpy as np
 import networkx as nx
@@ -14,10 +14,11 @@ from hebg.graph import (
 )
 from hebg.layouts.metabased import leveled_layout_energy
 
-from crafting.world.items import Tool
+from crafting.world.items import Tool, Item
 from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
+    from crafting.world.zones import Zone
     from crafting.world.world import World
 
 
@@ -37,7 +38,13 @@ def build_requirements_graph(world: "World") -> nx.DiGraph:
 
 
 def _add_requirements_nodes(world: "World", graph: nx.DiGraph):
-    # Add items nodes
+    _add_items_nodes(world, graph)
+    _add_properties_nodes(world, graph)
+    _add_zones_nodes(world, graph)
+
+
+def _add_items_nodes(world: "World", graph: nx.DiGraph):
+    """Add items nodes"""
     for item in world.items:
 
         color = "blue"
@@ -55,7 +62,9 @@ def _add_requirements_nodes(world: "World", graph: nx.DiGraph):
             label=item.name.capitalize(),
         )
 
-    # Add properties nodes
+
+def _add_properties_nodes(world: "World", graph: nx.DiGraph):
+    """Add zones properties nodes"""
     for i, prop in enumerate(world.zone_properties):
         graph.add_node(
             prop,
@@ -66,21 +75,25 @@ def _add_requirements_nodes(world: "World", graph: nx.DiGraph):
             label=prop.capitalize(),
         )
 
-    # Add zones nodes (if more than the start zone)
-    if len(world.zones) > 1:
-        for zone in world.zones:
-            graph.add_node(
-                zone.name,
-                type="zone",
-                color="gray",
-                zone_id=zone.zone_id,
-                image=np.array(load_or_create_image(world, zone)),
-                label=zone.name.capitalize(),
-            )
+
+def _add_zones_nodes(world: "World", graph: nx.DiGraph):
+    """Add zones nodes (if more than the start zone)"""
+    if len(world.zones) <= 1:
+        return
+    for zone in world.zones:
+        graph.add_node(
+            zone.name,
+            type="zone",
+            color="gray",
+            zone_id=zone.zone_id,
+            image=np.array(load_or_create_image(world, zone)),
+            label=zone.name.capitalize(),
+        )
 
 
 def _add_recipes_edges(world: "World", graph: nx.DiGraph):
-    # Add recipes edges
+    """Add recipes edges"""
+
     def _add_crafts(in_nodes, out_node):
         for index, node in enumerate(in_nodes):
             graph.add_edge(
@@ -121,6 +134,7 @@ def _add_recipes_edges(world: "World", graph: nx.DiGraph):
 
 def _add_findable_items_edges(world: "World", graph: nx.DiGraph):
     """Add required_tools and drops edges"""
+
     for foundable_item in world.foundable_items:
 
         need_tool = (
@@ -128,39 +142,61 @@ def _add_findable_items_edges(world: "World", graph: nx.DiGraph):
             and None not in foundable_item.required_tools
         )
         if need_tool:
-            for tool in foundable_item.required_tools:
-                graph.add_edge(
-                    tool.item_id,
-                    foundable_item.item_id,
-                    type="tool_requirement",
-                    color=[0, 1, 1, 1],
-                    index=0,
-                )
+            _add_needed_tools_edges(graph, foundable_item, foundable_item.required_tools)
 
         zones_where_item_is = [
             zone for zone in world.zones if foundable_item in zone.items
         ]
-        in_every_zone = zones_where_item_is == world.zones
-        if not in_every_zone:
-            for zone in zones_where_item_is:
-                graph.add_edge(
-                    zone.name,
-                    foundable_item.item_id,
-                    type="findable_in_zone",
-                    color=[0.7, 0.7, 0.7, 1],
-                    index=1,
-                )
+        _add_needed_zone_edges(graph, foundable_item, zones_where_item_is, world.zones)
 
         if hasattr(foundable_item, "items_dropped"):
-            for dropped_item in foundable_item.items_dropped:
-                if dropped_item != foundable_item:
-                    graph.add_edge(
-                        foundable_item.item_id,
-                        dropped_item.item_id,
-                        type="drop",
-                        color=[0, 1, 0, 1],
-                        index=0,
-                    )
+            _add_drop_item_edges(graph, foundable_item, foundable_item.items_dropped)
+
+
+def _add_needed_tools_edges(
+    graph: nx.DiGraph, item: "Item", required_tools: List["Tool"]
+):
+    for tool in required_tools:
+        graph.add_edge(
+            tool.item_id,
+            item.item_id,
+            type="tool_requirement",
+            color=[0, 1, 1, 1],
+            index=0,
+        )
+
+
+def _add_needed_zone_edges(
+    graph: nx.DiGraph,
+    item: "Item",
+    zones_where_item_is: List["Zone"],
+    world_zones: List["Zone"],
+):
+    in_every_zone = zones_where_item_is == world_zones
+    if not in_every_zone:
+        for zone in zones_where_item_is:
+            graph.add_edge(
+                zone.name,
+                item.item_id,
+                type="findable_in_zone",
+                color=[0.7, 0.7, 0.7, 1],
+                index=1,
+            )
+
+
+def _add_drop_item_edges(
+    graph: nx.DiGraph, item_searched: "Item", items_dropped: List["Item"]
+):
+    for dropped_item in items_dropped:
+        if dropped_item == item_searched:
+            continue
+        graph.add_edge(
+            item_searched.item_id,
+            dropped_item.item_id,
+            type="drop",
+            color=[0, 1, 0, 1],
+            index=0,
+        )
 
 
 def _add_zones_requirements_edges(world: "World", graph: nx.DiGraph):
