@@ -79,6 +79,7 @@ def _add_zones_requirements_edges(world: "World", graph: nx.DiGraph):
     for zone in world.zones:
         _add_required_tool_for_zone(graph, zone)
         _add_required_property_for_zone(graph, zone)
+        _add_already_present_properties(graph, zone)
 
 
 def _add_items_nodes(world: "World", graph: nx.DiGraph):
@@ -233,6 +234,17 @@ def _add_required_property_for_zone(graph: nx.DiGraph, zone: "Zone"):
             type="property_requirement",
             color=[0.7, 0.7, 0.7, 1],
             index=i + 1,
+        )
+
+
+def _add_already_present_properties(graph: nx.DiGraph, zone: "Zone"):
+    for present_property in zone.properties.keys():
+        graph.add_edge(
+            zone.name,
+            present_property,
+            type="present_zone_property",
+            color=[0.7, 0.7, 0.7, 1],
+            index=-1,
         )
 
 
