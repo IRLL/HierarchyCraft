@@ -69,9 +69,9 @@ def _add_requirements_nodes(world: "World", graph: nx.DiGraph):
     if len(world.zones) > 1:
         for zone in world.zones:
             graph.add_node(
-                zone,
+                zone.name,
                 type="zone",
-                color="yellow",
+                color="gray",
                 zone_id=zone.zone_id,
                 image=np.array(load_or_create_image(world, zone)),
                 label=zone.name.capitalize(),
@@ -143,11 +143,11 @@ def _add_findable_items_edges(world: "World", graph: nx.DiGraph):
         if not in_every_zone:
             for zone in zones_where_item_is:
                 graph.add_edge(
-                    zone,
-                    foundable_item,
+                    zone.name,
+                    foundable_item.item_id,
                     type="findable_in_zone",
-                    color=[1, 1, 0, 1],
-                    index=0,
+                    color=[0.3, 0.3, 0.3, 1],
+                    index=1,
                 )
 
         if hasattr(foundable_item, "items_dropped"):
@@ -230,10 +230,16 @@ def draw_requirements_graph(ax: Axes, graph: nx.DiGraph):
     ]
     legend_arrows = [
         mpatches.FancyArrow(
-            0, 0, 1, 0, facecolor="cyan", edgecolor="none", label="Tool requirement"
+            *(0, 0, 1, 0),
+            facecolor="cyan",
+            edgecolor="none",
+            label="Tool requirement",
         ),
         mpatches.FancyArrow(
-            0, 0, 1, 0, facecolor="red", edgecolor="none", label="Craft"
+            *(0, 0, 1, 0),
+            facecolor="red",
+            edgecolor="none",
+            label="Craft",
         ),
     ]
 
@@ -247,6 +253,11 @@ def draw_requirements_graph(ax: Axes, graph: nx.DiGraph):
         )
         legend_patches.append(prop_legend)
 
+    has_zone = [node_type == "zone" for _, node_type in graph.nodes(data="type")]
+    if any(has_zone):
+        zone_legend = mpatches.Patch(facecolor="none", edgecolor="gray", label="Zone")
+        legend_patches.append(zone_legend)
+
     # Add drop legend only if any edge is a drop
     is_drop = [edge_type == "drop" for _, _, edge_type in graph.edges(data="type")]
     if any(is_drop):
@@ -254,6 +265,18 @@ def draw_requirements_graph(ax: Axes, graph: nx.DiGraph):
             0, 0, 1, 0, facecolor="green", edgecolor="none", label="Drop"
         )
         legend_arrows.append(drop_legend)
+
+    has_findable_in_zone = [
+        edge_type == "findable_in_zone" for _, _, edge_type in graph.edges(data="type")
+    ]
+    if any(has_findable_in_zone):
+        findable_in_zone_legend = mpatches.FancyArrow(
+            *(0, 0, 1, 0),
+            facecolor="gray",
+            edgecolor="none",
+            label="Item findable in zone",
+        )
+        legend_arrows.append(findable_in_zone_legend)
 
     # Draw the legend
     ax.legend(
