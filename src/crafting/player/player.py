@@ -136,7 +136,7 @@ class Player:
             True if the zone can be accessed, False otherwise.
 
         """
-        return zone.zone_id != self.zone.zone_id
+        return zone.can_be_reach_from(self.zone)
 
     def __repr__(self):
         name = self.name.capitalize() + ":"

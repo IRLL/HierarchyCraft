@@ -77,3 +77,8 @@ class TestZone:
             self.wood.item_id,
             msg=f"Unexpected findings with None {findings_with_pick}",
         )
+
+    def test_reach_by_default(self):
+        """should be reachable by any other zone by default (except itself)."""
+        check.is_true(self.forest.can_be_reach_from(Zone(1, "otherzone", items=[])))
+        check.is_false(self.forest.can_be_reach_from(self.forest))

@@ -94,6 +94,19 @@ class Zone:
                 return [ItemStack(item)]
         return []
 
+    def can_be_reach_from(self, other_zone: "Zone") -> bool:
+        """Check if the zone can be reach from another given zone.
+
+        Args:
+            other_zone (Zone): Other zone to check if reachable from.
+
+        Returns:
+            bool: True if the zone is reachable from other_zone.
+        """
+        if not isinstance(other_zone, Zone):
+            return False
+        return self.zone_id != other_zone.zone_id
+
     def __eq__(self, zone):
         if isinstance(zone, Zone):
             return self.zone_id == zone.zone_id
