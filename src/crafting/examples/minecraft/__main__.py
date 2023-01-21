@@ -9,5 +9,5 @@ from crafting.examples.minecraft.env import MineCraftingEnv
 from crafting.render.render import render_env_with_human
 
 if __name__ == "__main__":
-    env: MineCraftingEnv = gym.make("MineCrafting-EnchantingTable-v1", verbose=1)
+    env: MineCraftingEnv = gym.make("MineCrafting-EnderDragon-v1", verbose=1)
     render_env_with_human(env)
