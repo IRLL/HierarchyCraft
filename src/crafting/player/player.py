@@ -3,6 +3,8 @@
 
 """ Player """
 
+from typing import Optional
+
 from crafting.player.inventory import Inventory
 from crafting.world.items import Item, Tool
 from crafting.world.recipes import Recipe
@@ -60,11 +62,11 @@ class Player:
         """
         return recipe.can_craft(self.inventory, self.zone)
 
-    def choose_tool(self, item: Item) -> Tool:
+    def choose_search_tool(self, item: Item) -> Optional[Tool]:
         """Choose a tool to search for an item.
 
         Args:
-            item: The item to search for.
+            item (Item): The item to search for.
 
         Returns:
             The chosen tool.
@@ -79,7 +81,23 @@ class Player:
             if len(usable_tools) > 0:
                 return usable_tools[0]
         return None
-        # raise NotImplementedError("You must choose how your player choses a tool")
+
+    def choose_access_tool(self, zone: Zone) -> Optional[Tool]:
+        """Choose a tool to search for access a zone.
+
+        Args:
+            zone (Zone): The Zone to access.
+
+        Returns:
+            The chosen tool.
+
+        """
+        if zone.required_tools is None:
+            return None
+        usable_tools = [tool for tool in zone.required_tools if tool in self.inventory]
+        if len(usable_tools) > 0:
+            return usable_tools[0]
+        return None
 
     def search_for(self, item: Item, tool: Tool) -> int:
         """Search for an item using a tool and add them to inventory.
@@ -136,7 +154,8 @@ class Player:
             True if the zone can be accessed, False otherwise.
 
         """
-        return zone.can_be_reach_from(self.zone)
+        tool_choosen = self.choose_access_tool(zone)
+        return zone.can_access_with(tool_choosen) and zone.can_be_reach_from(self.zone)
 
     def __repr__(self):
         name = self.name.capitalize() + ":"

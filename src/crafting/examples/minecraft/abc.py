@@ -132,7 +132,7 @@ class McPlayer(Player):
             inventory=inventory, zone=world.zones[forest_slot], name="Steve"
         )
 
-    def choose_tool(self, item: Item) -> Tool:
+    def choose_search_tool(self, item: Item) -> Tool:
         if item in self.zone.items and item.required_tools is not None:
             usable_tools = np.array(
                 [tool for tool in item.required_tools if tool is not None]

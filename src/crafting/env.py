@@ -167,7 +167,7 @@ class CraftingEnv(Env):
         if action < self.world.n_foundable_items:
             item_slot = action
             item = self.world.foundable_items[item_slot]
-            tool = self.player.choose_tool(item)
+            tool = self.player.choose_search_tool(item)
             n_found = self.player.search_for(item, tool)
             success = n_found > 0
             if self.verbose > 0:
@@ -249,7 +249,7 @@ class CraftingEnv(Env):
         """Return the legal actions"""
         can_get = np.array(
             [
-                self.player.can_get(item, self.player.choose_tool(item))
+                self.player.can_get(item, self.player.choose_search_tool(item))
                 for item in self.world.foundable_items
             ]
         )

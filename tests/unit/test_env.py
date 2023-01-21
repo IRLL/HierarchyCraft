@@ -70,7 +70,7 @@ def inv():
 
 
 class DummyPlayer(Player):
-    def choose_tool(self, item):
+    def choose_search_tool(self, item):
         if WOODEN_PICKAXE in self.inventory:
             return WOODEN_PICKAXE
         return AIR
