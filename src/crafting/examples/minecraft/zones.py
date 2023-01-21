@@ -16,9 +16,17 @@ from crafting.world.zones import Zone
 FOREST = Zone(0, "forest", [WOOD, DIRT, STONE])  #: FOREST
 SWAMP = Zone(1, "swamp", [DIRT, REEDS])  #: SWAMP
 MEADOW = Zone(2, "meadow", [DIRT, STONE, LEATHER, EGG])  #: MEADOW
-UNDERGROUND = Zone(3, "underground", [DIRT, STONE, IRON_ORE, GOLD_ORE])  #: UNDERGROUND
+UNDERGROUND = Zone(
+    3,
+    "underground",
+    [DIRT, STONE, IRON_ORE, GOLD_ORE],
+    required_tools=PICKAXES,
+)  #: UNDERGROUND
 BEDROCK = Zone(
-    4, "bedrock", [DIRT, STONE, IRON_ORE, GOLD_ORE, DIAMOND_ORE, REDSTONE_ORE, OBSIDIAN]
+    4,
+    "bedrock",
+    [DIRT, STONE, IRON_ORE, GOLD_ORE, DIAMOND_ORE, REDSTONE_ORE, OBSIDIAN],
+    required_tools=[STONE_PICKAXE, IRON_PICKAXE, DIAMOND_PICKAXE],
 )  #: BEDROCK
 
 MC_ZONES = [

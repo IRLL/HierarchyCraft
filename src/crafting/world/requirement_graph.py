@@ -32,6 +32,7 @@ def build_requirements_graph(world: "World") -> nx.DiGraph:
     _add_requirements_nodes(world, graph)
     _add_recipes_edges(world, graph)
     _add_findable_items_edges(world, graph)
+    _add_zones_requirements_edges(world, graph)
     return graph
 
 
@@ -160,6 +161,27 @@ def _add_findable_items_edges(world: "World", graph: nx.DiGraph):
                         color=[0, 1, 0, 1],
                         index=0,
                     )
+
+
+def _add_zones_requirements_edges(world: "World", graph: nx.DiGraph):
+    """Add required_tools and required_properties edges"""
+    for zone in world.zones:
+        for required_tool in zone.required_tools:
+            graph.add_edge(
+                required_tool.item_id,
+                zone.name,
+                type="move",
+                color=[0.7, 0.7, 0.7, 1],
+                index=0,
+            )
+        for i, required_property in enumerate(zone.required_properties.keys()):
+            graph.add_edge(
+                required_property,
+                zone.name,
+                type="move",
+                color=[0.7, 0.7, 0.7, 1],
+                index=i + 1,
+            )
 
 
 def draw_requirements_graph(ax: Axes, graph: nx.DiGraph):

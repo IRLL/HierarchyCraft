@@ -61,7 +61,7 @@ class Zone:
         self.required_properties = (
             required_properties if required_properties is not None else {}
         )
-        self.required_tools = required_tools
+        self.required_tools = required_tools if required_tools is not None else []
 
     def can_search_for(self, item: Item, tool: Tool = None) -> bool:
         """Check if the item can be found using a tool
@@ -91,7 +91,7 @@ class Zone:
             True if the Zone can be accessed, False otherwise.
 
         """
-        if self.required_tools is None:
+        if not self.required_tools:
             return True
         return tool in self.required_tools
 
