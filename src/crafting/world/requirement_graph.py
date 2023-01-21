@@ -142,7 +142,9 @@ def _add_findable_items_edges(world: "World", graph: nx.DiGraph):
             and None not in foundable_item.required_tools
         )
         if need_tool:
-            _add_needed_tools_edges(graph, foundable_item, foundable_item.required_tools)
+            _add_needed_tools_edges(
+                graph, foundable_item, foundable_item.required_tools
+            )
 
         zones_where_item_is = [
             zone for zone in world.zones if foundable_item in zone.items
@@ -202,22 +204,30 @@ def _add_drop_item_edges(
 def _add_zones_requirements_edges(world: "World", graph: nx.DiGraph):
     """Add required_tools and required_properties edges"""
     for zone in world.zones:
-        for required_tool in zone.required_tools:
-            graph.add_edge(
-                required_tool.item_id,
-                zone.name,
-                type="move",
-                color=[0.7, 0.7, 0.7, 1],
-                index=0,
-            )
-        for i, required_property in enumerate(zone.required_properties.keys()):
-            graph.add_edge(
-                required_property,
-                zone.name,
-                type="move",
-                color=[0.7, 0.7, 0.7, 1],
-                index=i + 1,
-            )
+        _add_required_tool_for_zone(graph, zone)
+        _add_required_property_for_zone(graph, zone)
+
+
+def _add_required_tool_for_zone(graph: nx.DiGraph, zone: "Zone"):
+    for required_tool in zone.required_tools:
+        graph.add_edge(
+            required_tool.item_id,
+            zone.name,
+            type="tool_requirement",
+            color=[0, 1, 1, 1],
+            index=0,
+        )
+
+
+def _add_required_property_for_zone(graph: nx.DiGraph, zone: "Zone"):
+    for i, required_property in enumerate(zone.required_properties.keys()):
+        graph.add_edge(
+            required_property,
+            zone.name,
+            type="property_requirement",
+            color=[0.7, 0.7, 0.7, 1],
+            index=i + 1,
+        )
 
 
 def draw_requirements_graph(ax: Axes, graph: nx.DiGraph):
