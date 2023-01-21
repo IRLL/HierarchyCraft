@@ -35,7 +35,22 @@ R_FURNACE = Recipe(
     added_properties={"has_furnace": True},
     needed_properties={"has_crafting": True},
 )
-R_ZONE = [R_CRAFTING_TABLE, R_FURNACE]
+#: Recipe of NETHER_PORTAL (enable 'open_nether_portal' zone property)
+R_NETHER_PORTAL = Recipe(
+    90,
+    inputs=[ItemStack(OBSIDIAN, 10), ItemStack(FLINT_AND_STEEL, 1)],
+    added_properties={"open_nether_portal": True},
+)
+
+#: Recipe of ENDER_PORTAL (enable 'open_ender_portal' zone property)
+R_ENDER_PORTAL = Recipe(
+    119,
+    inputs=[ItemStack(ENDER_EYE, 9)],
+    needed_properties={"close_ender_portal": True},
+    added_properties={"open_ender_portal": True, "close_ender_portal": False},
+)
+
+R_ZONE = [R_CRAFTING_TABLE, R_FURNACE, R_NETHER_PORTAL, R_ENDER_PORTAL]
 
 # Smelting
 #: Recipe of IRON_INGOT using PLANK
@@ -69,6 +84,13 @@ R_WOODEN_AXE = Recipe(
     outputs=[ItemStack(WOODEN_AXE)],
     needed_properties={"has_crafting": True},
 )
+#: Recipe of WOODEN_SHOVEL
+R_WOODEN_SHOVEL = Recipe(
+    309,
+    inputs=[ItemStack(WOOD_PLANK, 1), ItemStack(STICK, 2)],
+    outputs=[ItemStack(WOODEN_SHOVEL)],
+    needed_properties={"has_crafting": True},
+)
 #: Recipe of WOODEN_SWORD
 R_WOODEN_SWORD = Recipe(
     268,
@@ -76,7 +98,7 @@ R_WOODEN_SWORD = Recipe(
     outputs=[ItemStack(WOODEN_SWORD)],
     needed_properties={"has_crafting": True},
 )
-R_WOODEN_TOOLS = [R_WOODEN_PICKAXE, R_WOODEN_AXE, R_WOODEN_SWORD]
+R_WOODEN_TOOLS = [R_WOODEN_PICKAXE, R_WOODEN_AXE, R_WOODEN_SHOVEL, R_WOODEN_SWORD]
 
 # Stone Tools
 #: Recipe of STONE_PICKAXE
@@ -93,6 +115,13 @@ R_STONE_AXE = Recipe(
     outputs=[ItemStack(STONE_AXE)],
     needed_properties={"has_crafting": True},
 )
+#: Recipe of STONE_SHOVEL
+R_STONE_SHOVEL = Recipe(
+    313,
+    inputs=[ItemStack(COBBLESTONE, 1), ItemStack(STICK, 2)],
+    outputs=[ItemStack(STONE_SHOVEL)],
+    needed_properties={"has_crafting": True},
+)
 #: Recipe of STONE_SWORD
 R_STONE_SWORD = Recipe(
     272,
@@ -100,7 +129,7 @@ R_STONE_SWORD = Recipe(
     outputs=[ItemStack(STONE_SWORD)],
     needed_properties={"has_crafting": True},
 )
-R_STONE_TOOLS = [R_STONE_PICKAXE, R_STONE_AXE, R_STONE_SWORD]
+R_STONE_TOOLS = [R_STONE_PICKAXE, R_STONE_AXE, R_STONE_SHOVEL, R_STONE_SWORD]
 
 # Iron Tools
 #: Recipe of IRON_PICKAXE
@@ -117,6 +146,13 @@ R_IRON_AXE = Recipe(
     outputs=[ItemStack(IRON_AXE)],
     needed_properties={"has_crafting": True},
 )
+#: Recipe of IRON_SHOVEL
+R_IRON_SHOVEL = Recipe(
+    296,
+    inputs=[ItemStack(IRON_INGOT, 1), ItemStack(STICK, 2)],
+    outputs=[ItemStack(IRON_SHOVEL)],
+    needed_properties={"has_crafting": True},
+)
 #: Recipe of IRON_SWORD
 R_IRON_SWORD = Recipe(
     267,
@@ -124,7 +160,7 @@ R_IRON_SWORD = Recipe(
     outputs=[ItemStack(IRON_SWORD)],
     needed_properties={"has_crafting": True},
 )
-R_IRON_TOOLS = [R_IRON_PICKAXE, R_IRON_AXE, R_IRON_SWORD]
+R_IRON_TOOLS = [R_IRON_PICKAXE, R_IRON_AXE, R_IRON_SHOVEL, R_IRON_SWORD]
 
 # Gold Tools
 #: Recipe of GOLD_PICKAXE
@@ -141,6 +177,13 @@ R_GOLD_AXE = Recipe(
     outputs=[ItemStack(GOLD_AXE)],
     needed_properties={"has_crafting": True},
 )
+#: Recipe of GOLD_SHOVEL
+R_GOLD_SHOVEL = Recipe(
+    323,
+    inputs=[ItemStack(GOLD_INGOT, 1), ItemStack(STICK, 2)],
+    outputs=[ItemStack(GOLD_SHOVEL)],
+    needed_properties={"has_crafting": True},
+)
 #: Recipe of GOLD_SWORD
 R_GOLD_SWORD = Recipe(
     283,
@@ -148,7 +191,7 @@ R_GOLD_SWORD = Recipe(
     outputs=[ItemStack(GOLD_SWORD)],
     needed_properties={"has_crafting": True},
 )
-R_GOLD_TOOLS = [R_GOLD_PICKAXE, R_GOLD_AXE, R_GOLD_SWORD]
+R_GOLD_TOOLS = [R_GOLD_PICKAXE, R_GOLD_AXE, R_GOLD_SHOVEL, R_GOLD_SWORD]
 
 # Diamond Tools
 #: Recipe of DIAMOND_PICKAXE
@@ -165,6 +208,13 @@ R_DIAMOND_AXE = Recipe(
     outputs=[ItemStack(DIAMOND_AXE)],
     needed_properties={"has_crafting": True},
 )
+#: Recipe of DIAMOND_SHOVEL
+R_DIAMOND_SHOVEL = Recipe(
+    317,
+    inputs=[ItemStack(DIAMOND, 1), ItemStack(STICK, 2)],
+    outputs=[ItemStack(DIAMOND_SHOVEL)],
+    needed_properties={"has_crafting": True},
+)
 #: Recipe of DIAMOND_SWORD
 R_DIAMOND_SWORD = Recipe(
     276,
@@ -172,7 +222,7 @@ R_DIAMOND_SWORD = Recipe(
     outputs=[ItemStack(DIAMOND_SWORD)],
     needed_properties={"has_crafting": True},
 )
-R_DIAMOND_TOOLS = [R_DIAMOND_PICKAXE, R_DIAMOND_AXE, R_DIAMOND_SWORD]
+R_DIAMOND_TOOLS = [R_DIAMOND_PICKAXE, R_DIAMOND_AXE, R_DIAMOND_SHOVEL, R_DIAMOND_SWORD]
 
 R_TOOLS = R_WOODEN_TOOLS + R_STONE_TOOLS + R_IRON_TOOLS + R_GOLD_TOOLS + R_DIAMOND_TOOLS
 
@@ -208,7 +258,27 @@ R_CLOCK = Recipe(
     outputs=[ItemStack(CLOCK, 1)],
     needed_properties={"has_crafting": True},
 )
-R_OTHERS = [R_CLOCK]
+
+R_FLINT_AND_STEEL = Recipe(
+    299,
+    inputs=[ItemStack(IRON_INGOT, 1), ItemStack(FLINT, 1)],
+    outputs=[ItemStack(FLINT_AND_STEEL, 1)],
+)
+
+#: Recipe of BLAZE_POWDER
+R_BLAZE_POWDER = Recipe(
+    429,
+    inputs=[ItemStack(BLAZE_ROD, 1)],
+    outputs=[ItemStack(BLAZE_POWDER, 2)],
+)
+
+R_ENDER_EYE = Recipe(
+    433,
+    inputs=[ItemStack(BLAZE_POWDER, 1), ItemStack(ENDER_PEARL, 1)],
+    outputs=[ItemStack(ENDER_EYE, 1)],
+)
+
+R_OTHERS = [R_CLOCK, R_BLAZE_POWDER, R_FLINT_AND_STEEL, R_ENDER_EYE]
 
 MC_RECIPES = R_HAND + R_ZONE + R_SMELTING + R_TOOLS + R_ENCHANT + R_OTHERS
 

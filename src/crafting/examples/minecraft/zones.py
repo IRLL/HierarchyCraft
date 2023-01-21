@@ -13,21 +13,47 @@ from crafting.world.zones import Zone
 
 # Zones
 
-FOREST = Zone(0, "forest", [WOOD, DIRT, STONE])  #: FOREST
-SWAMP = Zone(1, "swamp", [DIRT, REEDS])  #: SWAMP
-MEADOW = Zone(2, "meadow", [DIRT, STONE, LEATHER, EGG])  #: MEADOW
+#: FOREST
+FOREST = Zone(0, "forest", [WOOD, DIRT, STONE])
+
+#: SWAMP
+SWAMP = Zone(1, "swamp", [DIRT, GRAVEL, REEDS])
+
+#: MEADOW
+MEADOW = Zone(2, "meadow", [DIRT, STONE, LEATHER, EGG])
+
+#: UNDERGROUND
 UNDERGROUND = Zone(
     3,
     "underground",
-    [DIRT, STONE, IRON_ORE, GOLD_ORE],
+    [GRAVEL, STONE, IRON_ORE, ENDER_PEARL],
     required_tools=PICKAXES,
-)  #: UNDERGROUND
+    properties={"close_ender_portal": True},
+)
+
+#: BEDROCK
 BEDROCK = Zone(
     4,
     "bedrock",
-    [DIRT, STONE, IRON_ORE, GOLD_ORE, DIAMOND_ORE, REDSTONE_ORE, OBSIDIAN],
-    required_tools=[STONE_PICKAXE, IRON_PICKAXE, DIAMOND_PICKAXE],
-)  #: BEDROCK
+    [STONE, IRON_ORE, GOLD_ORE, DIAMOND_ORE, REDSTONE_ORE, OBSIDIAN],
+    required_tools=[IRON_PICKAXE, DIAMOND_PICKAXE],
+)
+
+#: NETHER
+NETHER = Zone(
+    5,
+    "nether",
+    items=[NETHERRACK, BLAZE_ROD],
+    required_properties={"open_nether_portal": True},
+)
+
+#: ENDER
+ENDER = Zone(
+    6,
+    "ender",
+    items=[ENDER_PEARL, ENDER_DRAGON_HEAD],
+    required_properties={"open_ender_portal": True},
+)
 
 MC_ZONES = [
     FOREST,
@@ -35,6 +61,8 @@ MC_ZONES = [
     MEADOW,
     UNDERGROUND,
     BEDROCK,
+    NETHER,
+    ENDER,
 ]
 
 if __name__ == "__main__":
