@@ -112,7 +112,7 @@ def load_image(world: "World", obj: Union[Item, Zone, Recipe, str]):
     if isinstance(obj, Item):
         image_path = os.path.join(world.resources_path, "items", f"{obj.item_id}.png")
     elif isinstance(obj, Zone):
-        image_path = os.path.join(world.resources_path, "zones", f"{obj.zone_id}.png")
+        image_path = os.path.join(world.resources_path, "zones", f"{obj.name}.png")
     elif isinstance(obj, str):
         image_path = os.path.join(world.resources_path, "properties", f"{obj}.png")
     elif isinstance(obj, Recipe):
