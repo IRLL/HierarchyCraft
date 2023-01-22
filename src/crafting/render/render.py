@@ -23,6 +23,7 @@ try:
 except ImportError:
     pass
 
+from crafting.constants import ActionTypes
 from crafting.render.utils import load_or_create_image
 from crafting.render.widgets import (
     EnvWidget,
@@ -277,7 +278,7 @@ def make_menus(world: "World", window_shape: tuple):
             image=load_or_create_image(world, item),
             scaling=0.5,
             text_width=8,
-            action_type="get",
+            action_type=ActionTypes.SEARCH,
             identificator=item.item_id,
             padding=(12, 0, 12, 0),
         )
@@ -307,7 +308,7 @@ def make_menus(world: "World", window_shape: tuple):
             image=load_or_create_image(world, recipe),
             scaling=0.5,
             text_width=8,
-            action_type="craft",
+            action_type=ActionTypes.CRAFT,
             identificator=recipe.recipe_id,
             padding=(16, 0, 16, 0),
         )
@@ -334,7 +335,7 @@ def make_menus(world: "World", window_shape: tuple):
             image=load_or_create_image(world, zone),
             scaling=0.2,
             text_width=19,
-            action_type="move",
+            action_type=ActionTypes.MOVE.value,
             identificator=zone.zone_id,
             padding=(26, 0, 26, 0),
         )

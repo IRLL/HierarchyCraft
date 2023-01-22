@@ -3,11 +3,12 @@
 
 """ Module for handcrafted Behavior with HEBGraph in any Crafting environment. """
 
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import TYPE_CHECKING, Dict, List, Union, Tuple
 
 import numpy as np
 from hebg import HEBGraph, Behavior
 
+from crafting.constants import ActionTypes
 from crafting.behaviors.actions import CraftRecipe, MoveToZone, SearchItem
 from crafting.behaviors.feature_conditions import HasItem, HasProperty, IsInZone
 from crafting.render.utils import load_or_create_image
@@ -68,7 +69,7 @@ class GetItem(Behavior):
         item: "Item",
         all_behaviors: Dict[Union[int, str], Behavior],
         items_needed: List[List[tuple]],
-        last_action: tuple,
+        last_action: Tuple[ActionTypes, int],
         zones_id_needed: list = None,
         zones_properties_needed: dict = None,
     ):
@@ -136,13 +137,13 @@ class GetItem(Behavior):
 
         # Add last action
         action_type, obj_id = self.last_action
-        if action_type == "get":
+        if action_type == ActionTypes.SEARCH:
             item = self.world.item_from_id[obj_id]
             action = SearchItem(item, self.world)
-        elif action_type == "craft":
+        elif action_type == ActionTypes.CRAFT:
             recipe = self.world.recipes_from_id[obj_id]
             action = CraftRecipe(recipe, self.world)
-        elif action_type == "move":
+        elif action_type == ActionTypes.MOVE:
             zone = self.world.zone_from_id[obj_id]
             action = MoveToZone(zone, self.world)
         else:

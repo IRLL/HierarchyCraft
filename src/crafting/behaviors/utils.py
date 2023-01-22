@@ -32,7 +32,7 @@ def get_items_in_graph(
         if isinstance(node, (SearchItem, GetItem)) and isinstance(node.item, Item):
             items_in_graph.add(node.item)
         if isinstance(node, CraftRecipe) and node.recipe.outputs is not None:
-            items_in_graph += {itemstack.item for itemstack in node.recipe.outputs}
+            items_in_graph |= {itemstack.item for itemstack in node.recipe.outputs}
     return items_in_graph
 
 
@@ -57,7 +57,7 @@ def get_properties_in_graph(
         if isinstance(node, GetItem) and isinstance(node.item, str):
             props_in_graph.add(node.item)
         if isinstance(node, CraftRecipe) and node.recipe.added_properties is not None:
-            props_in_graph += {
+            props_in_graph |= {
                 prop for prop, value in node.recipe.added_properties.items() if value
             }
     return props_in_graph

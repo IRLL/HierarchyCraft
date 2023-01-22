@@ -6,12 +6,13 @@
 """
 
 import os
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING, Dict, List, Union
 
 import numpy as np
 
 import crafting
 
+from crafting.constants import ActionTypes
 from crafting.behaviors.solving_behaviors import build_all_solving_behaviors
 from crafting.world.items import Tool
 from crafting.world.requirement_graph import (
@@ -138,15 +139,16 @@ class World:
 
         self._requirements_graph = None
 
-    def action(self, action_type: str, identification: int) -> int:
+    def action(self, action_type: Union[ActionTypes, str], identification: int) -> int:
         """Return the action_id from action_type and identification."""
         action_id = 0
-        if action_type == "get":
+        action_type = ActionTypes(action_type)
+        if action_type == ActionTypes.SEARCH:
             action_id += self.foundable_items_id_to_slot[identification]
-        elif action_type == "craft":
+        elif action_type == ActionTypes.CRAFT:
             action_id = self.n_foundable_items
             action_id += self.recipes_id_to_slot[identification]
-        elif action_type == "move":
+        elif action_type == ActionTypes.MOVE:
             action_id = self.n_foundable_items + self.n_recipes
             action_id += self.zone_id_to_slot[identification]
         return action_id
@@ -155,17 +157,17 @@ class World:
         """Describe the action_id effects."""
         offset = 0
         if action_id < self.n_foundable_items:
-            action_type = "get"
+            action_type = ActionTypes.SEARCH
             object_concerned = self.foundable_items[action_id]
         elif 0 <= action_id - self.n_foundable_items < self.n_recipes:
             offset = self.n_foundable_items
-            action_type = "craft"
+            action_type = ActionTypes.CRAFT
             object_concerned = self.recipes[action_id - offset]
         elif action_id >= self.n_foundable_items + self.n_recipes:
-            action_type = "move"
+            action_type = ActionTypes.MOVE
             offset = self.n_foundable_items + self.n_recipes
             object_concerned = self.zones[action_id - offset]
-        return f"{action_type.capitalize()} {object_concerned}"
+        return f"{action_type.value.capitalize()} {object_concerned}"
 
     def zone_id_from_observation(self, observation):
         """Return the player zone from an observation."""

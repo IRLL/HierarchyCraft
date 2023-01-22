@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Dict
 
+from crafting.constants import ActionTypes
 from crafting.behaviors.behaviors import GetItem, ReachZone
 
 
@@ -46,7 +47,7 @@ def _search_item_behaviors(world: "World", all_behaviors: Dict[str, "Behavior"])
                 item=dropped_item,
                 all_behaviors=all_behaviors,
                 items_needed=items_needed,
-                last_action=("get", item.item_id),
+                last_action=(ActionTypes.SEARCH, item.item_id),
                 zones_id_needed=zones_id_needed,
             )
         all_behaviors[str(item_behavior)] = item_behavior
@@ -69,7 +70,7 @@ def _craft_item_behaviors(world: "World", all_behaviors: Dict[str, "Behavior"]):
                     all_behaviors=all_behaviors,
                     items_needed=items_needed,
                     zones_properties_needed=recipe.needed_properties,
-                    last_action=("craft", recipe.recipe_id),
+                    last_action=(ActionTypes.CRAFT, recipe.recipe_id),
                 )
                 all_behaviors[str(recipe_behavior)] = recipe_behavior
 
@@ -81,7 +82,7 @@ def _craft_item_behaviors(world: "World", all_behaviors: Dict[str, "Behavior"]):
                     all_behaviors=all_behaviors,
                     items_needed=items_needed,
                     zones_properties_needed=recipe.needed_properties,
-                    last_action=("craft", recipe.recipe_id),
+                    last_action=(ActionTypes.CRAFT, recipe.recipe_id),
                 )
                 all_behaviors[str(zone_property_behavior)] = zone_property_behavior
 

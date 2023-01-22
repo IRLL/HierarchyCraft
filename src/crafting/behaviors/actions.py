@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 from hebg import Action
 
+from crafting.constants import ActionTypes
 from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
@@ -24,7 +25,7 @@ class SearchItem(Action):
     def __init__(self, item: "Item", world: "World") -> None:
         name = f"Search {item}"
         image = np.array(load_or_create_image(world, item))
-        action = world.action("get", item.item_id)
+        action = world.action(ActionTypes.SEARCH, item.item_id)
         super().__init__(action, name=name, image=image, complexity=1)
         self.item = item
 
@@ -36,7 +37,7 @@ class MoveToZone(Action):
     def __init__(self, zone: "Zone", world: "World") -> None:
         name = f"Move to {zone}"
         image = np.array(load_or_create_image(world, zone))
-        action = world.action("move", zone.zone_id)
+        action = world.action(ActionTypes.MOVE, zone.zone_id)
         super().__init__(action, name=name, image=image, complexity=1)
         self.zone = zone
 
@@ -54,6 +55,6 @@ class CraftRecipe(Action):
             obj = list(recipe.added_properties.keys())[0]
 
         image = np.array(load_or_create_image(world, obj))
-        action = world.action("craft", recipe.recipe_id)
+        action = world.action(ActionTypes.CRAFT, recipe.recipe_id)
         super().__init__(action, name=name, image=image, complexity=1)
         self.recipe = recipe

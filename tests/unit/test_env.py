@@ -90,11 +90,11 @@ def test_env_obtain_stone(world, player):
     print(env.observation_legend)
 
     print(env.render())
-    observation = env(env.action("get", WOOD.item_id))[0]  # (Success)
+    observation = env(env.action("search", WOOD.item_id))[0]  # (Success)
 
     _check_expected_observation(env, observation, [0, 1, 0, 0, 0, 0, 0, 1, 0, 0])
 
-    observation = env(env.action("get", DIRT.item_id))[0]  # (Fail)
+    observation = env(env.action("search", DIRT.item_id))[0]  # (Fail)
 
     _check_expected_observation(env, observation, [0, 1, 0, 0, 0, 0, 0, 1, 0, 0])
 
@@ -107,7 +107,7 @@ def test_env_obtain_stone(world, player):
     _check_expected_observation(env, observation, [0, 0, 0, 4, 0, 0, 0, 1, 0, 0])
 
     for _ in range(2):
-        observation = env(env.action("get", WOOD.item_id))[0]
+        observation = env(env.action("search", WOOD.item_id))[0]
         observation = env(env.action("craft", WOOD_PLANK.item_id))[0]
 
     _check_expected_observation(env, observation, [0, 0, 0, 12, 0, 0, 0, 1, 0, 0])
@@ -124,14 +124,14 @@ def test_env_obtain_stone(world, player):
 
     _check_expected_observation(env, observation, [0, 0, 0, 8, 0, 0, 0, 0, 1, 1])
 
-    observation = env(env.action("get", STONE.item_id))[0]  # (Fail)
+    observation = env(env.action("search", STONE.item_id))[0]  # (Fail)
 
     _check_expected_observation(env, observation, [0, 0, 0, 8, 0, 0, 0, 0, 1, 1])
 
     observation = env(env.action("craft", R_STICK.recipe_id))[0]  # (Success)
     observation = env(env.action("craft", R_WOODEN_PICKAXE.recipe_id))[0]  # (Success)
 
-    observation = env(env.action("get", STONE.item_id))[0]  # (Success)
+    observation = env(env.action("search", STONE.item_id))[0]  # (Success)
 
     _check_expected_observation(env, observation, [0, 0, 1, 3, 2, 0, 1, 0, 1, 1])
 
@@ -139,7 +139,7 @@ def test_env_obtain_stone(world, player):
 def test_env_zone_consistency(world, player):
     env = CraftingEnv(world, player, max_step=50, verbose=1, render_mode="console")
 
-    env(env.action("get", WOOD.item_id))
+    env(env.action("search", WOOD.item_id))
     env(env.action("craft", R_WOOD_PLANK.recipe_id))
     env(env.action("craft", R_CRAFTING_TABLE.recipe_id))
 

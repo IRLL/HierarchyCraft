@@ -33,6 +33,7 @@ try:
 except ImportError:
     USING_GYMNASIUM = False
 
+from crafting.constants import ActionTypes
 from crafting.player.player import Player
 from crafting.render.render import create_window, surface_to_rgb_array, update_rendering
 from crafting.task import TaskList, Task, get_task_from_name
@@ -132,7 +133,7 @@ class CraftingEnv(Env):
         self.np_random = np.random.RandomState(seed)  # pylint: disable=no-member
         return [seed]
 
-    def action(self, action_type: str, identification: int) -> int:
+    def action(self, action_type: Union[ActionTypes, str], identification: int) -> int:
         """Return action_id from action type and identifier.
 
         Args:
