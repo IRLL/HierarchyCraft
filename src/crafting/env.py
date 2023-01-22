@@ -53,7 +53,7 @@ class CraftingEnv(Env):
         world: "World",
         player: Player,
         name: str = "Crafting",
-        max_step: int = 100,
+        max_step: int = 200,
         verbose: int = 0,
         observe_legal_actions: bool = False,
         tasks: Optional[List[Union[str, "Task"]]] = None,
