@@ -17,7 +17,7 @@ class TestItemsInWoodenPickaxeGraph:
     """get_items_in_graph"""
 
     @pytest.fixture(autouse=True)
-    def setup(self):
+    def setup_method(self):
         self.mcworld = McWorld()
         self.all_behaviors = self.mcworld.get_all_behaviors()
         self.pickaxe_behavior = self.all_behaviors[f"Get {WOODEN_PICKAXE}"]

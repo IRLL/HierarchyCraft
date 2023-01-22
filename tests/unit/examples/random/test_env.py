@@ -14,7 +14,7 @@ class TestRandomCrafting:
     """Test the RandomCrafting environment"""
 
     @pytest.fixture(autouse=True)
-    def setup(self):
+    def setup_method(self):
         """Setup test fixtures."""
         n_items = 10
         self.env_settings = {

@@ -74,7 +74,7 @@ class TestTask:
     """Task"""
 
     @pytest.fixture(autouse=True)
-    def setup(self):
+    def setup_method(self):
         self.world = DummyWorld()
         self.previous_observation = np.ones(10)
         self.observation = 2 * np.ones(10)
@@ -101,7 +101,7 @@ class TestTaskList:
     """TaskList"""
 
     @pytest.fixture(autouse=True)
-    def setup(self):
+    def setup_method(self):
         """Setup dummy tasks"""
         self.world = DummyWorld()
         self.previous_observation = np.ones(10)
@@ -156,10 +156,11 @@ class TestTaskList:
         tasklist = TaskList(self.tasks)
         check.equal(len(tasklist), 3)
 
+
 class TestTaskListGetTaskWeight:
     """TaskList._get_task_weight"""
 
-    def setup(self):
+    def setup_method(self):
         """Setup dummy tasks"""
         self.world = DummyWorld()
         self.task_observe_123 = Task("obs_123", self.world)
@@ -202,7 +203,7 @@ class TestTaskListGetTaskWeight:
 class TestTaskListGetTaskCanEnd:
     """TaskList._get_task_can_end"""
 
-    def setup(self):
+    def setup_method(self):
         """Setup dummy tasks"""
         self.world = DummyWorld()
         self.task_observe_123 = Task("obs_123", self.world)

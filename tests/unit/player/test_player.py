@@ -14,7 +14,7 @@ class TestPlayer:
     "Player"
 
     @pytest.fixture(autouse=True)
-    def setup(self):
+    def setup_method(self):
         """Setup variables."""
         self.egg = Item(666, "egg")
 

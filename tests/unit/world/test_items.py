@@ -53,7 +53,7 @@ class TestTool:
     """Tool"""
 
     @pytest.fixture(autouse=True)
-    def setup(self):
+    def setup_method(self):
         """Setup reused variables."""
         self.tool_id = 18
         self.tool_name = "tool_name"
