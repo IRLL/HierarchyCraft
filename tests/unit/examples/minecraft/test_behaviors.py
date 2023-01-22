@@ -8,9 +8,9 @@ import pytest_check as check
 
 from crafting.examples.minecraft.world import McWorld
 from crafting.examples.minecraft.items import WOODEN_PICKAXE, WOOD, WOOD_PLANK, STICK
-from crafting.examples.minecraft.zones import UNDERGROUND
+from crafting.examples.minecraft.zones import UNDERGROUND, NETHER
 
-from crafting.behaviors.utils import get_items_in_graph
+from crafting.behaviors.utils import get_items_in_graph, get_properties_in_graph
 
 
 class TestItemsInWoodenPickaxeGraph:
@@ -42,5 +42,13 @@ def test_go_to_zone_with_tool_needed():
     world = McWorld()
     all_behaviors = world.get_all_behaviors()
     go_to_behavior = all_behaviors[f"Reach {UNDERGROUND}"]
-    items = get_items_in_graph(go_to_behavior.graph.unrolled_graph)
+    items = get_items_in_graph(go_to_behavior.graph, all_behaviors=all_behaviors)
     check.is_in(WOODEN_PICKAXE, items)
+
+
+def test_go_to_zone_with_property_needed():
+    world = McWorld()
+    all_behaviors = world.get_all_behaviors()
+    go_to_behavior = all_behaviors[f"Reach {NETHER}"]
+    props = get_properties_in_graph(go_to_behavior.graph, all_behaviors=all_behaviors)
+    check.is_in("open_nether_portal", props)

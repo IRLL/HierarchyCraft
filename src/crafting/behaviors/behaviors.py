@@ -13,7 +13,7 @@ from crafting.behaviors.feature_conditions import HasItem, HasProperty, IsInZone
 from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
-    from crafting.world.items import Item
+    from crafting.world.items import Item, Tool
     from crafting.world.world import World
     from crafting.world.zones import Zone
 
@@ -35,8 +35,26 @@ class ReachZone(Behavior):
 
         """
         graph = HEBGraph(behavior=self)
+
+        prev_checks = []
+
+        # Any of Tool needed
+        for tool in self.zone.required_tools:
+            has_item = _add_required_tool(self.world, graph, tool)
+            prev_checks.append(has_item)
+
+        # All properties needed
+        for prop, _ in self.zone.required_properties.items():
+            has_prop = _add_property_needed(self.world, graph, prop)
+            for prev in prev_checks:
+                graph.add_edge(prev, has_prop, index=int(True))
+            prev_checks = [has_prop]
+
         go_to_zone = MoveToZone(self.zone, self.world)
         graph.add_node(go_to_zone)
+        for prev in prev_checks:
+            graph.add_edge(prev, go_to_zone, index=int(True))
+
         return graph
 
 
@@ -89,7 +107,9 @@ class GetItem(Behavior):
             for craft_behavior in self.items_needed:
                 prev_check = None
                 for item_id, quantity in craft_behavior:
-                    has_item = self._add_crafting_behavior(graph, item_id, quantity)
+                    has_item = _add_crafting_behavior(
+                        self.world, graph, item_id, quantity
+                    )
                     if prev_check is not None:
                         graph.add_edge(prev_check, has_item, index=int(True))
                     prev_check = has_item
@@ -100,7 +120,7 @@ class GetItem(Behavior):
         prev_checks_zone = []
         if self.world.n_zones > 1:
             for zone_id in self.zones_id_needed:
-                is_in_zone = self._add_zone_behavior(graph, zone_id)
+                is_in_zone = _add_zone_behavior(self.world, graph, zone_id)
                 prev_checks_zone.append(is_in_zone)
                 for prev in prev_checks:
                     graph.add_edge(prev, is_in_zone, index=int(True))
@@ -109,7 +129,7 @@ class GetItem(Behavior):
 
         # All properties needed
         for prop, _ in self.zones_properties_needed.items():
-            has_prop = self._add_property_needed(graph, prop)
+            has_prop = _add_property_needed(self.world, graph, prop)
             for prev in prev_checks:
                 graph.add_edge(prev, has_prop, index=int(True))
             prev_checks = [has_prop]
@@ -133,33 +153,39 @@ class GetItem(Behavior):
             graph.add_edge(prev, action, index=int(True))
         return graph
 
-    def _add_crafting_behavior(
-        self, graph: HEBGraph, item_id: int, quantity: int
-    ) -> HasItem:
-        item = self.world.item_from_id[item_id]
-        has_item = HasItem(item=item, world=self.world, quantity=quantity)
-        graph.add_node(has_item)
-        image = np.array(load_or_create_image(self.world, item))
-        get_item = Behavior(f"Get {item}", image=image)
-        graph.add_node(get_item)
-        graph.add_edge(has_item, get_item, index=int(False))
-        return has_item
 
-    def _add_zone_behavior(self, graph: HEBGraph, zone_id: int) -> IsInZone:
-        zone = self.world.zone_from_id[zone_id]
-        is_in_zone = IsInZone(zone, self.world)
-        graph.add_node(is_in_zone)
-        image = np.array(load_or_create_image(self.world, zone))
-        reach_zone = Behavior(f"Reach {zone}", image=image)
-        graph.add_node(reach_zone)
-        graph.add_edge(is_in_zone, reach_zone, index=int(False))
-        return is_in_zone
+def _add_crafting_behavior(
+    world: "World", graph: HEBGraph, item_id: int, quantity: int
+) -> HasItem:
+    item = world.item_from_id[item_id]
+    has_item = HasItem(item=item, world=world, quantity=quantity)
+    image = np.array(load_or_create_image(world, item))
+    get_item = Behavior(f"Get {item}", image=image)
+    graph.add_edge(has_item, get_item, index=int(False))
+    return has_item
 
-    def _add_property_needed(self, graph: HEBGraph, prop: str) -> HasProperty:
-        has_prop = HasProperty(prop, world=self.world)
-        graph.add_node(has_prop)
-        image = np.array(load_or_create_image(self.world, prop))
-        get_prop = Behavior(f"Get {prop}", image=image)
-        graph.add_node(get_prop)
-        graph.add_edge(has_prop, get_prop, index=int(False))
-        return has_prop
+
+def _add_required_tool(world: "World", graph: HEBGraph, tool: "Tool") -> HasItem:
+    item = world.item_from_id[tool.item_id]
+    has_item = HasItem(item=item, world=world, quantity=1)
+    image = np.array(load_or_create_image(world, item))
+    get_item = Behavior(f"Get {item}", image=image)
+    graph.add_edge(has_item, get_item, index=int(False))
+    return has_item
+
+
+def _add_zone_behavior(world: "World", graph: HEBGraph, zone_id: int) -> IsInZone:
+    zone = world.zone_from_id[zone_id]
+    is_in_zone = IsInZone(zone, world)
+    image = np.array(load_or_create_image(world, zone))
+    reach_zone = Behavior(f"Reach {zone}", image=image)
+    graph.add_edge(is_in_zone, reach_zone, index=int(False))
+    return is_in_zone
+
+
+def _add_property_needed(world: "World", graph: HEBGraph, prop: str) -> HasProperty:
+    has_prop = HasProperty(prop, world=world)
+    image = np.array(load_or_create_image(world, prop))
+    get_prop = Behavior(f"Get {prop}", image=image)
+    graph.add_edge(has_prop, get_prop, index=int(False))
+    return has_prop
