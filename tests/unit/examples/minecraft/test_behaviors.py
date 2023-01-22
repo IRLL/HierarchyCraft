@@ -8,11 +8,12 @@ import pytest_check as check
 
 from crafting.examples.minecraft.world import McWorld
 from crafting.examples.minecraft.items import WOODEN_PICKAXE, WOOD, WOOD_PLANK, STICK
+from crafting.examples.minecraft.zones import UNDERGROUND
 
 from crafting.behaviors.utils import get_items_in_graph
 
 
-class TestGetItemsInGraphMineCrafting:
+class TestItemsInWoodenPickaxeGraph:
     """get_items_in_graph"""
 
     @pytest.fixture(autouse=True)
@@ -31,7 +32,15 @@ class TestGetItemsInGraphMineCrafting:
         check.equal(items, expected_items)
 
     def test_graph_unrolled(self):
-        """should give all needed items in wooden_pickaxe graph."""
+        """should give all needed items in unrolled wooden_pickaxe graph."""
         expected_items = {WOOD, WOOD_PLANK, STICK, WOODEN_PICKAXE}
         items = get_items_in_graph(self.pickaxe_behavior.graph.unrolled_graph)
         check.equal(items, expected_items)
+
+
+def test_go_to_zone_with_tool_needed():
+    world = McWorld()
+    all_behaviors = world.get_all_behaviors()
+    go_to_behavior = all_behaviors[f"Reach {UNDERGROUND}"]
+    items = get_items_in_graph(go_to_behavior.graph.unrolled_graph)
+    check.is_in(WOODEN_PICKAXE, items)
