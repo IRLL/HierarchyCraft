@@ -52,7 +52,7 @@ def test_obtain_getting_wood_no_tool():
 
     done = False
     while not done:
-        _, _, done, _ = env(env.action("get", WOOD.item_id))
+        _, _, done, _ = env(env.action("search", WOOD.item_id))
 
     wood_gathered = env.player.inventory.content[wood_slot]
     expected_wood_gathered = 100
@@ -72,7 +72,7 @@ def test_obtain_getting_wood_axe():
     done = False
 
     for _ in range(4):
-        env(env.action("get", WOOD.item_id))
+        env(env.action("search", WOOD.item_id))
     for _ in range(4):
         env(env.action("craft", R_WOOD_PLANK.recipe_id))
     for _ in range(2):
@@ -82,14 +82,14 @@ def test_obtain_getting_wood_axe():
     env(env.action("craft", R_WOODEN_PICKAXE.recipe_id))
 
     for _ in range(2):
-        env(env.action("get", STONE.item_id))
+        env(env.action("search", STONE.item_id))
     env(env.action("craft", R_STONE_PICKAXE.recipe_id))
     for _ in range(3):
-        env(env.action("get", STONE.item_id))
+        env(env.action("search", STONE.item_id))
 
     env(env.action("move", UNDERGROUND.zone_id))
     for _ in range(2):
-        env(env.action("get", IRON_ORE.item_id))
+        env(env.action("search", IRON_ORE.item_id))
 
     env(env.action("move", FOREST.zone_id))
     env(env.action("craft", R_FURNACE.recipe_id))
@@ -98,7 +98,7 @@ def test_obtain_getting_wood_axe():
     print(env.player)
 
     while not done:
-        _, _, done, _ = env(env.action("get", WOOD.item_id))
+        _, _, done, _ = env(env.action("search", WOOD.item_id))
 
     wood_gathered = env.player.inventory.content[wood_slot]
     expected_wood_gathered = 268
