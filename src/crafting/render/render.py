@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import numpy as np
 
-from PIL.Image import Image
 
 try:
     import pygame
@@ -34,6 +33,7 @@ from crafting.render.widgets import (
 )
 
 if TYPE_CHECKING:
+    from PIL.Image import Image
     from pygame.event import Event
 
     from crafting.env import CraftingEnv
@@ -230,7 +230,7 @@ def make_menus(world: "World", window_shape: tuple):
     def add_button(
         menu: "Menu",
         id_to_action: Dict[str, Any],
-        image: Image,
+        image: "Image",
         scaling: float,
         text_width: int,
         action_type,

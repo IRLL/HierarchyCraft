@@ -5,10 +5,12 @@
 
 import os
 from typing import TYPE_CHECKING, Optional, Tuple, Union
+import logging
 
 import numpy as np
 
 from PIL import Image, ImageDraw, ImageFont
+
 
 # pygame is an optional dependency
 try:
@@ -24,6 +26,10 @@ if TYPE_CHECKING:
     from pygame.surface import Surface
 
     from crafting.world.world import World
+
+
+# Disable PIL logging to avoid spam (see https://github.com/camptocamp/pytest-odoo/issues/15)
+logging.getLogger("PIL").setLevel(logging.INFO)
 
 
 def pilImageToSurface(pilImage: Image.Image):
