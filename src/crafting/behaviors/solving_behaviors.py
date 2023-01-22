@@ -19,7 +19,7 @@ def build_all_solving_behaviors(world: "World") -> Dict[str, "Behavior"]:
 
 def _reach_zones_behaviors(world: "World", all_behaviors: Dict[str, "Behavior"]):
     for zone in world.zones:
-        zone_behavior = ReachZone(zone, world)
+        zone_behavior = ReachZone(zone, world, all_behaviors=all_behaviors)
         all_behaviors[str(zone_behavior)] = zone_behavior
     return all_behaviors
 

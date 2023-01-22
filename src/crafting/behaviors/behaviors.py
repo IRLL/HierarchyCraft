@@ -23,10 +23,13 @@ class ReachZone(Behavior):
 
     """Behavior for moving to a Zone"""
 
-    def __init__(self, zone: "Zone", world: "World"):
+    def __init__(
+        self, zone: "Zone", world: "World", all_behaviors: Dict[str, Behavior]
+    ):
         super().__init__(f"Reach {str(zone)}")
         self.world = world
         self.zone = zone
+        self.all_behaviors = all_behaviors
 
     def build_graph(self) -> HEBGraph:
         """Build the HEBGraph of this Behavior.
@@ -35,7 +38,7 @@ class ReachZone(Behavior):
             The built HEBGraph.
 
         """
-        graph = HEBGraph(behavior=self)
+        graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
 
         prev_checks = []
 
