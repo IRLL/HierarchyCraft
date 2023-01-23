@@ -1,4 +1,4 @@
 numpy
 networkx >= 2.5.1
 matplotlib
-hebg @ git+https://github.com/IRLL/HEB_graphs.git#egg=hebg
+hebg >= 0.2.0
