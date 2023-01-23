@@ -2,8 +2,8 @@
 requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 
 [project]
-name = "crafting"
-description = "A gym-environment to simultate inventory managment"
+name = "crafting-metaenv"
+description = "A meta-environment to simultate inventory managment"
 
 dynamic = ["version", "readme", "dependencies"]
 license = { text = "GNU General Public License v3 or later (GPLv3+)" }

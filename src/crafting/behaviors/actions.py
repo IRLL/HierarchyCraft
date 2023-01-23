@@ -1,4 +1,4 @@
-# Crafting a gym-environment to simultate inventory managment
+# Crafting a meta-environment to simultate inventory managment
 # Copyright (C) 2021-2023 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
 """ Module to define Action nodes for the HEBGraph of the Crafting environment. """
