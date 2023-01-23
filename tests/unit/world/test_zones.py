@@ -88,6 +88,15 @@ class TestZone:
         check.is_true(self.forest.can_access_with(Tool(0, "random_tool")))
         check.is_true(self.forest.can_access_with(None))
 
+    def test_allows_to_move_to_by_default(self):
+        """should allow moving to any Zone (except itself) using any Tool (even None) by default."""
+        random_zone = Zone(1, "random_zone", items=[])
+        check.is_true(self.forest.can_move_to_with(random_zone, Tool(0, "random_tool")))
+        check.is_true(self.forest.can_move_to_with(random_zone, None))
+        check.is_false(
+            self.forest.can_move_to_with(self.forest, Tool(0, "random_tool"))
+        )
+
 
 def test_reach_with_required_property():
     """should be reachable by any other zone

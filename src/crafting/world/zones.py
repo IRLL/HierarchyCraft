@@ -95,6 +95,18 @@ class Zone:
             return True
         return tool in self.required_tools
 
+    def can_move_to_with(self, zone: "Zone", tool: Optional[Tool] = None) -> bool:
+        """Check if the Zone allows to move to a specific other zone using a tool.
+
+        Args:
+            tool: The tool to use to access the zone.
+
+        Returns:
+            True if the Zone can be accessed, False otherwise.
+
+        """
+        return zone != self
+
     def search_for(self, item: Item, tool: Tool = None) -> List[ItemStack]:
         """Searches for the given item using a tool
 
