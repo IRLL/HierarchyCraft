@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional
+from typing import List, Set, Tuple, Optional
 
 
 import numpy as np
@@ -10,16 +10,12 @@ from crafting.transformation import Transformation
 class CraftingEnv:
     def __init__(
         self,
-        items: List[Item],
-        zones: List[Zone],
-        zones_items: List[Zone],
         transformations: List[Transformation],
         start_zone: Optional[Zone] = None,
     ) -> None:
-        self.world = World(items, zones, zones_items)
         self.transformations = transformations
+        self.world = self._build_world()
         self.start_zone = start_zone
-        self._validate_transformations()
         self.state = self._init_state()
 
     def step(self, action: int):
@@ -30,6 +26,22 @@ class CraftingEnv:
 
     def reset(self, seed: int = 0):
         pass
+
+    def _build_world(self) -> World:
+        items, zones, zones_items = set(), set(), set()
+        for transfo in self.transformations:
+            if transfo.destination is not None:
+                zones.add(transfo.destination)
+            if transfo.zones is not None:
+                zones |= set(transfo.zones)
+            items = _add_items_to(transfo.removed_player_items, items)
+            items = _add_items_to(transfo.added_player_items, items)
+            zones_items = _add_items_to(transfo.removed_destination_items, zones_items)
+            zones_items = _add_items_to(transfo.added_destination_items, zones_items)
+            zones_items = _add_items_to(transfo.removed_zone_items, zones_items)
+            zones_items = _add_items_to(transfo.added_zone_items, zones_items)
+
+        return World(list(items), list(zones), list(zones_items))
 
     def _init_state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         player_inventory = np.zeros(self.world.n_items, dtype=np.uint16)
@@ -50,18 +62,9 @@ class CraftingEnv:
             zones_inventories,
         )
 
-    def _validate_transformations(self):
-        def check_items_in(items: Optional[List[ItemStack]], items_list: List[Item]):
-            if items is None:
-                return
-            for itemstack in items:
-                if itemstack.item not in items_list:
-                    raise ValueError(f"Missing {itemstack.item} in {items_list}.")
 
-        for transfo in self.transformations:
-            check_items_in(transfo.removed_player_items, self.world.items)
-            check_items_in(transfo.added_player_items, self.world.items)
-            check_items_in(transfo.removed_destination_items, self.world.zones_items)
-            check_items_in(transfo.added_destination_items, self.world.zones_items)
-            check_items_in(transfo.removed_zone_items, self.world.zones_items)
-            check_items_in(transfo.added_zone_items, self.world.zones_items)
+def _add_items_to(itemstacks: Optional[List[ItemStack]], items_set: Set[Item]):
+    if itemstacks is not None:
+        for itemstack in itemstacks:
+            items_set.add(itemstack.item)
+    return items_set
