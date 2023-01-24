@@ -100,3 +100,20 @@ class TestCratingEnv:
         env.zones_inventories[start_zone_index, 1] = 1
         expected_observation = np.array([0, 2, 0, 1, 0, 3, 1])
         check_np_equal(env.observation, expected_observation)
+
+    def test_step_move(self):
+        env = CraftingEnv(self.transformations)
+
+        check_np_equal(env.position, np.array([1, 0], np.uint16))
+        action = self.transformations.index(self.move_to_other_zone)
+        env.step(action)
+        check_np_equal(env.position, np.array([0, 1], np.uint16))
+
+    def test_step_search(self):
+        env = CraftingEnv(self.transformations)
+        wood_slot = env.world.items.index(self.wood)
+
+        check.equal(env.player_inventory[wood_slot], 0)
+        action = self.transformations.index(self.search_wood)
+        env.step(action)
+        check.equal(env.player_inventory[wood_slot], 1)

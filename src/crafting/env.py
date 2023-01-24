@@ -12,10 +12,14 @@ class CraftingEnv:
         self,
         transformations: List[Transformation],
         start_zone: Optional[Zone] = None,
+        invalid_reward: float = -10.0,
     ) -> None:
         self.transformations = transformations
-        self.world = self._build_world()
         self.start_zone = start_zone
+        self.invalid_reward = invalid_reward
+        self.world = self._build_world()
+        self._build_transformations()
+
         (
             self.player_inventory,
             self.position,
@@ -28,17 +32,36 @@ class CraftingEnv:
 
     @property
     def observation(self) -> np.ndarray:
-        current_zone_inventory = self.zones_inventories[self.position == 1, :][0, :]
+        current_zone_slot = self.position.nonzero()[0]
         return np.concatenate(
             (
                 self.player_inventory,
                 self.position,
-                current_zone_inventory,
+                self.zones_inventories[current_zone_slot, :][0],
             )
         )
 
+    @property
+    def truncated(self) -> bool:
+        return False
+
+    @property
+    def terminated(self) -> bool:
+        return False
+
     def step(self, action: int):
-        pass
+        choosen_transformation = self.transformations[action]
+        if not choosen_transformation.is_valid(*self.state):
+            return self._step_output(self.invalid_reward)
+        choosen_transformation.apply(
+            self.player_inventory,
+            self.position,
+            self.zones_inventories,
+        )
+        return self._step_output(0)
+
+    def _step_output(self, reward):
+        return (self.observation, reward, self.terminated or self.truncated, {})
 
     def render(self):
         pass
@@ -61,6 +84,10 @@ class CraftingEnv:
             zones_items = _add_items_to(transfo.added_zone_items, zones_items)
 
         return World(list(items), list(zones), list(zones_items))
+
+    def _build_transformations(self):
+        for transformation in self.transformations:
+            transformation.build(self.world)
 
     def _init_state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         player_inventory = np.zeros(self.world.n_items, dtype=np.uint16)
