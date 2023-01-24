@@ -1,9 +1,9 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 
 import numpy as np
 
-from crafting.world import Item, Zone
+from crafting.world import Item, Zone, World
 from crafting.transformation import Transformation
 
 
@@ -12,21 +12,26 @@ class CraftingEnv:
         self,
         items: List[Item],
         zones: List[Zone],
+        zones_items: List[Zone],
         transformations: List[Transformation],
+        start_zone: Optional[Zone] = None,
     ) -> None:
-        self.items = items
-        self.n_items = len(items)
-        self.zones = zones
-        self.n_zones = len(zones)
+        self.world = World(items, zones, zones_items)
         self.transformations = transformations
         self.n_transformations = len(transformations)
+        self.start_zone = start_zone
         self.state = self._init_state()
 
     def _init_state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        player_inventory = np.zeros(self.n_items, dtype=np.uint16)
-        position = np.zeros(self.n_zones, dtype=np.uint16)
-        position[0] = 1
-        zones_inventories = np.zeros((self.n_items, self.n_zones), dtype=np.uint16)
+        player_inventory = np.zeros(self.world.n_items, dtype=np.uint16)
+
+        position = np.zeros(self.world.n_zones, dtype=np.uint16)
+        start_slot = self.world.slot_from_zone(self.start_zone)
+        position[start_slot] = 1
+
+        zones_inventories = np.zeros(
+            (self.world.n_items, self.world.n_zones), dtype=np.uint16
+        )
 
         return (
             player_inventory,

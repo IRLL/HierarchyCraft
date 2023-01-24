@@ -20,6 +20,11 @@ class Zone:
 
 
 @dataclass(frozen=True)
+class Player:
+    name: str = "Player"
+
+
+@dataclass(frozen=True)
 class World:
     items: List[Item]
     zones: List[Zone]
