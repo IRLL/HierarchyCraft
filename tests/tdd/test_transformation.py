@@ -53,3 +53,16 @@ class TestTransformation:
         tranfo = Transformation(removed_player_items=None)
         tranfo._build_ops(self.world)
         check.is_none(tranfo._removed_player_items)
+
+    def test_added_player_items(self):
+        tranfo = Transformation(added_player_items=[ItemStack(self.items[1], 2)])
+        tranfo._build_ops(self.world)
+
+        expected_op = np.zeros(len(self.items), dtype=np.uint16)
+        expected_op[1] = 2
+        check_np_equal(tranfo._added_player_items, expected_op)
+
+    def test_no_added_player_items(self):
+        tranfo = Transformation(added_player_items=None)
+        tranfo._build_ops(self.world)
+        check.is_none(tranfo._added_player_items)
