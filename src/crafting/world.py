@@ -9,6 +9,12 @@ class Item:
 
 
 @dataclass(frozen=True)
+class ItemStack:
+    item: Item
+    quantity: int
+
+
+@dataclass(frozen=True)
 class Zone:
     name: str
 

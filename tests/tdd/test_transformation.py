@@ -2,7 +2,7 @@ import pytest
 import pytest_check as check
 import numpy as np
 
-from crafting.world import Item, Zone, World
+from crafting.world import Item, ItemStack, Zone, World
 from crafting.transformation import Transformation
 
 from tests.check_array import check_np_equal
@@ -40,3 +40,16 @@ class TestTransformation:
         tranfo = Transformation(zones=None)
         tranfo._build_ops(self.world)
         check.is_none(tranfo._zones)
+
+    def test_removed_player_items(self):
+        tranfo = Transformation(removed_player_items=[ItemStack(self.items[1], 2)])
+        tranfo._build_ops(self.world)
+
+        expected_op = np.zeros(len(self.items), dtype=np.uint16)
+        expected_op[1] = 2
+        check_np_equal(tranfo._removed_player_items, expected_op)
+
+    def test_no_removed_player_items(self):
+        tranfo = Transformation(removed_player_items=None)
+        tranfo._build_ops(self.world)
+        check.is_none(tranfo._removed_player_items)
