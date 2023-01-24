@@ -8,6 +8,75 @@ from crafting.transformation import Transformation
 from tests.check_array import check_np_equal
 
 
+class TestTransformationIsValid:
+    @pytest.fixture(autouse=True)
+    def setup_method(self):
+        self.zones = [Zone("0"), Zone("1"), Zone("2")]
+        self.items = [Item("0"), Item("1"), Item("2")]
+        self.zones_items = [Item("0"), Item("z1")]
+        self.world = World(self.items, self.zones, self.zones_items)
+
+    def test_position_is_valid(self):
+        transfo = Transformation(zones=[self.zones[0], self.zones[2]])
+        transfo.build(self.world)
+        check.is_true(transfo.is_valid(None, np.array([1, 0, 0]), None))
+        check.is_true(transfo.is_valid(None, np.array([0, 0, 1]), None))
+        check.is_false(transfo.is_valid(None, np.array([0, 1, 0]), None))
+
+    def test_player_items_is_valid(self):
+        transfo = Transformation(
+            removed_player_items=[
+                ItemStack(self.items[0], 2),
+                ItemStack(self.items[2], 3),
+            ],
+            added_player_items=[
+                ItemStack(self.items[1], 5),
+            ],
+        )
+        transfo.build(self.world)
+        position = np.array([1, 0, 0])
+        check.is_true(transfo.is_valid(np.array([2, 0, 3]), position, None))
+        check.is_false(transfo.is_valid(np.array([1, 0, 3]), position, None))
+        check.is_false(transfo.is_valid(np.array([3, 5, 2]), position, None))
+
+    def test_zone_items_is_valid(self):
+        transfo = Transformation(
+            removed_zone_items=[
+                ItemStack(self.zones_items[0], 3),
+            ],
+            added_zone_items=[
+                ItemStack(self.zones_items[1], 7),
+            ],
+        )
+        transfo.build(self.world)
+        position = np.array([0, 1, 0])
+        check.is_true(
+            transfo.is_valid(None, position, np.array([[0, 0], [3, 0], [0, 0]]))
+        )
+        check.is_false(
+            transfo.is_valid(None, position, np.array([[10, 10], [0, 10], [10, 10]]))
+        )
+
+    def test_destination_items_is_valid(self):
+        transfo = Transformation(
+            destination=self.zones[1],
+            removed_destination_items=[
+                ItemStack(self.zones_items[0], 3),
+            ],
+            added_destination_items=[
+                ItemStack(self.zones_items[1], 7),
+            ],
+        )
+        transfo.build(self.world)
+        position = np.array([1, 0, 0])
+        check.is_true(
+            transfo.is_valid(None, position, np.array([[0, 0], [3, 0], [0, 0]]))
+        )
+        check.is_false(
+            transfo.is_valid(None, position, np.array([[10, 10], [0, 10], [10, 10]]))
+        )
+
+
 class TestTransformationApply:
     @pytest.fixture(autouse=True)
     def setup_method(self):
@@ -34,8 +103,9 @@ class TestTransformationApply:
             ],
         )
         transfo.build(self.world)
+        position = np.array([1, 0, 0])
         inventory = np.array([3, 0, 3])
-        transfo.apply(inventory, None, None)
+        transfo.apply(inventory, position, None)
         check_np_equal(inventory, np.array([1, 5, 0]))
 
     def test_zone_items(self):
