@@ -16,7 +16,15 @@ class CraftingEnv:
         self.transformations = transformations
         self.world = self._build_world()
         self.start_zone = start_zone
-        self.state = self._init_state()
+        (
+            self.player_inventory,
+            self.position,
+            self.zones_inventories,
+        ) = self._init_state()
+
+    @property
+    def state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        return self.player_inventory, self.position, self.zones_inventories
 
     def step(self, action: int):
         pass
