@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 import numpy as np
 
-from crafting.elements import Item, Zone
+from crafting.world import Item, Zone
 from crafting.transformation import Transformation
 
 
@@ -33,12 +33,6 @@ class CraftingEnv:
             position,
             zones_inventories,
         )
-
-    def slot_from_item(self, item: Item) -> int:
-        return self.items.index(item)
-
-    def slot_from_zone(self, zone: Zone) -> int:
-        return self.zones.index(zone)
 
     def step(self, action: int):
         pass

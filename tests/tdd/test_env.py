@@ -6,6 +6,7 @@ import pytest_check as check
 import numpy as np
 
 from crafting.env import CraftingEnv, Item, Zone
+from tests.check_array import check_np_equal
 
 
 class TestCratingEnv:
@@ -35,18 +36,3 @@ class TestCratingEnv:
 
         expected_zones_inventories = np.zeros((self.n_items, self.n_zones))
         check_np_equal(zones_inventories, expected_zones_inventories)
-
-    def test_slot_from_item(self):
-        item_3 = self.items[3]
-        check.equal(self.env.slot_from_item(item_3), 3)
-
-    def test_slot_from_zone(self):
-        zone_3 = self.zones[3]
-        check.equal(self.env.slot_from_zone(zone_3), 3)
-
-
-def check_np_equal(array: np.ndarray, expected_array: np.ndarray):
-    check.is_true(
-        np.all(array == expected_array),
-        msg=f"Got:\n{array}\nExpected:\n{expected_array}\nDiff:{array-expected_array}",
-    )
