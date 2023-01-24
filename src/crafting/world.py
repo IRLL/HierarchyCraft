@@ -11,7 +11,7 @@ class Item:
 @dataclass(frozen=True)
 class ItemStack:
     item: Item
-    quantity: int
+    quantity: int = 1
 
 
 @dataclass(frozen=True)
