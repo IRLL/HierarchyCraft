@@ -2,35 +2,59 @@ from typing import Optional, List
 
 import numpy as np
 
-from crafting.world import ItemStack, Zone, World
+from crafting.world import Item, ItemStack, Zone, World
 
 
 class Transformation:
+
+    OPERATIONS = [
+        "destination",
+        "zones",
+        "removed_player_items",
+        "added_player_items",
+        "removed_destination_items",
+        "added_destination_items",
+        "removed_zone_items",
+        "added_zone_items",
+    ]
+
     def __init__(
         self,
         destination: Optional[Zone] = None,
         zones: Optional[List[Zone]] = None,
         removed_player_items: Optional[List[ItemStack]] = None,
         added_player_items: Optional[List[ItemStack]] = None,
+        removed_destination_items: Optional[List[ItemStack]] = None,
+        added_destination_items: Optional[List[ItemStack]] = None,
+        removed_zone_items: Optional[List[ItemStack]] = None,
+        added_zone_items: Optional[List[ItemStack]] = None,
     ) -> None:
         self.destination = destination
         self._destination = None
+
         self.zones = zones
         self._zones = None
+
         self.removed_player_items = removed_player_items
         self._removed_player_items = None
         self.added_player_items = added_player_items
         self._added_player_items = None
 
+        self.removed_destination_items = removed_destination_items
+        self._removed_destination_items = None
+        self.added_destination_items = added_destination_items
+        self._added_destination_items = None
+
+        self.removed_zone_items = removed_zone_items
+        self._removed_zone_items = None
+        self.added_zone_items = added_zone_items
+        self._added_zone_items = None
+
     def _build_ops(self, world: World) -> None:
-        if self.destination is not None:
-            self._build_destination_op(world)
-        if self.zones is not None:
-            self._build_zones_op(world)
-        if self.removed_player_items is not None:
-            self._build_removed_player_items_op(world)
-        if self.added_player_items is not None:
-            self._build_added_player_items_op(world)
+        for op_name in self.OPERATIONS:
+            if getattr(self, op_name) is not None:
+                builder = getattr(self, f"_build_{op_name}_op")
+                builder(world)
 
     def _build_destination_op(self, world: World) -> None:
         self._destination = np.zeros(world.n_zones, dtype=np.uint16)
@@ -42,13 +66,27 @@ class Transformation:
             self._zones[world.slot_from_zone(zone)] = 1
 
     def _build_removed_player_items_op(self, world: World) -> None:
-        self._removed_player_items = np.zeros(world.n_items, dtype=np.uint16)
-        for itemstack in self.removed_player_items:
-            item_slot = world.slot_from_item(itemstack.item)
-            self._removed_player_items[item_slot] = itemstack.quantity
+        self._build_items_op("removed_player_items", world.items)
 
     def _build_added_player_items_op(self, world: World) -> None:
-        self._added_player_items = np.zeros(world.n_items, dtype=np.uint16)
-        for itemstack in self.added_player_items:
-            item_slot = world.slot_from_item(itemstack.item)
-            self._added_player_items[item_slot] = itemstack.quantity
+        self._build_items_op("added_player_items", world.items)
+
+    def _build_removed_destination_items_op(self, world: World) -> None:
+        self._build_items_op("removed_destination_items", world.zones_items)
+
+    def _build_added_destination_items_op(self, world: World) -> None:
+        self._build_items_op("added_destination_items", world.zones_items)
+
+    def _build_removed_zone_items_op(self, world: World) -> None:
+        self._build_items_op("removed_zone_items", world.zones_items)
+
+    def _build_added_zone_items_op(self, world: World) -> None:
+        self._build_items_op("added_zone_items", world.zones_items)
+
+    def _build_items_op(self, op_name: str, world_item_list: List[Item]):
+        operation = np.zeros(len(world_item_list), dtype=np.uint16)
+        itemstacks: List[ItemStack] = getattr(self, op_name)
+        for itemstack in itemstacks:
+            item_slot = world_item_list.index(itemstack.item)
+            operation[item_slot] = itemstack.quantity
+        setattr(self, f"_{op_name}", operation)

@@ -70,7 +70,7 @@ class TestTransformation:
 
     def test_removed_destination_items(self):
         tranfo = Transformation(
-            removed_player_items=[ItemStack(self.zones_items[1], 2)]
+            removed_destination_items=[ItemStack(self.zones_items[1], 2)]
         )
         tranfo._build_ops(self.world)
 
@@ -79,12 +79,14 @@ class TestTransformation:
         check_np_equal(tranfo._removed_destination_items, expected_op)
 
     def test_no_removed_destination_items(self):
-        tranfo = Transformation(removed_player_items=None)
+        tranfo = Transformation(removed_destination_items=None)
         tranfo._build_ops(self.world)
         check.is_none(tranfo._removed_destination_items)
 
     def test_added_destination_items(self):
-        tranfo = Transformation(added_player_items=[ItemStack(self.zones_items[1], 2)])
+        tranfo = Transformation(
+            added_destination_items=[ItemStack(self.zones_items[1], 2)]
+        )
         tranfo._build_ops(self.world)
 
         expected_op = np.zeros(len(self.zones_items), dtype=np.uint16)
@@ -95,3 +97,32 @@ class TestTransformation:
         tranfo = Transformation(added_player_items=None)
         tranfo._build_ops(self.world)
         check.is_none(tranfo._added_destination_items)
+
+    def test_removed_zone_items(self):
+        tranfo = Transformation(
+            removed_zone_items=[ItemStack(self.zones_items[1], 2)]
+        )
+        tranfo._build_ops(self.world)
+
+        expected_op = np.zeros(len(self.zones_items), dtype=np.uint16)
+        expected_op[1] = 2
+        check_np_equal(tranfo._removed_zone_items, expected_op)
+
+    def test_no_removed_zone_items(self):
+        tranfo = Transformation(removed_zone_items=None)
+        tranfo._build_ops(self.world)
+        check.is_none(tranfo._removed_zone_items)
+
+
+    def test_added_zone_items(self):
+        tranfo = Transformation(added_zone_items=[ItemStack(self.zones_items[1], 2)])
+        tranfo._build_ops(self.world)
+
+        expected_op = np.zeros(len(self.zones_items), dtype=np.uint16)
+        expected_op[1] = 2
+        check_np_equal(tranfo._added_zone_items, expected_op)
+
+    def test_no_added_zone_items(self):
+        tranfo = Transformation(added_zone_items=None)
+        tranfo._build_ops(self.world)
+        check.is_none(tranfo._added_zone_items)
