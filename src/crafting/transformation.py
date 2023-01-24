@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 import numpy as np
 
@@ -50,7 +50,36 @@ class Transformation:
         self.added_zone_items = added_zone_items
         self._added_zone_items = None
 
-    def _build_ops(self, world: World) -> None:
+    def apply(
+        self,
+        player_inventory: np.ndarray,
+        position: np.ndarray,
+        zones_inventories: np.ndarray,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        position_slot: int = position.nonzero()[0]
+        if self._added_player_items is not None:
+            player_inventory += self._added_player_items
+        if self._removed_player_items is not None:
+            player_inventory -= self._removed_player_items
+        if self._added_zone_items is not None:
+            zones_inventories[position_slot, :] += self._added_zone_items
+        if self._removed_zone_items is not None:
+            zones_inventories[position_slot, :] -= self._removed_zone_items
+        if self._destination is not None:
+            destination_slot: int = self._destination.nonzero()[0]
+            if self._added_destination_items is not None:
+                zones_inventories[destination_slot, :] += self._added_destination_items
+            if self._removed_destination_items is not None:
+                zones_inventories[
+                    destination_slot, :
+                ] -= self._removed_destination_items
+            position[...] = self._destination
+        return player_inventory, position, zones_inventories
+
+    def is_valid(self, state: Tuple[np.ndarray, np.ndarray, np.ndarray]) -> bool:
+        return True
+
+    def build(self, world: World) -> None:
         for op_name in self.OPERATIONS:
             if getattr(self, op_name) is not None:
                 builder = getattr(self, f"_build_{op_name}_op")
