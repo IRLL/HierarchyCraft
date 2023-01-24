@@ -26,6 +26,17 @@ class CraftingEnv:
     def state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         return self.player_inventory, self.position, self.zones_inventories
 
+    @property
+    def observation(self) -> np.ndarray:
+        current_zone_inventory = self.zones_inventories[self.position == 1, :][0, :]
+        return np.concatenate(
+            (
+                self.player_inventory,
+                self.position,
+                current_zone_inventory,
+            )
+        )
+
     def step(self, action: int):
         pass
 
@@ -61,7 +72,7 @@ class CraftingEnv:
         position[start_slot] = 1
 
         zones_inventories = np.zeros(
-            (self.world.n_items, self.world.n_zones), dtype=np.uint16
+            (self.world.n_zones, self.world.n_zones_items), dtype=np.uint16
         )
 
         return (

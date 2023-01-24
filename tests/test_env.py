@@ -26,7 +26,12 @@ class TestCratingEnv:
 
         self.wood = Item("wood")
         self.search_wood = Transformation(
-            added_player_items=[ItemStack(self.wood, 2)],
+            added_player_items=[ItemStack(self.wood)],
+        )
+
+        self.stone = Item("stone")
+        self.search_stone = Transformation(
+            added_player_items=[ItemStack(self.stone, 1)],
         )
 
         self.plank = Item("plank")
@@ -41,13 +46,21 @@ class TestCratingEnv:
             added_zone_items=[ItemStack(self.table)],
         )
 
-        self.items = [self.wood, self.plank]
-        self.zones_items = [self.table]
+        self.wood_house = Item("wood house")
+        self.build_house = Transformation(
+            removed_player_items=[ItemStack(self.plank, 32), ItemStack(self.wood, 8)],
+            added_zone_items=[ItemStack(self.wood_house)],
+        )
+
+        self.items = [self.wood, self.stone, self.plank]
+        self.zones_items = [self.table, self.wood_house]
         self.transformations = [
             self.move_to_other_zone,
             self.search_wood,
+            self.search_stone,
             self.craft_plank,
             self.craft_table,
+            self.build_house,
         ]
 
     def test_world_initialisation(self):
@@ -68,7 +81,7 @@ class TestCratingEnv:
         check_np_equal(position, expected_position)
 
         expected_zones_inventories = np.zeros(
-            (len(self.zones_items), len(self.zones)), np.uint16
+            (len(self.zones), len(self.zones_items)), np.uint16
         )
         check_np_equal(zones_inventories, expected_zones_inventories)
 
@@ -78,3 +91,12 @@ class TestCratingEnv:
         expected_position = np.zeros(len(self.zones), np.uint16)
         expected_position[env.world.zones.index(self.start_zone)] = 1
         check_np_equal(position, expected_position)
+
+    def test_observation(self):
+        env = CraftingEnv(self.transformations)
+        env.player_inventory[1] = 2
+        start_zone_index = 0
+        env.zones_inventories[start_zone_index, 0] = 3
+        env.zones_inventories[start_zone_index, 1] = 1
+        expected_observation = np.array([0, 2, 0, 1, 0, 3, 1])
+        check_np_equal(env.observation, expected_observation)
