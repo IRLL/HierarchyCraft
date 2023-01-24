@@ -14,11 +14,10 @@ class TestTransformation:
         self.items = [Item("0"), Item("1"), Item("2")]
         self.world = World(self.items, self.zones)
 
-    def test_move_transformation(self):
-        move_to_zone_1 = Transformation(
-            destination=self.zones[1],
-            zones=[self.zones[0], self.zones[2]],
-        )
+    def test_destination_transformation(self):
+        move_to_zone_1 = Transformation(destination=self.zones[1])
         move_to_zone_1._build_ops(self.world)
+
         expected_destination_ops = np.zeros(len(self.zones), dtype=np.uint16)
+        expected_destination_ops[1] = 1
         check_np_equal(move_to_zone_1.destination_ops, expected_destination_ops)
