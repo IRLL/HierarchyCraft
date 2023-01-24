@@ -12,9 +12,21 @@ class Transformation:
         zones: Optional[List[Zone]] = None,
     ) -> None:
         self.destination = destination
-        self.destination_ops = None
+        self._destination = None
         self.zones = zones
+        self._zones = None
 
-    def _build_ops(self, world: World) -> np.ndarray:
-        self.destination_ops = np.zeros(world.n_zones, dtype=np.uint16)
-        self.destination_ops[world.slot_from_zone(self.destination)] = 1
+    def _build_ops(self, world: World) -> None:
+        if self.destination is not None:
+            self._build_destination_op(world)
+        if self.zones is not None:
+            self._build_zones_op(world)
+
+    def _build_destination_op(self, world: World) -> None:
+        self._destination = np.zeros(world.n_zones, dtype=np.uint16)
+        self._destination[world.slot_from_zone(self.destination)] = 1
+
+    def _build_zones_op(self, world: World) -> None:
+        self._zones = np.zeros(world.n_zones, dtype=np.uint16)
+        for zone in self.zones:
+            self._zones[world.slot_from_zone(zone)] = 1
