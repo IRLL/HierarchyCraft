@@ -13,6 +13,12 @@ class ItemStack:
     item: Item
     quantity: int = 1
 
+    def __str__(self) -> str:
+        name = self.item.name
+        if self.quantity > 1:
+            name += f"[{self.quantity}]"
+        return name
+
 
 @dataclass(frozen=True)
 class Zone:

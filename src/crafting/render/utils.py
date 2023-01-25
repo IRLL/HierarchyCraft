@@ -89,9 +89,9 @@ def load_image(resources_path: Path, obj: Union[Item, Zone, Transformation]):
 
 
 def load_or_create_image(
-    font_path: Path,
-    ressources_path: Path,
     obj: Union[Item, Zone, Transformation],
+    ressources_path: Path,
+    font_path: Path,
     text: Optional[str] = None,
     text_relative_size: float = 0.3,
 ):

@@ -1,4 +1,4 @@
-from typing import List, Set, Tuple, Optional
+from typing import List, Set, Tuple, Optional, Union
 
 import numpy as np
 
@@ -7,6 +7,7 @@ from crafting.transformation import Transformation
 from crafting.purpose import Purpose
 
 from crafting.render.render import CraftingWindow
+from crafting.render.utils import surface_to_rgb_array
 
 
 class CraftingEnv:
@@ -18,6 +19,7 @@ class CraftingEnv:
         start_zone: Optional[Zone] = None,
         purpose: Optional[Purpose] = None,
         invalid_reward: float = -10.0,
+        render_mode="human",
     ) -> None:
         self.transformations = transformations
         self.start_zone = start_zone
@@ -36,6 +38,11 @@ class CraftingEnv:
             purpose = Purpose(tasks=purpose)
         self.purpose = purpose
         self.purpose.build(self.world)
+
+        self.render_mode = render_mode
+        self.render_window = None
+
+        self.metadata = {}
 
     @property
     def state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -86,9 +93,6 @@ class CraftingEnv:
     def _step_output(self, reward: float):
         return (self.observation, reward, self.terminated or self.truncated, {})
 
-    def render(self):
-        pass
-
     def reset(self, seed: int = 0):
         """Resets the state of the environement."""
         self._reset_state()
@@ -127,6 +131,28 @@ class CraftingEnv:
         self.zones_inventories = np.zeros(
             (self.world.n_zones, self.world.n_zones_items), dtype=np.uint16
         )
+
+    def render(self, mode: Optional[str] = None, **kwargs) -> Union[str, np.ndarray]:
+        """Render the observation of the agent in a format depending on `render_mode`."""
+        if mode is not None:
+            self.render_mode = mode
+
+        if self.render_mode in ("human", "rgb_array"):  # for human interaction
+            return self.render_rgb_array()
+        if self.render_mode == "console":  # for console print
+            raise NotImplementedError
+        raise NotImplementedError
+
+    def render_rgb_array(self) -> np.ndarray:
+        """Render an image of the game.
+
+        Create the rendering window if not existing yet.
+        """
+        if self.render_window is None:
+            self.render_window = CraftingWindow(self)
+        fps = self.metadata.get("video.frames_per_second")
+        self.render_window.update_rendering(fps=fps)
+        return surface_to_rgb_array(self.render_window.screen)
 
 
 def _add_items_to(itemstacks: Optional[List[ItemStack]], items_set: Set[Item]):

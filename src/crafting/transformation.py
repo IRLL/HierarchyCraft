@@ -145,3 +145,32 @@ class Transformation:
             item_slot = world_item_list.index(itemstack.item)
             operation[item_slot] = itemstack.quantity
         setattr(self, f"_{op_name}", operation)
+
+    def __str__(self) -> str:
+        transfo_text = ""
+
+        if self.removed_player_items is not None:
+            transfo_text += _unstacked_str(self.removed_player_items, "")
+        if self.removed_destination_items is not None:
+            transfo_text += _unstacked_str(self.removed_destination_items, "Dest")
+        if self.removed_zone_items is not None:
+            transfo_text += _unstacked_str(self.removed_zone_items, "Zone")
+
+        transfo_text += " > "
+
+        if self.added_player_items is not None:
+            transfo_text += _unstacked_str(self.added_player_items, "")
+        if self.added_destination_items is not None:
+            transfo_text += _unstacked_str(self.added_destination_items, "Dest")
+        if self.added_zone_items is not None:
+            transfo_text += _unstacked_str(self.added_zone_items, "Zone")
+
+        if self.destination is not None:
+            transfo_text += f">{self.destination.name}"
+
+        return transfo_text
+
+
+def _unstacked_str(itemstacks: List[ItemStack], prefix: str):
+    items_text = ",".join([str(itemstack) for itemstack in itemstacks])
+    return f"{prefix}({items_text})"

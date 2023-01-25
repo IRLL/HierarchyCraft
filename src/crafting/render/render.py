@@ -1,5 +1,6 @@
 # Crafting a meta-environment to simultate inventory managment
 # Copyright (C) 2021-2023 Mathïs FEDERICO <https://www.gnu.org/licenses/>
+# pylint: disable=no-member
 
 """ Rendering of the Crafting environments """
 
@@ -30,6 +31,8 @@ if TYPE_CHECKING:
     from pygame.event import Event
 
     from crafting.env import CraftingEnv
+    from crafting.world import World
+    from crafting.transformation import Transformation
 
 
 class CraftingWindow:
@@ -40,7 +43,7 @@ class CraftingWindow:
             env: The running Crafting environment.
         """
         try:
-            pygame.init()  # pylint: disable=no-member
+            pygame.init()
         except NameError as error:
             raise ImportError(
                 "Missing import for rendering user interface. "
@@ -56,8 +59,13 @@ class CraftingWindow:
         self.screen = pygame.display.set_mode(self.window_shape)
         pygame.display.set_caption("Crafting")
 
+        # Create menus
+        self.menus = self.make_menus()
+
     def update_rendering(
-        self, additional_events: List["Event"], fps: Optional[float] = None
+        self,
+        additional_events: Optional[List["Event"]] = None,
+        fps: Optional[float] = None,
     ) -> Union[int, None]:
         """Update the User Interface returning action if one was found.
 
@@ -88,31 +96,102 @@ class CraftingWindow:
         #     widget.update(env)
         #     widget.draw(screen)
 
-        action = None
+        action_taken = None
         # action_is_legal = env.action_masks()
 
-        # for menu in menus:
-        #     buttons = [
-        #         widget for widget in menu.get_widgets() if isinstance(widget, Button)
-        #     ]
-        #     for button in buttons:
-        #         action_id = env.action(*id_to_action[button.get_id()])
-        #         show_button = action_is_legal[action_id]
-        #         if show_button:
-        #             button.show()
-        #         else:
-        #             button.hide()
+        for menu in self.menus:
+            buttons = [
+                widget for widget in menu.get_widgets() if isinstance(widget, Button)
+            ]
+            for button in buttons:
+                action = self.button_id_to_action[button.get_id()]
+                # show_button = action_is_legal[action_id]
+                show_button = True
+                if show_button:
+                    button.show()
+                else:
+                    button.hide()
 
-        #     menu.update(events)
-        #     menu.draw(screen)
+            menu.update(events)
+            menu.draw(self.screen)
 
-        #     selected_widget = menu.get_selected_widget()
-        #     if selected_widget is not None and selected_widget.update(events):
-        #         action = selected_widget.apply()
+            selected_widget = menu.get_selected_widget()
+            if selected_widget is not None and selected_widget.update(events):
+                action_taken = selected_widget.apply()
 
         # Update surface
         pygame.display.update()
-        return action
+        return action_taken
+
+    def make_menus(self):
+        """Build menus for user interface.
+
+        Args:
+            world: The current world.
+            window_shape: Shape of the window containing menus.
+
+        """
+
+        self.button_id_to_action = {}
+
+        # Transformations Menu
+        transformations_menu_width = int(0.4 * self.window_shape[0])
+        transformations_menu_height = self.window_shape[1]
+
+        transformations_menu = Menu(
+            title="Transformations",
+            center_content=True,
+            height=transformations_menu_height,
+            width=transformations_menu_width,
+            keyboard_enabled=True,
+            joystick_enabled=False,
+            rows=len(self.env.transformations),
+            columns=1,
+            position=(0, 0),
+            overflow=(False, True),
+        )
+
+        for action, transfo in enumerate(self.env.transformations):
+            button_id = _add_button_to_menu(
+                transformations_menu,
+                text=str(transfo),
+                text_width=8,
+                index=action,
+                padding=(16, 0, 16, 0),
+            )
+            self.button_id_to_action[button_id] = action
+
+        return (transformations_menu,)
+
+
+def _add_button_to_menu(
+    menu: "Menu",
+    text_width: int,
+    index: int,
+    padding,
+    image: Optional["Image"] = None,
+    text: Optional[str] = None,
+):
+    if text is None:
+        text = " " * text_width
+    button = menu.add.button(
+        text,
+        lambda x: x,
+        index,
+        padding=padding,
+        font_size=16,
+    )
+    if image is not None:
+        decorator = button.get_decorator()
+        decorator.add_baseimage(0, 0, image, centered=True)
+    return button.get_id()
+
+
+def _scale_image(image: "Image", scaling: float) -> BaseImage:
+    buffered = BytesIO()
+    image.save(buffered, format="PNG")
+    buffered.seek(0)
+    return BaseImage(buffered).scale(scaling, scaling)
 
 
 def get_human_action(
@@ -140,152 +219,25 @@ def get_human_action(
     return action
 
 
-# def make_menus(world: "World", window_shape: tuple):
-#     """Build menus for user interface.
+def render_env_with_human(env: "CraftingEnv", n_episodes: int = 1):
+    """Render the given environment with human iteractions.
 
-#     Args:
-#         world: The current world.
-#         window_shape: Shape of the window containing menus.
+    Args:
+        env (CraftingEnv): The Crafting environment to run.
+        n_episodes (int, optional): Number of episodes to run. Defaults to 1.
+    """
+    print("Purpose: ", env.purpose)
 
-#     """
+    for _ in range(n_episodes):
+        env.reset()
+        done = False
+        total_reward = 0
+        while not done:
+            env.render()
+            action = get_human_action(env)
+            print(f"Human did: {env.transformations[action]}")
 
-#     def add_button(
-#         menu: "Menu",
-#         id_to_action: Dict[str, Any],
-#         image: "Image",
-#         scaling: float,
-#         text_width: int,
-#         action_type,
-#         identificator,
-#         padding,
-#     ):
-#         buffered = BytesIO()
-#         image.save(buffered, format="PNG")
-#         buffered.seek(0)
-#         image = BaseImage(buffered).scale(scaling, scaling)
+            _observation, reward, done, _info = env.step(action)
+            total_reward += reward
 
-#         button = menu.add.button(
-#             " " * text_width,
-#             lambda *args: args,
-#             action_type,
-#             identificator,
-#             padding=padding,
-#         )
-
-#         decorator = button.get_decorator()
-#         decorator.add_baseimage(0, 0, image, centered=True)
-#         id_to_action[button.get_id()] = (action_type, identificator)
-
-#     id_to_action = {}
-
-#     # Item Menu
-#     items_menu_height = int(0.75 * window_shape[1])
-#     items_menu_width = int(0.15 * window_shape[0])
-
-#     items_menu = Menu(
-#         title="Search",
-#         height=items_menu_height,
-#         width=items_menu_width,
-#         keyboard_enabled=False,
-#         joystick_enabled=False,
-#         position=(0, 0),
-#         overflow=(False, True),
-#         theme=THEME_BLUE,
-#     )
-
-#     for item in world.searchable_items:
-#         add_button(
-#             items_menu,
-#             id_to_action,
-#             image=load_or_create_image(world, item),
-#             scaling=0.5,
-#             text_width=8,
-#             action_type=ActionTypes.SEARCH,
-#             identificator=item.item_id,
-#             padding=(12, 0, 12, 0),
-#         )
-
-#     # Recipes Menu
-#     recipes_menu_height = window_shape[1] - items_menu_height
-#     recipes_menu_width = window_shape[0]
-
-#     recipes_menu = Menu(
-#         title="Craft",
-#         height=recipes_menu_height,
-#         width=recipes_menu_width,
-#         keyboard_enabled=False,
-#         joystick_enabled=False,
-#         rows=1,
-#         columns=world.n_recipes,
-#         position=(0, 100),
-#         overflow=(True, False),
-#         column_max_width=int(0.08 * window_shape[0]),
-#         theme=THEME_ORANGE,
-#     )
-
-#     for recipe in world.recipes:
-#         add_button(
-#             recipes_menu,
-#             id_to_action,
-#             image=load_or_create_image(world, recipe),
-#             scaling=0.5,
-#             text_width=8,
-#             action_type=ActionTypes.CRAFT,
-#             identificator=recipe.recipe_id,
-#             padding=(16, 0, 16, 0),
-#         )
-
-#     # Zones Menu
-#     zones_menu_height = items_menu_height
-#     zones_menu_width = int(0.20 * window_shape[0])
-
-#     zones_menu = Menu(
-#         title="Move",
-#         height=zones_menu_height,
-#         width=zones_menu_width,
-#         keyboard_enabled=False,
-#         joystick_enabled=False,
-#         position=(100, 0),
-#         overflow=(False, True),
-#         theme=THEME_GREEN,
-#     )
-
-#     for zone in world.zones:
-#         add_button(
-#             zones_menu,
-#             id_to_action,
-#             image=load_or_create_image(world, zone),
-#             scaling=0.2,
-#             text_width=19,
-#             action_type=ActionTypes.MOVE.value,
-#             identificator=zone.zone_id,
-#             padding=(26, 0, 26, 0),
-#         )
-
-#     return (items_menu, recipes_menu, zones_menu), id_to_action
-
-
-# def render_env_with_human(env: "CraftingEnv", n_episodes: int = 1):
-#     """Render the given environment with human iteractions.
-
-#     Args:
-#         env (CraftingEnv): The Crafting environment to run.
-#         n_episodes (int, optional): Number of episodes to run. Defaults to 1.
-#     """
-#     print("Tasks: ", env.tasks)
-
-#     for _ in range(n_episodes):
-#         env.reset()
-#         done = False
-#         total_reward = 0
-#         while not done:
-#             env.render()
-
-#             action = get_human_action(env, **env.render_variables)
-#             action_id = env.action(*action)
-#             print(f"Human did: {env.action_from_id(action_id)}")
-
-#             _observation, reward, done, _info = env.step(action_id)
-#             total_reward += reward
-
-#         print("SCORE: ", total_reward)
+        print("SCORE: ", total_reward)
