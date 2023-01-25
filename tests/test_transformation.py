@@ -1,6 +1,7 @@
 import pytest
 import pytest_check as check
 import numpy as np
+import difflib
 
 from crafting.world import Item, ItemStack, Zone, World
 from crafting.transformation import Transformation
@@ -256,3 +257,94 @@ class TestTransformationOperations:
         tranfo = Transformation(added_zone_items=None)
         tranfo.build(self.world)
         check.is_none(tranfo._added_zone_items)
+
+    def test_str(self):
+        tranfo = Transformation(
+            added_player_items=[
+                ItemStack(Item("wood"), 2),
+                ItemStack(Item("stone"), 3),
+            ]
+        )
+        check_equal_str(str(tranfo), "> wood[2],stone[3]")
+
+        tranfo = Transformation(
+            removed_player_items=[
+                ItemStack(Item("wood"), 2),
+                ItemStack(Item("stone"), 3),
+            ]
+        )
+        check_equal_str(str(tranfo), "wood[2],stone[3] > ")
+
+        tranfo = Transformation(
+            added_zone_items=[
+                ItemStack(Item("wood"), 2),
+                ItemStack(Item("stone"), 3),
+            ]
+        )
+        check_equal_str(str(tranfo), "> Zone(wood[2],stone[3])")
+
+        tranfo = Transformation(
+            removed_zone_items=[
+                ItemStack(Item("wood"), 2),
+                ItemStack(Item("stone"), 3),
+            ]
+        )
+        check_equal_str(str(tranfo), "Zone(wood[2],stone[3]) > ")
+
+        tranfo = Transformation(
+            added_destination_items=[
+                ItemStack(Item("wood"), 2),
+                ItemStack(Item("stone"), 3),
+            ]
+        )
+        check_equal_str(str(tranfo), "> Dest(wood[2],stone[3])")
+
+        tranfo = Transformation(
+            removed_destination_items=[
+                ItemStack(Item("wood"), 2),
+                ItemStack(Item("stone"), 3),
+            ]
+        )
+        check_equal_str(str(tranfo), "Dest(wood[2],stone[3]) > ")
+
+        tranfo = Transformation(destination=Zone("other zone"))
+        check_equal_str(str(tranfo), "> | other zone")
+
+        tranfo = Transformation(destination=Zone("other zone"))
+        check_equal_str(str(tranfo), "> | other zone")
+
+        tranfo = Transformation(
+            removed_player_items=[
+                ItemStack(Item("P1")),
+                ItemStack(Item("P2")),
+            ],
+            removed_zone_items=[
+                ItemStack(Item("Z1")),
+                ItemStack(Item("Z2")),
+            ],
+            removed_destination_items=[
+                ItemStack(Item("D1")),
+                ItemStack(Item("D2")),
+            ],
+            added_player_items=[
+                ItemStack(Item("P3")),
+                ItemStack(Item("P4")),
+            ],
+            added_zone_items=[
+                ItemStack(Item("Z3")),
+                ItemStack(Item("Z4")),
+            ],
+            added_destination_items=[
+                ItemStack(Item("D3")),
+                ItemStack(Item("D4")),
+            ],
+            destination=Zone("D"),
+        )
+        check_equal_str(
+            str(tranfo),
+            "P1,P2 Zone(Z1,Z2) Dest(D1,D2) > P3,P4 Zone(Z3,Z4) Dest(D3,D4) | D",
+        )
+
+
+def check_equal_str(actual, expected):
+    check.equal(actual, expected, msg=f"\n{expected}\n{actual}")

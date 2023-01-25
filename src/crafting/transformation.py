@@ -149,28 +149,41 @@ class Transformation:
     def __str__(self) -> str:
         transfo_text = ""
 
+        remove_texts = []
         if self.removed_player_items is not None:
-            transfo_text += _unstacked_str(self.removed_player_items, "")
-        if self.removed_destination_items is not None:
-            transfo_text += _unstacked_str(self.removed_destination_items, "Dest")
+            remove_texts.append(_unstacked_str(self.removed_player_items))
         if self.removed_zone_items is not None:
-            transfo_text += _unstacked_str(self.removed_zone_items, "Zone")
+            remove_texts.append(_unstacked_str(self.removed_zone_items, "Zone(", ")"))
+        if self.removed_destination_items is not None:
+            remove_texts.append(
+                _unstacked_str(self.removed_destination_items, "Dest(", ")")
+            )
 
-        transfo_text += " > "
+        if remove_texts:
+            transfo_text = " ".join(remove_texts)
+            transfo_text += " "
 
+        transfo_text += "> "
+
+        add_texts = []
         if self.added_player_items is not None:
-            transfo_text += _unstacked_str(self.added_player_items, "")
-        if self.added_destination_items is not None:
-            transfo_text += _unstacked_str(self.added_destination_items, "Dest")
+            add_texts.append(_unstacked_str(self.added_player_items))
         if self.added_zone_items is not None:
-            transfo_text += _unstacked_str(self.added_zone_items, "Zone")
+            add_texts.append(_unstacked_str(self.added_zone_items, "Zone(", ")"))
+        if self.added_destination_items is not None:
+            add_texts.append(_unstacked_str(self.added_destination_items, "Dest(", ")"))
+
+        if add_texts:
+            transfo_text += " ".join(add_texts)
+            if self.destination is not None:
+                transfo_text += " "
 
         if self.destination is not None:
-            transfo_text += f">{self.destination.name}"
+            transfo_text += f"| {self.destination.name}"
 
         return transfo_text
 
 
-def _unstacked_str(itemstacks: List[ItemStack], prefix: str):
+def _unstacked_str(itemstacks: List[ItemStack], prefix: str = "", suffix: str = ""):
     items_text = ",".join([str(itemstack) for itemstack in itemstacks])
-    return f"{prefix}({items_text})"
+    return f"{prefix}{items_text}{suffix}"
