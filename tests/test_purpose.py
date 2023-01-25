@@ -8,6 +8,19 @@ from crafting.purpose import Purpose
 from crafting.task import Task
 
 
+class TestNoPurpose:
+    @pytest.fixture(autouse=True)
+    def setup_method(self):
+        self.purpose = Purpose(None)
+
+    def test_reward(self):
+        reward = self.purpose.reward(None, None, None)
+        check.equal(reward, 0)
+
+    def test_is_terminal(self):
+        check.is_false(self.purpose.is_terminal(None, None, None))
+
+
 class DummyTask(Task):
     def __init__(self, reward) -> None:
         self.is_built = False
@@ -44,19 +57,9 @@ class TestPurposeSingleTask:
         check.is_true(self.get_wood.is_built)
 
     def test_reward(self):
-        reward = self.purpose.reward(
-            player_inventory=None, position=None, zones_inventory=None
-        )
+        reward = self.purpose.reward(None, None, None)
         check.equal(reward, 5)
 
     def test_is_terminal(self):
-        check.is_false(
-            self.purpose.is_terminal(
-                player_inventory=None, position=0, zones_inventory=None
-            )
-        )
-        check.is_true(
-            self.purpose.is_terminal(
-                player_inventory=None, position=1, zones_inventory=None
-            )
-        )
+        check.is_false(self.purpose.is_terminal(None, 0, None))
+        check.is_true(self.purpose.is_terminal(None, 1, None))
