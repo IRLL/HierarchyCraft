@@ -7,6 +7,8 @@ from crafting.transformation import Transformation
 
 
 class CraftingEnv:
+    """A gym-like environment built from a list of `Transformation`."""
+
     def __init__(
         self,
         transformations: List[Transformation],
@@ -26,10 +28,12 @@ class CraftingEnv:
 
     @property
     def state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Current state of the environment."""
         return self.player_inventory, self.position, self.zones_inventories
 
     @property
     def observation(self) -> np.ndarray:
+        """Observation given to the player."""
         current_zone_slot = self.position.nonzero()[0]
         return np.concatenate(
             (
@@ -41,13 +45,22 @@ class CraftingEnv:
 
     @property
     def truncated(self) -> bool:
+        """Whether the time limit has been exceeded."""
         return False
 
     @property
     def terminated(self) -> bool:
+        """Whether the environment tasks are all done (if any)"""
         return False
 
     def step(self, action: int):
+        """Perform one step in the environment given the index of a wanted transformation.
+
+        If the selected transformation can be performed, the state is updated and
+        a reward is given depending of the environment tasks.
+        Else the state is left unchanged and the `invalid_reward` is given to the player.
+
+        """
         choosen_transformation = self.transformations[action]
         if not choosen_transformation.is_valid(*self.state):
             return self._step_output(self.invalid_reward)
@@ -65,9 +78,12 @@ class CraftingEnv:
         pass
 
     def reset(self, seed: int = 0):
+        """Resets the state of the environement."""
         self._reset_state()
 
     def _build_world(self) -> World:
+        """Reads the transformation to build the list of items, zones and zones_items
+        composing the world."""
         items, zones, zones_items = set(), set(), set()
         for transfo in self.transformations:
             if transfo.destination is not None:

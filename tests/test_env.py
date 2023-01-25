@@ -61,12 +61,14 @@ class TestCratingEnv:
         ]
 
     def test_world_initialisation(self):
+        """should find all items, zones and zones_items in transformations."""
         env = CraftingEnv(self.transformations, start_zone=self.start_zone)
         check.equal(set(env.world.zones), set(self.zones))
         check.equal(set(env.world.items), set(self.items))
         check.equal(set(env.world.zones_items), set(self.zones_items))
 
     def test_state_initialisation(self):
+        """should initialize the state as expected."""
         env = CraftingEnv(self.transformations)
 
         player_inventory, position, zones_inventories = env.state
@@ -83,6 +85,7 @@ class TestCratingEnv:
         check_np_equal(zones_inventories, expected_zones_inventories)
 
     def test_start_zone(self):
+        """postition should be in start zone at initialization if given."""
         env = CraftingEnv(self.transformations, start_zone=self.start_zone)
         _, position, _ = env.state
         expected_position = np.zeros(len(self.zones), np.uint16)
@@ -90,6 +93,7 @@ class TestCratingEnv:
         check_np_equal(position, expected_position)
 
     def test_observation(self):
+        """observation should only show items of current zone."""
         env = CraftingEnv(self.transformations)
         env.player_inventory[1] = 2
         start_zone_index = 0
@@ -99,6 +103,7 @@ class TestCratingEnv:
         check_np_equal(env.observation, expected_observation)
 
     def test_step_move(self):
+        """move transformation should work correctly."""
         env = CraftingEnv(self.transformations, start_zone=self.start_zone)
 
         start_zone_slot = env.world.slot_from_zone(self.start_zone)
@@ -112,6 +117,7 @@ class TestCratingEnv:
         check_np_equal(env.position, expected_positon)
 
     def test_step_search(self):
+        """step transformation should work correctly."""
         env = CraftingEnv(self.transformations, start_zone=self.start_zone)
         wood_slot = env.world.items.index(self.wood)
 
@@ -121,6 +127,7 @@ class TestCratingEnv:
         check.equal(env.player_inventory[wood_slot], 1)
 
     def test_step_craft(self):
+        """craft transformation should work correctly."""
         env = CraftingEnv(self.transformations, start_zone=self.start_zone)
         wood_slot = env.world.items.index(self.wood)
         plank_slot = env.world.items.index(self.plank)
@@ -138,6 +145,7 @@ class TestCratingEnv:
         check.equal(env.player_inventory[plank_slot], 4)
 
     def test_reset(self):
+        """reset should reset the state."""
         env = CraftingEnv(self.transformations)
 
         # Initialize an ongoing env
