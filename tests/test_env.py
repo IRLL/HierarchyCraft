@@ -203,6 +203,6 @@ class TestCratingEnv:
         env = CraftingEnv(self.transformations, self.start_zone)
         check_np_equal(env.actions_mask, np.array([1, 1, 1, 0, 0, 0]))
 
-        _, _, _, infos = env.step(0)
+        _, _, _, infos = env.step(env.transformations.index(self.search_wood))
         check_np_equal(env.actions_mask, np.array([1, 1, 1, 1, 0, 0]))
-        check_np_equal(infos["action_is_valid"], np.array([1, 1, 1, 1, 0, 0]))
+        check_np_equal(infos["action_is_legal"], np.array([1, 1, 1, 1, 0, 0]))

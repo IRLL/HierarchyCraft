@@ -96,7 +96,7 @@ class CraftingEnv:
         return self._step_output(reward)
 
     def _step_output(self, reward: float):
-        infos = {"action_is_valid": self.actions_mask}
+        infos = {"action_is_legal": self.actions_mask}
         return (self.observation, reward, self.terminated or self.truncated, infos)
 
     def reset(self, seed: int = 0):
