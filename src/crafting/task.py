@@ -3,7 +3,7 @@ from abc import abstractmethod
 
 import numpy as np
 
-from crafting.world import ItemStack, Zone, World
+from crafting.world import Item, ItemStack, Zone, World
 
 
 class Task:
@@ -70,9 +70,9 @@ class AchievementTask(Task):
 class GetItemTask(AchievementTask):
     """Task of getting a given quantity of an item."""
 
-    def __init__(self, item_stack: ItemStack, reward: float):
+    def __init__(self, item_stack: Union[Item, ItemStack], reward: float):
         super().__init__(reward)
-        self.item_stack = item_stack
+        self.item_stack = stack_item(item_stack)
 
     def build(self, world: World) -> None:
         super().build(world)
@@ -118,12 +118,12 @@ class PlaceItemTask(AchievementTask):
 
     def __init__(
         self,
-        item_stack: ItemStack,
+        item_stack: Union[Item, ItemStack],
         zones: Optional[Union[Zone, List[Zone]]] = None,
         reward: float = 1.0,
     ):
         super().__init__(reward)
-        self.item_stack = item_stack
+        self.item_stack = stack_item(item_stack)
         if isinstance(zones, Zone):
             zones = [zones]
         self.zones = zones
@@ -146,3 +146,9 @@ class PlaceItemTask(AchievementTask):
         zones_inventory: np.ndarray,
     ) -> bool:
         return np.all(zones_inventory >= self._terminate_zones_items)
+
+
+def stack_item(item_or_stack: Union[Item, ItemStack]) -> ItemStack:
+    if not isinstance(item_or_stack, ItemStack):
+        item_or_stack = ItemStack(item_or_stack)
+    return item_or_stack

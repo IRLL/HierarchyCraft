@@ -23,6 +23,12 @@ class TestGetItem:
         self.task.build(self.world)
         check_np_equal(self.task._terminate_player_items, np.array([0, 3, 0, 0]))
 
+    def test_build_with_item_only(self):
+        """should build even if the item is given without a stack."""
+        task = GetItemTask(Item("wood"), reward=5)
+        task.build(self.world)
+        check_np_equal(task._terminate_player_items, np.array([0, 1, 0, 0]))
+
     def test_terminate(self):
         """should terminate only when the player has more than wanted items."""
         self.task.build(self.world)
@@ -97,6 +103,13 @@ class TestPlaceItem:
         self.task.build(self.world)
         expected_op = np.array([[0, 0, 0], [0, 0, 2]])
         check_np_equal(self.task._terminate_zones_items, expected_op)
+
+    def test_build_with_item_only(self):
+        """should build even if the item is given without a stack."""
+        task = PlaceItemTask(Item("wood_house"), Zone("other_zone"), reward=5)
+        task.build(self.world)
+        expected_op = np.array([[0, 0, 0], [0, 0, 1]])
+        check_np_equal(task._terminate_zones_items, expected_op)
 
     def test_build_no_zone(self):
         """should consider any zone if none is given."""
