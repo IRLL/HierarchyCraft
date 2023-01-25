@@ -100,23 +100,25 @@ class CraftingWindow:
         action_is_legal = self.env.actions_mask
 
         for menu in self.menus:
-            buttons = [
-                widget for widget in menu.get_widgets() if isinstance(widget, Button)
-            ]
-            for button in buttons:
-                action = self.button_id_to_action[button.get_id()]
-                show_button = action_is_legal[action]
-                if show_button:
-                    button.show()
-                else:
-                    button.hide()
-
             menu.update(events)
             menu.draw(self.screen)
 
-            selected_widget = menu.get_selected_widget()
-            if selected_widget is not None and selected_widget.update(events):
-                action_taken = selected_widget.apply()
+        action_buttons = [
+            widget
+            for widget in self.actions_menu.get_widgets()
+            if isinstance(widget, Button)
+        ]
+        for button in action_buttons:
+            action = self.button_id_to_action[button.get_id()]
+            show_button = action_is_legal[action]
+            if show_button:
+                button.show()
+            else:
+                button.hide()
+
+        selected_widget = self.actions_menu.get_selected_widget()
+        if selected_widget is not None and selected_widget.update(events):
+            action_taken: int = selected_widget.apply()
 
         # Update surface
         pygame.display.update()
@@ -134,14 +136,14 @@ class CraftingWindow:
         self.button_id_to_action = {}
 
         # Transformations Menu
-        transformations_menu_width = int(0.4 * self.window_shape[0])
-        transformations_menu_height = self.window_shape[1]
+        action_menu_width = int(0.4 * self.window_shape[0])
+        action_menu_height = self.window_shape[1]
 
-        transformations_menu = Menu(
+        self.actions_menu = Menu(
             title="Transformations",
             center_content=True,
-            height=transformations_menu_height,
-            width=transformations_menu_width,
+            height=action_menu_height,
+            width=action_menu_width,
             keyboard_enabled=True,
             joystick_enabled=False,
             rows=len(self.env.transformations),
@@ -152,7 +154,7 @@ class CraftingWindow:
 
         for action, transfo in enumerate(self.env.transformations):
             button_id = _add_button_to_menu(
-                transformations_menu,
+                self.actions_menu,
                 text=str(transfo),
                 text_width=8,
                 index=action,
@@ -160,7 +162,7 @@ class CraftingWindow:
             )
             self.button_id_to_action[button_id] = action
 
-        return (transformations_menu,)
+        return (self.actions_menu,)
 
 
 def _add_button_to_menu(
