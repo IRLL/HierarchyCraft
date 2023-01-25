@@ -6,6 +6,8 @@ from crafting.world import Item, ItemStack, Zone, World
 from crafting.transformation import Transformation
 from crafting.purpose import Purpose
 
+from crafting.render.render import CraftingWindow
+
 
 class CraftingEnv:
     """A gym-like environment built from a list of `Transformation`."""

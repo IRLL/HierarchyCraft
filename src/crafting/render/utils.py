@@ -6,6 +6,7 @@
 import os
 from typing import TYPE_CHECKING, Optional, Tuple, Union
 import logging
+from pathlib import Path
 
 import numpy as np
 
@@ -18,36 +19,18 @@ try:
 except ImportError:
     pass
 
-from crafting.world.items import Item, Tool
-from crafting.world.recipes import Recipe
-from crafting.world.zones import Zone
+from crafting.world import Item, Zone
+from crafting.transformation import Transformation
 
 if TYPE_CHECKING:
     from pygame.surface import Surface
-
-    from crafting.world.world import World
 
 
 # Disable PIL logging to avoid spam (see https://github.com/camptocamp/pytest-odoo/issues/15)
 logging.getLogger("PIL").setLevel(logging.INFO)
 
 
-def pilImageToSurface(pilImage: Image.Image):
-    """Convert a PIL Image to a pygame Surface.
-
-    Args:
-        pilImage: PIL Image to convert.
-
-    Returns:
-        A pygame Surface.
-
-    """
-    return pygame.image.fromstring(
-        pilImage.tobytes(), pilImage.size, pilImage.mode
-    ).convert_alpha()
-
-
-def create_image(world: "World", obj: Union[Item, Zone, Recipe, str]):
+def create_image(font_path: Path, obj: Union[Item, Zone, Transformation]):
     """Create a PIL image for and obj in a world.
 
     Args:
@@ -59,27 +42,6 @@ def create_image(world: "World", obj: Union[Item, Zone, Recipe, str]):
 
     """
 
-    def _get_text_color(obj: Union[Item, Zone, Recipe, str]):
-        if isinstance(obj, Item):
-            alt_txt = str(obj.item_id)
-            if isinstance(obj, Tool):
-                color = (0, 255, 255, 255)
-            elif obj in world.foundable_items:
-                color = (0, 125, 0, 255)
-            else:
-                color = (0, 0, 255, 255)
-        elif isinstance(obj, Zone):
-            alt_txt = str(obj)
-            color = None
-        elif isinstance(obj, str):
-            alt_txt = obj
-            color = None
-        elif isinstance(obj, Recipe):
-            return _get_text_color(get_representative_object(obj))
-        else:
-            raise TypeError(f"Unsuported type: {type(obj)} {obj}")
-        return alt_txt, color
-
     if isinstance(obj, Zone):
         image_size = (699, 394)
     else:
@@ -90,18 +52,17 @@ def create_image(world: "World", obj: Union[Item, Zone, Recipe, str]):
 
     cx, cy = image_size[0] // 2, image_size[1] // 2
     bbox = [0, 0, image_size[0], image_size[1]]
-    alt_txt, color = _get_text_color(obj)
-
-    if color is not None:
-        draw.rectangle(bbox, outline=color, width=5)
+    alt_txt = str(obj)
+    color = (0, 0, 255, 255)
+    draw.rectangle(bbox, outline=color, width=5)
 
     text_pt_size = int(0.60 * image_size[1])
-    font = ImageFont.truetype(world.font_path, size=text_pt_size)
+    font = ImageFont.truetype(font_path, size=text_pt_size)
     draw.text((cx, cy), alt_txt, fill=(0, 0, 0), font=font, anchor="mm")
     return image
 
 
-def load_image(world: "World", obj: Union[Item, Zone, Recipe, str]):
+def load_image(resources_path: Path, obj: Union[Item, Zone, Transformation]):
     """Load a PIL image for and obj in a world.
 
     Args:
@@ -116,22 +77,21 @@ def load_image(world: "World", obj: Union[Item, Zone, Recipe, str]):
         return None
 
     if isinstance(obj, Item):
-        image_path = os.path.join(world.resources_path, "items", f"{obj.item_id}.png")
+        image_path = os.path.join(resources_path, "items", f"{obj.name}.png")
     elif isinstance(obj, Zone):
-        image_path = os.path.join(world.resources_path, "zones", f"{obj.name}.png")
-    elif isinstance(obj, str):
-        image_path = os.path.join(world.resources_path, "properties", f"{obj}.png")
-    elif isinstance(obj, Recipe):
-        return load_image(world, get_representative_object(obj))
+        image_path = os.path.join(resources_path, "zones", f"{obj.name}.png")
+    elif isinstance(obj, Transformation):
+        return None
     else:
-        raise TypeError(f"Unkowned type {type(obj)}")
+        raise TypeError(f"Unsupported type for loading images: {type(obj)}")
 
     return Image.open(image_path).convert("RGBA")
 
 
 def load_or_create_image(
-    world: "World",
-    obj: Union[Item, Zone, Recipe, str],
+    font_path: Path,
+    ressources_path: Path,
+    obj: Union[Item, Zone, Transformation],
     text: Optional[str] = None,
     text_relative_size: float = 0.3,
 ):
@@ -149,9 +109,9 @@ def load_or_create_image(
 
     """
     try:
-        image = load_image(world, obj)
+        image = load_image(ressources_path, obj)
     except FileNotFoundError:
-        image = create_image(world, obj)
+        image = create_image(font_path, obj)
 
     if text is not None:
         image_draw = ImageDraw.Draw(image)
@@ -159,7 +119,7 @@ def load_or_create_image(
 
         text_px_size = int(3 * text_relative_size * min(image_shape[:1]))
         text_pt_size = int(0.75 * text_px_size)
-        font = ImageFont.truetype(world.font_path, size=text_pt_size)
+        font = ImageFont.truetype(font_path, size=text_pt_size)
         font_offset = (int(0.05 * image_shape[0]), int(0.95 * image_shape[1]))
         image_draw.text(font_offset, text, font=font, anchor="lb")
     return image
@@ -195,20 +155,29 @@ def scale(
     return pygame.transform.scale(image, new_shape)
 
 
-def get_representative_object(recipe: Recipe) -> Union[Item, str]:
-    """Get the most representative object for a given recipe.
+def surface_to_rgb_array(surface: "Surface") -> np.ndarray:
+    """Transforms a pygame surface to a conventional rgb array.
 
     Args:
-        recipe (Recipe): The recipe to get the most representative object from.
-
-    Raises:
-        ValueError: The recipe has no output or added_properties, hence no representative object.
+        surface: pygame surface.
 
     Returns:
-        Union[Item, str]: The most representative object of the given recipe.
+        A rgb_array representing the given surface.
+
     """
-    if recipe.outputs is not None:
-        return recipe.outputs[0]
-    if len(recipe.added_properties) > 0:
-        return list(recipe.added_properties.keys())[0]
-    raise ValueError(f"Recipe {recipe} has no output nor added_properties.")
+    return pygame.surfarray.array3d(surface).swapaxes(0, 1)
+
+
+def pilImageToSurface(pilImage: Image.Image):
+    """Convert a PIL Image to a pygame Surface.
+
+    Args:
+        pilImage: PIL Image to convert.
+
+    Returns:
+        A pygame Surface.
+
+    """
+    return pygame.image.fromstring(
+        pilImage.tobytes(), pilImage.size, pilImage.mode
+    ).convert_alpha()
