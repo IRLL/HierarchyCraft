@@ -4,10 +4,11 @@ from crafting.world import ItemStack, Zone, World
 
 
 class GetItemTask:
-    def __init__(self, item_stack: ItemStack, item_reward: float = 0.0):
+    def __init__(self, item_stack: ItemStack, reward: float):
         self.item_stack = item_stack
-        self.item_reward = item_reward
+        self.item_reward = reward
         self.is_terminated = False
+        self._terminate_player_items = None
 
     def build(self, world: World) -> None:
         self._terminate_player_items = np.zeros(world.n_items, dtype=np.uint16)
@@ -37,9 +38,9 @@ class GetItemTask:
 
 
 class GoToZoneTask:
-    def __init__(self, zone: Zone, zone_reward: float) -> None:
+    def __init__(self, zone: Zone, reward: float) -> None:
         self.zone = zone
-        self.zone_reward = zone_reward
+        self.zone_reward = reward
         self.is_terminated = False
         self._terminate_position = None
 
@@ -66,4 +67,44 @@ class GoToZoneTask:
         ):
             self.is_terminated = True
             return self.zone_reward
+        return 0.0
+
+
+class PlaceItemTask:
+    def __init__(self, item_stack: ItemStack, zone: Zone, reward: float):
+        self.item_stack = item_stack
+        self.zone = zone
+        self._reward = reward
+        self.is_terminated = False
+        self._terminate_zones_items = None
+
+    def build(self, world: World):
+        self._terminate_zones_items = np.zeros(
+            (world.n_zones, world.n_zones_items), dtype=np.uint16
+        )
+        zone_slot = world.zones.index(self.zone)
+        zone_item_slot = world.zones_items.index(self.item_stack.item)
+        self._terminate_zones_items[
+            zone_slot, zone_item_slot
+        ] = self.item_stack.quantity
+
+    def is_terminal(
+        self,
+        player_inventory: np.ndarray,
+        position: np.ndarray,
+        zones_inventory: np.ndarray,
+    ) -> bool:
+        return np.all(zones_inventory >= self._terminate_zones_items)
+
+    def reward(
+        self,
+        player_inventory: np.ndarray,
+        position: np.ndarray,
+        zones_inventory: np.ndarray,
+    ) -> float:
+        if not self.is_terminated and self.is_terminal(
+            player_inventory, position, zones_inventory
+        ):
+            self.is_terminated = True
+            return self._reward
         return 0.0
