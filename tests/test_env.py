@@ -198,3 +198,11 @@ class TestCratingEnv:
         _, reward, done, _ = env.step(action)
         check.equal(reward, 10)
         check.is_true(done)
+
+    def test_actions_mask(self):
+        env = CraftingEnv(self.transformations, self.start_zone)
+        check_np_equal(env.actions_mask, np.array([1, 1, 1, 0, 0, 0]))
+
+        _, _, _, infos = env.step(0)
+        check_np_equal(env.actions_mask, np.array([1, 1, 1, 1, 0, 0]))
+        check_np_equal(infos["action_is_valid"], np.array([1, 1, 1, 1, 0, 0]))

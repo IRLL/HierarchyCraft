@@ -71,6 +71,11 @@ class CraftingEnv:
         """Whether the environment tasks are all done (if any)"""
         return self.purpose.is_terminal(*self.state)
 
+    @property
+    def actions_mask(self) -> np.ndarray:
+        """Boolean mask of valid actions."""
+        return np.array([t.is_valid(*self.state) for t in self.transformations])
+
     def step(self, action: int):
         """Perform one step in the environment given the index of a wanted transformation.
 
@@ -91,7 +96,8 @@ class CraftingEnv:
         return self._step_output(reward)
 
     def _step_output(self, reward: float):
-        return (self.observation, reward, self.terminated or self.truncated, {})
+        infos = {"action_is_valid": self.actions_mask}
+        return (self.observation, reward, self.terminated or self.truncated, infos)
 
     def reset(self, seed: int = 0):
         """Resets the state of the environement."""
