@@ -122,3 +122,20 @@ class TestCratingEnv:
         action = self.transformations.index(self.search_wood)
         env.step(action)
         check.equal(env.player_inventory[wood_slot], 1)
+
+    def test_step_craft(self):
+        env = CraftingEnv(self.transformations, start_zone=self.start_zone)
+        wood_slot = env.world.items.index(self.wood)
+        plank_slot = env.world.items.index(self.plank)
+        action = self.transformations.index(self.craft_plank)
+
+        # Invalid craft does not change state
+        env.step(action)
+        check.equal(env.player_inventory[wood_slot], 0)
+        check.equal(env.player_inventory[plank_slot], 0)
+
+        # Valid craft does change state
+        env.player_inventory[wood_slot] = 1
+        env.step(action)
+        check.equal(env.player_inventory[wood_slot], 0)
+        check.equal(env.player_inventory[plank_slot], 4)
