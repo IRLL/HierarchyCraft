@@ -67,7 +67,12 @@ class CraftingEnv:
         pass
 
     def reset(self, seed: int = 0):
-        pass
+        # Reset state
+        (
+            self.player_inventory,
+            self.position,
+            self.zones_inventories,
+        ) = self._init_state()
 
     def _build_world(self) -> World:
         items, zones, zones_items = set(), set(), set()

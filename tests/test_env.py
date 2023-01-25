@@ -139,3 +139,26 @@ class TestCratingEnv:
         env.step(action)
         check.equal(env.player_inventory[wood_slot], 0)
         check.equal(env.player_inventory[plank_slot], 4)
+
+    def test_reset(self):
+        env = CraftingEnv(self.transformations)
+
+        # Initialize an ongoing env
+        env.position[0] = 0
+        env.position[1] = 1
+        env.player_inventory[0] = 2
+        env.zones_inventories[0, 0] = 3
+        env.zones_inventories[1, 1] = 4
+
+        env.reset()
+        expected_player_inventory = np.zeros(len(self.items), np.uint16)
+        check_np_equal(env.player_inventory, expected_player_inventory)
+
+        expected_position = np.zeros(len(self.zones), np.uint16)
+        expected_position[0] = 1
+        check_np_equal(env.position, expected_position)
+
+        expected_zones_inventories = np.zeros(
+            (len(self.zones), len(self.zones_items)), np.uint16
+        )
+        check_np_equal(env.zones_inventories, expected_zones_inventories)
