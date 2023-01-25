@@ -4,6 +4,7 @@ import numpy as np
 
 from crafting.world import Item, ItemStack, Zone, World
 from crafting.transformation import Transformation
+from crafting.purpose import Purpose
 
 
 class CraftingEnv:
@@ -13,6 +14,7 @@ class CraftingEnv:
         self,
         transformations: List[Transformation],
         start_zone: Optional[Zone] = None,
+        purpose: Optional[Purpose] = None,
         invalid_reward: float = -10.0,
     ) -> None:
         self.transformations = transformations
@@ -25,6 +27,13 @@ class CraftingEnv:
         self.position = np.array([], dtype=np.uint16)
         self.zones_inventories = np.array([], dtype=np.uint16)
         self._reset_state()
+
+        if purpose is None:
+            purpose = Purpose(None)
+        if not isinstance(purpose, Purpose):
+            purpose = Purpose(tasks=purpose)
+        self.purpose = purpose
+        self.purpose.build(self.world)
 
     @property
     def state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -51,7 +60,7 @@ class CraftingEnv:
     @property
     def terminated(self) -> bool:
         """Whether the environment tasks are all done (if any)"""
-        return False
+        return self.purpose.is_terminal(*self.state)
 
     def step(self, action: int):
         """Perform one step in the environment given the index of a wanted transformation.
@@ -69,7 +78,8 @@ class CraftingEnv:
             self.position,
             self.zones_inventories,
         )
-        return self._step_output(0)
+        reward = self.purpose.reward(*self.state)
+        return self._step_output(reward)
 
     def _step_output(self, reward: float):
         return (self.observation, reward, self.terminated or self.truncated, {})

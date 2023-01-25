@@ -4,6 +4,7 @@ import numpy as np
 
 from crafting.world import ItemStack, Item, Zone
 from crafting.transformation import Transformation
+from crafting.task import GetItemTask
 from crafting.env import CraftingEnv
 
 from tests.check_array import check_np_equal
@@ -167,3 +168,33 @@ class TestCratingEnv:
             (len(self.zones), len(self.zones_items)), np.uint16
         )
         check_np_equal(env.zones_inventories, expected_zones_inventories)
+
+    def test_single_task(self):
+        """task should affect the reward and environement termination."""
+        task = GetItemTask(Item("wood"), reward=5)
+        env = CraftingEnv(
+            self.transformations, start_zone=self.start_zone, purpose=task
+        )
+        action = env.transformations.index(self.search_wood)
+        _, reward, done, _ = env.step(action)
+        check.equal(reward, 5)
+        check.is_true(done)
+
+    def test_purpose(self):
+        """multi tasks should be converted to purpose."""
+        tasks = [
+            GetItemTask(Item("wood"), reward=5),
+            GetItemTask(Item("stone"), reward=10),
+        ]
+        env = CraftingEnv(
+            self.transformations, start_zone=self.start_zone, purpose=tasks
+        )
+        action = env.transformations.index(self.search_wood)
+        _, reward, done, _ = env.step(action)
+        check.equal(reward, 5)
+        check.is_false(done)
+
+        action = env.transformations.index(self.search_stone)
+        _, reward, done, _ = env.step(action)
+        check.equal(reward, 10)
+        check.is_true(done)
