@@ -98,6 +98,24 @@ class TestPlaceItem:
         expected_op = np.array([[0, 0, 0], [0, 0, 2]])
         check_np_equal(self.task._terminate_zones_items, expected_op)
 
+    def test_build_no_zone(self):
+        """should consider any zone if none is given."""
+        task = PlaceItemTask(ItemStack(Item("wood_house"), 2), None, reward=5)
+        task.build(self.world)
+        expected_op = np.array([[0, 0, 2], [0, 0, 2]])
+        check_np_equal(task._terminate_zones_items, expected_op)
+
+    def test_build_any_zones(self):
+        """should consider any of given zones if multiple are given."""
+        task = PlaceItemTask(
+            ItemStack(Item("wood_house"), 2),
+            [Zone("start"), Zone("other_zone")],
+            reward=5,
+        )
+        task.build(self.world)
+        expected_op = np.array([[0, 0, 2], [0, 0, 2]])
+        check_np_equal(task._terminate_zones_items, expected_op)
+
     def test_terminate(self):
         """should terminate only when the given zone has more than wanted items."""
         self.task.build(self.world)

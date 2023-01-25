@@ -1,5 +1,7 @@
-import numpy as np
+from typing import Optional, Union, List
 from abc import abstractmethod
+
+import numpy as np
 
 from crafting.world import ItemStack, Zone, World
 
@@ -108,19 +110,33 @@ class GoToZoneTask(AchievementTask):
 
 
 class PlaceItemTask(AchievementTask):
-    """Task to place a quantity of item in a given zone."""
+    """Task to place a quantity of item in a given zone.
 
-    def __init__(self, item_stack: ItemStack, zone: Zone, reward: float):
+    If no zone is given, consider any of zones.
+
+    """
+
+    def __init__(
+        self,
+        item_stack: ItemStack,
+        zones: Optional[Union[Zone, List[Zone]]] = None,
+        reward: float = 1.0,
+    ):
         super().__init__(reward)
         self.item_stack = item_stack
-        self.zone = zone
+        if isinstance(zones, Zone):
+            zones = [zones]
+        self.zones = zones
 
     def build(self, world: World):
         super().build(world)
-        zone_slot = world.zones.index(self.zone)
+        if self.zones is None:
+            zones_slots = np.arange(self._terminate_zones_items.shape[0])
+        else:
+            zones_slots = np.array([world.zones.index(zone) for zone in self.zones])
         zone_item_slot = world.zones_items.index(self.item_stack.item)
         self._terminate_zones_items[
-            zone_slot, zone_item_slot
+            zones_slots, zone_item_slot
         ] = self.item_stack.quantity
 
     def is_terminal(
