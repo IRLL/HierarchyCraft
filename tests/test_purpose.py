@@ -37,8 +37,26 @@ class TestPurposeSingleTask:
     @pytest.fixture(autouse=True)
     def setup_method(self):
         self.get_wood = DummyTask(reward=5)
+        self.purpose = Purpose(self.get_wood)
 
     def test_build(self):
-        purpose = Purpose(self.get_wood)
-        purpose.build(world=None)
+        self.purpose.build(world=None)
         check.is_true(self.get_wood.is_built)
+
+    def test_reward(self):
+        reward = self.purpose.reward(
+            player_inventory=None, position=None, zones_inventory=None
+        )
+        check.equal(reward, 5)
+
+    def test_is_terminal(self):
+        check.is_false(
+            self.purpose.is_terminal(
+                player_inventory=None, position=0, zones_inventory=None
+            )
+        )
+        check.is_true(
+            self.purpose.is_terminal(
+                player_inventory=None, position=1, zones_inventory=None
+            )
+        )
