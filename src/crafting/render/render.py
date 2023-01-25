@@ -97,7 +97,7 @@ class CraftingWindow:
         #     widget.draw(screen)
 
         action_taken = None
-        # action_is_legal = env.action_masks()
+        action_is_legal = self.env.actions_mask
 
         for menu in self.menus:
             buttons = [
@@ -105,8 +105,7 @@ class CraftingWindow:
             ]
             for button in buttons:
                 action = self.button_id_to_action[button.get_id()]
-                # show_button = action_is_legal[action_id]
-                show_button = True
+                show_button = action_is_legal[action]
                 if show_button:
                     button.show()
                 else:
