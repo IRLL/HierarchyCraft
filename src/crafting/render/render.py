@@ -166,7 +166,7 @@ class CraftingWindow:
         """
 
         # Transformations (Actions)
-        action_menu_width = int(0.4 * self.window_shape[0])
+        action_menu_width = int(0.5 * self.window_shape[0])
         self.actions_menu = Menu(
             title="Actions",
             center_content=True,
@@ -177,7 +177,7 @@ class CraftingWindow:
             rows=len(self.env.transformations),
             columns=1,
             position=(0, 0),
-            overflow=(False, True),
+            overflow=(True, True),
             theme=THEME_DARK,
         )
 
@@ -193,7 +193,7 @@ class CraftingWindow:
             self.button_id_to_action[button_id] = action
 
         # Player inventory
-        player_menu_width = int(0.3 * self.window_shape[0])
+        player_menu_width = int(0.25 * self.window_shape[0])
         self.player_menu = Menu(
             title="Inventory",
             center_content=True,
@@ -202,8 +202,8 @@ class CraftingWindow:
             keyboard_enabled=False,
             joystick_enabled=False,
             mouse_enabled=False,
-            rows=self.env.world.n_items // 2 + 1,
-            columns=2,
+            rows=self.env.world.n_items,
+            columns=1,
             position=(action_menu_width, 0, False),
             overflow=(False, True),
         )
@@ -211,6 +211,7 @@ class CraftingWindow:
         self.button_id_to_item = {}
         for item in self.env.world.items:
             button: Button = self.player_menu.add.button(str(item))
+            button.is_selectable = False
             self.button_id_to_item[button.get_id()] = item
 
         # Current zone inventory
@@ -224,8 +225,8 @@ class CraftingWindow:
             keyboard_enabled=False,
             joystick_enabled=False,
             mouse_enabled=False,
-            rows=self.env.world.n_zones_items // 3 + 1,
-            columns=3,
+            rows=self.env.world.n_zones_items,
+            columns=1,
             position=(
                 action_menu_width + player_menu_width,
                 self.window_shape[1] - zone_menu_height,
@@ -238,6 +239,7 @@ class CraftingWindow:
         self.button_id_to_zone_item = {}
         for item in self.env.world.zones_items:
             button: Button = self.zone_menu.add.button(str(item))
+            button.is_selectable = False
             self.button_id_to_zone_item[button.get_id()] = item
 
         return (self.actions_menu, self.player_menu, self.zone_menu)
