@@ -1,7 +1,9 @@
 from typing import List, Set, Tuple, Optional, Union
 
+import os
 import numpy as np
 
+import crafting
 from crafting.world import Item, ItemStack, Zone, World
 from crafting.transformation import Transformation
 from crafting.purpose import Purpose
@@ -20,6 +22,7 @@ class CraftingEnv:
         purpose: Optional[Purpose] = None,
         invalid_reward: float = -10.0,
         render_mode="rgb_array",
+        resources_path: Optional[str] = None,
         name: str = "Crafting",
     ) -> None:
         """Initialize a Crafting environement.
@@ -56,6 +59,10 @@ class CraftingEnv:
 
         self.render_mode = render_mode
         self.render_window = None
+        if resources_path is None:
+            render_dir = os.path.dirname(crafting.__file__)
+            resources_path = os.path.join(render_dir, "default_resources")
+        self.resources_path = resources_path
 
         self.metadata = {}
         self.name = name

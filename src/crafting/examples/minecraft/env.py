@@ -22,14 +22,15 @@ class MineCraftingEnv(CraftingEnv):
     """MineCrafting Environment: A minecraft-like Crafting Environment."""
 
     def __init__(self, **kwargs):
-        # mc_dir = os.path.dirname(__file__)
-        # resources_path = os.path.join(mc_dir, "resources")
+        mc_dir = os.path.dirname(__file__)
+        resources_path = os.path.join(mc_dir, "resources")
         mc_transformations = build_minecrafting_transformations()
         start_zone = kwargs.pop("start_zone", FOREST)
         super().__init__(
             mc_transformations,
             name="MineCrafting",
             start_zone=start_zone,
+            resources_path=resources_path,
             **kwargs,
         )
         self.metadata["video.frames_per_second"] = kwargs.pop("fps", 10)
