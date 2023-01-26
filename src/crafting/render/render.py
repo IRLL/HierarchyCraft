@@ -15,12 +15,12 @@ try:
     from pygame.time import Clock
     from pygame_menu.baseimage import BaseImage
     from pygame_menu.menu import Menu
-    from pygame_menu.themes import THEME_DARK
+    from pygame_menu.themes import THEME_DARK, THEME_GREEN
     from pygame_menu.widgets import Button
 except ImportError:
     pass
 
-from crafting.render.utils import load_or_create_image, surface_to_rgb_array
+from crafting.world import ItemStack
 
 
 if TYPE_CHECKING:
@@ -93,13 +93,43 @@ class CraftingWindow:
         #     widget.update(env)
         #     widget.draw(screen)
 
+        # Update items menu
+        items_buttons = [
+            widget
+            for widget in self.player_menu.get_widgets()
+            if isinstance(widget, Button)
+        ]
+        for button in items_buttons:
+            item = self.button_id_to_item[button.get_id()]
+            item_slot = self.env.world.items.index(item)
+            quantity = self.env.player_inventory[item_slot]
+            button.set_title(str(ItemStack(item, quantity)))
+            show_button = quantity > 0
+            if show_button:
+                button.show()
+            else:
+                button.hide()
+
+        # Update zone items menu
+        zone_items_buttons = [
+            widget
+            for widget in self.zone_menu.get_widgets()
+            if isinstance(widget, Button)
+        ]
+        for button in zone_items_buttons:
+            item = self.button_id_to_zone_item[button.get_id()]
+            item_slot = self.env.world.zones_items.index(item)
+            quantity = self.env.current_zone_inventory[item_slot]
+            button.set_title(str(ItemStack(item, quantity)))
+            show_button = quantity > 0
+            if show_button:
+                button.show()
+            else:
+                button.hide()
+
+        # Update actions menu
         action_taken = None
         action_is_legal = self.env.actions_mask
-
-        for menu in self.menus:
-            menu.update(events)
-            menu.draw(self.screen)
-
         action_buttons = [
             widget
             for widget in self.actions_menu.get_widgets()
@@ -113,6 +143,11 @@ class CraftingWindow:
             else:
                 button.hide()
 
+        for menu in self.menus:
+            menu.update(events)
+            menu.draw(self.screen)
+
+        # Gather action taken if any
         selected_widget = self.actions_menu.get_selected_widget()
         if selected_widget is not None and selected_widget.update(events):
             action_taken: int = selected_widget.apply()
@@ -130,16 +165,12 @@ class CraftingWindow:
 
         """
 
-        self.button_id_to_action = {}
-
-        # Transformations Menu
+        # Transformations (Actions)
         action_menu_width = int(0.4 * self.window_shape[0])
-        action_menu_height = self.window_shape[1]
-
         self.actions_menu = Menu(
-            title="Transformations",
+            title="Actions",
             center_content=True,
-            height=action_menu_height,
+            height=self.window_shape[1],
             width=action_menu_width,
             keyboard_enabled=True,
             joystick_enabled=False,
@@ -150,6 +181,7 @@ class CraftingWindow:
             theme=THEME_DARK,
         )
 
+        self.button_id_to_action = {}
         for action, transfo in enumerate(self.env.transformations):
             button_id = _add_button_to_menu(
                 self.actions_menu,
@@ -160,7 +192,55 @@ class CraftingWindow:
             )
             self.button_id_to_action[button_id] = action
 
-        return (self.actions_menu,)
+        # Player inventory
+        player_menu_width = int(0.3 * self.window_shape[0])
+        self.player_menu = Menu(
+            title="Inventory",
+            center_content=True,
+            height=self.window_shape[1],
+            width=player_menu_width,
+            keyboard_enabled=False,
+            joystick_enabled=False,
+            mouse_enabled=False,
+            rows=self.env.world.n_items // 3 + 1,
+            columns=2,
+            position=(action_menu_width, 0, False),
+            overflow=(False, True),
+        )
+
+        self.button_id_to_item = {}
+        for item in self.env.world.items:
+            button: Button = self.player_menu.add.button(str(item))
+            self.button_id_to_item[button.get_id()] = item
+
+        # Current zone inventory
+        zone_menu_height = int(0.7 * self.window_shape[1])
+        zone_menu_width = self.window_shape[0] - action_menu_width - player_menu_width
+        self.zone_menu = Menu(
+            title="Zone",
+            center_content=True,
+            height=zone_menu_height,
+            width=zone_menu_width,
+            keyboard_enabled=False,
+            joystick_enabled=False,
+            mouse_enabled=False,
+            rows=self.env.world.n_zones_items // 3 + 1,
+            columns=3,
+            position=(
+                action_menu_width + player_menu_width,
+                self.window_shape[1] - zone_menu_height,
+                False,
+            ),
+            overflow=(False, True),
+            theme=THEME_GREEN,
+        )
+
+        self.button_id_to_zone_item = {}
+        for item in self.env.world.zones_items:
+            button: Button = self.zone_menu.add.button(str(item))
+            self.button_id_to_zone_item[button.get_id()] = item
+
+        return (self.actions_menu, self.player_menu, self.zone_menu)
 
 
 def _add_button_to_menu(
@@ -186,7 +266,7 @@ def _add_button_to_menu(
     return button.get_id()
 
 
-def _scale_image(image: "Image", scaling: float) -> BaseImage:
+def _to_menu_image(image: "Image", scaling: float) -> BaseImage:
     buffered = BytesIO()
     image.save(buffered, format="PNG")
     buffered.seek(0)
