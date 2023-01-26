@@ -50,15 +50,16 @@ class CraftingEnv:
         return self.player_inventory, self.position, self.zones_inventories
 
     @property
+    def current_zone_inventory(self) -> np.ndarray:
+        """Current zone inventory."""
+        current_zone_slot = self.position.nonzero()[0]
+        return self.zones_inventories[current_zone_slot, :][0]
+
+    @property
     def observation(self) -> np.ndarray:
         """Observation given to the player."""
-        current_zone_slot = self.position.nonzero()[0]
         return np.concatenate(
-            (
-                self.player_inventory,
-                self.position,
-                self.zones_inventories[current_zone_slot, :][0],
-            )
+            (self.player_inventory, self.position, self.current_zone_inventory)
         )
 
     @property
