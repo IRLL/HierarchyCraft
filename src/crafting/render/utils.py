@@ -5,7 +5,7 @@
 
 import os
 from io import BytesIO
-from typing import TYPE_CHECKING, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Tuple, Union, Dict, List
 import logging
 from pathlib import Path
 
@@ -21,7 +21,7 @@ try:
 except ImportError:
     pass
 
-from crafting.world import Item, Zone
+from crafting.world import Item, Zone, ItemStack
 from crafting.transformation import Transformation
 
 if TYPE_CHECKING:
@@ -87,7 +87,7 @@ def draw_text_on_image(
     font = ImageFont.truetype(font_path, size=text_pt_size)
     font_offset = (int(0.05 * image_shape[0]), int(0.95 * image_shape[1]))
     image_draw.text(font_offset, text, font=font, anchor="lb")
-    return _to_menu_image(image, 0.5)
+    return image
 
 
 def _to_menu_image(image: "Image.Image", scaling: float) -> BaseImage:
@@ -95,6 +95,121 @@ def _to_menu_image(image: "Image.Image", scaling: float) -> BaseImage:
     image.save(buffered, format="PNG")
     buffered.seek(0)
     return BaseImage(buffered).scale(scaling, scaling)
+
+
+def create_text_image(
+    text: str, resources_path: str, image_size=(120, 120)
+) -> "Image.Image":
+    """Create a PIL image for an Item or Zone.
+
+    Args:
+        obj: A crafting Item, Zone, Recipe or property.
+        resources_path: Path to the ressources folder.
+
+    Returns:
+        A PIL image corresponding to the given object.
+
+    """
+
+    image = Image.new("RGBA", image_size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+
+    cx, cy = image_size[0] // 2, image_size[1] // 2
+    text_pt_size = int(0.60 * image_size[1])
+    font_path = os.path.join(resources_path, "font.ttf")
+    font = ImageFont.truetype(font_path, size=text_pt_size)
+    draw.text((cx, cy), text, fill=(200, 200, 200), font=font, anchor="mm")
+    return image
+
+
+def build_transformation_image(
+    transformation: Transformation,
+    resources_path: str,
+    zone_bg_color=(185, 215, 115),
+    dest_bg_color=(220, 200, 175),
+):
+    """Build a transformation image from items and zones images."""
+    added_images: List[Image.Image] = []
+
+    if transformation.added_player_items is not None:
+        added_images += load_or_create_images(
+            transformation.added_player_items, resources_path
+        )
+    if transformation.added_zone_items is not None:
+        added_images += load_or_create_images(
+            transformation.added_zone_items,
+            resources_path,
+            bg_color=zone_bg_color,
+        )
+    if transformation.added_destination_items is not None:
+        added_images += load_or_create_images(
+            transformation.added_destination_items,
+            resources_path,
+            bg_color=dest_bg_color,
+        )
+
+    arrow_image = create_text_image("->", resources_path)
+
+    removed_images: List[Image.Image] = []
+    if transformation.removed_player_items is not None:
+        removed_images += load_or_create_images(
+            transformation.removed_player_items, resources_path
+        )
+    if transformation.removed_zone_items is not None:
+        removed_images += load_or_create_images(
+            transformation.removed_zone_items,
+            resources_path,
+            bg_color=zone_bg_color,
+        )
+    if transformation.removed_destination_items is not None:
+        removed_images += load_or_create_images(
+            transformation.removed_destination_items,
+            resources_path,
+            bg_color=zone_bg_color,
+        )
+
+    destination_images = []
+    if transformation.destination is not None:
+        destination_images = load_or_create_images(
+            [transformation.destination], resources_path
+        )
+
+    items_images = removed_images + [arrow_image] + added_images
+    total_width = sum(i.width for i in items_images)
+    height = max(i.height for i in items_images)
+    transformation_image = Image.new("RGBA", (total_width, height))
+    x_offset = 0
+    for i, image in enumerate(items_images):
+        transformation_image.paste(image, (x_offset, (height - image.height) // 2))
+        x_offset += items_images[i - 1].width
+
+    return transformation_image
+
+
+def load_or_create_images(
+    objs: List[Union[ItemStack, Zone]], resources_path: str, bg_color=None
+) -> List[Image.Image]:
+    """Load or create images for the given objects."""
+    images = []
+    for obj in objs:
+        quantity = 0
+        if isinstance(obj, ItemStack):
+            quantity = obj.quantity
+            obj = obj.item
+        image = load_image(obj=obj, resources_path=resources_path)
+        if image is None:
+            image_size = (120, 120)
+            if isinstance(obj, Zone):
+                image_size = (699, 394)
+            image = create_text_image(str(obj), resources_path, image_size=image_size)
+        elif quantity > 0:
+            image = draw_text_on_image(image, str(quantity), resources_path)
+        if bg_color is not None:
+            image_bg = Image.new("RGBA", image.size, (*bg_color, 255))
+            image_bg.alpha_composite(image)
+            image = image_bg
+        images.append(image)
+    return images
 
 
 def scale(

@@ -1,27 +1,187 @@
 # # Crafting a meta-environment to simultate inventory managment
 # # Copyright (C) 2021-2023 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
-# """ Widgets for rendering of the Crafting environments """
+""" Widgets for rendering of the Crafting environments """
 
-# import os
-# from typing import TYPE_CHECKING, List, Tuple
-# from pathlib import Path
+import os
+from typing import TYPE_CHECKING, Dict, List, Tuple, Union
+from pathlib import Path
 
-# import numpy as np
+import numpy as np
 
-# try:
-#     from pygame.image import load as load_pygame_image
-#     from pygame.font import Font
-# except ImportError:
-#     pass
+try:
+    from pygame.image import load as load_pygame_image
+    from pygame.font import Font
+    from pygame_menu.menu import Menu
+    from pygame_menu.widgets import Button, Image as PyImage
+    from pygame_menu.themes import THEME_DEFAULT, Theme
+except ImportError:
+    pass
 
-# from crafting.render.utils import load_or_create_image, pilImageToSurface, scale
+from crafting.world import Item, Zone, ItemStack
+from crafting.transformation import Transformation
+from crafting.render.utils import (
+    draw_text_on_image,
+    load_image,
+    pilImageToSurface,
+    scale,
+    build_transformation_image,
+    _to_menu_image,
+)
 
-# if TYPE_CHECKING:
-#     from pygame.surface import Surface
+if TYPE_CHECKING:
+    from pygame.surface import Surface
+    from PIL.Image import Image
 
-#     from crafting.env import CraftingEnv
-#     from crafting.world import World, Zone
+    from crafting.env import CraftingEnv
+
+
+class InventoryWidget(Menu):
+    def __init__(
+        self,
+        title: str,
+        height: int,
+        width: int,
+        position,
+        items: List[Item],
+        resources_path: str,
+        theme: Theme = THEME_DEFAULT,
+    ):
+        super().__init__(
+            title=title,
+            center_content=True,
+            height=height,
+            width=width,
+            rows=len(items),
+            columns=1,
+            position=position,
+            overflow=(False, True),
+            theme=theme,
+        )
+
+        self.items = items
+        self.resources_path = resources_path
+        self.base_images = _load_base_images(items, resources_path)
+
+        self.button_id_to_item = {}
+        self.old_quantity = {}
+        for item in self.items:
+            image = self.base_images[item]
+            if image is not None:
+                image = draw_text_on_image(image, "0", self.resources_path)
+                button: PyImage = self.add.image(_to_menu_image(image, 0.5))
+            else:
+                button: Button = self.add.button(str(item))
+            button.is_selectable = False
+            self.button_id_to_item[button.get_id()] = item
+
+    def update(self, inventory: np.ndarray, events) -> bool:
+        items_buttons = [
+            widget
+            for widget in self.get_widgets()
+            if isinstance(widget, (Button, PyImage))
+        ]
+        for button in items_buttons:
+            item = self.button_id_to_item[button.get_id()]
+            item_slot = self.items.index(item)
+            quantity = inventory[item_slot]
+            old_quantity = self.old_quantity.get(item, None)
+
+            if old_quantity is not None and quantity == old_quantity:
+                continue
+
+            if isinstance(button, PyImage):
+                image = draw_text_on_image(
+                    self.base_images[item],
+                    text=str(quantity),
+                    ressources_path=self.resources_path,
+                )
+                button.set_image(_to_menu_image(image, 0.5))
+                button.render()
+
+            button.set_title(str(ItemStack(item, quantity)))
+            self.old_quantity[item] = quantity
+
+            show_button = quantity > 0
+            if show_button:
+                button.show()
+            else:
+                button.hide()
+        return super().update(events)
+
+
+def _load_base_images(
+    objs: List[Union[Item, Zone]], resource_path: str
+) -> Dict[Union[Item, Zone], "Image"]:
+    base_images = {}
+    for obj in objs:
+        base_images[obj] = load_image(resource_path, obj=obj)
+    return base_images
+
+
+class TransformationsWidget(Menu):
+    def __init__(
+        self,
+        title: str,
+        height: int,
+        width: int,
+        position,
+        transformations: List[Transformation],
+        resources_path: str,
+        theme: Theme = THEME_DEFAULT,
+    ):
+
+        super().__init__(
+            title=title,
+            center_content=True,
+            height=height,
+            width=width,
+            rows=len(transformations),
+            columns=1,
+            position=position,
+            overflow=(False, True),
+            theme=theme,
+        )
+
+        self.transformations = transformations
+        self.resources_path = resources_path
+        self.button_id_to_transfo = {}
+        self.old_quantity = {}
+        for index, transfo in enumerate(self.transformations):
+            button = self._build_transformation_button(transfo, index)
+            self.button_id_to_transfo[button.get_id()] = transfo
+
+    def _build_transformation_button(
+        self, transfo: Transformation, action_id: int
+    ) -> Button:
+        button: PyImage = self.add.button(
+            " " * len(str(transfo)),
+            lambda x: x,
+            action_id,
+            padding=(16, 16, 16, 16),
+        )
+        image = build_transformation_image(transfo, self.resources_path)
+        if image is not None:
+            decorator = button.get_decorator()
+            decorator.add_baseimage(0, 0, _to_menu_image(image, 0.4), centered=True)
+        else:
+            button.set_title(str(transfo))
+        return button
+
+    def update(self, env: "CraftingEnv", events) -> bool:
+        action_is_legal = env.actions_mask
+        action_buttons = [
+            widget for widget in self.get_widgets() if isinstance(widget, (Button))
+        ]
+        for button in action_buttons:
+            transfo = self.button_id_to_transfo[button.get_id()]
+            action = env.transformations.index(transfo)
+            show_button = action_is_legal[action]
+            if show_button:
+                button.show()
+            else:
+                button.hide()
+        return super().update(events)
 
 
 # class EnvWidget:

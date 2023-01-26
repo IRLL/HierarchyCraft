@@ -97,7 +97,7 @@ class TowerCraftingEnv(SimpleCraftingEnv):
 
 if __name__ == "__main__":
     import gym
-    from crafting.render.render import render_env_with_human
+    from crafting.render.human import render_env_with_human
 
     env = gym.make("TowerCrafting-v1", height=4, width=2, max_step="auto")
     render_env_with_human(env)

@@ -137,7 +137,7 @@ class LighterRecursiveCraftingEnv(SimpleCraftingEnv):
 
 if __name__ == "__main__":
     import gym
-    from crafting.render.render import render_env_with_human
+    from crafting.render.human import render_env_with_human
 
     env = gym.make("RecursiveCrafting-v1", n_items=7, max_step="auto")
     render_env_with_human(env)

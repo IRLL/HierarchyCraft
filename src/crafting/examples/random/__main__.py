@@ -6,7 +6,7 @@
 import gym
 
 from crafting.examples.random.env import RandomCraftingEnv
-from crafting.render.render import render_env_with_human
+from crafting.render.human import render_env_with_human
 
 if __name__ == "__main__":
     env: RandomCraftingEnv = gym.make(
