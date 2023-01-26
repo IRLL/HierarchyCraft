@@ -16,11 +16,26 @@ class CraftingEnv:
     def __init__(
         self,
         transformations: List[Transformation],
-        start_zone: Optional[Zone] = None,
+        start_zone: Optional[Zone],
         purpose: Optional[Purpose] = None,
         invalid_reward: float = -10.0,
-        render_mode="human",
+        render_mode="rgb_array",
+        name: str = "Crafting",
     ) -> None:
+        """Initialize a Crafting environement.
+
+        Args:
+            transformations (List[Transformation]): The list of transformations
+                defining the environment.
+            start_zone (Optional[Zone], optional): The Zone in which the player starts.
+                If not given, start in the first indexed zone.
+            purpose (Optional[Purpose], optional): Purpose of the player,
+                defining rewards and termination. Defaults to None, hence a sandbox environment.
+            invalid_reward (float, optional): Reward given to the agent for invalid actions.
+                Defaults to -10.0.
+            render_mode (str, optional): Render mode. Defaults to "rgb_array".
+            name (str): Name of the environement.
+        """
         self.transformations = transformations
         self.start_zone = start_zone
         self.invalid_reward = invalid_reward
@@ -43,6 +58,7 @@ class CraftingEnv:
         self.render_window = None
 
         self.metadata = {}
+        self.name = name
 
     @property
     def state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:

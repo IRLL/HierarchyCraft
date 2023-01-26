@@ -202,7 +202,7 @@ class CraftingWindow:
             keyboard_enabled=False,
             joystick_enabled=False,
             mouse_enabled=False,
-            rows=self.env.world.n_items // 3 + 1,
+            rows=self.env.world.n_items // 2 + 1,
             columns=2,
             position=(action_menu_width, 0, False),
             overflow=(False, True),
