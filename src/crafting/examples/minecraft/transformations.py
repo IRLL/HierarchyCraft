@@ -16,11 +16,11 @@ from crafting.transformation import Transformation
 
 def build_minecrafting_transformations() -> List[Transformation]:
     transformations = []
-    transformations += _tools_recipes()
-    transformations += _crafting_recipes()
-    transformations += _building()
     transformations += _move_to_zones()
     transformations += _zones_search()
+    transformations += _building()
+    transformations += _crafting_recipes()
+    transformations += _tools_recipes()
     return transformations
 
 
