@@ -82,8 +82,10 @@ class InventoryWidget(Menu):
             item_slot = self.items.index(item)
             quantity = inventory[item_slot]
             old_quantity = self.old_quantity.get(item, None)
+
             if old_quantity is not None and quantity == old_quantity:
                 continue
+
             if isinstance(button, PyImage):
                 image = draw_text_on_image(
                     self.base_images[item],
@@ -91,8 +93,11 @@ class InventoryWidget(Menu):
                     ressources_path=self.resources_path,
                 )
                 button.set_image(image)
-                self.old_quantity[item] = quantity
+                button.render()
+
             button.set_title(str(ItemStack(item, quantity)))
+            self.old_quantity[item] = quantity
+
             show_button = quantity > 0
             if show_button:
                 button.show()
