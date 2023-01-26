@@ -6,17 +6,17 @@
 
 import os
 import sys
-from io import BytesIO
-from typing import TYPE_CHECKING, List, Optional, Union
 
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
+
+import numpy as np
 
 try:
     import pygame
     from pygame.time import Clock
-    from pygame_menu.baseimage import BaseImage
     from pygame_menu.menu import Menu
-    from pygame_menu.themes import THEME_DARK, THEME_GREEN
-    from pygame_menu.widgets import Button
+    from pygame_menu.themes import THEME_DARK, THEME_GREEN, THEME_DEFAULT, Theme
+    from pygame_menu.widgets import Button, Image as PyImage
 except ImportError:
     pass
 
@@ -26,10 +26,79 @@ from crafting.world import ItemStack
 if TYPE_CHECKING:
     from PIL.Image import Image
     from pygame.event import Event
-
     from crafting.env import CraftingEnv
-    from crafting.world import World
-    from crafting.transformation import Transformation
+
+from crafting.world import Item, Zone
+from crafting.render.utils import draw_text_on_image, load_image
+
+
+class InventoryWidget(Menu):
+    def __init__(
+        self,
+        title: str,
+        height: int,
+        width: int,
+        position,
+        items: List[Item],
+        base_images: Dict[Item, "Image"],
+        resources_path: str,
+        theme: Theme = THEME_DEFAULT,
+    ):
+        super().__init__(
+            title=title,
+            center_content=True,
+            height=height,
+            width=width,
+            rows=len(items),
+            columns=1,
+            position=position,
+            overflow=(False, True),
+            theme=theme,
+        )
+
+        self.items = items
+        self.base_images = base_images
+        self.resources_path = resources_path
+        self.button_id_to_item = {}
+        self.old_quantity = {}
+        for item in self.items:
+            image = self.base_images[item]
+            if image is not None:
+                image = draw_text_on_image(image, "0", self.resources_path)
+                button: PyImage = self.add.image(image)
+            else:
+                button: Button = self.add.button(str(item))
+            button.is_selectable = False
+            self.button_id_to_item[button.get_id()] = item
+
+    def update(self, inventory: np.ndarray, events) -> bool:
+        items_buttons = [
+            widget
+            for widget in self.get_widgets()
+            if isinstance(widget, (Button, PyImage))
+        ]
+        for button in items_buttons:
+            item = self.button_id_to_item[button.get_id()]
+            item_slot = self.items.index(item)
+            quantity = inventory[item_slot]
+            old_quantity = self.old_quantity.get(item, None)
+            if old_quantity is not None and quantity == old_quantity:
+                continue
+            if isinstance(button, PyImage):
+                image = draw_text_on_image(
+                    self.base_images[item],
+                    text=str(quantity),
+                    ressources_path=self.resources_path,
+                )
+                button.set_image(image)
+                self.old_quantity[item] = quantity
+            button.set_title(str(ItemStack(item, quantity)))
+            show_button = quantity > 0
+            if show_button:
+                button.show()
+            else:
+                button.hide()
+        return super().update(events)
 
 
 class CraftingWindow:
@@ -56,8 +125,11 @@ class CraftingWindow:
         self.screen = pygame.display.set_mode(self.window_shape)
         pygame.display.set_caption("Crafting")
 
+        # Load images
+        self.base_images = self.load_base_images()
+
         # Create menus
-        self.menus = self.make_menus()
+        self.make_menus()
 
     def update_rendering(
         self,
@@ -93,39 +165,12 @@ class CraftingWindow:
         #     widget.update(env)
         #     widget.draw(screen)
 
-        # Update items menu
-        items_buttons = [
-            widget
-            for widget in self.player_menu.get_widgets()
-            if isinstance(widget, Button)
-        ]
-        for button in items_buttons:
-            item = self.button_id_to_item[button.get_id()]
-            item_slot = self.env.world.items.index(item)
-            quantity = self.env.player_inventory[item_slot]
-            button.set_title(str(ItemStack(item, quantity)))
-            show_button = quantity > 0
-            if show_button:
-                button.show()
-            else:
-                button.hide()
+        # Update inventories
+        self.player_inventory.update(self.env.player_inventory, events)
+        self.player_inventory.draw(self.screen)
 
-        # Update zone items menu
-        zone_items_buttons = [
-            widget
-            for widget in self.zone_menu.get_widgets()
-            if isinstance(widget, Button)
-        ]
-        for button in zone_items_buttons:
-            item = self.button_id_to_zone_item[button.get_id()]
-            item_slot = self.env.world.zones_items.index(item)
-            quantity = self.env.current_zone_inventory[item_slot]
-            button.set_title(str(ItemStack(item, quantity)))
-            show_button = quantity > 0
-            if show_button:
-                button.show()
-            else:
-                button.hide()
+        self.zone_inventory.update(self.env.current_zone_inventory, events)
+        self.zone_inventory.draw(self.screen)
 
         # Update actions menu
         action_taken = None
@@ -133,7 +178,7 @@ class CraftingWindow:
         action_buttons = [
             widget
             for widget in self.actions_menu.get_widgets()
-            if isinstance(widget, Button)
+            if isinstance(widget, (Button, PyImage))
         ]
         for button in action_buttons:
             action = self.button_id_to_action[button.get_id()]
@@ -143,9 +188,8 @@ class CraftingWindow:
             else:
                 button.hide()
 
-        for menu in self.menus:
-            menu.update(events)
-            menu.draw(self.screen)
+        self.actions_menu.update(events)
+        self.actions_menu.draw(self.screen)
 
         # Gather action taken if any
         selected_widget = self.actions_menu.get_selected_widget()
@@ -155,6 +199,14 @@ class CraftingWindow:
         # Update surface
         pygame.display.update()
         return action_taken
+
+    def load_base_images(self) -> Dict[Union[Item, Zone], "Image"]:
+        base_images = {}
+        for obj in (
+            self.env.world.items + self.env.world.zones_items + self.env.world.zones
+        ):
+            base_images[obj] = load_image(self.env.resources_path, obj=obj)
+        return base_images
 
     def make_menus(self):
         """Build menus for user interface.
@@ -172,8 +224,6 @@ class CraftingWindow:
             center_content=True,
             height=self.window_shape[1],
             width=action_menu_width,
-            keyboard_enabled=True,
-            joystick_enabled=False,
             rows=len(self.env.transformations),
             columns=1,
             position=(0, 0),
@@ -192,57 +242,34 @@ class CraftingWindow:
             )
             self.button_id_to_action[button_id] = action
 
-        # Player inventory
         player_menu_width = int(0.25 * self.window_shape[0])
-        self.player_menu = Menu(
+        self.player_inventory = InventoryWidget(
             title="Inventory",
-            center_content=True,
             height=self.window_shape[1],
             width=player_menu_width,
-            keyboard_enabled=False,
-            joystick_enabled=False,
-            mouse_enabled=False,
-            rows=self.env.world.n_items,
-            columns=1,
             position=(action_menu_width, 0, False),
-            overflow=(False, True),
+            items=self.env.world.items,
+            base_images=self.base_images,
+            resources_path=self.env.resources_path,
         )
-
-        self.button_id_to_item = {}
-        for item in self.env.world.items:
-            button: Button = self.player_menu.add.button(str(item))
-            button.is_selectable = False
-            self.button_id_to_item[button.get_id()] = item
 
         # Current zone inventory
         zone_menu_height = int(0.7 * self.window_shape[1])
         zone_menu_width = self.window_shape[0] - action_menu_width - player_menu_width
-        self.zone_menu = Menu(
+        self.zone_inventory = InventoryWidget(
             title="Zone",
-            center_content=True,
             height=zone_menu_height,
             width=zone_menu_width,
-            keyboard_enabled=False,
-            joystick_enabled=False,
-            mouse_enabled=False,
-            rows=self.env.world.n_zones_items,
-            columns=1,
             position=(
                 action_menu_width + player_menu_width,
                 self.window_shape[1] - zone_menu_height,
                 False,
             ),
-            overflow=(False, True),
+            items=self.env.world.zones_items,
+            base_images=self.base_images,
+            resources_path=self.env.resources_path,
             theme=THEME_GREEN,
         )
-
-        self.button_id_to_zone_item = {}
-        for item in self.env.world.zones_items:
-            button: Button = self.zone_menu.add.button(str(item))
-            button.is_selectable = False
-            self.button_id_to_zone_item[button.get_id()] = item
-
-        return (self.actions_menu, self.player_menu, self.zone_menu)
 
 
 def _add_button_to_menu(
@@ -266,59 +293,3 @@ def _add_button_to_menu(
         decorator = button.get_decorator()
         decorator.add_baseimage(0, 0, image, centered=True)
     return button.get_id()
-
-
-def _to_menu_image(image: "Image", scaling: float) -> BaseImage:
-    buffered = BytesIO()
-    image.save(buffered, format="PNG")
-    buffered.seek(0)
-    return BaseImage(buffered).scale(scaling, scaling)
-
-
-def get_human_action(
-    env: "CraftingEnv",
-    additional_events: List["Event"] = None,
-    can_be_none: bool = False,
-    fps: Optional[float] = None,
-):
-    """Update the environment rendering and gather potential action given by the UI.
-
-    Args:
-        env: The running Crafting environment.
-        additional_events (Optional): Additional simulated pygame events.
-        can_be_none: If False, this function will loop on rendering until an action is found.
-            If True, will return None if no action was found after one rendering update.
-
-    Returns:
-        The action found using the UI.
-
-    """
-    action_chosen = False
-    while not action_chosen:
-        action = env.render_window.update_rendering(additional_events, fps)
-        action_chosen = action is not None or can_be_none
-    return action
-
-
-def render_env_with_human(env: "CraftingEnv", n_episodes: int = 1):
-    """Render the given environment with human iteractions.
-
-    Args:
-        env (CraftingEnv): The Crafting environment to run.
-        n_episodes (int, optional): Number of episodes to run. Defaults to 1.
-    """
-    print("Purpose: ", env.purpose)
-
-    for _ in range(n_episodes):
-        env.reset()
-        done = False
-        total_reward = 0
-        while not done:
-            env.render()
-            action = get_human_action(env)
-            print(f"Human did: {env.transformations[action]}")
-
-            _observation, reward, done, _info = env.step(action)
-            total_reward += reward
-
-        print("SCORE: ", total_reward)

@@ -4,6 +4,7 @@
 """ Utilitaries functions for rendering of the Crafting environments """
 
 import os
+from io import BytesIO
 from typing import TYPE_CHECKING, Optional, Tuple, Union
 import logging
 from pathlib import Path
@@ -16,6 +17,7 @@ from PIL import Image, ImageDraw, ImageFont
 # pygame is an optional dependency
 try:
     import pygame
+    from pygame_menu.baseimage import BaseImage
 except ImportError:
     pass
 
@@ -30,39 +32,7 @@ if TYPE_CHECKING:
 logging.getLogger("PIL").setLevel(logging.INFO)
 
 
-def create_image(font_path: Path, obj: Union[Item, Zone, Transformation]):
-    """Create a PIL image for and obj in a world.
-
-    Args:
-        world: A crafting World.
-        obj: A crafting Item, Zone, Recipe or property.
-
-    Returns:
-        A PIL image corresponding to the given object.
-
-    """
-
-    if isinstance(obj, Zone):
-        image_size = (699, 394)
-    else:
-        image_size = (120, 120)
-
-    image = Image.new("RGBA", image_size, (0, 0, 0, 0))
-    draw = ImageDraw.Draw(image)
-
-    cx, cy = image_size[0] // 2, image_size[1] // 2
-    bbox = [0, 0, image_size[0], image_size[1]]
-    alt_txt = str(obj)
-    color = (0, 0, 255, 255)
-    draw.rectangle(bbox, outline=color, width=5)
-
-    text_pt_size = int(0.60 * image_size[1])
-    font = ImageFont.truetype(font_path, size=text_pt_size)
-    draw.text((cx, cy), alt_txt, fill=(0, 0, 0), font=font, anchor="mm")
-    return image
-
-
-def load_image(resources_path: Path, obj: Union[Item, Zone, Transformation]):
+def load_image(resources_path: Path, obj: Union[Item, Zone]) -> Optional[Image.Image]:
     """Load a PIL image for and obj in a world.
 
     Args:
@@ -80,49 +50,51 @@ def load_image(resources_path: Path, obj: Union[Item, Zone, Transformation]):
         image_path = os.path.join(resources_path, "items", f"{obj.name}.png")
     elif isinstance(obj, Zone):
         image_path = os.path.join(resources_path, "zones", f"{obj.name}.png")
-    elif isinstance(obj, Transformation):
-        return None
     else:
         raise TypeError(f"Unsupported type for loading images: {type(obj)}")
 
-    return Image.open(image_path).convert("RGBA")
+    try:
+        return Image.open(image_path).convert("RGBA")
+    except FileNotFoundError:
+        return None
 
 
-def load_or_create_image(
-    obj: Union[Item, Zone, Transformation],
-    ressources_path: Path,
-    font_path: Path,
-    text: Optional[str] = None,
+def draw_text_on_image(
+    image: "Image.Image",
+    text: str,
+    ressources_path: str,
     text_relative_size: float = 0.3,
-):
-    """Load or create a PIL image for and obj in a world.
+) -> Optional[BaseImage]:
+    """Draw on top of an image, converting it to Pygame image.
 
     Args:
-        world: A crafting World.
-        obj: A crafting Item, Zone, Recipe or property.
+        image (Image): image to draw on to of.
         text (Optional): Text to draw on top of the image.
         text_relative_size: If a text is given,
             this is the relative size of the text compared to the image size.
 
     Returns:
-        A PIL image corresponding to the given object.
+        A BaseImage corresponding with the given text.
 
     """
-    try:
-        image = load_image(ressources_path, obj)
-    except FileNotFoundError:
-        image = create_image(font_path, obj)
+    font_path = os.path.join(ressources_path, "font.ttf")
+    image = image.copy()
+    image_draw = ImageDraw.Draw(image)
+    image_shape = np.array(image).shape
 
-    if text is not None:
-        image_draw = ImageDraw.Draw(image)
-        image_shape = np.array(image).shape
+    text_px_size = int(3 * text_relative_size * min(image_shape[:1]))
+    text_pt_size = int(0.75 * text_px_size)
+    font = ImageFont.truetype(font_path, size=text_pt_size)
+    font_offset = (int(0.05 * image_shape[0]), int(0.95 * image_shape[1]))
+    image_draw.text(font_offset, text, font=font, anchor="lb")
+    return _to_menu_image(image, 0.5)
 
-        text_px_size = int(3 * text_relative_size * min(image_shape[:1]))
-        text_pt_size = int(0.75 * text_px_size)
-        font = ImageFont.truetype(font_path, size=text_pt_size)
-        font_offset = (int(0.05 * image_shape[0]), int(0.95 * image_shape[1]))
-        image_draw.text(font_offset, text, font=font, anchor="lb")
-    return image
+
+def _to_menu_image(image: "Image.Image", scaling: float) -> BaseImage:
+    buffered = BytesIO()
+    image.save(buffered, format="PNG")
+    buffered.seek(0)
+    return BaseImage(buffered).scale(scaling, scaling)
 
 
 def scale(
