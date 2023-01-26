@@ -77,7 +77,8 @@ class TestCratingEnv:
         check_np_equal(player_inventory, expected_player_inventory)
 
         expected_position = np.zeros(len(self.zones), np.uint16)
-        expected_position[0] = 1
+        start_zone_slot = env.world.zones.index(self.start_zone)
+        expected_position[start_zone_slot] = 1
         check_np_equal(position, expected_position)
 
         expected_zones_inventories = np.zeros(
@@ -97,10 +98,11 @@ class TestCratingEnv:
         """observation should only show items of current zone."""
         env = CraftingEnv(self.transformations, start_zone=self.start_zone)
         env.player_inventory[1] = 2
-        start_zone_index = 0
+        start_zone_index = env.world.zones.index(self.start_zone)
         env.zones_inventories[start_zone_index, 0] = 3
         env.zones_inventories[start_zone_index, 1] = 1
-        expected_observation = np.array([0, 2, 0, 1, 0, 3, 1])
+        expected_observation = np.array([0, 2, 0, 0, 0, 3, 1])
+        expected_observation[3 + start_zone_index] = 1
         check_np_equal(env.observation, expected_observation)
 
     def test_step_move(self):
@@ -150,8 +152,9 @@ class TestCratingEnv:
         env = CraftingEnv(self.transformations, start_zone=self.start_zone)
 
         # Initialize an ongoing env
-        env.position[0] = 0
-        env.position[1] = 1
+        start_zone_index = env.world.zones.index(self.start_zone)
+        env.position[start_zone_index] = 0
+        env.position[1 - start_zone_index] = 1
         env.player_inventory[0] = 2
         env.zones_inventories[0, 0] = 3
         env.zones_inventories[1, 1] = 4
@@ -161,7 +164,7 @@ class TestCratingEnv:
         check_np_equal(env.player_inventory, expected_player_inventory)
 
         expected_position = np.zeros(len(self.zones), np.uint16)
-        expected_position[0] = 1
+        expected_position[start_zone_index] = 1
         check_np_equal(env.position, expected_position)
 
         expected_zones_inventories = np.zeros(

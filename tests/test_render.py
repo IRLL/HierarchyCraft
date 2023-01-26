@@ -3,7 +3,7 @@ import pytest
 from crafting.world import Zone, Item, ItemStack
 from crafting.transformation import Transformation
 from crafting.env import CraftingEnv
-from crafting.render.render import render_env_with_human
+from crafting.render.human import render_env_with_human
 
 
 class TestCratingEnv:
