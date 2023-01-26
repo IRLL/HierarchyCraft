@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Union
 try:
     import pygame
     from pygame.time import Clock
-    from pygame_menu.themes import THEME_DARK, THEME_GREEN
+    from pygame_menu.themes import THEME_DARK, THEME_GREEN, Theme
 except ImportError:
     pass
 
@@ -130,7 +130,7 @@ class CraftingWindow:
             theme=THEME_DARK,
         )
 
-        player_menu_width = int(0.25 * self.window_shape[0])
+        player_menu_width = int(0.3 * self.window_shape[0])
         self.player_inventory = InventoryWidget(
             title="Inventory",
             height=self.window_shape[1],
@@ -138,6 +138,18 @@ class CraftingWindow:
             position=(action_menu_width, 0, False),
             items=self.env.world.items,
             resources_path=self.env.resources_path,
+            theme=Theme(
+                background_color=(60, 60, 60),
+                cursor_color=(255, 255, 255),
+                cursor_selection_color=(80, 80, 80, 120),
+                scrollbar_color=(39, 41, 42),
+                scrollbar_slider_color=(65, 66, 67),
+                scrollbar_slider_hover_color=(90, 89, 88),
+                selection_color=(255, 255, 255),
+                title_background_color=(47, 48, 51),
+                title_font_color=(215, 215, 215),
+                widget_font_color=(200, 200, 200),
+            ),
         )
 
         # Current zone inventory

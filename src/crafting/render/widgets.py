@@ -45,6 +45,7 @@ class InventoryWidget(Menu):
         position,
         items: List[Item],
         resources_path: str,
+        rows: int = 9,
         theme: Theme = THEME_DEFAULT,
     ):
         super().__init__(
@@ -52,8 +53,8 @@ class InventoryWidget(Menu):
             center_content=True,
             height=height,
             width=width,
-            rows=len(items),
-            columns=1,
+            rows=rows,
+            columns=len(items) // rows + 1,
             position=position,
             overflow=(False, True),
             theme=theme,
