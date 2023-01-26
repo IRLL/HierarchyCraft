@@ -70,7 +70,7 @@ class TestCratingEnv:
 
     def test_state_initialisation(self):
         """should initialize the state as expected."""
-        env = CraftingEnv(self.transformations)
+        env = CraftingEnv(self.transformations, start_zone=self.start_zone)
 
         player_inventory, position, zones_inventories = env.state
         expected_player_inventory = np.zeros(len(self.items), np.uint16)
@@ -95,7 +95,7 @@ class TestCratingEnv:
 
     def test_observation(self):
         """observation should only show items of current zone."""
-        env = CraftingEnv(self.transformations)
+        env = CraftingEnv(self.transformations, start_zone=self.start_zone)
         env.player_inventory[1] = 2
         start_zone_index = 0
         env.zones_inventories[start_zone_index, 0] = 3
@@ -147,7 +147,7 @@ class TestCratingEnv:
 
     def test_reset(self):
         """reset should reset the state."""
-        env = CraftingEnv(self.transformations)
+        env = CraftingEnv(self.transformations, start_zone=self.start_zone)
 
         # Initialize an ongoing env
         env.position[0] = 0
