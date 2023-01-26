@@ -95,7 +95,7 @@ class InventoryWidget(Menu):
                 image = draw_text_on_image(
                     self.base_images[item],
                     text=str(quantity),
-                    ressources_path=self.resources_path,
+                    resources_path=self.resources_path,
                 )
                 button.set_image(_to_menu_image(image, 0.5))
                 button.render()
@@ -112,11 +112,11 @@ class InventoryWidget(Menu):
 
 
 def _load_base_images(
-    objs: List[Union[Item, Zone]], resource_path: str
+    objs: List[Union[Item, Zone]], resources_path: str
 ) -> Dict[Union[Item, Zone], "Image"]:
     base_images = {}
     for obj in objs:
-        base_images[obj] = load_image(resource_path, obj=obj)
+        base_images[obj] = load_image(resources_path, obj=obj)
     return base_images
 
 
@@ -226,7 +226,7 @@ class TransformationsWidget(Menu):
 #     def _load_image(self, item_id) -> "Surface":
 #         image = load_or_create_image(
 #             self.env.font_path,
-#             self.env.ressources_path,
+#             self.env.resources_path,
 #             self.env.world.items[item_id],
 #         )
 #         image = pilImageToSurface(image)

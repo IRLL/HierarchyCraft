@@ -61,7 +61,7 @@ class CraftingEnv:
         self.render_window = None
         if resources_path is None:
             render_dir = os.path.dirname(crafting.render.__file__)
-            resources_path = os.path.join(render_dir, "default_ressources")
+            resources_path = os.path.join(render_dir, "default_resources")
         self.resources_path = resources_path
 
         self.metadata = {}

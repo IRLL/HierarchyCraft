@@ -36,7 +36,7 @@ def load_image(resources_path: Path, obj: Union[Item, Zone]) -> Optional[Image.I
     """Load a PIL image for and obj in a world.
 
     Args:
-        world: A crafting World.
+        resources_path: path to environment resources.
         obj: A crafting Item, Zone, Recipe or property.
 
     Returns:
@@ -62,7 +62,7 @@ def load_image(resources_path: Path, obj: Union[Item, Zone]) -> Optional[Image.I
 def draw_text_on_image(
     image: "Image.Image",
     text: str,
-    ressources_path: str,
+    resources_path: str,
     text_relative_size: float = 0.3,
 ) -> Optional[BaseImage]:
     """Draw on top of an image, converting it to Pygame image.
@@ -77,7 +77,7 @@ def draw_text_on_image(
         A BaseImage corresponding with the given text.
 
     """
-    font_path = os.path.join(ressources_path, "font.ttf")
+    font_path = os.path.join(resources_path, "font.ttf")
     image = image.copy()
     image_draw = ImageDraw.Draw(image)
     image_shape = np.array(image).shape
@@ -104,7 +104,7 @@ def create_text_image(
 
     Args:
         obj: A crafting Item, Zone, Recipe or property.
-        resources_path: Path to the ressources folder.
+        resources_path: Path to the resources folder.
 
     Returns:
         A PIL image corresponding to the given object.
@@ -173,8 +173,10 @@ def build_transformation_image(
         destination_images = load_or_create_images(
             [transformation.destination], resources_path
         )
+        for zone_image in destination_images:
+            zone_image.thumbnail((120, 120), Image.ANTIALIAS)
 
-    items_images = removed_images + [arrow_image] + added_images
+    items_images = removed_images + [arrow_image] + added_images + destination_images
     total_width = sum(i.width for i in items_images)
     height = max(i.height for i in items_images)
     transformation_image = Image.new("RGBA", (total_width, height))
