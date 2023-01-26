@@ -7,18 +7,15 @@
 import os
 import sys
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union, Tuple
-
-import numpy as np
+from typing import TYPE_CHECKING, List, Optional, Union
 
 
 try:
     import pygame
-    from pygame import Surface
     from pygame.time import Clock
     from pygame_menu.baseimage import BaseImage
     from pygame_menu.menu import Menu
-    from pygame_menu.themes import THEME_BLUE, THEME_GREEN, THEME_ORANGE
+    from pygame_menu.themes import THEME_DARK
     from pygame_menu.widgets import Button
 except ImportError:
     pass
@@ -51,7 +48,7 @@ class CraftingWindow:
             ) from error
 
         self.env = env
-        self.window_shape = (int(16 / 9 * 600), 720)
+        self.window_shape = (int(16 / 9 * 720), 720)
         os.environ["SDL_VIDEO_CENTERED"] = "1"
         self.clock = Clock()
 
@@ -150,6 +147,7 @@ class CraftingWindow:
             columns=1,
             position=(0, 0),
             overflow=(False, True),
+            theme=THEME_DARK,
         )
 
         for action, transfo in enumerate(self.env.transformations):
@@ -180,7 +178,7 @@ def _add_button_to_menu(
         lambda x: x,
         index,
         padding=padding,
-        font_size=16,
+        font_size=20,
     )
     if image is not None:
         decorator = button.get_decorator()
