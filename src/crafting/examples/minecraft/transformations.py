@@ -91,7 +91,9 @@ def _zones_search() -> List[Transformation]:
         if mc_item.required_tool_types is None:
             quantity = max(1, round(1 / mc_item.hardness))
             search_item.append(
-                Transformation(added_player_items=[ItemStack(item, quantity)])
+                Transformation(
+                    zones=mc_item.zones, added_player_items=[ItemStack(item, quantity)]
+                )
             )
             continue
 
@@ -100,7 +102,10 @@ def _zones_search() -> List[Transformation]:
                 # Can still be gather by hand
                 quantity = max(1, round(1 / mc_item.hardness))
                 search_item.append(
-                    Transformation(added_player_items=[ItemStack(item, quantity)])
+                    Transformation(
+                        zones=mc_item.zones,
+                        added_player_items=[ItemStack(item, quantity)],
+                    )
                 )
             else:
                 allowed_materials = mc_item.required_tool_material
@@ -118,6 +123,7 @@ def _zones_search() -> List[Transformation]:
                         tools = [tool_stack]
                     search_item.append(
                         Transformation(
+                            zones=mc_item.zones,
                             added_player_items=[ItemStack(item, quantity)],
                             removed_player_items=tools,
                         )
