@@ -27,11 +27,17 @@ def build_minecrafting_transformations() -> List[Transformation]:
 def _move_to_zones() -> List[Transformation]:
     walk = [
         #: Move to FOREST
-        Transformation(destination=FOREST, zones=OVERWORLD),
+        Transformation(
+            destination=FOREST, zones=[zone for zone in OVERWORLD if zone != FOREST]
+        ),
         #: Move to SWAMP
-        Transformation(destination=SWAMP, zones=OVERWORLD),
+        Transformation(
+            destination=SWAMP, zones=[zone for zone in OVERWORLD if zone != SWAMP]
+        ),
         #: Move to MEADOW
-        Transformation(destination=MEADOW, zones=OVERWORLD),
+        Transformation(
+            destination=MEADOW, zones=[zone for zone in OVERWORLD if zone != MEADOW]
+        ),
     ]
 
     required_pickaxe_materials = {
@@ -44,10 +50,11 @@ def _move_to_zones() -> List[Transformation]:
     for zone, materials in required_pickaxe_materials.items():
         for material in materials:
             pickaxe = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][material]
+            other_zones = [other_zone for other_zone in OVERWORLD if other_zone != zone]
             dig.append(
                 Transformation(
                     destination=zone,
-                    zones=OVERWORLD,
+                    zones=other_zones,
                     removed_player_items=[ItemStack(pickaxe)],
                 )
             )
@@ -65,6 +72,7 @@ def _move_to_zones() -> List[Transformation]:
         nether.append(
             Transformation(
                 destination=zone,
+                zones=[NETHER],
                 removed_destination_items=[ItemStack(OPEN_NETHER_PORTAL)],
                 added_destination_items=[ItemStack(OPEN_NETHER_PORTAL)],
             )
