@@ -9,12 +9,12 @@ Simple environments with recursivity oriented constructor rules.
 
 from typing import List
 
-from crafting.examples.simple.env import SimpleCraftingEnv
-from crafting.world.items import Item, ItemStack
-from crafting.world.recipes import Recipe
+from crafting.env import CraftingEnv
+from crafting.world import Item, ItemStack
+from crafting.transformation import Transformation
 
 
-class RecursiveCraftingEnv(SimpleCraftingEnv):
+class RecursiveCraftingEnv(CraftingEnv):
 
     """Recursive, an exponentially hierarchical Environment.
 
@@ -25,7 +25,7 @@ class RecursiveCraftingEnv(SimpleCraftingEnv):
     def __init__(self, n_items: int, **kwargs):
         super().__init__(n_items, name="RecursiveCrafting", **kwargs)
 
-    def _build_recipes(self, items: List[Item]) -> List[Recipe]:
+    def _transformations(self, items: List[Item]) -> List[Transformation]:
         """Build recipes to make every item accessible.
 
         Args:
@@ -37,18 +37,20 @@ class RecursiveCraftingEnv(SimpleCraftingEnv):
         """
         recipes = []
 
-        for item in items[1:]:
-            inputs = [ItemStack(items[item_id]) for item_id in range(item.item_id)]
-            outputs = [ItemStack(items[item.item_id])]
+        for index, item in enumerate(items[1:]):
+            inputs = [ItemStack(items[item_id]) for item_id in range(index)]
+            outputs = [ItemStack(item)]
 
             # Build recipe
-            new_recipe = Recipe(len(recipes), inputs=inputs, outputs=outputs)
+            new_recipe = Transformation(
+                added_player_items=inputs, removed_player_items=outputs
+            )
             recipes.append(new_recipe)
 
         return recipes
 
 
-class LightRecursiveCraftingEnv(SimpleCraftingEnv):
+class LightRecursiveCraftingEnv(CraftingEnv):
 
     """LightRecursive, a lighter version of the RecursiveCrafting Environment.
 
@@ -90,7 +92,7 @@ class LightRecursiveCraftingEnv(SimpleCraftingEnv):
         return recipes
 
 
-class LighterRecursiveCraftingEnv(SimpleCraftingEnv):
+class LighterRecursiveCraftingEnv(CraftingEnv):
 
     """LighterRecursive, a lighter version of the LightRecursiveCraftingEnv Environment.
 
@@ -106,7 +108,7 @@ class LighterRecursiveCraftingEnv(SimpleCraftingEnv):
             env_name = f"LighterRecursiveCrafting-{self.n_required_previous}"
         super().__init__(n_items, name=env_name, **kwargs)
 
-    def _build_recipes(self, items: List[Item]) -> List[Recipe]:
+    def _build_recipes(self, items: List[Item]) -> List[Transformation]:
         """Build recipes to make every item accessible.
 
         Args:
@@ -129,7 +131,7 @@ class LighterRecursiveCraftingEnv(SimpleCraftingEnv):
             outputs = [ItemStack(items[item.item_id])]
 
             # Build recipe
-            new_recipe = Recipe(len(recipes), inputs=inputs, outputs=outputs)
+            new_recipe = Transformation(inputs=inputs, outputs=outputs)
             recipes.append(new_recipe)
 
         return recipes

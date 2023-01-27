@@ -9,12 +9,12 @@ Simple environment with tower-structured constructor rules.
 
 from typing import List
 
-from crafting.examples.simple.env import SimpleCraftingEnv
-from crafting.world.items import Item, ItemStack
-from crafting.world.recipes import Recipe
+from crafting.env import CraftingEnv
+from crafting.world import Item, ItemStack
+from crafting.transformation import Transformation
 
 
-class TowerCraftingEnv(SimpleCraftingEnv):
+class TowerCraftingEnv(CraftingEnv):
 
     """Tower, a tower-structured hierarchical Environment.
 
@@ -41,7 +41,8 @@ class TowerCraftingEnv(SimpleCraftingEnv):
         assert self.height > 0
         assert self.width > 0
         n_items = self.height * self.width + 1
-        name = f"TowerCrafting-v1-H{self.height}"
+        items = self._items()
+        name = f"TowerCrafting-v1-H{self.height}-W{self.width}"
         if "max_step" not in kwargs or not isinstance(kwargs["max_step"], int):
             if self.width == 1:
                 kwargs["max_step"] = 1 + int(self.width * (self.height + 1))
@@ -52,7 +53,10 @@ class TowerCraftingEnv(SimpleCraftingEnv):
                 )
         super().__init__(n_items, name=name, **kwargs)
 
-    def _build_recipes(self, items: List[Item]) -> List[Recipe]:
+    def _items(self) -> List[Item]:
+        """"""
+
+    def _transformations(self, items: List[Item]) -> List[Transformation]:
         """Build recipes to make every item accessible.
 
         Args:
@@ -77,7 +81,9 @@ class TowerCraftingEnv(SimpleCraftingEnv):
                     required_item = items[prev_layer_id + prev_item_id]
                     inputs.append(ItemStack(required_item))
 
-                new_recipe = Recipe(len(recipes), inputs=inputs, outputs=outputs)
+                new_recipe = Transformation(
+                    added_player_items=inputs, removed_player_items=outputs
+                )
                 recipes.append(new_recipe)
 
         # Last item recipe
@@ -89,7 +95,9 @@ class TowerCraftingEnv(SimpleCraftingEnv):
             required_item = items[last_layer_id + prev_item_id]
             inputs.append(ItemStack(required_item))
 
-        new_recipe = Recipe(len(recipes), inputs=inputs, outputs=outputs)
+        new_recipe = Transformation(
+            added_player_items=inputs, removed_player_items=outputs
+        )
         recipes.append(new_recipe)
 
         return recipes
