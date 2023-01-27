@@ -7,7 +7,7 @@
 import os
 import sys
 
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 try:
     import pygame
@@ -22,9 +22,11 @@ if TYPE_CHECKING:
     from pygame.event import Event
     from crafting.env import CraftingEnv
 
-from crafting.world import Item, Zone
-from crafting.render.utils import load_image
-from crafting.render.widgets import InventoryWidget, TransformationsWidget
+from crafting.render.widgets import (
+    InventoryWidget,
+    TransformationsWidget,
+    PostitionWidget,
+)
 
 
 class CraftingWindow:
@@ -95,6 +97,10 @@ class CraftingWindow:
         self.zone_inventory.update(self.env.current_zone_inventory, events)
         self.zone_inventory.draw(self.screen)
 
+        # Update position
+        self.position.update(self.env.position, events)
+        self.position.draw(self.screen)
+
         # Update actions menu
         self.actions_menu.update(self.env, events)
         self.actions_menu.draw(self.screen)
@@ -119,7 +125,7 @@ class CraftingWindow:
         """
 
         # Transformations (Actions)
-        action_menu_width = int(0.5 * self.window_shape[0])
+        action_menu_width = int(0.3 * self.window_shape[0])
         self.actions_menu = TransformationsWidget(
             title="Actions",
             height=self.window_shape[1],
@@ -130,7 +136,7 @@ class CraftingWindow:
             theme=THEME_DARK,
         )
 
-        player_menu_width = int(0.3 * self.window_shape[0])
+        player_menu_width = int(0.475 * self.window_shape[0])
         self.player_inventory = InventoryWidget(
             title="Inventory",
             height=self.window_shape[1],
@@ -153,7 +159,7 @@ class CraftingWindow:
         )
 
         # Current zone inventory
-        zone_menu_height = int(0.7 * self.window_shape[1])
+        zone_menu_height = int(0.78 * self.window_shape[1])
         zone_menu_width = self.window_shape[0] - action_menu_width - player_menu_width
         self.zone_inventory = InventoryWidget(
             title="Zone",
@@ -167,4 +173,15 @@ class CraftingWindow:
             items=self.env.world.zones_items,
             resources_path=self.env.resources_path,
             theme=THEME_GREEN,
+        )
+
+        # Position
+        position_menu_height = self.window_shape[1] - zone_menu_height
+        self.position = PostitionWidget(
+            title="Position",
+            height=position_menu_height,
+            width=zone_menu_width,
+            position=(action_menu_width + player_menu_width, 0, False),
+            zones=self.env.world.zones,
+            resources_path=self.env.resources_path,
         )

@@ -15,6 +15,7 @@ try:
     from pygame_menu.menu import Menu
     from pygame_menu.widgets import Button, Image as PyImage
     from pygame_menu.themes import THEME_DEFAULT, Theme
+    from pygame_menu.locals import ALIGN_LEFT
 except ImportError:
     pass
 
@@ -67,14 +68,7 @@ class InventoryWidget(Menu):
         self.button_id_to_item = {}
         self.old_quantity = {}
         for item in self.items:
-            image = self.base_images[item]
-            if image is not None:
-                image = draw_text_on_image(image, "0", self.resources_path)
-                button: PyImage = self.add.image(_to_menu_image(image, 0.5))
-            else:
-                button: Button = self.add.button(str(item))
-            button.is_selectable = False
-            self.button_id_to_item[button.get_id()] = item
+            self._build_button(item)
 
     def update(self, inventory: np.ndarray, events) -> bool:
         items_buttons = [
@@ -110,6 +104,16 @@ class InventoryWidget(Menu):
                 button.hide()
         return super().update(events)
 
+    def _build_button(self, item: Item) -> None:
+        image = self.base_images[item]
+        if image is not None:
+            image = draw_text_on_image(image, "0", self.resources_path)
+            button: PyImage = self.add.image(_to_menu_image(image, 0.5))
+        else:
+            button: Button = self.add.button(str(item))
+        button.is_selectable = False
+        self.button_id_to_item[button.get_id()] = item
+
 
 def _load_base_images(
     objs: List[Union[Item, Zone]], resources_path: str
@@ -134,7 +138,7 @@ class TransformationsWidget(Menu):
 
         super().__init__(
             title=title,
-            center_content=True,
+            center_content=False,
             height=height,
             width=width,
             rows=len(transformations),
@@ -156,15 +160,22 @@ class TransformationsWidget(Menu):
         self, transfo: Transformation, action_id: int
     ) -> Button:
         button: PyImage = self.add.button(
-            " " * len(str(transfo)),
+            " ",
             lambda x: x,
             action_id,
             padding=(16, 16, 16, 16),
+            align=ALIGN_LEFT,
         )
         image = build_transformation_image(transfo, self.resources_path)
         if image is not None:
             decorator = button.get_decorator()
-            decorator.add_baseimage(0, 0, _to_menu_image(image, 0.4), centered=True)
+            menu_image = _to_menu_image(image, 0.4)
+            decorator.add_baseimage(0, 0, menu_image, centered=True)
+            img_width, img_height = menu_image.get_size()
+            width_padding = (img_width - button.get_width(apply_padding=False)) // 2
+            height_padding = (img_height - button.get_height(apply_padding=False)) // 2
+            button.set_padding((height_padding, width_padding))
+            button.set_margin(8, 16)
         else:
             button.set_title(str(transfo))
         return button
@@ -183,6 +194,81 @@ class TransformationsWidget(Menu):
             else:
                 button.hide()
         return super().update(events)
+
+
+class PostitionWidget(Menu):
+    def __init__(
+        self,
+        title: str,
+        height: int,
+        width: int,
+        position,
+        zones: List[Zone],
+        resources_path: str,
+    ):
+
+        super().__init__(
+            title=title,
+            center_content=False,
+            height=height,
+            width=width,
+            rows=len(zones),
+            columns=1,
+            position=position,
+            overflow=(False, True),
+            theme=Theme(
+                title=False,
+                border_width=0,
+                widget_border_width=0,
+                scrollbar_slider_pad=0,
+                scrollarea_outer_margin=(0, 0),
+                scrollbar_thick=8,
+                widget_alignment=ALIGN_LEFT,
+            ),
+        )
+
+        self.zones = zones
+        self.base_images = _load_base_images(zones, resources_path)
+        self.resources_path = resources_path
+        self.button_id_to_zone = {}
+        self.old_quantity = {}
+        for zone in self.zones:
+            self._build_button(zone)
+
+    def update(self, position: np.ndarray, events) -> bool:
+        buttons = [
+            widget for widget in self.get_widgets() if isinstance(widget, Button)
+        ]
+        for button in buttons:
+            zone = self.button_id_to_zone[button.get_id()]
+            zone_slot = self.zones.index(zone)
+            show_button = position[zone_slot] == 1
+            if show_button:
+                button.show()
+            else:
+                button.hide()
+        return super().update(events)
+
+    def _build_button(self, zone: Zone) -> None:
+        image = self.base_images[zone]
+        font = os.path.join(self.resources_path, "font.ttf")
+        button: Button = self.add.button(
+            zone.name.capitalize(),
+            font_name=font,
+            font_color="white",
+            font_size=48,
+            border_width=0,
+        )
+        if image is not None:
+            decorator = button.get_decorator()
+            menu_image = _to_menu_image(image, 0.4)
+            decorator.add_baseimage(0, 0, menu_image, centered=True)
+            img_width, img_height = menu_image.get_size()
+            width_padding = (img_width - button.get_width(apply_padding=False)) // 2
+            height_padding = (img_height - button.get_height(apply_padding=False)) // 2
+            button.set_padding((height_padding, width_padding))
+        button.is_selectable = False
+        self.button_id_to_zone[button.get_id()] = zone
 
 
 # class EnvWidget:
