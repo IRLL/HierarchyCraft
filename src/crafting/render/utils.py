@@ -174,7 +174,7 @@ def build_transformation_image(
             [transformation.destination], resources_path
         )
         for zone_image in destination_images:
-            zone_image.thumbnail((120, 120), Image.ANTIALIAS)
+            zone_image.thumbnail((214, 120), Image.LANCZOS)
 
     items_images = removed_images + [arrow_image] + added_images + destination_images
     total_width = sum(i.width for i in items_images)
@@ -183,7 +183,7 @@ def build_transformation_image(
     x_offset = 0
     for i, image in enumerate(items_images):
         transformation_image.paste(image, (x_offset, (height - image.height) // 2))
-        x_offset += items_images[i - 1].width
+        x_offset += image.width
 
     return transformation_image
 
