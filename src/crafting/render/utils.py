@@ -165,7 +165,7 @@ def build_transformation_image(
         removed_images += load_or_create_images(
             transformation.removed_destination_items,
             resources_path,
-            bg_color=zone_bg_color,
+            bg_color=dest_bg_color,
         )
 
     destination_images = []
@@ -207,11 +207,19 @@ def load_or_create_images(
         elif quantity > 0:
             image = draw_text_on_image(image, str(quantity), resources_path)
         if bg_color is not None:
-            image_bg = Image.new("RGBA", image.size, (*bg_color, 255))
-            image_bg.alpha_composite(image)
-            image = image_bg
+            image = _add_background_elipsis(image, bg_color)
         images.append(image)
     return images
+
+
+def _add_background_elipsis(
+    image: Image.Image, bg_color: Tuple[int, int, int]
+) -> Image.Image:
+    image_bg = Image.new("RGBA", image.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image_bg)
+    draw.ellipse((0, 0, image.width, image.height), fill=bg_color)
+    image_bg.alpha_composite(image)
+    return image_bg
 
 
 def scale(
