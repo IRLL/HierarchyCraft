@@ -187,3 +187,7 @@ class CraftingWindow:
             zones=self.env.world.zones,
             resources_path=self.env.resources_path,
         )
+
+    def close(self):
+        """Closes the pygame window."""
+        pygame.display.quit()

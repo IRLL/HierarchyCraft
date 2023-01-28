@@ -60,3 +60,4 @@ class TestCratingEnv:
     def test_render_rgb_array(self):
         env = CraftingEnv(self.transformations, start_zone=self.start_zone)
         rgb_array = env.render(render_mode="rgb_array")
+        env.close()

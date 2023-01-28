@@ -207,6 +207,11 @@ class CraftingEnv:
         self.render_window.update_rendering(fps=fps)
         return surface_to_rgb_array(self.render_window.screen)
 
+    def close(self):
+        """Closes the environment."""
+        if self.render_window is not None:
+            self.render_window.close()
+
 
 def _add_items_to(itemstacks: Optional[List[ItemStack]], items_set: Set[Item]):
     if itemstacks is not None:
