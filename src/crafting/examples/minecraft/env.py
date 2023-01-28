@@ -10,11 +10,12 @@ Crafting environment adapted to the Minecraft inventory
 
 import os
 
-from crafting.env import CraftingEnv
+from crafting import CraftingEnv, ItemStack
 from crafting.examples.minecraft.transformations import (
     build_minecrafting_transformations,
 )
-from crafting.examples.minecraft.zones import FOREST
+from crafting.examples.minecraft.zones import FOREST, STRONGHOLD, NETHER
+from crafting.examples.minecraft.items import CLOSE_ENDER_PORTAL, CLOSE_NETHER_PORTAL
 
 
 class MineCraftingEnv(CraftingEnv):
@@ -30,6 +31,10 @@ class MineCraftingEnv(CraftingEnv):
             mc_transformations,
             name="MineCrafting",
             start_zone=start_zone,
+            start_zones_items={
+                NETHER: [ItemStack(CLOSE_NETHER_PORTAL)],
+                STRONGHOLD: [ItemStack(CLOSE_ENDER_PORTAL)],
+            },
             resources_path=resources_path,
             **kwargs,
         )

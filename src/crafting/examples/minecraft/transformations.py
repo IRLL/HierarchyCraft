@@ -73,12 +73,31 @@ def _move_to_zones() -> List[Transformation]:
             Transformation(
                 destination=zone,
                 zones=[NETHER],
+                removed_zone_items=[ItemStack(OPEN_NETHER_PORTAL)],
+                added_zone_items=[ItemStack(OPEN_NETHER_PORTAL)],
                 removed_destination_items=[ItemStack(OPEN_NETHER_PORTAL)],
                 added_destination_items=[ItemStack(OPEN_NETHER_PORTAL)],
             )
         )
 
-    return walk + dig + nether
+    end = [
+        #: Move to STRONGHOLD
+        Transformation(
+            destination=STRONGHOLD,
+            zones=OVERWORLD,
+            removed_player_items=[ItemStack(ENDER_EYE, 2)],
+        ),
+        #: Move to END
+        Transformation(
+            destination=END,
+            removed_zone_items=[ItemStack(OPEN_ENDER_PORTAL)],
+            added_zone_items=[ItemStack(OPEN_ENDER_PORTAL)],
+        ),
+        #: Move back to OVERWORLD
+        Transformation(destination=FOREST, zones=[END]),
+    ]
+
+    return walk + dig + nether + end
 
 
 def _zones_search() -> List[Transformation]:
@@ -267,6 +286,12 @@ def _building() -> List[Transformation]:
             removed_zone_items=[ItemStack(CLOSE_NETHER_PORTAL)],
             added_zone_items=[ItemStack(OPEN_NETHER_PORTAL)],
         ),
+        #: Open END_PORTAL
+        Transformation(
+            removed_player_items=[ItemStack(ENDER_EYE, 9)],
+            removed_zone_items=[ItemStack(CLOSE_ENDER_PORTAL)],
+            added_zone_items=[ItemStack(OPEN_ENDER_PORTAL)],
+        ),
     ]
 
     smelting = [
@@ -281,6 +306,20 @@ def _building() -> List[Transformation]:
         Transformation(
             removed_player_items=[ItemStack(GOLD_ORE, 3), ItemStack(WOOD_PLANK, 2)],
             added_player_items=[ItemStack(GOLD_INGOT, 3)],
+            removed_zone_items=[ItemStack(FURNACE)],
+            added_zone_items=[ItemStack(FURNACE)],
+        ),
+        #: Recipe of IRON_INGOT using COAL at FURNACE
+        Transformation(
+            removed_player_items=[ItemStack(IRON_ORE, 8), ItemStack(COAL, 1)],
+            added_player_items=[ItemStack(IRON_INGOT, 8)],
+            removed_zone_items=[ItemStack(FURNACE)],
+            added_zone_items=[ItemStack(FURNACE)],
+        ),
+        #: Recipe of GOLD_INGOT using COAL at FURNACE
+        Transformation(
+            removed_player_items=[ItemStack(GOLD_ORE, 8), ItemStack(COAL, 1)],
+            added_player_items=[ItemStack(GOLD_INGOT, 8)],
             removed_zone_items=[ItemStack(FURNACE)],
             added_zone_items=[ItemStack(FURNACE)],
         ),

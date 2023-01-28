@@ -17,5 +17,6 @@ UNDERGROUND = Zone("underground")  #: UNDERGROUND
 BEDROCK = Zone("bedrock")  #: BEDROCK
 NETHER = Zone("nether")  #: NETHER
 END = Zone("end")  #: ENDER
+STRONGHOLD = Zone("stronghold")  #: STRONGHOLD
 
 OVERWORLD = [FOREST, SWAMP, MEADOW, UNDERGROUND, BEDROCK]

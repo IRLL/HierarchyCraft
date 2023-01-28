@@ -72,6 +72,14 @@ MC_COBBLESTONE = McItem(
     hardness=2,
     required_tool_types=[ToolType.PICKAXE],
 )
+#: COAL
+COAL = Item("coal")
+MC_COAL = McItem(
+    COAL,
+    zones=[UNDERGROUND, BEDROCK],
+    hardness=3,
+    required_tool_types=[ToolType.PICKAXE],
+)
 #: IRON_ORE
 IRON_ORE = Item("iron_ore")
 MC_IRON_ORE = McItem(
@@ -174,6 +182,7 @@ MC_ITEMS = [
     MC_WOOD,
     MC_GRAVEL,
     MC_COBBLESTONE,
+    MC_COAL,
     MC_IRON_ORE,
     MC_GOLD_ORE,
     MC_DIAMOND,
