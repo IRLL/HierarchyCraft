@@ -188,28 +188,32 @@ def build_transformation_image(
     return transformation_image
 
 
+def load_or_create_image(
+    obj: Union[ItemStack, Zone], resources_path: str, bg_color=None
+):
+    """Load or create an image for an item or zone."""
+    quantity = 0
+    if isinstance(obj, ItemStack):
+        quantity = obj.quantity
+        obj = obj.item
+    image = load_image(obj=obj, resources_path=resources_path)
+    if image is None:
+        image_size = (120, 120)
+        if isinstance(obj, Zone):
+            image_size = (699, 394)
+        image = create_text_image(str(obj), resources_path, image_size=image_size)
+    elif quantity > 0:
+        image = draw_text_on_image(image, str(quantity), resources_path)
+    if bg_color is not None:
+        image = _add_background_elipsis(image, bg_color)
+    return image
+
+
 def load_or_create_images(
     objs: List[Union[ItemStack, Zone]], resources_path: str, bg_color=None
 ) -> List[Image.Image]:
     """Load or create images for the given objects."""
-    images = []
-    for obj in objs:
-        quantity = 0
-        if isinstance(obj, ItemStack):
-            quantity = obj.quantity
-            obj = obj.item
-        image = load_image(obj=obj, resources_path=resources_path)
-        if image is None:
-            image_size = (120, 120)
-            if isinstance(obj, Zone):
-                image_size = (699, 394)
-            image = create_text_image(str(obj), resources_path, image_size=image_size)
-        elif quantity > 0:
-            image = draw_text_on_image(image, str(quantity), resources_path)
-        if bg_color is not None:
-            image = _add_background_elipsis(image, bg_color)
-        images.append(image)
-    return images
+    return [load_or_create_image(obj, resources_path, bg_color) for obj in objs]
 
 
 def _add_background_elipsis(

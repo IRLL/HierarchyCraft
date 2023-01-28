@@ -7,9 +7,12 @@ from typing import Dict, Set, Union
 
 from hebg import HEBGraph, Behavior
 
-from crafting.behaviors.actions import CraftRecipe, SearchItem
-from crafting.behaviors.behaviors import GetItem, ReachZone
-from crafting.world.items import Item
+from crafting.world import Item
+from crafting.behaviors.behaviors import (
+    GetItem,
+    ReachZone,
+    AbleAndPerformTransformation,
+)
 
 
 def get_items_in_graph(
@@ -29,17 +32,26 @@ def get_items_in_graph(
     for node in graph.nodes():
         if isinstance(node, Behavior) and node in all_behaviors:
             node = all_behaviors[node]
-        if isinstance(node, (SearchItem, GetItem)) and isinstance(node.item, Item):
+        if isinstance(node, GetItem) and isinstance(node.item, Item):
             items_in_graph.add(node.item)
-        if isinstance(node, CraftRecipe) and node.recipe.outputs is not None:
-            items_in_graph |= {itemstack.item for itemstack in node.recipe.outputs}
+        if isinstance(node, AbleAndPerformTransformation):
+            if node.transformation.added_player_items is not None:
+                items_in_graph |= {
+                    itemstack.item
+                    for itemstack in node.transformation.added_player_items
+                }
+            if node.transformation.removed_player_items is not None:
+                items_in_graph |= {
+                    itemstack.item
+                    for itemstack in node.transformation.removed_player_items
+                }
     return items_in_graph
 
 
-def get_properties_in_graph(
+def get_zones_items_in_graph(
     graph: HEBGraph,
     all_behaviors: Dict[str, Union[GetItem, ReachZone]] = None,
-) -> Set[str]:
+) -> Set[Item]:
     """Get properties in a Crafting HEBGraph.
 
     Args:
@@ -47,17 +59,26 @@ def get_properties_in_graph(
         all_behaviors (Dict[str, Union[GetItem, ReachZone]): References to all known behaviors.
 
     Returns:
-        Set[str]: Set of properties that appears in the given graph.
+        Set[Item]: Set of zone items that appears in the given graph.
     """
     all_behaviors = all_behaviors if all_behaviors is not None else {}
-    props_in_graph = set()
+    zone_items_in_graph = set()
     for node in graph.nodes():
         if isinstance(node, Behavior) and node in all_behaviors:
             node = all_behaviors[node]
         if isinstance(node, GetItem) and isinstance(node.item, str):
-            props_in_graph.add(node.item)
-        if isinstance(node, CraftRecipe) and node.recipe.added_properties is not None:
-            props_in_graph |= {
-                prop for prop, value in node.recipe.added_properties.items() if value
-            }
-    return props_in_graph
+            zone_items_in_graph.add(node.item)
+        if (
+            isinstance(node, AbleAndPerformTransformation)
+            and node.transformation.added_zone_items is not None
+        ):
+            if node.transformation.added_zone_items is not None:
+                zone_items_in_graph |= {
+                    itemstack.item for itemstack in node.transformation.added_zone_items
+                }
+            if node.transformation.removed_zone_items is not None:
+                zone_items_in_graph |= {
+                    itemstack.item
+                    for itemstack in node.transformation.removed_zone_items
+                }
+    return zone_items_in_graph

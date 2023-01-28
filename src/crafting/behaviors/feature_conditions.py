@@ -11,61 +11,63 @@ from hebg import FeatureCondition
 from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
-    from crafting.world.items import Item
-    from crafting.world.world import World
-    from crafting.world.zones import Zone
+    from crafting.env import CraftingEnv
+    from crafting.world import Zone, ItemStack
 
 
-class HasItem(FeatureCondition):
+class HasItemStack(FeatureCondition):
 
     """FeatureCondition to check if player has an Item in a given quantity."""
 
-    def __init__(self, item: "Item", world: "World", quantity: int = 1) -> None:
-        name = f"Has {quantity} {item}?"
-        conditon_text = f"{quantity}" if quantity > 1 else ""
-        image = load_or_create_image(world, item, text=conditon_text)
+    def __init__(self, itemstack: "ItemStack", env: "CraftingEnv") -> None:
+        quantity = itemstack.quantity
+        conditon_text = f" {quantity}" if quantity > 1 else ""
+        name = f"Has{conditon_text} {itemstack.item.name}?"
+        image = load_or_create_image(itemstack, env.resources_path)
         super().__init__(name=name, image=np.array(image), complexity=1)
 
-        self.world = world
-        self.item = item
-        self.quantity = quantity
-        self.slot = self.world.item_id_to_slot[item.item_id]
+        self.itemstack = itemstack
+        self.n_items = env.world.n_items
+        self.slot = env.world.items.index(itemstack.item)
 
     def __call__(self, observation) -> int:
-        inventory_content = observation[: self.world.n_items]
-        return inventory_content[self.slot] >= self.quantity
+        inventory_content = observation[: self.n_items]
+        return inventory_content[self.slot] >= self.itemstack.quantity
 
 
 class IsInZone(FeatureCondition):
 
-    """FeatureCondition to check if in a Zone."""
+    """FeatureCondition to check if player is in a Zone."""
 
-    def __init__(self, zone: "Zone", world: "World") -> None:
-        name = f"Is in {zone}?"
-        image = np.array(load_or_create_image(world, zone))
+    def __init__(self, zone: "Zone", env: "CraftingEnv") -> None:
+        name = f"Is in {zone.name}?"
+        image = load_or_create_image(zone, env.resources_path)
         super().__init__(name=name, image=image, complexity=1)
 
-        self.world = world
+        self.n_items = env.world.n_items
+        self.n_zones = env.world.n_zones
         self.zone = zone
-        self.slot = self.world.zone_id_to_slot[zone.zone_id]
+        self.slot = env.world.zones.index(zone)
 
     def __call__(self, observation) -> int:
-        actual_zone_id = self.world.zone_id_from_observation(observation)
-        return actual_zone_id == self.zone.zone_id
+        position = observation[self.n_items : self.n_items + self.n_zones]
+        return position[self.slot] == 1
 
 
-class HasProperty(FeatureCondition):
+class HasZoneItem(FeatureCondition):
 
     """FeatureCondition to check if a Zone has the given property."""
 
-    def __init__(self, prop: str, world: "World") -> None:
-        name = f"Has property '{prop}' ?"
-        image = np.array(load_or_create_image(world, prop))
+    def __init__(self, itemstack: "ItemStack", env: "CraftingEnv") -> None:
+        name = f"Current zone has item {itemstack.item.name}?"
+        image = np.array(load_or_create_image(itemstack, env.resources_path))
         super().__init__(name=name, image=image, complexity=1)
 
-        self.world = world
-        self.prop = prop
+        self.itemstack = itemstack
+        self.n_items = env.world.n_items
+        self.n_zones = env.world.n_zones
+        self.slot = env.world.zones_items.index(itemstack.item)
 
     def __call__(self, observation) -> int:
-        props = self.world.properties_from_observation(observation)
-        return self.prop in props
+        zone_items = observation[self.n_items + self.n_zones :]
+        return zone_items[self.slot] >= self.itemstack.quantity

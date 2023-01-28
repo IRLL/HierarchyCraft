@@ -2,11 +2,13 @@ from typing import Dict, List, Set, Tuple, Optional, Union
 
 import os
 import numpy as np
+import networkx as nx
 
 import crafting
 from crafting.world import Item, ItemStack, Zone, World
 from crafting.transformation import Transformation
 from crafting.purpose import Purpose
+from crafting.behaviors.solving_behaviors import Behavior, build_all_solving_behaviors
 
 from crafting.render.render import CraftingWindow
 from crafting.render.utils import surface_to_rgb_array
@@ -73,6 +75,8 @@ class CraftingEnv:
         self.metadata = {}
         self.name = name
 
+        self._requirements_graph = None
+
     @property
     def state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Current state of the environment."""
@@ -125,13 +129,26 @@ class CraftingEnv:
         reward = self.purpose.reward(*self.state)
         return self._step_output(reward)
 
-    def _step_output(self, reward: float):
-        infos = {"action_is_legal": self.actions_mask}
-        return (self.observation, reward, self.terminated or self.truncated, infos)
-
     def reset(self, seed: int = 0):
         """Resets the state of the environement."""
         self._reset_state()
+
+    def close(self):
+        """Closes the environment."""
+        if self.render_window is not None:
+            self.render_window.close()
+
+    def get_all_behaviors(self) -> Dict[str, "Behavior"]:
+        """Build all solving behaviors using hebg."""
+        return build_all_solving_behaviors(self)
+
+    @property
+    def requirements_graph(self) -> nx.DiGraph:
+        return self._requirements_graph
+
+    def _step_output(self, reward: float):
+        infos = {"action_is_legal": self.actions_mask}
+        return (self.observation, reward, self.terminated or self.truncated, infos)
 
     def _build_world(self) -> World:
         """Reads the transformation to build the list of items, zones and zones_items
@@ -191,12 +208,12 @@ class CraftingEnv:
             self.render_mode = mode
 
         if self.render_mode in ("human", "rgb_array"):  # for human interaction
-            return self.render_rgb_array()
+            return self._render_rgb_array()
         if self.render_mode == "console":  # for console print
             raise NotImplementedError
         raise NotImplementedError
 
-    def render_rgb_array(self) -> np.ndarray:
+    def _render_rgb_array(self) -> np.ndarray:
         """Render an image of the game.
 
         Create the rendering window if not existing yet.
@@ -206,11 +223,6 @@ class CraftingEnv:
         fps = self.metadata.get("video.frames_per_second")
         self.render_window.update_rendering(fps=fps)
         return surface_to_rgb_array(self.render_window.screen)
-
-    def close(self):
-        """Closes the environment."""
-        if self.render_window is not None:
-            self.render_window.close()
 
 
 def _add_items_to(itemstacks: Optional[List[ItemStack]], items_set: Set[Item]):
