@@ -87,12 +87,51 @@ class TestCratingEnv:
         check_np_equal(zones_inventories, expected_zones_inventories)
 
     def test_start_zone(self):
-        """postition should be in start zone at initialization if given."""
-        env = CraftingEnv(self.transformations, start_zone=self.start_zone)
+        """position should be in start zone at initialization if given,
+        even if zone is not in transformations."""
+        new_start_zone = Zone("new_start_zone")
+        env = CraftingEnv(self.transformations, start_zone=new_start_zone)
         _, position, _ = env.state
-        expected_position = np.zeros(len(self.zones), np.uint16)
-        expected_position[env.world.zones.index(self.start_zone)] = 1
+        expected_position = np.zeros(len(env.world.zones), np.uint16)
+        expected_position[env.world.zones.index(new_start_zone)] = 1
         check_np_equal(position, expected_position)
+
+    def test_start_items(self):
+        """player inventory should be filled with start_items at initialization if given,
+        even if items are not in any transformations."""
+        start_item = Item("start_item")
+        env = CraftingEnv(
+            self.transformations,
+            start_zone=self.start_zone,
+            start_items=[ItemStack(start_item, 2), ItemStack(self.wood, 3)],
+        )
+        player_items, _, _ = env.state
+        expected_items = np.zeros(env.world.n_items, np.uint16)
+        expected_items[env.world.items.index(start_item)] = 2
+        expected_items[env.world.items.index(self.wood)] = 3
+        check_np_equal(player_items, expected_items)
+
+    def test_start_zones_items(self):
+        """zones inventories should be filled with start_zones_items at initialization if given,
+        even if items and zones are not in any transformations."""
+        new_zone = Zone("new_zone")
+        new_zone_item = Item("new_zone_item")
+
+        env = CraftingEnv(
+            self.transformations,
+            start_zone=self.start_zone,
+            start_zones_items={
+                new_zone: [ItemStack(new_zone_item, 2), ItemStack(self.wood, 3)],
+            },
+        )
+        _, _, zones_inventories = env.state
+        zone_slot = env.world.zones.index(new_zone)
+        expected_position = np.zeros_like(zones_inventories, np.int32)
+        new_zone_item_slot = env.world.zones_items.index(new_zone_item)
+        expected_position[zone_slot, new_zone_item_slot] = 2
+        wood_item_slot = env.world.zones_items.index(self.wood)
+        expected_position[zone_slot, wood_item_slot] = 3
+        check_np_equal(zones_inventories, expected_position)
 
     def test_observation(self):
         """observation should only show items of current zone."""

@@ -1,4 +1,4 @@
-from typing import List, Set, Tuple, Optional, Union
+from typing import Dict, List, Set, Tuple, Optional, Union
 
 import os
 import numpy as np
@@ -19,6 +19,8 @@ class CraftingEnv:
         self,
         transformations: List[Transformation],
         start_zone: Optional[Zone],
+        start_items: Optional[List[ItemStack]] = None,
+        start_zones_items: Optional[Dict[Zone, List[ItemStack]]] = None,
         purpose: Optional[Purpose] = None,
         invalid_reward: float = -10.0,
         render_mode="rgb_array",
@@ -41,6 +43,10 @@ class CraftingEnv:
         """
         self.transformations = transformations
         self.start_zone = start_zone
+        self.start_items = start_items if start_items is not None else []
+        self.start_zones_items = (
+            start_zones_items if start_zones_items is not None else {}
+        )
         self.invalid_reward = invalid_reward
         self.world = self._build_world()
         self._build_transformations()
@@ -130,7 +136,16 @@ class CraftingEnv:
     def _build_world(self) -> World:
         """Reads the transformation to build the list of items, zones and zones_items
         composing the world."""
-        items, zones, zones_items = set(), set(), set()
+
+        # Start elements
+        zones = set([self.start_zone])
+        items = set(itemstack.item for itemstack in self.start_items)
+        zones_items = set()
+        for zone, zone_items in self.start_zones_items.items():
+            zones.add(zone)
+            zones_items |= set(itemstack.item for itemstack in zone_items)
+
+        # Elements by transformations
         for transfo in self.transformations:
             if transfo.destination is not None:
                 zones.add(transfo.destination)
@@ -151,6 +166,9 @@ class CraftingEnv:
 
     def _reset_state(self) -> None:
         self.player_inventory = np.zeros(self.world.n_items, dtype=np.uint16)
+        for itemstack in self.start_items:
+            item_slot = self.world.items.index(itemstack.item)
+            self.player_inventory[item_slot] = itemstack.quantity
 
         self.position = np.zeros(self.world.n_zones, dtype=np.uint16)
         start_slot = 0  # Start in first Zone by default
@@ -161,6 +179,11 @@ class CraftingEnv:
         self.zones_inventories = np.zeros(
             (self.world.n_zones, self.world.n_zones_items), dtype=np.uint16
         )
+        for zone, zone_itemstacks in self.start_zones_items.items():
+            zone_slot = self.world.zones.index(zone)
+            for itemstack in zone_itemstacks:
+                item_slot = self.world.zones_items.index(itemstack.item)
+                self.zones_inventories[zone_slot, item_slot] = itemstack.quantity
 
     def render(self, mode: Optional[str] = None, **kwargs) -> Union[str, np.ndarray]:
         """Render the observation of the agent in a format depending on `render_mode`."""
