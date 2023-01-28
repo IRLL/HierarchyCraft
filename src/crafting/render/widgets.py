@@ -217,6 +217,9 @@ class PostitionWidget(Menu):
             position=position,
             overflow=(False, True),
             theme=Theme(
+                background_color=(186, 214, 177),
+                selection_color=(255, 255, 255, 0),
+                widget_font_color=(255, 255, 255),
                 title=False,
                 border_width=0,
                 widget_border_width=0,

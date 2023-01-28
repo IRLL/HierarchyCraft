@@ -146,15 +146,10 @@ class CraftingWindow:
             resources_path=self.env.resources_path,
             theme=Theme(
                 background_color=(60, 60, 60),
-                cursor_color=(255, 255, 255),
-                cursor_selection_color=(80, 80, 80, 120),
-                scrollbar_color=(39, 41, 42),
-                scrollbar_slider_color=(65, 66, 67),
-                scrollbar_slider_hover_color=(90, 89, 88),
-                selection_color=(255, 255, 255),
                 title_background_color=(47, 48, 51),
                 title_font_color=(215, 215, 215),
-                widget_font_color=(200, 200, 200),
+                selection_color=(255, 255, 255, 0),
+                widget_font_color=(255, 255, 255),
             ),
         )
 
@@ -172,7 +167,14 @@ class CraftingWindow:
             ),
             items=self.env.world.zones_items,
             resources_path=self.env.resources_path,
-            theme=THEME_GREEN,
+            theme=Theme(
+                title=False,
+                background_color=(186, 214, 177),
+                title_background_color=(47, 48, 51),
+                title_font_color=(215, 215, 215),
+                selection_color=(255, 255, 255, 0),
+                widget_font_color=(255, 255, 255),
+            ),
         )
 
         # Position
