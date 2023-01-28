@@ -14,6 +14,7 @@ jobs:
         python-version: ['3.8', '3.9', '3.10']
     env:
       MPLBACKEND: Agg  # https://github.com/orgs/community/discussions/26434
+      SDL_VIDEODRIVER: "dummy" # for PyGame render https://stackoverflow.com/questions/15933493/pygame-error-no-available-video-device
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
