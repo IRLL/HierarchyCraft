@@ -9,6 +9,7 @@ from crafting.world import Item, ItemStack, Zone, World
 from crafting.transformation import Transformation
 from crafting.purpose import Purpose
 from crafting.behaviors.solving_behaviors import Behavior, build_all_solving_behaviors
+from crafting.requirement_graph import build_requirements_graph, draw_requirements_graph
 
 from crafting.render.render import CraftingWindow
 from crafting.render.utils import surface_to_rgb_array
@@ -142,8 +143,13 @@ class CraftingEnv:
         """Build all solving behaviors using hebg."""
         return build_all_solving_behaviors(self)
 
+    def draw_requirements_graph(self, ax):
+        return draw_requirements_graph(ax, self.requirements_graph)
+
     @property
     def requirements_graph(self) -> nx.DiGraph:
+        if self._requirements_graph is None:
+            self._requirements_graph = build_requirements_graph(self)
         return self._requirements_graph
 
     def _step_output(self, reward: float):
