@@ -125,6 +125,32 @@ class CraftingEnv(Env):
         return self.purpose.is_terminal(*self.state)
 
     @property
+    def observation_space(self) -> Union[BoxSpace, TupleSpace]:
+        """Observation space for the Agent in the Crafting environment."""
+        obs_space = BoxSpace(
+            low=np.array(
+                [0 for _ in range(self.world.n_items)]
+                + [0 for _ in range(self.world.n_zones)]
+                + [0 for _ in range(self.world.n_zones_items)]
+            ),
+            high=np.array(
+                [np.inf for _ in range(self.world.n_items)]
+                + [1 for _ in range(self.world.n_zones)]
+                + [np.inf for _ in range(self.world.n_zones_items)]
+            ),
+        )
+
+        return obs_space
+
+    @property
+    def action_space(self) -> DiscreteSpace:
+        """Action space for the Agent in the Crafting environment.
+
+        Actions are expected to often be invalid.
+        """
+        return DiscreteSpace(len(self.transformations))
+
+    @property
     def actions_mask(self) -> np.ndarray:
         """Boolean mask of valid actions."""
         return np.array([t.is_valid(*self.state) for t in self.transformations])
@@ -147,6 +173,17 @@ class CraftingEnv(Env):
         )
         reward = self.purpose.reward(*self.state)
         return self._step_output(reward)
+
+    def render(self, mode: Optional[str] = None, **kwargs) -> Union[str, np.ndarray]:
+        """Render the observation of the agent in a format depending on `render_mode`."""
+        if mode is not None:
+            self.render_mode = mode
+
+        if self.render_mode in ("human", "rgb_array"):  # for human interaction
+            return self._render_rgb_array()
+        if self.render_mode == "console":  # for console print
+            raise NotImplementedError
+        raise NotImplementedError
 
     def reset(self, seed: int = 0):
         """Resets the state of the environement."""
@@ -225,17 +262,6 @@ class CraftingEnv(Env):
             for itemstack in zone_itemstacks:
                 item_slot = self.world.zones_items.index(itemstack.item)
                 self.zones_inventories[zone_slot, item_slot] = itemstack.quantity
-
-    def render(self, mode: Optional[str] = None, **kwargs) -> Union[str, np.ndarray]:
-        """Render the observation of the agent in a format depending on `render_mode`."""
-        if mode is not None:
-            self.render_mode = mode
-
-        if self.render_mode in ("human", "rgb_array"):  # for human interaction
-            return self._render_rgb_array()
-        if self.render_mode == "console":  # for console print
-            raise NotImplementedError
-        raise NotImplementedError
 
     def _render_rgb_array(self) -> np.ndarray:
         """Render an image of the game.
