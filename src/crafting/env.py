@@ -1,6 +1,7 @@
 from typing import Dict, List, Set, Tuple, Optional, Union
 
 import os
+import collections
 import numpy as np
 import networkx as nx
 
@@ -15,7 +16,24 @@ from crafting.render.render import CraftingWindow
 from crafting.render.utils import surface_to_rgb_array
 
 
-class CraftingEnv:
+# Gym is an optional dependency.
+try:
+    import gym
+
+    DiscreteSpace = gym.spaces.Discrete
+    BoxSpace = gym.spaces.Box
+    TupleSpace = gym.spaces.Tuple
+    MultiBinarySpace = gym.spaces.MultiBinary
+    Env = gym.Env
+except ImportError:
+    DiscreteSpace = collections.namedtuple("DiscreteSpace", "n")
+    BoxSpace = collections.namedtuple("BoxSpace", "low, high, shape, dtype")
+    TupleSpace = collections.namedtuple("TupleSpace", "spaces")
+    MultiBinarySpace = collections.namedtuple("MultiBinary", "n")
+    Env = object
+
+
+class CraftingEnv(Env):
     """A gym-like environment built from a list of `Transformation`."""
 
     def __init__(
