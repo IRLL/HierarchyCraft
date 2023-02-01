@@ -351,7 +351,17 @@ def break_cycles_through_level(multidigraph: nx.MultiDiGraph):
     return acyclical_multidigraph
 
 
-def draw_requirements_graph(ax: Axes, requirements_graph: nx.DiGraph):
+class RequirementsGraphLayout(Enum):
+    LEVEL = "level"
+    SPRING = "spring"
+
+
+def draw_requirements_graph(
+    ax: Axes,
+    requirements_graph: nx.DiGraph,
+    layout: RequirementsGraphLayout = RequirementsGraphLayout.LEVEL,
+    **kwargs,
+):
     """Draw the requirement graph on a given Axes.
 
     Args:
@@ -365,7 +375,12 @@ def draw_requirements_graph(ax: Axes, requirements_graph: nx.DiGraph):
     acyclic_requirements_graph = break_cycles_through_level(requirements_graph)
     digraph = collapse_as_digraph(acyclic_requirements_graph)
     compute_edges_color(digraph)
-    pos = leveled_layout_energy(digraph)
+
+    layout = RequirementsGraphLayout(layout)
+    if layout == RequirementsGraphLayout.LEVEL:
+        pos = leveled_layout_energy(digraph)
+    elif layout == RequirementsGraphLayout.SPRING:
+        pos = nx.spring_layout(digraph)
 
     plain_edges = [
         (u, v)

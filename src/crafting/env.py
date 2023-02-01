@@ -198,8 +198,8 @@ class CraftingEnv(Env):
         """Build all solving behaviors using hebg."""
         return build_all_solving_behaviors(self)
 
-    def draw_requirements_graph(self, ax):
-        return draw_requirements_graph(ax, self.requirements_graph)
+    def draw_requirements_graph(self, ax, **kwargs):
+        return draw_requirements_graph(ax, self.requirements_graph, **kwargs)
 
     @property
     def requirements_graph(self) -> nx.DiGraph:

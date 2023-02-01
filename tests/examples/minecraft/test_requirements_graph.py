@@ -67,5 +67,5 @@ class TestMineCraftingReqGraph:
 def test_draw_requirements_graph():
     fig, ax = plt.subplots()
     env = MineCraftingEnv()
-    env.draw_requirements_graph(ax)
+    env.draw_requirements_graph(ax, layout="spring")
     plt.close(fig)
