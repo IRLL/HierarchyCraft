@@ -9,7 +9,8 @@ from crafting.world import Item, ItemStack, Zone, World
 class Task:
     """Abstract base class for all Crafting tasks."""
 
-    def __init__(self) -> None:
+    def __init__(self, name: str) -> None:
+        self.name = name
         self._terminate_player_items = None
         self._terminate_position = None
         self._terminate_zones_items = None
@@ -48,8 +49,8 @@ class Task:
 class AchievementTask(Task):
     """Task giving a reward to the player only the first time achieved."""
 
-    def __init__(self, reward: float):
-        super().__init__()
+    def __init__(self, name: str, reward: float):
+        super().__init__(name)
         self._reward = reward
         self.is_terminated = False
 
@@ -71,8 +72,10 @@ class GetItemTask(AchievementTask):
     """Task of getting a given quantity of an item."""
 
     def __init__(self, item_stack: Union[Item, ItemStack], reward: float):
-        super().__init__(reward)
-        self.item_stack = stack_item(item_stack)
+        item_stack = stack_item(item_stack)
+        self.item_stack = item_stack
+        quantity_str = _quantity_str(item_stack.quantity)
+        super().__init__(name=f"Get{quantity_str}{item_stack.item.name}", reward=reward)
 
     def build(self, world: World) -> None:
         super().build(world)
@@ -92,7 +95,7 @@ class GoToZoneTask(AchievementTask):
     """Task to go to a given zone."""
 
     def __init__(self, zone: Zone, reward: float) -> None:
-        super().__init__(reward)
+        super().__init__(name=f"Go to {zone.name}", reward=reward)
         self.zone = zone
 
     def build(self, world: World):
@@ -122,11 +125,18 @@ class PlaceItemTask(AchievementTask):
         zones: Optional[Union[Zone, List[Zone]]] = None,
         reward: float = 1.0,
     ):
-        super().__init__(reward)
-        self.item_stack = stack_item(item_stack)
+        item_stack = stack_item(item_stack)
+        self.item_stack = item_stack
         if isinstance(zones, Zone):
             zones = [zones]
         self.zones = zones
+
+        quantity_str = _quantity_str(item_stack.quantity)
+        zones_str = _zones_str(self.zones)
+        super().__init__(
+            name=f"Place{quantity_str}{item_stack.item.name} {zones_str}",
+            reward=reward,
+        )
 
     def build(self, world: World):
         super().build(world)
@@ -152,3 +162,15 @@ def stack_item(item_or_stack: Union[Item, ItemStack]) -> ItemStack:
     if not isinstance(item_or_stack, ItemStack):
         item_or_stack = ItemStack(item_or_stack)
     return item_or_stack
+
+
+def _quantity_str(quantity: int):
+    return f" {quantity} " if quantity > 1 else " "
+
+
+def _zones_str(zones: Optional[List[Zone]]):
+    if zones is None:
+        return "anywhere"
+    if len(zones) == 1:
+        return f"in {zones[0].name}"
+    return f"in any of {set(zones)}"
