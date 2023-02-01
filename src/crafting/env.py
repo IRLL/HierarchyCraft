@@ -104,6 +104,8 @@ class CraftingEnv(Env):
     @property
     def current_zone_inventory(self) -> np.ndarray:
         """Current zone inventory."""
+        if self.position.shape[0] == 0:
+            return np.array([])  # No Zone
         current_zone_slot = self.position.nonzero()[0]
         return self.zones_inventories[current_zone_slot, :][0]
 
