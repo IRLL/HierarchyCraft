@@ -39,7 +39,7 @@ class CraftingEnv(Env):
     def __init__(
         self,
         transformations: List[Transformation],
-        start_zone: Optional[Zone],
+        start_zone: Optional[Zone] = None,
         start_items: Optional[List[ItemStack]] = None,
         start_zones_items: Optional[Dict[Zone, List[ItemStack]]] = None,
         purpose: Optional[Purpose] = None,
@@ -216,7 +216,10 @@ class CraftingEnv(Env):
         composing the world."""
 
         # Start elements
-        zones = set([self.start_zone])
+        zones = set()
+        if self.start_zone is not None:
+            zones.add(self.start_zone)
+
         items = set(itemstack.item for itemstack in self.start_items)
         zones_items = set()
         for zone, zone_items in self.start_zones_items.items():
@@ -252,7 +255,8 @@ class CraftingEnv(Env):
         start_slot = 0  # Start in first Zone by default
         if self.start_zone is not None:
             start_slot = self.world.slot_from_zone(self.start_zone)
-        self.position[start_slot] = 1
+        if self.position.shape[0] > 0:
+            self.position[start_slot] = 1
 
         self.zones_inventories = np.zeros(
             (self.world.n_zones, self.world.n_zones_items), dtype=np.uint16
