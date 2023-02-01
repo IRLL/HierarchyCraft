@@ -66,8 +66,11 @@ class RecursiveCraftingEnv(CraftingEnv):
         """
         transformation = []
 
-        for index, item in enumerate(items[1:]):
-            inputs = [ItemStack(items[item_id]) for item_id in range(index)]
+        for index, item in enumerate(items):
+            if index == 0:
+                inputs = []
+            else:
+                inputs = [ItemStack(items[item_id]) for item_id in range(index)]
             outputs = [ItemStack(item)]
 
             # Build recipe

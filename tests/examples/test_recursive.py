@@ -23,35 +23,38 @@ def test_gym_make_recursive():
 
 
 def test_recursive_requirements_graph():
-    n_items = 5
+    n_items = 4
     expected_graph = nx.DiGraph()
-    for item_id in range(1, n_items):
-        for required_id in range(item_id - 1):
-            expected_graph.add_edge(required_id, item_id)
+    expected_graph.add_edge(0, 1)
+    expected_graph.add_edge(0, 2)
+    expected_graph.add_edge(0, 3)
+    expected_graph.add_edge(1, 2)
+    expected_graph.add_edge(1, 3)
+    expected_graph.add_edge(2, 3)
 
     env = RecursiveCraftingEnv(n_items=n_items)
     check_isomorphic(env.requirements_graph, expected_graph)
 
 
-# def test_solve_recursive():
-#     n_items = 4  # [0, 1, 2, 3]
-#     actions = [
-#         0,  # 0
-#         1,  # 1 < 0
-#         0,  # 0
-#         2,  # 2 < 0 + 1
-#         0,  # 0
-#         1,  # 1
-#         3,  # 3 < 0 + 1 + 2
-#     ]
+def test_solve_recursive():
+    n_items = 4  # [0, 1, 2, 3]
+    actions = [
+        0,  # 0
+        1,  # 1 < 0
+        0,  # 0
+        2,  # 2 < 0 + 1
+        0,  # 0
+        1,  # 1
+        3,  # 3 < 0 + 1 + 2
+    ]
 
-#     env = RecursiveCraftingEnv(n_items=n_items)
-#     for action in actions:
-#         observation, done, _reward, _info = env.step(action)
-#         # Should only see items because only one zone and no zone items
-#         check.equal(observation.shape, (n_items,))
+    env = RecursiveCraftingEnv(n_items=n_items)
+    for action in actions:
+        observation, done, _reward, _info = env.step(action)
+        # Should only see items because no zones
+        check.equal(observation.shape, (n_items,))
 
-#     check.is_true(done)
+    check.is_true(done)
 
 
 # def test_gym_make_light_recursive():
