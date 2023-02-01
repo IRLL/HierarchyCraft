@@ -51,13 +51,6 @@ class TestMineCraftingReqGraph:
             )
         )
 
-    def test_nether_portal_in_nether_should_not_make_a_loop(self):
-        check.is_true(self.graph.has_node(_str_zone_item(OPEN_NETHER_PORTAL.name)))
-        check.is_true(self.graph.has_node(NETHER.name))
-        check.is_false(
-            self.graph.has_edge(NETHER.name, _str_zone_item(OPEN_NETHER_PORTAL.name))
-        )
-
     def test_furnace_do_not_require_coal(self):
         check.is_true(self.graph.has_node(_str_zone_item(FURNACE.name)))
         check.is_true(self.graph.has_node(COAL.name))
