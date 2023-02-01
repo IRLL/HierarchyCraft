@@ -2,14 +2,10 @@
 # Copyright (C) 2021-2023 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
 
-from crafting.task import GetItemTask
+from crafting.task import GetItemTask, GoToZoneTask
 from crafting.examples.minecraft.env import MineCraftingEnv
-from crafting.examples.minecraft.items import (
-    COBBLESTONE,
-    IRON_INGOT,
-    DIAMOND,
-    ENCHANTING_TABLE,
-)
+from crafting.examples.minecraft.items import *
+from crafting.examples.minecraft.zones import *
 
 # gym is an optional dependency
 try:
@@ -56,6 +52,15 @@ try:
         entry_point=ENV_PATH,
         kwargs={
             "purpose": GetItemTask(ENCHANTING_TABLE, reward=10),
+        },
+    )
+
+    # Go to the END
+    gym.register(
+        id="MineCrafting-End-v1",
+        entry_point=ENV_PATH,
+        kwargs={
+            "purpose": GoToZoneTask(END, reward=10),
         },
     )
 
