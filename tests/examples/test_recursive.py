@@ -70,17 +70,31 @@ def test_gym_make_light_recursive():
     check.equal(env.name, "LightRecursiveCrafting-K3-I10")
 
 
-# def test_light_recursive_requirements_graph(n_items: int, n_required_previous: int):
-#     env = LightRecursiveCraftingEnv(
-#         n_items=n_items, n_required_previous=n_required_previous
-#     )
-#     expected_graph = DiGraph()
-#     for item in env.world.items:
-#         min_idx = max(0, item.item_id - n_required_previous)
-#         for required_id in range(min_idx, item.item_id):
-#             expected_graph.add_edge(required_id, item.item_id)
+def test_light_recursive_requirements_graph():
+    n_items = 6
+    n_required_previous = 3
+    env = LightRecursiveCraftingEnv(
+        n_items=n_items, n_required_previous=n_required_previous
+    )
+    expected_graph = nx.DiGraph()
+    expected_graph.add_edge(0, 1)
 
-#     check.is_true(is_isomorphic(env.world.requirements_graph, expected_graph))
+    expected_graph.add_edge(0, 2)
+    expected_graph.add_edge(1, 2)
+
+    expected_graph.add_edge(0, 3)
+    expected_graph.add_edge(1, 3)
+    expected_graph.add_edge(2, 3)
+
+    expected_graph.add_edge(1, 4)
+    expected_graph.add_edge(2, 4)
+    expected_graph.add_edge(3, 4)
+
+    expected_graph.add_edge(2, 5)
+    expected_graph.add_edge(3, 5)
+    expected_graph.add_edge(4, 5)
+
+    check_isomorphic(env.requirements_graph, expected_graph)
 
 
 # def test_gym_make_lighter_recursive():
