@@ -12,6 +12,18 @@ from typing import List
 from crafting.env import CraftingEnv
 from crafting.world import Item, ItemStack
 from crafting.transformation import Transformation
+from crafting.render.human import render_env_with_human
+
+try:
+    import gym
+
+    gym.register(
+        id="TowerCrafting-v1",
+        entry_point="crafting.examples.tower:TowerCraftingEnv",
+    )
+
+except ImportError:
+    pass
 
 
 class TowerCraftingEnv(CraftingEnv):
@@ -36,13 +48,11 @@ class TowerCraftingEnv(CraftingEnv):
             height (int): Number of layers of the tower (ignoring goal item).
             width (int): Number of items per layer.
         """
-        self.height = int(height)
-        self.width = int(width)
-        assert self.height > 0
-        assert self.width > 0
+        self.height = height
+        self.width = width
         n_items = self.height * self.width + 1
-        items = self._items()
-        name = f"TowerCrafting-v1-H{self.height}-W{self.width}"
+        items = [Item(str(i)) for i in range(n_items)]
+        name = f"TowerCrafting-H{self.height}-W{self.width}"
         if "max_step" not in kwargs or not isinstance(kwargs["max_step"], int):
             if self.width == 1:
                 kwargs["max_step"] = 1 + int(self.width * (self.height + 1))
@@ -51,10 +61,8 @@ class TowerCraftingEnv(CraftingEnv):
                 kwargs["max_step"] = 1 + int(
                     (1 - self.width ** (self.height + 1)) / (1 - self.width)
                 )
-        super().__init__(n_items, name=name, **kwargs)
-
-    def _items(self) -> List[Item]:
-        """"""
+        transformations = self._transformations(items)
+        super().__init__(transformations, name=name, **kwargs)
 
     def _transformations(self, items: List[Item]) -> List[Transformation]:
         """Build recipes to make every item accessible.
@@ -63,10 +71,10 @@ class TowerCraftingEnv(CraftingEnv):
             items: List of items.
 
         Returns:
-            List of craft recipes.
+            List of craft recipes as transformations.
 
         """
-        recipes = []
+        transformations = []
 
         # Tower recipes
         for layer in range(1, self.height):
@@ -82,9 +90,10 @@ class TowerCraftingEnv(CraftingEnv):
                     inputs.append(ItemStack(required_item))
 
                 new_recipe = Transformation(
-                    added_player_items=inputs, removed_player_items=outputs
+                    removed_player_items=inputs,
+                    added_player_items=outputs,
                 )
-                recipes.append(new_recipe)
+                transformations.append(new_recipe)
 
         # Last item recipe
         last_item = items[-1]
@@ -96,16 +105,18 @@ class TowerCraftingEnv(CraftingEnv):
             inputs.append(ItemStack(required_item))
 
         new_recipe = Transformation(
-            added_player_items=inputs, removed_player_items=outputs
+            removed_player_items=inputs,
+            added_player_items=outputs,
         )
-        recipes.append(new_recipe)
+        transformations.append(new_recipe)
 
-        return recipes
+        return transformations
+
+
+def main():
+    env = TowerCraftingEnv(height=4, width=2, max_step="auto")
+    render_env_with_human(env)
 
 
 if __name__ == "__main__":
-    import gym
-    from crafting.render.human import render_env_with_human
-
-    env = gym.make("TowerCrafting-v1", height=4, width=2, max_step="auto")
-    render_env_with_human(env)
+    main()
