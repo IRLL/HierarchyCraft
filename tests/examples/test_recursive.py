@@ -9,7 +9,7 @@ from networkx import is_isomorphic
 
 from crafting.examples.recursive import (
     RecursiveCraftingEnv,
-    # LightRecursiveCraftingEnv,
+    LightRecursiveCraftingEnv,
     # LighterRecursiveCraftingEnv,
 )
 
@@ -57,17 +57,17 @@ def test_solve_recursive():
     check.is_true(done)
 
 
-# def test_gym_make_light_recursive():
-#     gym = pytest.importorskip("gym")
-#     n_items = 10
-#     n_previous_items = 3
-#     env: LightRecursiveCraftingEnv = gym.make(
-#         "LightRecursiveCraftingEnv-v1",
-#         n_items=n_items,
-#         n_previous_items=n_previous_items,
-#     )
-#     check.equal(len(env.world.items), n_items)
-#     check.equal(env.name, "LightRecursiveCraftingEnv-K3-I10")
+def test_gym_make_light_recursive():
+    gym = pytest.importorskip("gym")
+    n_items = 10
+    n_required_previous = 3
+    env: LightRecursiveCraftingEnv = gym.make(
+        "LightRecursiveCrafting-v1",
+        n_items=n_items,
+        n_required_previous=n_required_previous,
+    )
+    check.equal(len(env.world.items), n_items)
+    check.equal(env.name, "LightRecursiveCrafting-K3-I10")
 
 
 # def test_light_recursive_requirements_graph(n_items: int, n_required_previous: int):
