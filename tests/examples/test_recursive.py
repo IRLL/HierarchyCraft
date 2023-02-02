@@ -5,9 +5,10 @@ import pytest
 import pytest_check as check
 
 import networkx as nx
-from networkx import is_isomorphic
 
 from crafting.examples.recursive import RecursiveCraftingEnv, LightRecursiveCraftingEnv
+
+from tests.custom_checks import check_isomorphic
 
 
 def test_gym_make_recursive():
@@ -121,12 +122,3 @@ def test_solve_light_recursive():
         check.equal(observation.shape, (n_items,))
 
     check.is_true(done)
-
-
-def check_isomorphic(actual_graph: nx.Graph, expected_graph: nx.Graph):
-    check.is_true(
-        is_isomorphic(actual_graph, expected_graph),
-        msg="Graphs are not isomorphic:"
-        f"\n{list(actual_graph.edges())}"
-        f"\n{list(expected_graph.edges())}",
-    )

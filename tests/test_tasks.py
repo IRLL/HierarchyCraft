@@ -5,7 +5,7 @@ import numpy as np
 from crafting.world import ItemStack, Item, Zone, World
 from crafting.task import GoToZoneTask, GetItemTask, PlaceItemTask
 
-from tests.check_array import check_np_equal
+from tests.custom_checks import check_np_equal
 
 
 class TestGetItem:

@@ -6,7 +6,7 @@ import difflib
 from crafting.world import Item, ItemStack, Zone, World
 from crafting.transformation import Transformation
 
-from tests.check_array import check_np_equal
+from tests.custom_checks import check_np_equal
 
 
 class TestTransformationIsValid:

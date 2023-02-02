@@ -7,7 +7,7 @@ from crafting.transformation import Transformation
 from crafting.task import GetItemTask
 from crafting.env import CraftingEnv
 
-from tests.check_array import check_np_equal
+from tests.custom_checks import check_np_equal
 
 
 class TestCratingEnv:
