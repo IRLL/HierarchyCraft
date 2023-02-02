@@ -47,6 +47,7 @@ class CraftingEnv(Env):
         render_mode="rgb_array",
         resources_path: Optional[str] = None,
         name: str = "Crafting",
+        max_step: Optional[int] = None,
     ) -> None:
         """Initialize a Crafting environement.
 
@@ -75,6 +76,7 @@ class CraftingEnv(Env):
         self.player_inventory = np.array([], dtype=np.uint16)
         self.position = np.array([], dtype=np.uint16)
         self.zones_inventories = np.array([], dtype=np.uint16)
+        self.current_step = 0
         self._reset_state()
 
         if purpose is None:
@@ -90,6 +92,8 @@ class CraftingEnv(Env):
             render_dir = os.path.dirname(crafting.render.__file__)
             resources_path = os.path.join(render_dir, "default_resources")
         self.resources_path = resources_path
+
+        self.max_step = max_step
 
         self.metadata = {}
         self.name = name
@@ -119,7 +123,9 @@ class CraftingEnv(Env):
     @property
     def truncated(self) -> bool:
         """Whether the time limit has been exceeded."""
-        return False
+        if self.max_step is None:
+            return False
+        return self.current_step >= self.max_step
 
     @property
     def terminated(self) -> bool:
@@ -165,6 +171,7 @@ class CraftingEnv(Env):
         Else the state is left unchanged and the `invalid_reward` is given to the player.
 
         """
+        self.current_step += 1
         choosen_transformation = self.transformations[action]
         if not choosen_transformation.is_valid(*self.state):
             return self._step_output(self.invalid_reward)
@@ -268,6 +275,8 @@ class CraftingEnv(Env):
             for itemstack in zone_itemstacks:
                 item_slot = self.world.zones_items.index(itemstack.item)
                 self.zones_inventories[zone_slot, item_slot] = itemstack.quantity
+
+        self.current_step = 0
 
     def _render_rgb_array(self) -> np.ndarray:
         """Render an image of the game.

@@ -248,3 +248,16 @@ class TestCratingEnv:
         _, _, _, infos = env.step(env.transformations.index(self.search_wood))
         check_np_equal(env.actions_mask, np.array([1, 1, 1, 1, 0, 0]))
         check_np_equal(infos["action_is_legal"], np.array([1, 1, 1, 1, 0, 0]))
+
+    def test_max_step(self):
+        """max_step should truncate the episode after desired number of steps."""
+        env = CraftingEnv(self.transformations, start_zone=self.start_zone, max_step=3)
+        _, _, done, _ = env.step(0)
+        check.is_false(done)
+        check.is_false(env.truncated)
+        _, _, done, _ = env.step(0)
+        check.is_false(done)
+        check.is_false(env.truncated)
+        _, _, done, _ = env.step(0)
+        check.is_true(done)
+        check.is_true(env.truncated)
