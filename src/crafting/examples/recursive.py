@@ -29,11 +29,6 @@ try:
         entry_point=ENVS_PATH + "LightRecursiveCraftingEnv",
     )
 
-    # gym.register(
-    #     id="RecursiveCrafting",
-    #     entry_point=ENVS_PATH + "RecursiveCraftingEnv",
-    # )
-
 except ImportError:
     pass
 
