@@ -4,11 +4,11 @@
 """ Widgets for rendering of the Crafting environments """
 
 import os
-from typing import TYPE_CHECKING, Dict, List, Tuple, Union
-from pathlib import Path
+from typing import TYPE_CHECKING, Dict, List, Union
 
 import numpy as np
 
+# pygame in an optional dependency
 try:
     from pygame.image import load as load_pygame_image
     from pygame.font import Font
@@ -17,7 +17,8 @@ try:
     from pygame_menu.themes import THEME_DEFAULT, Theme
     from pygame_menu.locals import ALIGN_LEFT
 except ImportError:
-    pass
+    Menu = object
+    THEME_DEFAULT = None
 
 from crafting.world import Item, Zone, ItemStack
 from crafting.transformation import Transformation
@@ -47,7 +48,7 @@ class InventoryWidget(Menu):
         items: List[Item],
         resources_path: str,
         rows: int = 9,
-        theme: Theme = THEME_DEFAULT,
+        theme: "Theme" = THEME_DEFAULT,
     ):
         super().__init__(
             title=title,
@@ -133,9 +134,8 @@ class TransformationsWidget(Menu):
         position,
         transformations: List[Transformation],
         resources_path: str,
-        theme: Theme = THEME_DEFAULT,
+        theme: "Theme" = THEME_DEFAULT,
     ):
-
         super().__init__(
             title=title,
             center_content=False,
@@ -158,7 +158,7 @@ class TransformationsWidget(Menu):
 
     def _build_transformation_button(
         self, transfo: Transformation, action_id: int
-    ) -> Button:
+    ) -> "Button":
         button: PyImage = self.add.button(
             " ",
             lambda x: x,
@@ -206,7 +206,6 @@ class PostitionWidget(Menu):
         zones: List[Zone],
         resources_path: str,
     ):
-
         super().__init__(
             title=title,
             center_content=False,
