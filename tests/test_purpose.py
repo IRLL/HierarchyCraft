@@ -21,10 +21,11 @@ class TestNoPurpose:
         check.is_false(self.purpose.is_terminal(None, None, None))
 
 
-class DummyTask(Task):
-    def __init__(self, reward) -> None:
+class DummyPosEqualTask(Task):
+    def __init__(self, reward, goal_position) -> None:
         self.is_built = False
         self._reward = reward
+        self.goal_position = goal_position
 
     def reward(
         self,
@@ -32,7 +33,9 @@ class DummyTask(Task):
         position: np.ndarray,
         zones_inventory: np.ndarray,
     ) -> float:
-        return self._reward
+        if position == self.goal_position:
+            return self._reward
+        return 0.0
 
     def is_terminal(
         self,
@@ -40,7 +43,7 @@ class DummyTask(Task):
         position: np.ndarray,
         zones_inventory: np.ndarray,
     ) -> bool:
-        return position == 1
+        return position == self.goal_position
 
     def build(self, world: World) -> None:
         self.is_built = True
@@ -49,17 +52,40 @@ class DummyTask(Task):
 class TestPurposeSingleTask:
     @pytest.fixture(autouse=True)
     def setup_method(self):
-        self.get_wood = DummyTask(reward=5)
-        self.purpose = Purpose(self.get_wood)
+        self.go_to_1 = DummyPosEqualTask(reward=5, goal_position=1)
+        self.purpose = Purpose(self.go_to_1)
 
     def test_build(self):
         self.purpose.build(world=None)
-        check.is_true(self.get_wood.is_built)
+        check.is_true(self.go_to_1.is_built)
 
     def test_reward(self):
-        reward = self.purpose.reward(None, None, None)
-        check.equal(reward, 5)
+        check.equal(self.purpose.reward(None, 0, None), 0)
+        check.equal(self.purpose.reward(None, 1, None), 5)
 
     def test_is_terminal(self):
         check.is_false(self.purpose.is_terminal(None, 0, None))
         check.is_true(self.purpose.is_terminal(None, 1, None))
+
+
+class TestPurposeMultiTasks:
+    @pytest.fixture(autouse=True)
+    def setup_method(self):
+        self.go_to_0 = DummyPosEqualTask(reward=10, goal_position=0)
+        self.go_to_1 = DummyPosEqualTask(reward=5, goal_position=1)
+        self.purpose = Purpose([self.go_to_0, self.go_to_1])
+
+    def test_build(self):
+        self.purpose.build(world=None)
+        for task in [self.go_to_0, self.go_to_1]:
+            check.is_true(task.is_built)
+
+    def test_reward(self):
+        check.equal(self.purpose.reward(None, 0, None), 10)
+        check.equal(self.purpose.reward(None, 1, None), 5)
+        check.equal(self.purpose.reward(None, 2, None), 0)
+
+    def test_is_terminal_all(self):
+        check.is_false(self.purpose.is_terminal(None, 2, None))
+        check.is_false(self.purpose.is_terminal(None, 0, None))  # Task 0 ends
+        check.is_true(self.purpose.is_terminal(None, 1, None))  # Task 1 ends
