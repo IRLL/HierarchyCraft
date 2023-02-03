@@ -7,13 +7,7 @@ try:
 
     gym.register(
         id="RandomCrafting-v1",
-        entry_point="crafting.examples.random.env:RandomCraftingEnv",
-        kwargs={
-            "n_tools": 0,
-            "n_findables": 1,
-            "n_required_tools": [1.0],
-            "n_inputs_per_craft": [0.1, 0.6, 0.3],
-        },
+        entry_point="crafting.examples.random_simple.env:RandomCraftingEnv",
     )
 except ImportError:
     pass

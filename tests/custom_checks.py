@@ -20,3 +20,12 @@ def check_isomorphic(actual_graph: nx.Graph, expected_graph: nx.Graph):
         f"\n{list(actual_graph.edges())}"
         f"\n{list(expected_graph.edges())}",
     )
+
+
+def check_not_isomorphic(actual_graph: nx.Graph, expected_graph: nx.Graph):
+    check.is_false(
+        is_isomorphic(actual_graph, expected_graph),
+        msg="Graphs are isomorphic, yet they shouldn't:"
+        f"\n{list(actual_graph.edges())}"
+        f"\n{list(expected_graph.edges())}",
+    )
