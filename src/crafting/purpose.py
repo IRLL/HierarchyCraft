@@ -9,10 +9,15 @@ from crafting.task import Task
 class Purpose:
     """A purpose for a Crafting player based on a list of tasks."""
 
-    def __init__(self, tasks: Optional[Union[Task, List[Task]]]) -> None:
+    def __init__(
+        self,
+        tasks: Optional[Union[Task, List[Task]]],
+        timestep_reward: float = 0.0,
+    ) -> None:
         if isinstance(tasks, Task):
             tasks = [tasks]
         self.tasks = tasks
+        self.timestep_reward = timestep_reward
         self.task_has_ended = {}
         if self.tasks is not None:
             for task in self.tasks:
@@ -36,7 +41,7 @@ class Purpose:
         """
         Returns the purpose reward for the given state based on tasks.
         """
-        reward = 0.0
+        reward = self.timestep_reward
         if self.tasks is None:
             return reward
         for task in self.tasks:

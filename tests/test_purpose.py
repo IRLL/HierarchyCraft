@@ -21,6 +21,11 @@ class TestNoPurpose:
         check.is_false(self.purpose.is_terminal(None, None, None))
 
 
+def test_time_penalty():
+    purpose = Purpose(None, timestep_reward=-1)
+    check.equal(purpose.reward(None, None, None), -1)
+
+
 class DummyPosEqualTask(Task):
     def __init__(self, reward, goal_position) -> None:
         self.is_built = False
