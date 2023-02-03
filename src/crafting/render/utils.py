@@ -64,7 +64,7 @@ def draw_text_on_image(
     text: str,
     resources_path: str,
     text_relative_size: float = 0.3,
-) -> Optional[BaseImage]:
+) -> Optional["BaseImage"]:
     """Draw on top of an image, converting it to Pygame image.
 
     Args:
@@ -90,7 +90,7 @@ def draw_text_on_image(
     return image
 
 
-def _to_menu_image(image: "Image.Image", scaling: float) -> BaseImage:
+def _to_menu_image(image: "Image.Image", scaling: float) -> "BaseImage":
     buffered = BytesIO()
     image.save(buffered, format="PNG")
     buffered.seek(0)
@@ -150,7 +150,7 @@ def build_transformation_image(
 
     arrow_image = create_text_image("->", resources_path)
 
-    removed_images: List[Image.Image] = []
+    removed_images: List["Image.Image"] = []
     if transformation.removed_player_items is not None:
         removed_images += load_or_create_images(
             transformation.removed_player_items, resources_path
@@ -211,14 +211,14 @@ def load_or_create_image(
 
 def load_or_create_images(
     objs: List[Union[ItemStack, Zone]], resources_path: str, bg_color=None
-) -> List[Image.Image]:
+) -> List["Image.Image"]:
     """Load or create images for the given objects."""
     return [load_or_create_image(obj, resources_path, bg_color) for obj in objs]
 
 
 def _add_background_elipsis(
-    image: Image.Image, bg_color: Tuple[int, int, int]
-) -> Image.Image:
+    image: "Image.Image", bg_color: Tuple[int, int, int]
+) -> "Image.Image":
     image_bg = Image.new("RGBA", image.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(image_bg)
     draw.ellipse((0, 0, image.width, image.height), fill=bg_color)
