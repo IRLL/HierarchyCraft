@@ -1,7 +1,6 @@
 import pytest
 import pytest_check as check
 import numpy as np
-import difflib
 
 from crafting.world import Item, ItemStack, Zone, World
 from crafting.transformation import Transformation
@@ -16,6 +15,21 @@ class TestTransformationIsValid:
         self.items = [Item("0"), Item("1"), Item("2")]
         self.zones_items = [Item("0"), Item("z1")]
         self.world = World(self.items, self.zones, self.zones_items)
+
+    def test_item_as_input(self):
+        transfo = Transformation(
+            added_player_items=[Item("0")],
+            removed_player_items=[Item("0")],
+            added_zone_items=[Item("0")],
+            removed_zone_items=[Item("0")],
+            added_destination_items=[Item("0")],
+            removed_destination_items=[Item("0")],
+        )
+
+        for operation in transfo.OPERATIONS[2:]:
+            attribute: list = getattr(transfo, operation)
+            for item_stack in attribute:
+                check.is_instance(item_stack, ItemStack)
 
     def test_position_is_valid(self):
         transfo = Transformation(zones=[self.zones[0], self.zones[2]])
@@ -77,15 +91,6 @@ class TestTransformationIsValid:
             transfo.is_valid(None, position, np.array([[10, 10], [0, 10], [10, 10]]))
         )
 
-
-class TestTransformationApply:
-    @pytest.fixture(autouse=True)
-    def setup_method(self):
-        self.zones = [Zone("0"), Zone("1"), Zone("2")]
-        self.items = [Item("0"), Item("1"), Item("2")]
-        self.zones_items = [Item("0"), Item("z1")]
-        self.world = World(self.items, self.zones, self.zones_items)
-
     def test_destination(self):
         transfo = Transformation(destination=self.zones[1])
         transfo.build(self.world)
@@ -139,15 +144,6 @@ class TestTransformationApply:
         zones_inventories = np.array([[3, 1], [4, 2], [5, 3]])
         transfo.apply(None, position, zones_inventories)
         check_np_equal(zones_inventories, np.array([[3, 1], [1, 9], [5, 3]]))
-
-
-class TestTransformationOperations:
-    @pytest.fixture(autouse=True)
-    def setup_method(self):
-        self.zones = [Zone("0"), Zone("1"), Zone("2")]
-        self.items = [Item("0"), Item("1"), Item("2")]
-        self.zones_items = [Item("0"), Item("z1")]
-        self.world = World(self.items, self.zones, self.zones_items)
 
     def test_destination(self):
         transfo = Transformation(destination=self.zones[1])

@@ -1,4 +1,4 @@
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Union
 
 import numpy as np
 
@@ -6,7 +6,6 @@ from crafting.world import Item, ItemStack, Zone, World
 
 
 class Transformation:
-
     OPERATIONS = [
         "destination",
         "zones",
@@ -35,19 +34,19 @@ class Transformation:
         self.zones = zones
         self._zones = None
 
-        self.removed_player_items = removed_player_items
+        self.removed_player_items = _stack_items_list(removed_player_items)
         self._removed_player_items = None
-        self.added_player_items = added_player_items
+        self.added_player_items = _stack_items_list(added_player_items)
         self._added_player_items = None
 
-        self.removed_destination_items = removed_destination_items
+        self.removed_destination_items = _stack_items_list(removed_destination_items)
         self._removed_destination_items = None
-        self.added_destination_items = added_destination_items
+        self.added_destination_items = _stack_items_list(added_destination_items)
         self._added_destination_items = None
 
-        self.removed_zone_items = removed_zone_items
+        self.removed_zone_items = _stack_items_list(removed_zone_items)
         self._removed_zone_items = None
-        self.added_zone_items = added_zone_items
+        self.added_zone_items = _stack_items_list(added_zone_items)
         self._added_zone_items = None
 
     def apply(
@@ -187,3 +186,14 @@ class Transformation:
 def _unstacked_str(itemstacks: List[ItemStack], prefix: str = "", suffix: str = ""):
     items_text = ",".join([str(itemstack) for itemstack in itemstacks])
     return f"{prefix}{items_text}{suffix}"
+
+
+def _stack_items_list(
+    items_or_stacks: Optional[List[Union[Item, ItemStack]]]
+) -> Optional[List[ItemStack]]:
+    if items_or_stacks is None:
+        return None
+    for i, item_or_stack in enumerate(items_or_stacks):
+        if not isinstance(item_or_stack, ItemStack):
+            items_or_stacks[i] = ItemStack(item_or_stack)
+    return items_or_stacks
