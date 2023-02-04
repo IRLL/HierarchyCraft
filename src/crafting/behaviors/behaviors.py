@@ -3,7 +3,7 @@
 
 """ Module for handcrafted Behavior with HEBGraph in any Crafting environment. """
 
-from typing import TYPE_CHECKING, Dict, List, Union, Tuple
+from typing import TYPE_CHECKING, Dict, Union
 
 import numpy as np
 from hebg import HEBGraph, Behavior
@@ -28,20 +28,30 @@ class GetItem(Behavior):
         env: "CraftingEnv",
         all_behaviors: Dict[Union[int, str], Behavior],
     ):
-
-        super().__init__(name=f"Get {item.name}")
+        super().__init__(name=self.get_name(item))
         self.env = env
         self.item = item
         self.all_behaviors = all_behaviors
+
+    @staticmethod
+    def get_name(item: "Item"):
+        """Get the name of the behavior to reach a zone."""
+        return f"Get {item.name}"
 
     def build_graph(self) -> HEBGraph:
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
 
         # Any of the Tranformation that gives the item
         for transfo in self.env.transformations:
-            if transfo.added_player_items is not None and self.item in [
+            item_is_added = transfo.added_player_items is not None and self.item in [
                 itemstack.item for itemstack in transfo.added_player_items
-            ]:
+            ]
+            item_is_not_removed = (
+                transfo.removed_player_items is None
+                or self.item
+                not in [itemstack.item for itemstack in transfo.removed_player_items]
+            )
+            if item_is_added and item_is_not_removed:
                 sub_behavior = Behavior(AbleAndPerformTransformation.get_name(transfo))
                 graph.add_node(sub_behavior)
         return graph
@@ -57,22 +67,39 @@ class GetZoneItem(Behavior):
         env: "CraftingEnv",
         all_behaviors: Dict[Union[int, str], Behavior],
     ):
-
-        super().__init__(name=f"Get {item.name} in current Zone")
+        super().__init__(name=self.get_name(item))
         self.env = env
         self.item = item
         self.all_behaviors = all_behaviors
+
+    @staticmethod
+    def get_name(item: "Item"):
+        """Get the name of the behavior to reach a zone."""
+        return f"Get {item.name} in current Zone"
 
     def build_graph(self) -> HEBGraph:
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
 
         # Any of the Tranformation that gives the item
         for transfo in self.env.transformations:
-            if transfo.added_zone_items is not None and self.item in [
+            zone_item_is_added = transfo.added_zone_items is not None and self.item in [
                 itemstack.item for itemstack in transfo.added_zone_items
-            ]:
+            ]
+            zone_item_is_not_removed = (
+                transfo.removed_zone_items is None
+                or self.item
+                not in [itemstack.item for itemstack in transfo.removed_zone_items]
+            )
+            if zone_item_is_added and zone_item_is_not_removed:
                 sub_behavior = Behavior(AbleAndPerformTransformation.get_name(transfo))
                 graph.add_node(sub_behavior)
+
+        # Go to any zone where the zone_item is from the start
+        for zone, items_stacks in self.env.start_zones_items.items():
+            if self.item in [itemstack.item for itemstack in items_stacks]:
+                sub_behavior = Behavior(ReachZone.get_name(zone))
+                graph.add_node(sub_behavior)
+
         return graph
 
 
@@ -86,11 +113,15 @@ class ReachZone(Behavior):
         env: "CraftingEnv",
         all_behaviors: Dict[Union[int, str], Behavior],
     ):
-
-        super().__init__(name=f"Reach {zone.name}")
+        super().__init__(name=self.get_name(zone))
         self.env = env
         self.zone = zone
         self.all_behaviors = all_behaviors
+
+    @staticmethod
+    def get_name(zone: "Zone"):
+        """Get the name of the behavior to reach a zone."""
+        return f"Reach {zone.name}"
 
     def build_graph(self) -> HEBGraph:
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
@@ -113,7 +144,6 @@ class AbleAndPerformTransformation(Behavior):
         transformation: "Transformation",
         all_behaviors: Dict[Union[int, str], Behavior],
     ):
-
         super().__init__(name=self.get_name(transformation))
         self.env = env
         self.transformation = transformation
@@ -121,6 +151,7 @@ class AbleAndPerformTransformation(Behavior):
 
     @staticmethod
     def get_name(transformation: "Transformation"):
+        """Name of the behavior to able the transformation."""
         return f"Able and perform: {str(transformation)}"
 
     def build_graph(self) -> HEBGraph:
