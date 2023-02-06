@@ -61,9 +61,10 @@ class TestPurposeSingleTask:
     def setup_method(self):
         self.go_to_1 = DummyPosEqualTask(reward=5, goal_position=1)
         self.purpose = Purpose(self.go_to_1)
+        self.env = CraftingEnv([])
 
     def test_build(self):
-        self.purpose.build(world=None)
+        self.purpose.build(self.env)
         check.is_true(self.go_to_1.is_built)
 
     def test_reward(self):
@@ -81,9 +82,10 @@ class TestPurposeMultiTasks:
         self.go_to_0 = DummyPosEqualTask(reward=10, goal_position=0)
         self.go_to_1 = DummyPosEqualTask(reward=5, goal_position=1)
         self.purpose = Purpose([self.go_to_0, self.go_to_1])
+        self.env = CraftingEnv([])
 
     def test_build(self):
-        self.purpose.build(world=None)
+        self.purpose.build(self.env)
         for task in [self.go_to_0, self.go_to_1]:
             check.is_true(task.is_built)
 
