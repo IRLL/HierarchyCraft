@@ -14,7 +14,7 @@ class RewardShaping(Enum):
     NONE = "none"
     ALL_ACHIVEMENTS = "all"
     REQUIRED_ACHIVEMENTS = "required"
-    TRANSFORMATION_INPUTS_ACHIVEMENT = "inputs"
+    INPUTS_ACHIVEMENT = "inputs"
 
 
 class Purpose:
@@ -124,5 +124,18 @@ class Purpose:
             return []
         if reward_shaping == RewardShaping.ALL_ACHIVEMENTS:
             return [GetItemTask(item, reward=1.0) for item in env.world.items]
+        if reward_shaping == RewardShaping.INPUTS_ACHIVEMENT:
+            if isinstance(task, GetItemTask):
+                goal_item = task.item_stack.item
+                relevant_transformations = [
+                    transfo
+                    for transfo in env.transformations
+                    if goal_item in transfo.produced_items
+                    and goal_item not in transfo.consumed_items
+                ]
+                relevant_items = []
+                for transfo in relevant_transformations:
+                    relevant_items += transfo.consumed_items
 
+                return [GetItemTask(item, reward=1.0) for item in set(relevant_items)]
         raise NotImplementedError

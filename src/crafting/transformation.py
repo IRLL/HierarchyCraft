@@ -110,6 +110,30 @@ class Transformation:
                 builder = getattr(self, f"_build_{op_name}_op")
                 builder(world)
 
+    @property
+    def produced_items(self) -> List[Item]:
+        """List of produced items by this transformation."""
+        items = []
+        if self.added_player_items:
+            items += _items_from_stack_list(self.added_player_items)
+        if self.added_zone_items:
+            items += _items_from_stack_list(self.added_zone_items)
+        if self.added_destination_items:
+            items += _items_from_stack_list(self.added_destination_items)
+        return items
+
+    @property
+    def consumed_items(self) -> List[Item]:
+        """List of consumed items by this transformation."""
+        items = []
+        if self.removed_player_items:
+            items += _items_from_stack_list(self.removed_player_items)
+        if self.removed_zone_items:
+            items += _items_from_stack_list(self.removed_zone_items)
+        if self.removed_destination_items:
+            items += _items_from_stack_list(self.removed_destination_items)
+        return items
+
     def _build_destination_op(self, world: World) -> None:
         self._destination = np.zeros(world.n_zones, dtype=np.uint16)
         self._destination[world.slot_from_zone(self.destination)] = 1
@@ -197,3 +221,7 @@ def _stack_items_list(
         if not isinstance(item_or_stack, ItemStack):
             items_or_stacks[i] = ItemStack(item_or_stack)
     return items_or_stacks
+
+
+def _items_from_stack_list(stacks: List[ItemStack]) -> List[Item]:
+    return [stack.item for stack in stacks]
