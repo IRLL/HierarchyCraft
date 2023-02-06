@@ -163,6 +163,15 @@ class TestPurposeRewardShaping:
         purpose.build(self.env)
         self._check_get_item_task([self.items[1]], purpose=purpose)
 
+    def test_requires_achivements_shaping(self):
+        purpose = Purpose()
+        purpose.add_task(
+            self.get_item_2,
+            reward_shaping=RewardShaping.REQUIRED_ACHIVEMENTS,
+        )
+        purpose.build(self.env)
+        self._check_get_item_task(self.items[:2], purpose=purpose)
+
     @staticmethod
     def _check_get_item_task(items: List[Item], purpose: Purpose):
         all_items_stacks = [ItemStack(item) for item in items]

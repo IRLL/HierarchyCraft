@@ -2,12 +2,13 @@ from typing import TYPE_CHECKING, Union, List, Dict, Optional
 from enum import Enum
 
 import numpy as np
+import networkx as nx
 
-from crafting.task import Task, GetItemTask, GoToZoneTask
+from crafting.world import Item, Zone
+from crafting.task import Task, GetItemTask
 
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv
-    from crafting.world import World
 
 
 class RewardShaping(Enum):
@@ -126,7 +127,25 @@ class Purpose:
             return [GetItemTask(item, reward=1.0) for item in env.world.items]
         if reward_shaping == RewardShaping.INPUTS_ACHIVEMENT:
             return _inputs_subtasks(task, env)
+        if reward_shaping == RewardShaping.REQUIRED_ACHIVEMENTS:
+            return _required_subtasks(task, env)
         raise NotImplementedError
+
+
+def _required_subtasks(task: Task, env: "CraftingEnv"):
+    if isinstance(task, GetItemTask):
+        goal_item = task.item_stack.item
+        relevant_items = set()
+        for ancestor in nx.ancestors(env.requirements_graph, goal_item.name):
+            item_or_zone: Union[Item, Zone] = env.requirements_graph.nodes[ancestor][
+                "obj"
+            ]
+            relevant_items.add(item_or_zone)
+        return [GetItemTask(item, reward=1.0) for item in relevant_items]
+    raise NotImplementedError(
+        f"Unsupported reward shaping {RewardShaping.REQUIRED_ACHIVEMENTS}"
+        f"for given task type: {type(task)} of {task}"
+    )
 
 
 def _inputs_subtasks(task: Task, env: "CraftingEnv"):
@@ -144,5 +163,6 @@ def _inputs_subtasks(task: Task, env: "CraftingEnv"):
 
         return [GetItemTask(item, reward=1.0) for item in set(relevant_items)]
     raise NotImplementedError(
-        f"Unsupported inputs reward shaping for given task type: {type(task)} of {task}"
+        f"Unsupported reward shaping {RewardShaping.INPUTS_ACHIVEMENT}"
+        f"for given task type: {type(task)} of {task}"
     )

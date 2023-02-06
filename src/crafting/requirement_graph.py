@@ -79,6 +79,7 @@ def _add_nodes(
             name = _str_zone_item(name)
         graph.add_node(
             name,
+            obj=obj,
             type=node_type.value,
             color=NODE_COLOR_BY_TYPE[node_type],
             image=np.array(load_or_create_image(obj, resources_path)),
