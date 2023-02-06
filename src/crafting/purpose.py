@@ -125,17 +125,24 @@ class Purpose:
         if reward_shaping == RewardShaping.ALL_ACHIVEMENTS:
             return [GetItemTask(item, reward=1.0) for item in env.world.items]
         if reward_shaping == RewardShaping.INPUTS_ACHIVEMENT:
-            if isinstance(task, GetItemTask):
-                goal_item = task.item_stack.item
-                relevant_transformations = [
-                    transfo
-                    for transfo in env.transformations
-                    if goal_item in transfo.produced_items
-                    and goal_item not in transfo.consumed_items
-                ]
-                relevant_items = []
-                for transfo in relevant_transformations:
-                    relevant_items += transfo.consumed_items
-
-                return [GetItemTask(item, reward=1.0) for item in set(relevant_items)]
+            return _inputs_subtasks(task, env)
         raise NotImplementedError
+
+
+def _inputs_subtasks(task: Task, env: "CraftingEnv"):
+    if isinstance(task, GetItemTask):
+        goal_item = task.item_stack.item
+        relevant_transformations = [
+            transfo
+            for transfo in env.transformations
+            if goal_item in transfo.produced_items
+            and goal_item not in transfo.consumed_items
+        ]
+        relevant_items = []
+        for transfo in relevant_transformations:
+            relevant_items += transfo.consumed_items
+
+        return [GetItemTask(item, reward=1.0) for item in set(relevant_items)]
+    raise NotImplementedError(
+        f"Unsupported inputs reward shaping for given task type: {type(task)} of {task}"
+    )
