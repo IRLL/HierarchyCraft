@@ -126,7 +126,7 @@ class ReachZone(Behavior):
     def build_graph(self) -> HEBGraph:
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
 
-        # Any of the Tranformation that gives the item
+        # Any of the Tranformation that has the zone as destination
         for transfo in self.env.transformations:
             if transfo.destination is not None and transfo.destination == self.zone:
                 sub_behavior = Behavior(AbleAndPerformTransformation.get_name(transfo))
