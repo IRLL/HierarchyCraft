@@ -105,38 +105,23 @@ def _add_transformation_edges(
     if transfo.destination is not None:
         destinations = [transfo.destination]
 
+    transfo_params = {
+        "graph": graph,
+        "in_items": in_items,
+        "in_zone_items": in_zone_items,
+        "zone": zone,
+        "transfo": transfo,
+        "index": transfo_index,
+    }
+
     for out_item in out_items:
-        _add_crafts(
-            graph,
-            in_items,
-            in_zone_items,
-            zone,
-            out_item.name,
-            transfo,
-            transfo_index,
-        )
+        _add_crafts(out_node=out_item.name, **transfo_params)
 
     for out_zone_item in out_zone_items:
-        _add_crafts(
-            graph,
-            in_items,
-            in_zone_items,
-            zone,
-            _str_zone_item(out_zone_item.name),
-            transfo,
-            transfo_index,
-        )
+        _add_crafts(out_node=_str_zone_item(out_zone_item.name), **transfo_params)
 
     for destination in destinations:
-        _add_crafts(
-            graph,
-            in_items,
-            in_zone_items,
-            zone,
-            destination.name,
-            transfo,
-            transfo_index,
-        )
+        _add_crafts(out_node=destination.name, **transfo_params)
 
 
 def _add_crafts(
@@ -144,7 +129,7 @@ def _add_crafts(
     in_items: List[Item],
     in_zone_items: List[Item],
     zone: Optional[Zone],
-    out_node: Union[Zone, Item],
+    out_node: str,
     transfo: Transformation,
     index: int,
 ):
