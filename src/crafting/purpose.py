@@ -23,6 +23,16 @@ class Purpose:
         timestep_reward: float = 0.0,
         default_reward_shaping: RewardShaping = RewardShaping.NONE,
     ) -> None:
+        """A purpose for a Crafting player based on a list of tasks.
+
+        Args:
+            tasks (Union[Task, List[Task]], optional): Tasks to add to the Purpose.
+                Defaults to None.
+            timestep_reward (float, optional): Reward for each timestep.
+                Defaults to 0.0.
+            default_reward_shaping (RewardShaping, optional): Default reward shaping for tasks.
+                Defaults to RewardShaping.NONE.
+        """
         self.tasks = []
         self.timestep_reward = timestep_reward
         self.default_reward_shaping = default_reward_shaping
