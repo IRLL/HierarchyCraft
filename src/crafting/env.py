@@ -84,7 +84,7 @@ class CraftingEnv(Env):
         if not isinstance(purpose, Purpose):
             purpose = Purpose(tasks=purpose)
         self.purpose = purpose
-        self.purpose.build(self.world)
+        self.purpose.build(self)
 
         self.render_mode = render_mode
         self.render_window = None
