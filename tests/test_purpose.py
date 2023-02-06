@@ -3,9 +3,11 @@ import pytest_check as check
 
 import numpy as np
 
-from crafting.world import World, Zone, Item
+from crafting.env import CraftingEnv
+from crafting.world import World, ItemStack, Item
 from crafting.purpose import Purpose, RewardShaping
-from crafting.task import Task
+from crafting.task import Task, GetItemTask
+from crafting.transformation import Transformation
 
 
 class TestNoPurpose:
@@ -106,3 +108,41 @@ class TestPurposeMultiTasks:
         check.equal(
             purpose.reward_shaping[self.go_to_0], RewardShaping.REQUIRED_ACHIVEMENTS
         )
+
+
+class TestPurposeRewardShaping:
+    @pytest.fixture(autouse=True)
+    def setup_method(self):
+        self.items = [Item(str(i)) for i in range(4)]
+        # Item 0
+        search_0 = Transformation(added_player_items=[self.items[0]])
+        # Item 0 > Item 1
+        craft_1 = Transformation(
+            removed_player_items=[self.items[0]],
+            added_player_items=[self.items[1]],
+        )
+        # Item 1 > Item 2
+        craft_2 = Transformation(
+            removed_player_items=[self.items[1]],
+            added_player_items=[self.items[2]],
+        )
+        # Item 3
+        search_3 = Transformation(added_player_items=[self.items[3]])
+
+        self.get_item_2 = GetItemTask(self.items[2], reward=10.0)
+        self.env = CraftingEnv(transformations=[search_0, craft_1, craft_2, search_3])
+
+    def test_no_reward_shaping(self):
+        purpose = Purpose()
+        purpose.add_task(self.get_item_2, RewardShaping.NONE)
+        check.equal(purpose.tasks, [self.get_item_2])
+
+    def test_all_achievements_shaping(self):
+        purpose = Purpose()
+        purpose.add_task(self.get_item_2, reward_shaping=RewardShaping.ALL_ACHIVEMENTS)
+        purpose.build(self.env)
+
+        all_items_stacks = [ItemStack(item) for item in self.items]
+        task_names = [task.name for task in purpose.tasks]
+        for item_stack in all_items_stacks:
+            check.is_in(GetItemTask.get_name(item_stack), task_names)

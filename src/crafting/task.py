@@ -72,10 +72,8 @@ class GetItemTask(AchievementTask):
     """Task of getting a given quantity of an item."""
 
     def __init__(self, item_stack: Union[Item, ItemStack], reward: float):
-        item_stack = stack_item(item_stack)
-        self.item_stack = item_stack
-        quantity_str = _quantity_str(item_stack.quantity)
-        super().__init__(name=f"Get{quantity_str}{item_stack.item.name}", reward=reward)
+        self.item_stack = stack_item(item_stack)
+        super().__init__(name=self.get_name(self.item_stack), reward=reward)
 
     def build(self, world: World) -> None:
         super().build(world)
@@ -89,6 +87,12 @@ class GetItemTask(AchievementTask):
         zones_inventory: np.ndarray,
     ) -> bool:
         return np.all(player_inventory >= self._terminate_player_items)
+
+    @staticmethod
+    def get_name(item_stack: ItemStack):
+        """Name of the task for a given ItemStack"""
+        quantity_str = _quantity_str(item_stack.quantity)
+        return f"Get{quantity_str}{item_stack.item.name}"
 
 
 class GoToZoneTask(AchievementTask):
