@@ -4,7 +4,7 @@ import pytest_check as check
 import numpy as np
 
 from crafting.world import World, Zone, Item
-from crafting.purpose import Purpose
+from crafting.purpose import Purpose, RewardShaping
 from crafting.task import Task
 
 
@@ -94,3 +94,8 @@ class TestPurposeMultiTasks:
         check.is_false(self.purpose.is_terminal(None, 2, None))
         check.is_false(self.purpose.is_terminal(None, 0, None))  # Task 0 ends
         check.is_true(self.purpose.is_terminal(None, 1, None))  # Task 1 ends
+
+    def test_add_task_with_reward_shaping(self):
+        purpose = Purpose()
+        purpose.add_task(self.go_to_0)
+        check.equal(purpose.reward_shaping[self.go_to_0], RewardShaping.NONE)

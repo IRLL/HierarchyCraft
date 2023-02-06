@@ -9,7 +9,7 @@ from crafting.task import Task
 
 def test_no_reward_gym_make():
     env: MineCraftingEnv = gym.make("MineCrafting-NoReward-v1")
-    check.is_none(env.purpose.tasks)
+    check.equal(env.purpose.tasks, [])
 
 
 def test_stone_gym_make():
