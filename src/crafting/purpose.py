@@ -1,4 +1,4 @@
-from typing import Union, List, Optional
+from typing import Union, List, Dict, Optional
 from enum import Enum
 
 import numpy as np
@@ -33,12 +33,12 @@ class Purpose:
             default_reward_shaping (RewardShaping, optional): Default reward shaping for tasks.
                 Defaults to RewardShaping.NONE.
         """
-        self.tasks = []
+        self.tasks: List[Task] = []
         self.timestep_reward = timestep_reward
         self.default_reward_shaping = default_reward_shaping
 
-        self.task_has_ended = {}
-        self.reward_shaping = {}
+        self.task_has_ended: Dict[Task, bool] = {}
+        self.reward_shaping: Dict[Task, RewardShaping] = {}
 
         if isinstance(tasks, Task):
             tasks = [tasks]
