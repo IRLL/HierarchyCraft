@@ -130,11 +130,18 @@ class TestPurposeRewardShaping:
             removed_player_items=[self.items[1]],
             added_player_items=[self.items[2]],
         )
+        # Item 2 > 2 * Item 2
+        craft_2_with_2 = Transformation(
+            removed_player_items=[self.items[2]],
+            added_player_items=[ItemStack(self.items[2], 2)],
+        )
         # Item 3
         search_3 = Transformation(added_player_items=[self.items[3]])
 
         self.get_item_2 = GetItemTask(self.items[2], reward=10.0)
-        self.env = CraftingEnv(transformations=[search_0, craft_1, craft_2, search_3])
+        self.env = CraftingEnv(
+            transformations=[search_0, craft_1, craft_2, craft_2_with_2, search_3]
+        )
 
     def test_no_reward_shaping(self):
         purpose = Purpose()
