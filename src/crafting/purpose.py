@@ -1,10 +1,13 @@
-from typing import Union, List, Dict, Optional
+from typing import TYPE_CHECKING, Union, List, Dict, Optional
 from enum import Enum
 
 import numpy as np
 
-from crafting.world import World
-from crafting.task import Task
+from crafting.task import Task, GetItemTask, GoToZoneTask
+
+if TYPE_CHECKING:
+    from crafting.env import CraftingEnv
+    from crafting.world import World
 
 
 class RewardShaping(Enum):
@@ -62,14 +65,23 @@ class Purpose:
         self.reward_shaping[task] = reward_shaping
         self.tasks.append(task)
 
-    def build(self, world: World):
+    def build(self, env: "CraftingEnv"):
         """
         Builds the purpose of the player based on the given world.
         """
         if not self.tasks:
             return
+        # Add reward shaping subtasks
         for task in self.tasks:
-            task.build(world)
+            subtasks = self._add_reward_shaping_subtasks(
+                task, env, self.reward_shaping[task]
+            )
+            for subtask in subtasks:
+                self.add_task(subtask, RewardShaping.NONE)
+
+        # Build all tasks
+        for task in self.tasks:
+            task.build(env.world)
 
     def reward(
         self,
@@ -104,3 +116,13 @@ class Purpose:
             ):
                 self.task_has_ended[task] = True
         return all(self.task_has_ended.values())
+
+    def _add_reward_shaping_subtasks(
+        self, task: Task, env: "CraftingEnv", reward_shaping: RewardShaping
+    ) -> List[Task]:
+        if reward_shaping == RewardShaping.NONE:
+            return []
+        if reward_shaping == RewardShaping.ALL_ACHIVEMENTS:
+            return [GetItemTask(item, reward=1.0) for item in env.world.items]
+
+        raise NotImplementedError
