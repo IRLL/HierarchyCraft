@@ -1,3 +1,5 @@
+from typing import List
+
 import pytest
 import pytest_check as check
 
@@ -143,8 +145,22 @@ class TestPurposeRewardShaping:
         purpose = Purpose()
         purpose.add_task(self.get_item_2, reward_shaping=RewardShaping.ALL_ACHIVEMENTS)
         purpose.build(self.env)
+        self._check_get_item_task(self.items, purpose=purpose)
 
-        all_items_stacks = [ItemStack(item) for item in self.items]
+    def test_inputs_achivements_shaping(self):
+        purpose = Purpose()
+        purpose.add_task(
+            self.get_item_2,
+            reward_shaping=RewardShaping.INPUTS_ACHIVEMENT,
+        )
+        purpose.build(self.env)
+        self._check_get_item_task([self.items[1]], purpose=purpose)
+
+    @staticmethod
+    def _check_get_item_task(items: List[Item], purpose: Purpose):
+        all_items_stacks = [ItemStack(item) for item in items]
+        expected_task_names = ["Get 2"] + [
+            GetItemTask.get_name(item_stack) for item_stack in all_items_stacks
+        ]
         task_names = [task.name for task in purpose.tasks]
-        for item_stack in all_items_stacks:
-            check.is_in(GetItemTask.get_name(item_stack), task_names)
+        check.equal(sorted(task_names), sorted(expected_task_names))
