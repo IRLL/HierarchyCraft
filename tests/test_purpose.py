@@ -95,7 +95,14 @@ class TestPurposeMultiTasks:
         check.is_false(self.purpose.is_terminal(None, 0, None))  # Task 0 ends
         check.is_true(self.purpose.is_terminal(None, 1, None))  # Task 1 ends
 
-    def test_add_task_with_reward_shaping(self):
+    def test_add_task_with_default_reward_shaping(self):
         purpose = Purpose()
         purpose.add_task(self.go_to_0)
         check.equal(purpose.reward_shaping[self.go_to_0], RewardShaping.NONE)
+
+    def test_add_task_with_specific_reward_shaping(self):
+        purpose = Purpose()
+        purpose.add_task(self.go_to_0, "required")
+        check.equal(
+            purpose.reward_shaping[self.go_to_0], RewardShaping.REQUIRED_ACHIVEMENTS
+        )

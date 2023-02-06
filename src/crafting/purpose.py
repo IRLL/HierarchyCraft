@@ -9,6 +9,9 @@ from crafting.task import Task
 
 class RewardShaping(Enum):
     NONE = "none"
+    ALL_ACHIVEMENTS = "all"
+    REQUIRED_ACHIVEMENTS = "required"
+    TRANSFORMATION_INPUTS_ACHIVEMENT = "inputs"
 
 
 class Purpose:
