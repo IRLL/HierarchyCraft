@@ -28,7 +28,8 @@ def _move_to_zones() -> List[Transformation]:
     walk = [
         #: Move to FOREST
         Transformation(
-            destination=FOREST, zones=[zone for zone in OVERWORLD if zone != FOREST]
+            destination=FOREST,
+            zones=[zone for zone in OVERWORLD if zone != FOREST] + [END],
         ),
         #: Move to SWAMP
         Transformation(
@@ -93,8 +94,6 @@ def _move_to_zones() -> List[Transformation]:
             removed_zone_items=[ItemStack(OPEN_ENDER_PORTAL)],
             added_zone_items=[ItemStack(OPEN_ENDER_PORTAL)],
         ),
-        #: Move back to OVERWORLD
-        Transformation(destination=FOREST, zones=[END]),
     ]
 
     return walk + dig + nether + end
