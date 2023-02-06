@@ -116,6 +116,12 @@ class Transformation:
         items = []
         if self.added_player_items:
             items += _items_from_stack_list(self.added_player_items)
+        return items
+
+    @property
+    def produced_zones_items(self) -> List[Item]:
+        """List of produced zones items by this transformation."""
+        items = []
         if self.added_zone_items:
             items += _items_from_stack_list(self.added_zone_items)
         if self.added_destination_items:
@@ -128,6 +134,12 @@ class Transformation:
         items = []
         if self.removed_player_items:
             items += _items_from_stack_list(self.removed_player_items)
+        return items
+
+    @property
+    def consumed_zones_items(self) -> List[Item]:
+        """List of consumed zones items by this transformation."""
+        items = []
         if self.removed_zone_items:
             items += _items_from_stack_list(self.removed_zone_items)
         if self.removed_destination_items:

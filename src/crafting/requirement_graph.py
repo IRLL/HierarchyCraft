@@ -93,41 +93,13 @@ def _add_transformation_edges(
     zone: Optional[Zone] = None,
 ):
     """Add edges induced by a Crafting recipe."""
-    in_items = []
-    if transfo.removed_player_items is not None:
-        in_items = [stack.item for stack in transfo.removed_player_items]
+    in_items = transfo.consumed_items
+    out_items = [item for item in transfo.produced_items if item not in in_items]
 
-    out_items = []
-    if transfo.added_player_items is not None:
-        for stack in transfo.added_player_items:
-            # Filter outputs if they require themselves
-            if stack.item not in in_items:
-                out_items.append(stack.item)
-
-    in_zone_items = []
-    if transfo.removed_zone_items is not None:
-        in_zone_items = [stack.item for stack in transfo.removed_zone_items]
-    if transfo.removed_destination_items is not None:
-        in_zone_items += [stack.item for stack in transfo.removed_destination_items]
-
-    _out_zone_items = []
-    if transfo.added_zone_items is not None:
-        _out_zone_items += transfo.added_zone_items
-    if transfo.added_destination_items is not None:
-        _out_zone_items += transfo.added_destination_items
-
-    # Filter outputs if they require themselves
-    out_zone_items = []
-    for stack in _out_zone_items:
-        if transfo.removed_zone_items is not None and stack.item in [
-            _stack.item for _stack in transfo.removed_zone_items
-        ]:
-            continue
-        if transfo.removed_destination_items is not None and stack.item in [
-            _stack.item for _stack in transfo.removed_destination_items
-        ]:
-            continue
-        out_zone_items.append(stack.item)
+    in_zone_items = transfo.consumed_zones_items
+    out_zone_items = [
+        item for item in transfo.produced_zones_items if item not in in_zone_items
+    ]
 
     destinations = []
     if transfo.destination is not None:
@@ -335,7 +307,7 @@ def collapse_as_digraph(multidigraph: nx.MultiDiGraph) -> nx.DiGraph:
     digraph.graph = multidigraph.graph
     for node, data in multidigraph.nodes(data=True):
         digraph.add_node(node, **data)
-    for (pred, node, key, data) in multidigraph.edges(keys=True, data=True):
+    for pred, node, key, data in multidigraph.edges(keys=True, data=True):
         if not digraph.has_edge(pred, node):
             digraph.add_edge(pred, node, keys=[], **data)
         digraph.edges[pred, node]["keys"].append(key)
@@ -345,7 +317,7 @@ def collapse_as_digraph(multidigraph: nx.MultiDiGraph) -> nx.DiGraph:
 def break_cycles_through_level(multidigraph: nx.MultiDiGraph):
     acyclical_multidigraph = multidigraph.copy()
     nodes_level = acyclical_multidigraph.nodes(data="level", default=0)
-    for (pred, node, key) in multidigraph.edges(keys=True):
+    for pred, node, key in multidigraph.edges(keys=True):
         if nodes_level[pred] >= nodes_level[node]:
             acyclical_multidigraph.remove_edge(pred, node, key)
     return acyclical_multidigraph
