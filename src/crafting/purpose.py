@@ -152,6 +152,8 @@ def _required_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
         for zone in goal_zones:
             relevant_zones.add(zone)
             goal_requirement_nodes.append(req_node_name(zone, ReqNodesTypes.ZONE))
+    elif isinstance(task, GoToZoneTask):
+        goal_requirement_nodes = [req_node_name(task.zone, ReqNodesTypes.ZONE)]
     else:
         raise NotImplementedError(
             f"Unsupported reward shaping {RewardShaping.REQUIRED_ACHIVEMENTS}"
