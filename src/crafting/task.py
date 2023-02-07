@@ -89,10 +89,10 @@ class GetItemTask(AchievementTask):
         return np.all(player_inventory >= self._terminate_player_items)
 
     @staticmethod
-    def get_name(item_stack: ItemStack):
+    def get_name(stack: ItemStack):
         """Name of the task for a given ItemStack"""
-        quantity_str = _quantity_str(item_stack.quantity)
-        return f"Get{quantity_str}{item_stack.item.name}"
+        quantity_str = _quantity_str(stack.quantity)
+        return f"Get{quantity_str}{stack.item.name}"
 
 
 class GoToZoneTask(AchievementTask):
@@ -139,13 +139,7 @@ class PlaceItemTask(AchievementTask):
         if isinstance(zones, Zone):
             zones = [zones]
         self.zones = zones
-
-        quantity_str = _quantity_str(item_stack.quantity)
-        zones_str = _zones_str(self.zones)
-        super().__init__(
-            name=f"Place{quantity_str}{item_stack.item.name} {zones_str}",
-            reward=reward,
-        )
+        super().__init__(name=self.get_name(item_stack, zones), reward=reward)
 
     def build(self, world: World):
         super().build(world)
@@ -166,6 +160,13 @@ class PlaceItemTask(AchievementTask):
     ) -> bool:
         return np.all(zones_inventory >= self._terminate_zones_items)
 
+    @staticmethod
+    def get_name(stack: ItemStack, zones: Optional[List[Zone]]):
+        """Name of the task for a given ItemStack and list of Zone"""
+        quantity_str = _quantity_str(stack.quantity)
+        zones_str = _zones_str(zones)
+        return f"Place{quantity_str}{stack.item.name}{zones_str}"
+
 
 def stack_item(item_or_stack: Union[Item, ItemStack]) -> ItemStack:
     if not isinstance(item_or_stack, ItemStack):
@@ -179,7 +180,7 @@ def _quantity_str(quantity: int):
 
 def _zones_str(zones: Optional[List[Zone]]):
     if zones is None:
-        return "anywhere"
+        return " anywhere"
     if len(zones) == 1:
-        return f"in {zones[0].name}"
-    return f"in any of {set(zones)}"
+        return f" in {zones[0].name}"
+    return f" in any of {set(zones)}"
