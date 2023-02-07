@@ -145,6 +145,7 @@ class Purpose:
 
     @property
     def optional_tasks(self) -> List[Task]:
+        """List of tasks in no terminal group at all."""
         terminal_tasks = []
         for term_tasks in self.terminal_groups.values():
             terminal_tasks += term_tasks
