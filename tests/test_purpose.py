@@ -117,12 +117,21 @@ class TestPurposeMultiTasks:
 class TestPurposeRewardShaping:
     @pytest.fixture(autouse=True)
     def setup_method(self):
-        self.zones = [Zone(str(i)) for i in range(4)]
+        self.zones = [Zone(str(i)) for i in range(5)]
         self.items = [Item(str(i)) for i in range(4)]
 
         go_to_zones = []
-        for zone in self.zones:
+        for zone in self.zones[:4]:
             go_to_zones.append(Transformation(destination=zone))
+        go_to_zones.append(
+            Transformation(
+                destination=self.zones[4],
+                removed_player_items=[self.items[0]],
+                removed_zone_items=[self.items[0]],
+                removed_destination_items=[self.items[1]],
+                zones=self.zones[:2],
+            )
+        )
 
         # Item 0
         search_0 = Transformation(
@@ -168,6 +177,7 @@ class TestPurposeRewardShaping:
         self.place_item_2_in_zone_0 = PlaceItemTask(
             item_stack=self.items[2], zones=[self.zones[3]], reward=10.0
         )
+        self.go_to_4 = GoToZoneTask(self.zones[4], reward=10.0)
         self.env = CraftingEnv(
             transformations=[
                 search_0,
@@ -223,6 +233,23 @@ class TestPurposeRewardShaping:
         _check_get_item_tasks(self.items[:3], purpose.tasks)
         _check_go_to_zone_tasks(self.zones[:2] + [self.zones[3]], purpose.tasks)
         _check_place_item_tasks([(self.items[0], None)], purpose.tasks)
+
+    def test_requires_achivements_shaping_go_to_zone(self):
+        purpose = Purpose()
+        purpose.add_task(
+            self.go_to_4,
+            reward_shaping=RewardShaping.REQUIRED_ACHIVEMENTS,
+        )
+        purpose.build(self.env)
+        _check_get_item_tasks(self.items[:1], purpose.tasks)
+        _check_go_to_zone_tasks(self.zones[:2], purpose.tasks)
+        _check_place_item_tasks(
+            [
+                (self.items[0], None),
+                (self.items[1], None),
+            ],
+            purpose.tasks,
+        )
 
 
 def _check_get_item_tasks(items: List[Item], tasks: List[Task]):
