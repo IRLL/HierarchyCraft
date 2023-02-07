@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Union, List, Dict, Optional
+from typing import TYPE_CHECKING, Union, List, Dict, Set, Optional
 from enum import Enum
 
 import numpy as np
@@ -134,9 +134,7 @@ class Purpose:
 
 
 def _all_subtasks(env: "CraftingEnv") -> List[Task]:
-    get_item_tasks = [GetItemTask(item, reward=1.0) for item in env.world.items]
-    go_to_zone_tasks = [GoToZoneTask(zone, reward=1.0) for zone in env.world.zones]
-    return get_item_tasks + go_to_zone_tasks
+    return _build_reward_shaping_subtasks(env.world.items, env.world.zones)
 
 
 def _required_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
@@ -154,9 +152,7 @@ def _required_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
             if ancestor_type is ReqNodesTypes.ZONE:
                 relevant_zones.add(item_or_zone)
 
-        get_items = [GetItemTask(item, reward=1.0) for item in relevant_items]
-        go_to_zones = [GoToZoneTask(zone, reward=1.0) for zone in relevant_zones]
-        return get_items + go_to_zones
+        return _build_reward_shaping_subtasks(relevant_items, relevant_zones)
     raise NotImplementedError(
         f"Unsupported reward shaping {RewardShaping.REQUIRED_ACHIVEMENTS}"
         f"for given task type: {type(task)} of {task}"
@@ -176,17 +172,26 @@ def _inputs_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
         for transfo in relevant_transformations:
             relevant_items |= set(transfo.consumed_items)
 
-        get_items = [GetItemTask(item, reward=1.0) for item in relevant_items]
-
         relevant_zones = set()
         for transfo in relevant_transformations:
             if transfo.zones:
                 relevant_zones |= set(transfo.zones)
 
-        go_to_zones = [GoToZoneTask(zone, reward=1.0) for zone in relevant_zones]
-
-        return get_items + go_to_zones
+        return _build_reward_shaping_subtasks(relevant_items, relevant_zones)
     raise NotImplementedError(
         f"Unsupported reward shaping {RewardShaping.INPUTS_ACHIVEMENT}"
         f"for given task type: {type(task)} of {task}"
     )
+
+
+def _build_reward_shaping_subtasks(
+    items: Optional[Union[List[Item], Set[Item]]] = None,
+    zones: Optional[Union[List[Zone], Set[Zone]]] = None,
+    shaping_value: float = 1.0,
+) -> List[Task]:
+    subtasks = []
+    if items:
+        subtasks += [GetItemTask(item, reward=shaping_value) for item in items]
+    if zones:
+        subtasks += [GoToZoneTask(zone, reward=shaping_value) for zone in zones]
+    return subtasks
