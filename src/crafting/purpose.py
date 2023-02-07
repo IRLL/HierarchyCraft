@@ -177,27 +177,54 @@ def _required_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
 
 
 def _inputs_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
+    relevant_items = set()
+    relevant_zones = set()
+    relevant_zone_items = set()
+
+    goal_zones = []
+    goal_item = None
+    goal_zone_item = None
     if isinstance(task, GetItemTask):
         goal_item = task.item_stack.item
-        relevant_transformations = [
-            transfo
-            for transfo in env.transformations
-            if goal_item in transfo.produced_items
-            and goal_item not in transfo.consumed_items
-        ]
-        relevant_items = set()
-        for transfo in relevant_transformations:
-            relevant_items |= set(transfo.consumed_items)
+    elif isinstance(task, PlaceItemTask):
+        goal_zone_item = task.item_stack.item
+        if task.zones:
+            goal_zones = task.zones
+            relevant_zones |= set(task.zones)
+    else:
+        raise NotImplementedError(
+            f"Unsupported reward shaping {RewardShaping.INPUTS_ACHIVEMENT}"
+            f"for given task type: {type(task)} of {task}"
+        )
+    transfo_giving_item = [
+        transfo
+        for transfo in env.transformations
+        if goal_item in transfo.produced_items
+        and goal_item not in transfo.consumed_items
+    ]
+    transfo_placing_zone_item = [
+        transfo
+        for transfo in env.transformations
+        if goal_zone_item in transfo.produced_zones_items
+        and goal_zone_item not in transfo.consumed_zones_items
+    ]
+    transfo_going_to_any_zones = [
+        transfo
+        for transfo in env.transformations
+        if transfo.destination is not None and transfo.destination in goal_zones
+    ]
+    relevant_transformations = (
+        transfo_giving_item + transfo_placing_zone_item + transfo_going_to_any_zones
+    )
 
-        relevant_zones = set()
-        for transfo in relevant_transformations:
-            if transfo.zones:
-                relevant_zones |= set(transfo.zones)
+    for transfo in relevant_transformations:
+        relevant_items |= set(transfo.consumed_items)
+        relevant_zone_items |= set(transfo.consumed_zones_items)
+        if transfo.zones:
+            relevant_zones |= set(transfo.zones)
 
-        return _build_reward_shaping_subtasks(relevant_items, relevant_zones)
-    raise NotImplementedError(
-        f"Unsupported reward shaping {RewardShaping.INPUTS_ACHIVEMENT}"
-        f"for given task type: {type(task)} of {task}"
+    return _build_reward_shaping_subtasks(
+        relevant_items, relevant_zones, relevant_zone_items
     )
 
 

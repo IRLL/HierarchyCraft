@@ -223,6 +223,17 @@ class TestPurposeRewardShaping:
         _check_get_item_tasks(self.items[:2], purpose.tasks)
         _check_go_to_zone_tasks(self.zones[:2], purpose.tasks)
 
+    def test_inputs_achivements_shaping_place_item(self):
+        purpose = Purpose()
+        purpose.add_task(
+            self.place_item_2_in_zone_0,
+            reward_shaping=RewardShaping.INPUTS_ACHIVEMENT,
+        )
+        purpose.build(self.env)
+        _check_get_item_tasks([self.items[2]], purpose.tasks)
+        _check_go_to_zone_tasks([self.zones[3]], purpose.tasks)
+        _check_place_item_tasks([(self.items[0], None)], purpose.tasks)
+
     def test_requires_achivements_shaping_place_item(self):
         purpose = Purpose()
         purpose.add_task(
