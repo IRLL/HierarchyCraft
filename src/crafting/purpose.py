@@ -99,7 +99,7 @@ class Purpose:
                 task, env, self.reward_shaping[task]
             )
             for subtask in subtasks:
-                self.add_task(subtask, RewardShaping.NONE)
+                self.add_task(subtask, RewardShaping.NONE, terminal_group=None)
 
         # Build all tasks
         for task in self.tasks:

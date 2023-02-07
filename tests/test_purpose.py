@@ -238,6 +238,12 @@ class TestPurposeRewardShaping:
         _check_get_item_tasks(self.items, purpose.tasks)
         _check_go_to_zone_tasks(self.zones, purpose.tasks)
 
+    def test_shaping_subtasks_are_optional(self):
+        purpose = Purpose()
+        purpose.add_task(self.get_item_2, reward_shaping=RewardShaping.ALL_ACHIVEMENTS)
+        purpose.build(self.env)
+        check.equal(list(purpose.terminal_groups.values()), [[self.get_item_2]])
+
     def test_inputs_achivements_shaping(self):
         purpose = Purpose()
         purpose.add_task(
