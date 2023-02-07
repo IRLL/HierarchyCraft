@@ -143,6 +143,7 @@ def _required_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
     if isinstance(task, GetItemTask):
         goal_item = task.item_stack.item
         relevant_items = set()
+        relevant_zones = set()
         goal_requirement_node = req_node_name(goal_item, ReqNodesTypes.ITEM)
         for ancestor in nx.ancestors(env.requirements_graph, goal_requirement_node):
             ancestor_node = env.requirements_graph.nodes[ancestor]
@@ -150,7 +151,12 @@ def _required_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
             ancestor_type = ReqNodesTypes(ancestor_node["type"])
             if ancestor_type is ReqNodesTypes.ITEM:
                 relevant_items.add(item_or_zone)
-        return [GetItemTask(item, reward=1.0) for item in relevant_items]
+            if ancestor_type is ReqNodesTypes.ZONE:
+                relevant_zones.add(item_or_zone)
+
+        get_items = [GetItemTask(item, reward=1.0) for item in relevant_items]
+        go_to_zones = [GoToZoneTask(zone, reward=1.0) for zone in relevant_zones]
+        return get_items + go_to_zones
     raise NotImplementedError(
         f"Unsupported reward shaping {RewardShaping.REQUIRED_ACHIVEMENTS}"
         f"for given task type: {type(task)} of {task}"
