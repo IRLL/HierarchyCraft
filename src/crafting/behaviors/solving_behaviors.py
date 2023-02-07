@@ -3,12 +3,11 @@ from typing import TYPE_CHECKING, Dict
 from hebg import Behavior
 
 from crafting.behaviors.behaviors import (
-    GetItem,
-    ReachZone,
-    GetZoneItem,
     AbleAndPerformTransformation,
+    GetItem,
+    GetZoneItem,
+    ReachZone,
 )
-
 
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv

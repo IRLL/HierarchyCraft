@@ -1,20 +1,18 @@
-from typing import Dict, List, Set, Tuple, Optional, Union
-
-import os
 import collections
-import numpy as np
+import os
+from typing import Dict, List, Optional, Set, Tuple, Union
+
 import networkx as nx
+import numpy as np
 
 import crafting
-from crafting.world import Item, ItemStack, Zone, World
-from crafting.transformation import Transformation
-from crafting.purpose import Purpose
 from crafting.behaviors.solving_behaviors import Behavior, build_all_solving_behaviors
-from crafting.requirement_graph import build_requirements_graph, draw_requirements_graph
-
+from crafting.purpose import Purpose
 from crafting.render.render import CraftingWindow
 from crafting.render.utils import surface_to_rgb_array
-
+from crafting.requirement_graph import build_requirements_graph, draw_requirements_graph
+from crafting.transformation import Transformation
+from crafting.world import Item, ItemStack, World, Zone
 
 # Gym is an optional dependency.
 try:

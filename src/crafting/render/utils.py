@@ -3,16 +3,14 @@
 
 """ Utilitaries functions for rendering of the Crafting environments """
 
+import logging
 import os
 from io import BytesIO
-from typing import TYPE_CHECKING, Optional, Tuple, Union, Dict, List
-import logging
 from pathlib import Path
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-
 from PIL import Image, ImageDraw, ImageFont
-
 
 # pygame is an optional dependency
 try:
@@ -21,8 +19,8 @@ try:
 except ImportError:
     pass
 
-from crafting.world import Item, Zone, ItemStack
 from crafting.transformation import Transformation
+from crafting.world import Item, ItemStack, Zone
 
 if TYPE_CHECKING:
     from pygame.surface import Surface

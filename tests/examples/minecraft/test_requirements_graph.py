@@ -1,18 +1,16 @@
+import matplotlib.pyplot as plt
 import pytest
 import pytest_check as check
-
-import matplotlib.pyplot as plt
 
 from crafting import MineCraftingEnv
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.tools import (
     MC_TOOLS_BY_TYPE_AND_MATERIAL,
-    ToolType,
     Material,
+    ToolType,
 )
-
 from crafting.examples.minecraft.zones import *
-from crafting.requirement_graph import req_node_name, ReqNodesTypes
+from crafting.requirement_graph import ReqNodesTypes, req_node_name
 
 IRON_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.IRON]
 

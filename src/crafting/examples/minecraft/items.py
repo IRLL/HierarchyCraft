@@ -8,13 +8,12 @@ They are three kinds of items: Loots and McItems that can be found,
 and other items that can only be obtain through crafting.
 
 """
-from typing import List, Union, Optional
 from dataclasses import dataclass
+from typing import List, Optional, Union
 
-from crafting.world import Item, Zone
-from crafting.examples.minecraft.zones import *
 from crafting.examples.minecraft.tools import *
-
+from crafting.examples.minecraft.zones import *
+from crafting.world import Item, Zone
 
 #: Items obtainable only with crafts
 IRON_INGOT = Item("iron_ingot")  #: IRON_INGOT

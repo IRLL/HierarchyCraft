@@ -1,10 +1,9 @@
+import numpy as np
 import pytest
 import pytest_check as check
-import numpy as np
 
-from crafting.world import ItemStack, Item, Zone, World
-from crafting.task import GoToZoneTask, GetItemTask, PlaceItemTask
-
+from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask
+from crafting.world import Item, ItemStack, World, Zone
 from tests.custom_checks import check_np_equal
 
 

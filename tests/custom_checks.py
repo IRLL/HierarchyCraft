@@ -1,8 +1,6 @@
-import pytest_check as check
-
-import numpy as np
-
 import networkx as nx
+import numpy as np
+import pytest_check as check
 from networkx import is_isomorphic
 
 

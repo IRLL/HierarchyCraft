@@ -6,7 +6,7 @@
 from typing import TYPE_CHECKING, Dict, Union
 
 import numpy as np
-from hebg import HEBGraph, Behavior
+from hebg import Behavior, HEBGraph
 
 from crafting.behaviors.actions import DoTransformation
 from crafting.behaviors.feature_conditions import HasItemStack, HasZoneItem, IsInZone
@@ -14,8 +14,8 @@ from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv
-    from crafting.world import Item, Zone, ItemStack
     from crafting.transformation import Transformation
+    from crafting.world import Item, ItemStack, Zone
 
 
 class GetItem(Behavior):

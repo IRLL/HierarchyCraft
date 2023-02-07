@@ -10,9 +10,9 @@ Simple environment with tower-structured constructor rules.
 from typing import List
 
 from crafting.env import CraftingEnv
-from crafting.world import Item, ItemStack
-from crafting.transformation import Transformation
 from crafting.render.human import render_env_with_human
+from crafting.transformation import Transformation
+from crafting.world import Item, ItemStack
 
 try:
     import gym

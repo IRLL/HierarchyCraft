@@ -1,12 +1,11 @@
+import numpy as np
 import pytest
 import pytest_check as check
-import numpy as np
 
-from crafting.world import ItemStack, Item, Zone
-from crafting.transformation import Transformation
-from crafting.task import GetItemTask
 from crafting.env import CraftingEnv
-
+from crafting.task import GetItemTask
+from crafting.transformation import Transformation
+from crafting.world import Item, ItemStack, Zone
 from tests.custom_checks import check_np_equal
 
 

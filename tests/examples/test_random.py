@@ -5,7 +5,6 @@ import pytest
 import pytest_check as check
 
 from crafting.examples.random_simple.env import RandomCraftingEnv
-
 from tests.custom_checks import check_isomorphic, check_not_isomorphic
 
 

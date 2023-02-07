@@ -2,10 +2,10 @@
 # Copyright (C) 2021-2023 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
 
-from crafting.task import GetItemTask, GoToZoneTask
 from crafting.examples.minecraft.env import MineCraftingEnv
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.zones import *
+from crafting.task import GetItemTask, GoToZoneTask
 
 # gym is an optional dependency
 try:

@@ -1,12 +1,12 @@
-from typing import TYPE_CHECKING, Union, List, Dict, Set, Optional
 from enum import Enum
+from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 
-import numpy as np
 import networkx as nx
+import numpy as np
 
-from crafting.world import Item, Zone
-from crafting.task import Task, GetItemTask, GoToZoneTask, PlaceItemTask
 from crafting.requirement_graph import ReqNodesTypes, req_node_name
+from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
+from crafting.world import Item, Zone
 
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv

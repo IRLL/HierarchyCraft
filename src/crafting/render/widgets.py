@@ -10,30 +10,31 @@ import numpy as np
 
 # pygame in an optional dependency
 try:
-    from pygame.image import load as load_pygame_image
     from pygame.font import Font
-    from pygame_menu.menu import Menu
-    from pygame_menu.widgets import Button, Image as PyImage
-    from pygame_menu.themes import THEME_DEFAULT, Theme
+    from pygame.image import load as load_pygame_image
     from pygame_menu.locals import ALIGN_LEFT
+    from pygame_menu.menu import Menu
+    from pygame_menu.themes import THEME_DEFAULT, Theme
+    from pygame_menu.widgets import Button
+    from pygame_menu.widgets import Image as PyImage
 except ImportError:
     Menu = object
     THEME_DEFAULT = None
 
-from crafting.world import Item, Zone, ItemStack
-from crafting.transformation import Transformation
 from crafting.render.utils import (
+    _to_menu_image,
+    build_transformation_image,
     draw_text_on_image,
     load_image,
     pilImageToSurface,
     scale,
-    build_transformation_image,
-    _to_menu_image,
 )
+from crafting.transformation import Transformation
+from crafting.world import Item, ItemStack, Zone
 
 if TYPE_CHECKING:
-    from pygame.surface import Surface
     from PIL.Image import Image
+    from pygame.surface import Surface
 
     from crafting.env import CraftingEnv
 

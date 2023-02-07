@@ -1,15 +1,14 @@
 from typing import List, Tuple
 
+import numpy as np
 import pytest
 import pytest_check as check
 
-import numpy as np
-
 from crafting.env import CraftingEnv
-from crafting.world import World, ItemStack, Item, Zone
 from crafting.purpose import Purpose, RewardShaping
-from crafting.task import Task, GetItemTask, GoToZoneTask, PlaceItemTask
+from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
 from crafting.transformation import Transformation
+from crafting.world import Item, ItemStack, World, Zone
 
 
 class TestNoPurpose:

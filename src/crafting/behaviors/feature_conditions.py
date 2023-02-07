@@ -12,7 +12,7 @@ from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv
-    from crafting.world import Zone, ItemStack
+    from crafting.world import ItemStack, Zone
 
 
 class HasItemStack(FeatureCondition):

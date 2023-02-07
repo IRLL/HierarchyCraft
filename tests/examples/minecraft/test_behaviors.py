@@ -3,34 +3,26 @@
 
 """ Module testing utils functions for crafting behaviors. """
 
+import matplotlib.pyplot as plt
 import pytest
 import pytest_check as check
-
-import matplotlib.pyplot as plt
 from hebg.unrolling import unroll_graph
 
 from crafting import MineCraftingEnv
+from crafting.behaviors.utils import get_items_in_graph, get_zones_items_in_graph
 from crafting.examples.minecraft.items import (
+    CRAFTING_TABLE,
+    OPEN_NETHER_PORTAL,
+    STICK,
     WOOD,
     WOOD_PLANK,
-    STICK,
-    OPEN_NETHER_PORTAL,
-    CRAFTING_TABLE,
 )
 from crafting.examples.minecraft.tools import (
     MC_TOOLS_BY_TYPE_AND_MATERIAL,
-    ToolType,
     Material,
+    ToolType,
 )
-
-
-from crafting.examples.minecraft.zones import UNDERGROUND, NETHER
-
-from crafting.behaviors.utils import (
-    get_items_in_graph,
-    get_zones_items_in_graph,
-)
-
+from crafting.examples.minecraft.zones import NETHER, UNDERGROUND
 
 WOODEN_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.WOOD]
 STONE_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.STONE]

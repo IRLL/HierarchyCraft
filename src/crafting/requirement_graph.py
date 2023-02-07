@@ -1,22 +1,17 @@
-from typing import TYPE_CHECKING, List, Dict, Union, Any, Optional
 from enum import Enum
-
-import numpy as np
-import networkx as nx
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import matplotlib.patches as mpatches
-from matplotlib.legend_handler import HandlerPatch
-from matplotlib.axes import Axes
-
-from hebg.graph import (
-    get_nodes_by_level,
-    draw_networkx_nodes_images,
-)
+import networkx as nx
+import numpy as np
+from hebg.graph import draw_networkx_nodes_images, get_nodes_by_level
 from hebg.layouts.metabased import leveled_layout_energy
+from matplotlib.axes import Axes
+from matplotlib.legend_handler import HandlerPatch
 
-from crafting.world import Item, Zone
-from crafting.transformation import Transformation
 from crafting.render.utils import load_or_create_image
+from crafting.transformation import Transformation
+from crafting.world import Item, Zone
 
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv

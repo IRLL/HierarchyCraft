@@ -5,14 +5,14 @@
 
 from typing import Dict, Set, Union
 
-from hebg import HEBGraph, Behavior
+from hebg import Behavior, HEBGraph
 
-from crafting.world import Item
 from crafting.behaviors.behaviors import (
+    AbleAndPerformTransformation,
     GetItem,
     ReachZone,
-    AbleAndPerformTransformation,
 )
+from crafting.world import Item
 
 
 def get_items_in_graph(

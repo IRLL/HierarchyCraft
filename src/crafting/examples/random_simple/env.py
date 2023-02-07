@@ -13,8 +13,8 @@ from typing import Dict, List
 import numpy as np
 
 from crafting.env import CraftingEnv
-from crafting.world import Item, ItemStack
 from crafting.transformation import Transformation
+from crafting.world import Item, ItemStack
 
 
 class RandomCraftingEnv(CraftingEnv):

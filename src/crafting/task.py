@@ -1,9 +1,9 @@
-from typing import Optional, Union, List
 from abc import abstractmethod
+from typing import List, Optional, Union
 
 import numpy as np
 
-from crafting.world import Item, ItemStack, Zone, World
+from crafting.world import Item, ItemStack, World, Zone
 
 
 class Task:

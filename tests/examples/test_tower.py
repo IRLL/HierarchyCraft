@@ -1,12 +1,11 @@
 # # Crafting a meta-environment to simultate inventory managment
 # # Copyright (C) 2021-2023 Mathïs FEDERICO <https://www.gnu.org/licenses/>
 
+import networkx as nx
 import pytest
 import pytest_check as check
 
-import networkx as nx
 from crafting.examples.tower import TowerCraftingEnv
-
 from tests.custom_checks import check_isomorphic
 
 

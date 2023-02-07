@@ -6,7 +6,6 @@
 
 import os
 import sys
-
 from typing import TYPE_CHECKING, List, Optional, Union
 
 try:
@@ -24,8 +23,8 @@ if TYPE_CHECKING:
 
 from crafting.render.widgets import (
     InventoryWidget,
-    TransformationsWidget,
     PostitionWidget,
+    TransformationsWidget,
 )
 
 
