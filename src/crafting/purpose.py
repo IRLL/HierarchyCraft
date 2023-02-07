@@ -27,6 +27,7 @@ class Purpose:
         tasks: Optional[Union[Task, List[Task]]] = None,
         timestep_reward: float = 0.0,
         default_reward_shaping: RewardShaping = RewardShaping.NONE,
+        shaping_reward: float = 1.0,
     ) -> None:
         """A purpose for a Crafting player based on a list of tasks.
 
@@ -37,9 +38,12 @@ class Purpose:
                 Defaults to 0.0.
             default_reward_shaping (RewardShaping, optional): Default reward shaping for tasks.
                 Defaults to RewardShaping.NONE.
+            shaping_reward (float, optional): Reward value used in reward shaping if any.
+                Defaults to 1.0.
         """
         self.tasks: List[Task] = []
         self.timestep_reward = timestep_reward
+        self.shaping_reward = shaping_reward
         self.default_reward_shaping = default_reward_shaping
 
         self.task_has_ended: Dict[Task, bool] = {}
@@ -127,9 +131,9 @@ class Purpose:
         if reward_shaping == RewardShaping.ALL_ACHIVEMENTS:
             return _all_subtasks(env)
         if reward_shaping == RewardShaping.INPUTS_ACHIVEMENT:
-            return _inputs_subtasks(task, env)
+            return _inputs_subtasks(task, env, self.shaping_reward)
         if reward_shaping == RewardShaping.REQUIRED_ACHIVEMENTS:
-            return _required_subtasks(task, env)
+            return _required_subtasks(task, env, self.shaping_reward)
         raise NotImplementedError
 
 
@@ -137,7 +141,9 @@ def _all_subtasks(env: "CraftingEnv") -> List[Task]:
     return _build_reward_shaping_subtasks(env.world.items, env.world.zones)
 
 
-def _required_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
+def _required_subtasks(
+    task: Task, env: "CraftingEnv", shaping_reward: float
+) -> List[Task]:
     relevant_items = set()
     relevant_zones = set()
     relevant_zone_items = set()
@@ -172,11 +178,16 @@ def _required_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
             if ancestor_type is ReqNodesTypes.ZONE_ITEM:
                 relevant_zone_items.add(item_or_zone)
     return _build_reward_shaping_subtasks(
-        relevant_items, relevant_zones, relevant_zone_items
+        relevant_items,
+        relevant_zones,
+        relevant_zone_items,
+        shaping_reward,
     )
 
 
-def _inputs_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
+def _inputs_subtasks(
+    task: Task, env: "CraftingEnv", shaping_reward: float
+) -> List[Task]:
     relevant_items = set()
     relevant_zones = set()
     relevant_zone_items = set()
@@ -226,7 +237,10 @@ def _inputs_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
             relevant_zones |= set(transfo.zones)
 
     return _build_reward_shaping_subtasks(
-        relevant_items, relevant_zones, relevant_zone_items
+        relevant_items,
+        relevant_zones,
+        relevant_zone_items,
+        shaping_reward,
     )
 
 
@@ -234,13 +248,13 @@ def _build_reward_shaping_subtasks(
     items: Optional[Union[List[Item], Set[Item]]] = None,
     zones: Optional[Union[List[Zone], Set[Zone]]] = None,
     zone_items: Optional[Union[List[Item], Set[Item]]] = None,
-    shaping_value: float = 1.0,
+    shaping_reward: float = 1.0,
 ) -> List[Task]:
     subtasks = []
     if items:
-        subtasks += [GetItemTask(item, reward=shaping_value) for item in items]
+        subtasks += [GetItemTask(item, reward=shaping_reward) for item in items]
     if zones:
-        subtasks += [GoToZoneTask(zone, reward=shaping_value) for zone in zones]
+        subtasks += [GoToZoneTask(zone, reward=shaping_reward) for zone in zones]
     if zone_items:
-        subtasks += [PlaceItemTask(item, reward=shaping_value) for item in zone_items]
+        subtasks += [PlaceItemTask(item, reward=shaping_reward) for item in zone_items]
     return subtasks
