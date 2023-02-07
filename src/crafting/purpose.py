@@ -6,6 +6,7 @@ import networkx as nx
 
 from crafting.world import Item, Zone
 from crafting.task import Task, GetItemTask
+from crafting.requirement_graph import ReqNodesTypes, req_node_name
 
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv
@@ -136,11 +137,13 @@ def _required_subtasks(task: Task, env: "CraftingEnv"):
     if isinstance(task, GetItemTask):
         goal_item = task.item_stack.item
         relevant_items = set()
-        for ancestor in nx.ancestors(env.requirements_graph, goal_item.name):
-            item_or_zone: Union[Item, Zone] = env.requirements_graph.nodes[ancestor][
-                "obj"
-            ]
-            relevant_items.add(item_or_zone)
+        goal_requirement_node = req_node_name(goal_item, ReqNodesTypes.ITEM)
+        for ancestor in nx.ancestors(env.requirements_graph, goal_requirement_node):
+            ancestor_node = env.requirements_graph.nodes[ancestor]
+            item_or_zone: Union[Item, Zone] = ancestor_node["obj"]
+            ancestor_type = ReqNodesTypes(ancestor_node["type"])
+            if ancestor_type is ReqNodesTypes.ITEM:
+                relevant_items.add(item_or_zone)
         return [GetItemTask(item, reward=1.0) for item in relevant_items]
     raise NotImplementedError(
         f"Unsupported reward shaping {RewardShaping.REQUIRED_ACHIVEMENTS}"
