@@ -174,7 +174,7 @@ def _add_start_edges(env: "CraftingEnv", graph: nx.MultiDiGraph) -> int:
     if env.start_zone is not None:
         graph.add_edge(
             "#START",
-            env.start_zone.name,
+            req_node_name(env.start_zone, ReqNodesTypes.ZONE),
             key=start_index,
             type="start_zone",
             color=[0, 1, 0, 1],
@@ -183,7 +183,7 @@ def _add_start_edges(env: "CraftingEnv", graph: nx.MultiDiGraph) -> int:
     for start_itemstack in env.start_items:
         graph.add_edge(
             "#START",
-            _str_zone_item(start_itemstack.item.name),
+            req_node_name(start_itemstack.item, ReqNodesTypes.ZONE_ITEM),
             key=start_index,
             type="start_item",
             color=[0, 1, 0, 1],
@@ -192,8 +192,8 @@ def _add_start_edges(env: "CraftingEnv", graph: nx.MultiDiGraph) -> int:
     for zone, start_zone_items in env.start_zones_items.items():
         for start_zone_itemstack in start_zone_items:
             graph.add_edge(
-                zone.name,
-                _str_zone_item(start_zone_itemstack.item.name),
+                req_node_name(zone, ReqNodesTypes.ZONE),
+                req_node_name(start_zone_itemstack.item, ReqNodesTypes.ZONE_ITEM),
                 key=start_index,
                 type="start_zone_item",
                 color=[0, 1, 0, 1],

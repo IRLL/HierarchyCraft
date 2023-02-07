@@ -12,7 +12,7 @@ from crafting.examples.minecraft.tools import (
 )
 
 from crafting.examples.minecraft.zones import *
-from crafting.requirement_graph import _str_zone_item
+from crafting.requirement_graph import req_node_name, ReqNodesTypes
 
 IRON_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.IRON]
 
@@ -24,37 +24,37 @@ class TestMineCraftingReqGraph:
         self.graph = self.env.requirements_graph
 
     def test_wood_require_forest(self):
-        check.is_true(self.graph.has_node(FOREST.name))
-        check.is_true(self.graph.has_node(WOOD.name))
-        check.is_true(self.graph.has_edge(FOREST.name, WOOD.name))
+        forest_node = req_node_name(FOREST, ReqNodesTypes.ZONE)
+        check.is_true(self.graph.has_node(forest_node))
+        wood_node = req_node_name(WOOD, ReqNodesTypes.ITEM)
+        check.is_true(self.graph.has_node(wood_node))
+        check.is_true(self.graph.has_edge(forest_node, wood_node))
 
     def test_bedrock_require_iron_pickaxe(self):
-        check.is_true(self.graph.has_node(BEDROCK.name))
-        check.is_true(self.graph.has_node(IRON_PICKAXE.name))
-        check.is_true(self.graph.has_edge(IRON_PICKAXE.name, BEDROCK.name))
+        bedrock_node = req_node_name(BEDROCK, ReqNodesTypes.ZONE)
+        check.is_true(self.graph.has_node(bedrock_node))
+        iron_pickaxe_node = req_node_name(IRON_PICKAXE, ReqNodesTypes.ITEM)
+        check.is_true(self.graph.has_node(iron_pickaxe_node))
+        check.is_true(self.graph.has_edge(iron_pickaxe_node, bedrock_node))
 
     def test_close_portal_require_zone_where_is(self):
-        check.is_true(self.graph.has_node(STRONGHOLD.name))
-        check.is_true(self.graph.has_node(_str_zone_item(CLOSE_ENDER_PORTAL.name)))
-        check.is_true(
-            self.graph.has_edge(
-                STRONGHOLD.name, _str_zone_item(CLOSE_ENDER_PORTAL.name)
-            )
-        )
+        stronghold_node = req_node_name(STRONGHOLD, ReqNodesTypes.ZONE)
+        check.is_true(self.graph.has_node(stronghold_node))
+        ender_portal_node = req_node_name(CLOSE_ENDER_PORTAL, ReqNodesTypes.ZONE_ITEM)
+        check.is_true(self.graph.has_node(ender_portal_node))
+        check.is_true(self.graph.has_edge(stronghold_node, ender_portal_node))
 
     def test_close_portal_do_not_require_itself(self):
-        check.is_true(self.graph.has_node(_str_zone_item(CLOSE_ENDER_PORTAL.name)))
-        check.is_false(
-            self.graph.has_edge(
-                _str_zone_item(CLOSE_ENDER_PORTAL.name),
-                _str_zone_item(CLOSE_ENDER_PORTAL.name),
-            )
-        )
+        ender_portal_node = req_node_name(CLOSE_ENDER_PORTAL, ReqNodesTypes.ZONE_ITEM)
+        check.is_true(self.graph.has_node(ender_portal_node))
+        check.is_false(self.graph.has_edge(ender_portal_node, ender_portal_node))
 
     def test_furnace_do_not_require_coal(self):
-        check.is_true(self.graph.has_node(_str_zone_item(FURNACE.name)))
-        check.is_true(self.graph.has_node(COAL.name))
-        check.is_false(self.graph.has_edge(COAL.name, _str_zone_item(FURNACE.name)))
+        furnace_node = req_node_name(FURNACE, ReqNodesTypes.ZONE_ITEM)
+        check.is_true(self.graph.has_node(furnace_node))
+        coal_node = req_node_name(COAL, ReqNodesTypes.ITEM)
+        check.is_true(self.graph.has_node(coal_node))
+        check.is_false(self.graph.has_edge(coal_node, furnace_node))
 
 
 def test_draw_requirements_graph():
