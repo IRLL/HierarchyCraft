@@ -170,8 +170,9 @@ class Purpose:
             group_str = f"{terminal_group}:[{tasks_str_joined}]"
             terminal_groups_str.append(group_str)
         optional_tasks_str = self._tasks_str(self.optional_tasks)
-        group_str = f"optional:[{optional_tasks_str}]"
-        terminal_groups_str.append(group_str)
+        if optional_tasks_str:
+            group_str = f"optional:[{optional_tasks_str}]"
+            terminal_groups_str.append(group_str)
         joined_groups_str = ", ".join(terminal_groups_str)
         return f"Purpose({joined_groups_str})"
 

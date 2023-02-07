@@ -129,11 +129,24 @@ class TestPurposeMultiTasks:
             purpose.reward_shaping[self.go_to_0], RewardShaping.REQUIRED_ACHIVEMENTS
         )
 
-    def test_str(self):
+    def test_str_full(self):
         check.equal(
             str(self.purpose),
             "Purpose(default:[Task(0),Task(1)], other:[Task(2)], optional:[Task(3)])",
         )
+
+    def test_str_without_optional(self):
+        purpose = Purpose()
+        purpose.add_task(self.go_to_0)
+        purpose.add_task(self.go_to_1)
+        purpose.add_task(self.go_to_2, terminal_group="other")
+        check.equal(
+            str(purpose),
+            "Purpose(default:[Task(0),Task(1)], other:[Task(2)])",
+        )
+
+    def test_str_empty(self):
+        check.equal(str(Purpose()), "Purpose()")
 
 
 class TestPurposeRewardShaping:
