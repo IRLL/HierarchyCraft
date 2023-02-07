@@ -48,26 +48,42 @@ class Purpose:
 
         self.task_has_ended: Dict[Task, bool] = {}
         self.reward_shaping: Dict[Task, RewardShaping] = {}
+        self.terminal_groups: Dict[str, List[Task]] = {}
 
         if isinstance(tasks, Task):
             tasks = [tasks]
         elif tasks is None:
             tasks = []
         for task in tasks:
-            self.add_task(task, default_reward_shaping)
+            self.add_task(task, reward_shaping=default_reward_shaping)
 
-    def add_task(self, task: Task, reward_shaping: Optional[RewardShaping] = None):
+    def add_task(
+        self,
+        task: Task,
+        reward_shaping: Optional[RewardShaping] = None,
+        terminal_group: Optional[str] = "default",
+    ):
         """Add a new task to the purpose.
 
         Args:
             task (Task): Task to be added to the purpose.
             reward_shaping (Optional[RewardShaping], optional): Reward shaping for this task.
                 Defaults to purpose's default reward shaping.
+            terminal_group: (Optional[str], optional): Purpose terminates when all the tasks of
+                any terminal_group have been done.
+                If terminal group is '' or None, task will be optional and will
+                not allow to terminate the purpose at all.
+                By default, tasks are added in the 'default' group and hence
+                all tasks have to be done to terminate the purpose.
         """
         if reward_shaping is None:
             reward_shaping = self.default_reward_shaping
         reward_shaping = RewardShaping(reward_shaping)
         self.task_has_ended[task] = False
+        if terminal_group:
+            if terminal_group not in self.terminal_groups:
+                self.terminal_groups[terminal_group] = []
+            self.terminal_groups[terminal_group].append(task)
         self.reward_shaping[task] = reward_shaping
         self.tasks.append(task)
 

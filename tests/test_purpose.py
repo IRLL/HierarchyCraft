@@ -81,9 +81,15 @@ class TestPurposeSingleTask:
 class TestPurposeMultiTasks:
     @pytest.fixture(autouse=True)
     def setup_method(self):
+        self.purpose = Purpose()
         self.go_to_0 = DummyPosEqualTask(reward=10, goal_position=0)
+        self.purpose.add_task(self.go_to_0)
         self.go_to_1 = DummyPosEqualTask(reward=5, goal_position=1)
-        self.purpose = Purpose([self.go_to_0, self.go_to_1])
+        self.purpose.add_task(self.go_to_1)
+        self.go_to_2 = DummyPosEqualTask(reward=3, goal_position=2)
+        self.purpose.add_task(self.go_to_2, terminal_group="other")
+        self.go_to_3 = DummyPosEqualTask(reward=1, goal_position=3)
+        self.purpose.add_task(self.go_to_3, terminal_group="")
         self.env = CraftingEnv([])
 
     def test_build(self):
@@ -96,10 +102,15 @@ class TestPurposeMultiTasks:
         check.equal(self.purpose.reward(None, 1, None), 5)
         check.equal(self.purpose.reward(None, 2, None), 0)
 
-    def test_is_terminal_all(self):
-        check.is_false(self.purpose.is_terminal(None, 2, None))
+    def test_is_terminal_by_0_and_1(self):
         check.is_false(self.purpose.is_terminal(None, 0, None))  # Task 0 ends
         check.is_true(self.purpose.is_terminal(None, 1, None))  # Task 1 ends
+
+    def test_is_terminal_by_2(self):
+        check.is_true(self.purpose.is_terminal(None, 2, None))  # Task 2 ends
+
+    def test_is_not_terminal_by_3(self):
+        check.is_false(self.purpose.is_terminal(None, 3, None))  # Task 3 ends
 
     def test_add_task_with_default_reward_shaping(self):
         purpose = Purpose()
