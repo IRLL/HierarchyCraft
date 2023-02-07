@@ -6,9 +6,9 @@ import pytest_check as check
 import numpy as np
 
 from crafting.env import CraftingEnv
-from crafting.world import World, ItemStack, Item
+from crafting.world import World, ItemStack, Item, Zone
 from crafting.purpose import Purpose, RewardShaping
-from crafting.task import Task, GetItemTask
+from crafting.task import Task, GetItemTask, GoToZoneTask
 from crafting.transformation import Transformation
 
 
@@ -117,9 +117,20 @@ class TestPurposeMultiTasks:
 class TestPurposeRewardShaping:
     @pytest.fixture(autouse=True)
     def setup_method(self):
+        self.zones = [Zone(str(i)) for i in range(3)]
         self.items = [Item(str(i)) for i in range(4)]
+        # Zone 0
+        go_to_0 = Transformation(destination=self.zones[0])
+        # Zone 1
+        go_to_1 = Transformation(destination=self.zones[1])
+        # Zone 1
+        go_to_1 = Transformation(destination=self.zones[2])
+
         # Item 0
-        search_0 = Transformation(added_player_items=[self.items[0]])
+        search_0 = Transformation(
+            added_player_items=[self.items[0]],
+            zones=[self.zones[0]],
+        )
         # Item 0 > Item 1
         craft_1 = Transformation(
             removed_player_items=[self.items[0]],
@@ -129,6 +140,7 @@ class TestPurposeRewardShaping:
         craft_2 = Transformation(
             removed_player_items=[self.items[1]],
             added_player_items=[self.items[2]],
+            zones=[self.zones[1]],
         )
         # Item 2 > 2 * Item 2
         craft_2_with_2 = Transformation(
@@ -136,7 +148,10 @@ class TestPurposeRewardShaping:
             added_player_items=[ItemStack(self.items[2], 2)],
         )
         # Item 3
-        search_3 = Transformation(added_player_items=[self.items[3]])
+        search_3 = Transformation(
+            added_player_items=[self.items[3]],
+            zones=[self.zones[2]],
+        )
 
         self.get_item_2 = GetItemTask(self.items[2], reward=10.0)
         self.env = CraftingEnv(
@@ -152,7 +167,8 @@ class TestPurposeRewardShaping:
         purpose = Purpose()
         purpose.add_task(self.get_item_2, reward_shaping=RewardShaping.ALL_ACHIVEMENTS)
         purpose.build(self.env)
-        self._check_get_item_task(self.items, purpose=purpose)
+        self._check_get_item_tasks(self.items, purpose.tasks)
+        self._check_go_to_zone_tasks(self.zones, purpose.tasks)
 
     def test_inputs_achivements_shaping(self):
         purpose = Purpose()
@@ -161,7 +177,8 @@ class TestPurposeRewardShaping:
             reward_shaping=RewardShaping.INPUTS_ACHIVEMENT,
         )
         purpose.build(self.env)
-        self._check_get_item_task([self.items[1]], purpose=purpose)
+        self._check_get_item_tasks([self.items[1]], purpose.tasks)
+        self._check_go_to_zone_tasks([self.zones[1]], purpose.tasks)
 
     def test_requires_achivements_shaping(self):
         purpose = Purpose()
@@ -170,13 +187,24 @@ class TestPurposeRewardShaping:
             reward_shaping=RewardShaping.REQUIRED_ACHIVEMENTS,
         )
         purpose.build(self.env)
-        self._check_get_item_task(self.items[:2], purpose=purpose)
+        self._check_get_item_tasks(self.items[:2], purpose.tasks)
+        self._check_go_to_zone_tasks(self.zones[:2], purpose.tasks)
 
     @staticmethod
-    def _check_get_item_task(items: List[Item], purpose: Purpose):
+    def _check_get_item_tasks(items: List[Item], tasks: List[Task]):
         all_items_stacks = [ItemStack(item) for item in items]
         expected_task_names = ["Get 2"] + [
             GetItemTask.get_name(item_stack) for item_stack in all_items_stacks
         ]
-        task_names = [task.name for task in purpose.tasks]
-        check.equal(sorted(task_names), sorted(expected_task_names))
+        task_names = [task.name for task in tasks]
+        for task_name in expected_task_names:
+            check.is_in(task_name, task_names)
+
+    @staticmethod
+    def _check_go_to_zone_tasks(zones: List[Zone], tasks: List[Task]):
+        expected_task_names = ["Get 2"] + [
+            GoToZoneTask.get_name(zone) for zone in zones
+        ]
+        task_names = [task.name for task in tasks]
+        for task_name in expected_task_names:
+            check.is_in(task_name, task_names)

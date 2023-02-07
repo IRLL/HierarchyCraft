@@ -99,7 +99,7 @@ class GoToZoneTask(AchievementTask):
     """Task to go to a given zone."""
 
     def __init__(self, zone: Zone, reward: float) -> None:
-        super().__init__(name=f"Go to {zone.name}", reward=reward)
+        super().__init__(name=self.get_name(zone), reward=reward)
         self.zone = zone
 
     def build(self, world: World):
@@ -114,6 +114,11 @@ class GoToZoneTask(AchievementTask):
         zones_inventory: np.ndarray,
     ) -> bool:
         return np.all(position == self._terminate_position)
+
+    @staticmethod
+    def get_name(zone: Zone):
+        """Name of the task for a given ItemStack"""
+        return f"Go to {zone.name}"
 
 
 class PlaceItemTask(AchievementTask):
