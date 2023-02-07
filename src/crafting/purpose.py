@@ -5,7 +5,7 @@ import numpy as np
 import networkx as nx
 
 from crafting.world import Item, Zone
-from crafting.task import Task, GetItemTask, GoToZoneTask
+from crafting.task import Task, GetItemTask, GoToZoneTask, PlaceItemTask
 from crafting.requirement_graph import ReqNodesTypes, req_node_name
 
 if TYPE_CHECKING:
@@ -138,12 +138,28 @@ def _all_subtasks(env: "CraftingEnv") -> List[Task]:
 
 
 def _required_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
+    relevant_items = set()
+    relevant_zones = set()
+    relevant_zone_items = set()
+
     if isinstance(task, GetItemTask):
         goal_item = task.item_stack.item
-        relevant_items = set()
-        relevant_zones = set()
-        goal_requirement_node = req_node_name(goal_item, ReqNodesTypes.ITEM)
-        for ancestor in nx.ancestors(env.requirements_graph, goal_requirement_node):
+        goal_requirement_nodes = [req_node_name(goal_item, ReqNodesTypes.ITEM)]
+    elif isinstance(task, PlaceItemTask):
+        goal_item = task.item_stack.item
+        goal_requirement_nodes = [req_node_name(goal_item, ReqNodesTypes.ZONE_ITEM)]
+        goal_zones = task.zones if task.zones else []
+        for zone in goal_zones:
+            relevant_zones.add(zone)
+            goal_requirement_nodes.append(req_node_name(zone, ReqNodesTypes.ZONE))
+    else:
+        raise NotImplementedError(
+            f"Unsupported reward shaping {RewardShaping.REQUIRED_ACHIVEMENTS}"
+            f"for given task type: {type(task)} of {task}"
+        )
+
+    for requirement_node in goal_requirement_nodes:
+        for ancestor in nx.ancestors(env.requirements_graph, requirement_node):
             ancestor_node = env.requirements_graph.nodes[ancestor]
             item_or_zone: Union[Item, Zone] = ancestor_node["obj"]
             ancestor_type = ReqNodesTypes(ancestor_node["type"])
@@ -151,11 +167,10 @@ def _required_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
                 relevant_items.add(item_or_zone)
             if ancestor_type is ReqNodesTypes.ZONE:
                 relevant_zones.add(item_or_zone)
-
-        return _build_reward_shaping_subtasks(relevant_items, relevant_zones)
-    raise NotImplementedError(
-        f"Unsupported reward shaping {RewardShaping.REQUIRED_ACHIVEMENTS}"
-        f"for given task type: {type(task)} of {task}"
+            if ancestor_type is ReqNodesTypes.ZONE_ITEM:
+                relevant_zone_items.add(item_or_zone)
+    return _build_reward_shaping_subtasks(
+        relevant_items, relevant_zones, relevant_zone_items
     )
 
 
@@ -187,6 +202,7 @@ def _inputs_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
 def _build_reward_shaping_subtasks(
     items: Optional[Union[List[Item], Set[Item]]] = None,
     zones: Optional[Union[List[Zone], Set[Zone]]] = None,
+    zone_items: Optional[Union[List[Item], Set[Item]]] = None,
     shaping_value: float = 1.0,
 ) -> List[Task]:
     subtasks = []
@@ -194,4 +210,6 @@ def _build_reward_shaping_subtasks(
         subtasks += [GetItemTask(item, reward=shaping_value) for item in items]
     if zones:
         subtasks += [GoToZoneTask(zone, reward=shaping_value) for zone in zones]
+    if zone_items:
+        subtasks += [PlaceItemTask(item, reward=shaping_value) for item in zone_items]
     return subtasks

@@ -117,14 +117,12 @@ class TestPurposeMultiTasks:
 class TestPurposeRewardShaping:
     @pytest.fixture(autouse=True)
     def setup_method(self):
-        self.zones = [Zone(str(i)) for i in range(3)]
+        self.zones = [Zone(str(i)) for i in range(4)]
         self.items = [Item(str(i)) for i in range(4)]
-        # Zone 0
-        go_to_0 = Transformation(destination=self.zones[0])
-        # Zone 1
-        go_to_1 = Transformation(destination=self.zones[1])
-        # Zone 1
-        go_to_2 = Transformation(destination=self.zones[2])
+
+        go_to_zones = []
+        for zone in self.zones:
+            go_to_zones.append(Transformation(destination=zone))
 
         # Item 0
         search_0 = Transformation(
@@ -168,13 +166,10 @@ class TestPurposeRewardShaping:
 
         self.get_item_2 = GetItemTask(self.items[2], reward=10.0)
         self.place_item_2_in_zone_0 = PlaceItemTask(
-            item_stack=self.items[2], zones=[self.zones[0]], reward=10.0
+            item_stack=self.items[2], zones=[self.zones[3]], reward=10.0
         )
         self.env = CraftingEnv(
             transformations=[
-                go_to_0,
-                go_to_1,
-                go_to_2,
                 search_0,
                 craft_1,
                 craft_2,
@@ -182,6 +177,7 @@ class TestPurposeRewardShaping:
                 search_3,
                 place_0,
                 place_2,
+                *go_to_zones,
             ]
         )
 
@@ -225,8 +221,8 @@ class TestPurposeRewardShaping:
         )
         purpose.build(self.env)
         _check_get_item_tasks(self.items[:3], purpose.tasks)
-        _check_go_to_zone_tasks(self.zones[:2], purpose.tasks)
-        _check_place_item_tasks([(self.items[0], [self.zones[0]])], purpose.tasks)
+        _check_go_to_zone_tasks(self.zones[:2] + [self.zones[3]], purpose.tasks)
+        _check_place_item_tasks([(self.items[0], None)], purpose.tasks)
 
 
 def _check_get_item_tasks(items: List[Item], tasks: List[Task]):
