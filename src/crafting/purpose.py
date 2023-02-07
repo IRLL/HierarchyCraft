@@ -186,6 +186,8 @@ def _inputs_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
     goal_zone_item = None
     if isinstance(task, GetItemTask):
         goal_item = task.item_stack.item
+    elif isinstance(task, GoToZoneTask):
+        goal_zones = [task.zone]
     elif isinstance(task, PlaceItemTask):
         goal_zone_item = task.item_stack.item
         if task.zones:
