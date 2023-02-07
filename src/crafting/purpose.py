@@ -137,7 +137,11 @@ class Purpose:
                 player_inventory, position, zones_inventory
             ):
                 self.task_has_ended[task] = True
-        return all(self.task_has_ended.values())
+        for _terminal_group, group_tasks in self.terminal_groups.items():
+            group_has_ended = all(self.task_has_ended[task] for task in group_tasks)
+            if group_has_ended:
+                return True
+        return False
 
     def _add_reward_shaping_subtasks(
         self, task: Task, env: "CraftingEnv", reward_shaping: RewardShaping
