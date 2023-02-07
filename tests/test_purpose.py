@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import pytest
 import pytest_check as check
@@ -8,7 +8,7 @@ import numpy as np
 from crafting.env import CraftingEnv
 from crafting.world import World, ItemStack, Item, Zone
 from crafting.purpose import Purpose, RewardShaping
-from crafting.task import Task, GetItemTask, GoToZoneTask
+from crafting.task import Task, GetItemTask, GoToZoneTask, PlaceItemTask
 from crafting.transformation import Transformation
 
 
@@ -124,7 +124,7 @@ class TestPurposeRewardShaping:
         # Zone 1
         go_to_1 = Transformation(destination=self.zones[1])
         # Zone 1
-        go_to_1 = Transformation(destination=self.zones[2])
+        go_to_2 = Transformation(destination=self.zones[2])
 
         # Item 0
         search_0 = Transformation(
@@ -153,9 +153,36 @@ class TestPurposeRewardShaping:
             zones=[self.zones[2]],
         )
 
+        # Zone Item 0
+        place_0 = Transformation(
+            removed_player_items=[self.items[0]],
+            added_zone_items=[self.items[0]],
+        )
+
+        # Zone Item 2
+        place_2 = Transformation(
+            removed_player_items=[self.items[2]],
+            removed_zone_items=[self.items[0]],
+            added_zone_items=[self.items[2]],
+        )
+
         self.get_item_2 = GetItemTask(self.items[2], reward=10.0)
+        self.place_item_2_in_zone_0 = PlaceItemTask(
+            item_stack=self.items[2], zones=[self.zones[0]], reward=10.0
+        )
         self.env = CraftingEnv(
-            transformations=[search_0, craft_1, craft_2, craft_2_with_2, search_3]
+            transformations=[
+                go_to_0,
+                go_to_1,
+                go_to_2,
+                search_0,
+                craft_1,
+                craft_2,
+                craft_2_with_2,
+                search_3,
+                place_0,
+                place_2,
+            ]
         )
 
     def test_no_reward_shaping(self):
@@ -167,8 +194,8 @@ class TestPurposeRewardShaping:
         purpose = Purpose()
         purpose.add_task(self.get_item_2, reward_shaping=RewardShaping.ALL_ACHIVEMENTS)
         purpose.build(self.env)
-        self._check_get_item_tasks(self.items, purpose.tasks)
-        self._check_go_to_zone_tasks(self.zones, purpose.tasks)
+        _check_get_item_tasks(self.items, purpose.tasks)
+        _check_go_to_zone_tasks(self.zones, purpose.tasks)
 
     def test_inputs_achivements_shaping(self):
         purpose = Purpose()
@@ -177,8 +204,8 @@ class TestPurposeRewardShaping:
             reward_shaping=RewardShaping.INPUTS_ACHIVEMENT,
         )
         purpose.build(self.env)
-        self._check_get_item_tasks([self.items[1]], purpose.tasks)
-        self._check_go_to_zone_tasks([self.zones[1]], purpose.tasks)
+        _check_get_item_tasks([self.items[1]], purpose.tasks)
+        _check_go_to_zone_tasks([self.zones[1]], purpose.tasks)
 
     def test_requires_achivements_shaping(self):
         purpose = Purpose()
@@ -187,24 +214,45 @@ class TestPurposeRewardShaping:
             reward_shaping=RewardShaping.REQUIRED_ACHIVEMENTS,
         )
         purpose.build(self.env)
-        self._check_get_item_tasks(self.items[:2], purpose.tasks)
-        self._check_go_to_zone_tasks(self.zones[:2], purpose.tasks)
+        _check_get_item_tasks(self.items[:2], purpose.tasks)
+        _check_go_to_zone_tasks(self.zones[:2], purpose.tasks)
 
-    @staticmethod
-    def _check_get_item_tasks(items: List[Item], tasks: List[Task]):
-        all_items_stacks = [ItemStack(item) for item in items]
-        expected_task_names = ["Get 2"] + [
-            GetItemTask.get_name(item_stack) for item_stack in all_items_stacks
-        ]
-        task_names = [task.name for task in tasks]
-        for task_name in expected_task_names:
-            check.is_in(task_name, task_names)
+    def test_requires_achivements_shaping_place_item(self):
+        purpose = Purpose()
+        purpose.add_task(
+            self.place_item_2_in_zone_0,
+            reward_shaping=RewardShaping.REQUIRED_ACHIVEMENTS,
+        )
+        purpose.build(self.env)
+        _check_get_item_tasks(self.items[:3], purpose.tasks)
+        _check_go_to_zone_tasks(self.zones[:2], purpose.tasks)
+        _check_place_item_tasks([(self.items[0], [self.zones[0]])], purpose.tasks)
 
-    @staticmethod
-    def _check_go_to_zone_tasks(zones: List[Zone], tasks: List[Task]):
-        expected_task_names = ["Get 2"] + [
-            GoToZoneTask.get_name(zone) for zone in zones
-        ]
-        task_names = [task.name for task in tasks]
-        for task_name in expected_task_names:
-            check.is_in(task_name, task_names)
+
+def _check_get_item_tasks(items: List[Item], tasks: List[Task]):
+    all_items_stacks = [ItemStack(item) for item in items]
+    expected_task_names = [
+        GetItemTask.get_name(item_stack) for item_stack in all_items_stacks
+    ]
+    _check_in_tasks_names(tasks, expected_task_names)
+
+
+def _check_go_to_zone_tasks(zones: List[Zone], tasks: List[Task]):
+    expected_task_names = [GoToZoneTask.get_name(zone) for zone in zones]
+    _check_in_tasks_names(tasks, expected_task_names)
+
+
+def _check_place_item_tasks(
+    items_and_zones: List[Tuple[Item, Zone]], tasks: List[Task]
+):
+    stacks_and_zones = [(ItemStack(item), zones) for item, zones in items_and_zones]
+    expected_task_names = [
+        PlaceItemTask.get_name(stack, zones) for stack, zones in stacks_and_zones
+    ]
+    _check_in_tasks_names(tasks, expected_task_names)
+
+
+def _check_in_tasks_names(tasks: List[Task], expected_task_names: List[str]):
+    task_names = [task.name for task in tasks]
+    for task_name in expected_task_names:
+        check.is_in(task_name, task_names)
