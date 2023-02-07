@@ -143,6 +143,13 @@ class Purpose:
                 return True
         return False
 
+    @property
+    def optional_tasks(self) -> List[Task]:
+        terminal_tasks = []
+        for term_tasks in self.terminal_groups.values():
+            terminal_tasks += term_tasks
+        return [task for task in self.tasks if task not in terminal_tasks]
+
     def _add_reward_shaping_subtasks(
         self, task: Task, env: "CraftingEnv", reward_shaping: RewardShaping
     ) -> List[Task]:
@@ -155,6 +162,26 @@ class Purpose:
         if reward_shaping == RewardShaping.REQUIRED_ACHIVEMENTS:
             return _required_subtasks(task, env, self.shaping_reward)
         raise NotImplementedError
+
+    def __str__(self) -> str:
+        terminal_groups_str = []
+        for terminal_group, tasks in self.terminal_groups.items():
+            tasks_str_joined = self._tasks_str(tasks)
+            group_str = f"{terminal_group}:[{tasks_str_joined}]"
+            terminal_groups_str.append(group_str)
+        optional_tasks_str = self._tasks_str(self.optional_tasks)
+        group_str = f"optional:[{optional_tasks_str}]"
+        terminal_groups_str.append(group_str)
+        joined_groups_str = ", ".join(terminal_groups_str)
+        return f"Purpose({joined_groups_str})"
+
+    def _tasks_str(self, tasks: List[Task]) -> str:
+        tasks_str = []
+        for task in tasks:
+            shaping = self.reward_shaping[task]
+            shaping_str = f"#{shaping.value}" if shaping != RewardShaping.NONE else ""
+            tasks_str.append(f"{task}{shaping_str}")
+        return ",".join(tasks_str)
 
 
 def _all_subtasks(env: "CraftingEnv") -> List[Task]:

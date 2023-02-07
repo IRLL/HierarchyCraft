@@ -57,6 +57,9 @@ class DummyPosEqualTask(Task):
     def build(self, world: World) -> None:
         self.is_built = True
 
+    def __str__(self) -> str:
+        return f"Task({self.goal_position})"
+
 
 class TestPurposeSingleTask:
     @pytest.fixture(autouse=True)
@@ -124,6 +127,12 @@ class TestPurposeMultiTasks:
         purpose.add_task(self.go_to_0, "required")
         check.equal(
             purpose.reward_shaping[self.go_to_0], RewardShaping.REQUIRED_ACHIVEMENTS
+        )
+
+    def test_str(self):
+        check.equal(
+            str(self.purpose),
+            "Purpose(default:[Task(0),Task(1)], other:[Task(2)], optional:[Task(3)])",
         )
 
 
