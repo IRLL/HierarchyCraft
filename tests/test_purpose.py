@@ -98,9 +98,11 @@ class TestPurposeMultiTasks:
             check.is_true(task.is_built)
 
     def test_reward(self):
+        check.equal(self.purpose.reward(None, -1, None), 0)
         check.equal(self.purpose.reward(None, 0, None), 10)
         check.equal(self.purpose.reward(None, 1, None), 5)
-        check.equal(self.purpose.reward(None, 2, None), 0)
+        check.equal(self.purpose.reward(None, 2, None), 3)
+        check.equal(self.purpose.reward(None, 3, None), 1)
 
     def test_is_terminal_by_0_and_1(self):
         check.is_false(self.purpose.is_terminal(None, 0, None))  # Task 0 ends
