@@ -74,17 +74,22 @@ def _add_nodes(
 ):
     """Add colored nodes to the graph"""
     for obj in objs:
-        name = obj.name
-        if node_type == ReqNodesTypes.ZONE_ITEM:
-            name = _str_zone_item(name)
         graph.add_node(
-            name,
+            req_node_name(obj, node_type),
             obj=obj,
             type=node_type.value,
             color=NODE_COLOR_BY_TYPE[node_type],
             image=np.array(load_or_create_image(obj, resources_path)),
             label=obj.name.capitalize(),
         )
+
+
+def req_node_name(obj: Union[Item, Zone], node_type: ReqNodesTypes):
+    """Get a unique node name for the requirements graph"""
+    name = obj.name
+    if node_type == ReqNodesTypes.ZONE_ITEM:
+        name = _str_zone_item(name)
+    return node_type.value + "#" + name
 
 
 def _add_transformation_edges(
@@ -116,13 +121,16 @@ def _add_transformation_edges(
     }
 
     for out_item in out_items:
-        _add_crafts(out_node=out_item.name, **transfo_params)
+        node_name = req_node_name(out_item, ReqNodesTypes.ITEM)
+        _add_crafts(out_node=node_name, **transfo_params)
 
     for out_zone_item in out_zone_items:
-        _add_crafts(out_node=_str_zone_item(out_zone_item.name), **transfo_params)
+        node_name = req_node_name(out_zone_item, ReqNodesTypes.ZONE_ITEM)
+        _add_crafts(out_node=node_name, **transfo_params)
 
     for destination in destinations:
-        _add_crafts(out_node=destination.name, **transfo_params)
+        node_name = req_node_name(destination, ReqNodesTypes.ZONE)
+        _add_crafts(out_node=node_name, **transfo_params)
 
 
 def _add_crafts(
@@ -136,7 +144,7 @@ def _add_crafts(
 ):
     if zone is not None:
         graph.add_edge(
-            zone.name,
+            req_node_name(zone, ReqNodesTypes.ZONE),
             out_node,
             type="zone_required",
             color=[0, 1, 0, 1],
@@ -144,7 +152,7 @@ def _add_crafts(
         )
     for node in set(in_items):
         graph.add_edge(
-            node.name,
+            req_node_name(node, ReqNodesTypes.ITEM),
             out_node,
             type="item_needed",
             color=[1, 0, 0, 1],
@@ -153,7 +161,7 @@ def _add_crafts(
         )
     for node in set(in_zone_items):
         graph.add_edge(
-            _str_zone_item(node.name),
+            req_node_name(node, ReqNodesTypes.ZONE_ITEM),
             out_node,
             type="zone_item_needed",
             color=[0.2, 1, 0.2, 1],
