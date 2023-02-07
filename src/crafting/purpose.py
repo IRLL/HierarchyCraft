@@ -166,11 +166,20 @@ def _inputs_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
             if goal_item in transfo.produced_items
             and goal_item not in transfo.consumed_items
         ]
-        relevant_items = []
+        relevant_items = set()
         for transfo in relevant_transformations:
-            relevant_items += transfo.consumed_items
+            relevant_items |= set(transfo.consumed_items)
 
-        return [GetItemTask(item, reward=1.0) for item in set(relevant_items)]
+        get_items = [GetItemTask(item, reward=1.0) for item in relevant_items]
+
+        relevant_zones = set()
+        for transfo in relevant_transformations:
+            if transfo.zones:
+                relevant_zones |= set(transfo.zones)
+
+        go_to_zones = [GoToZoneTask(zone, reward=1.0) for zone in relevant_zones]
+
+        return get_items + go_to_zones
     raise NotImplementedError(
         f"Unsupported reward shaping {RewardShaping.INPUTS_ACHIVEMENT}"
         f"for given task type: {type(task)} of {task}"
