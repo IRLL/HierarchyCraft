@@ -225,6 +225,7 @@ class TestPurposeRewardShaping:
                 *go_to_zones,
             ]
         )
+        self.zone_items = self.env.world.zones_items
 
     def test_no_reward_shaping(self):
         purpose = Purpose()
@@ -237,6 +238,9 @@ class TestPurposeRewardShaping:
         purpose.build(self.env)
         _check_get_item_tasks(self.items, purpose.tasks)
         _check_go_to_zone_tasks(self.zones, purpose.tasks)
+        _check_place_item_tasks(
+            [(zone_item, None) for zone_item in self.zone_items], purpose.tasks
+        )
 
     def test_shaping_subtasks_are_optional(self):
         purpose = Purpose()

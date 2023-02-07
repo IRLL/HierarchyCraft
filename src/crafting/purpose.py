@@ -157,7 +157,7 @@ class Purpose:
         if reward_shaping == RewardShaping.NONE:
             return []
         if reward_shaping == RewardShaping.ALL_ACHIVEMENTS:
-            return _all_subtasks(env)
+            return _all_subtasks(env, self.shaping_reward)
         if reward_shaping == RewardShaping.INPUTS_ACHIVEMENT:
             return _inputs_subtasks(task, env, self.shaping_reward)
         if reward_shaping == RewardShaping.REQUIRED_ACHIVEMENTS:
@@ -186,8 +186,10 @@ class Purpose:
         return ",".join(tasks_str)
 
 
-def _all_subtasks(env: "CraftingEnv") -> List[Task]:
-    return _build_reward_shaping_subtasks(env.world.items, env.world.zones)
+def _all_subtasks(env: "CraftingEnv", shaping_reward: float) -> List[Task]:
+    return _build_reward_shaping_subtasks(
+        env.world.items, env.world.zones, env.world.zones_items, shaping_reward
+    )
 
 
 def _required_subtasks(
