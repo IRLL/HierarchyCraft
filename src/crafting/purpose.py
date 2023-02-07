@@ -5,7 +5,7 @@ import numpy as np
 import networkx as nx
 
 from crafting.world import Item, Zone
-from crafting.task import Task, GetItemTask
+from crafting.task import Task, GetItemTask, GoToZoneTask
 from crafting.requirement_graph import ReqNodesTypes, req_node_name
 
 if TYPE_CHECKING:
@@ -125,7 +125,7 @@ class Purpose:
         if reward_shaping == RewardShaping.NONE:
             return []
         if reward_shaping == RewardShaping.ALL_ACHIVEMENTS:
-            return [GetItemTask(item, reward=1.0) for item in env.world.items]
+            return _all_subtasks(env)
         if reward_shaping == RewardShaping.INPUTS_ACHIVEMENT:
             return _inputs_subtasks(task, env)
         if reward_shaping == RewardShaping.REQUIRED_ACHIVEMENTS:
@@ -133,7 +133,13 @@ class Purpose:
         raise NotImplementedError
 
 
-def _required_subtasks(task: Task, env: "CraftingEnv"):
+def _all_subtasks(env: "CraftingEnv") -> List[Task]:
+    get_item_tasks = [GetItemTask(item, reward=1.0) for item in env.world.items]
+    go_to_zone_tasks = [GoToZoneTask(zone, reward=1.0) for zone in env.world.zones]
+    return get_item_tasks + go_to_zone_tasks
+
+
+def _required_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
     if isinstance(task, GetItemTask):
         goal_item = task.item_stack.item
         relevant_items = set()
@@ -151,7 +157,7 @@ def _required_subtasks(task: Task, env: "CraftingEnv"):
     )
 
 
-def _inputs_subtasks(task: Task, env: "CraftingEnv"):
+def _inputs_subtasks(task: Task, env: "CraftingEnv") -> List[Task]:
     if isinstance(task, GetItemTask):
         goal_item = task.item_stack.item
         relevant_transformations = [
