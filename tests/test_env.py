@@ -288,6 +288,27 @@ def test_discovered_zones_items():
     check_np_equal(env.discovered_zones_items, expected_discovered_items)
 
 
+def test_discovered_zones():
+    """zones items should be discovered if they have been obtained anytime in this episode."""
+    named_transformations, start_zone, _, _, _ = classic_env()
+    transformations = list(named_transformations.values())
+    env = CraftingEnv(transformations, start_zone=start_zone)
+
+    expected_discovered_zones = np.zeros(env.world.n_zones)
+    expected_discovered_zones[env.world.zones.index(Zone("start"))] = 1
+    check_np_equal(env.discovered_zones, expected_discovered_zones)
+
+    action = env.transformations.index(named_transformations.get("move_to_other_zone"))
+    _, _, _, _ = env.step(action)
+    expected_discovered_zones[env.world.zones.index(Zone("other_zone"))] = 1
+    check_np_equal(env.discovered_zones, expected_discovered_zones)
+
+    env.reset()
+    expected_discovered_zones = np.zeros(env.world.n_zones)
+    expected_discovered_zones[env.world.zones.index(Zone("start"))] = 1
+    check_np_equal(env.discovered_zones, expected_discovered_zones)
+
+
 def test_observation_no_zone_no_zone_items():
     """observation should only show player items if no zone and no zone_items."""
     names_transformations, _, _, _, _ = player_only_env()
