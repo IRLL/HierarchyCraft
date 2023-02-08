@@ -9,7 +9,7 @@ from crafting.task import GetItemTask
 from crafting.transformation import Transformation
 from crafting.world import Item, ItemStack, Zone
 from tests.custom_checks import check_np_equal
-from tests.envs import classic_env
+from tests.envs import classic_env, zone_only_env, player_only_env
 
 
 class TestCratingEnv:
@@ -240,3 +240,19 @@ class TestCratingEnv:
         _, _, done, _ = env.step(0)
         check.is_true(done)
         check.is_true(env.truncated)
+
+
+def test_observation_no_zone_no_zone_items():
+    """observation should only show player items if no zone and no zone_items."""
+    names_transformations, _, _, _, _ = player_only_env()
+    transformations = list(names_transformations.values())
+    env = CraftingEnv(transformations)
+    check.equal(env.observation.shape, (env.world.n_items,))
+
+
+def test_observation_one_zone_no_player_items():
+    """observation should only show zone items if one zone and no player items."""
+    names_transformations, start_zone, _, _, _ = zone_only_env()
+    transformations = list(names_transformations.values())
+    env = CraftingEnv(transformations, start_zone=start_zone)
+    check.equal(env.observation.shape, (env.world.n_zones + env.world.n_zones_items,))
