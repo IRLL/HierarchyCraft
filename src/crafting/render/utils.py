@@ -96,7 +96,7 @@ def _to_menu_image(image: "Image.Image", scaling: float) -> "BaseImage":
 
 
 def create_text_image(
-    text: str, resources_path: str, image_size=(120, 120)
+    text: str, resources_path: str, image_size=(None, 120)
 ) -> "Image.Image":
     """Create a PIL image for an Item or Zone.
 
@@ -108,13 +108,17 @@ def create_text_image(
         A PIL image corresponding to the given object.
 
     """
+    if image_size[0] is None:
+        image_size = (image_size[1] * len(text) // 4, image_size[1])
 
     image = Image.new("RGBA", image_size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
 
     cx, cy = image_size[0] // 2, image_size[1] // 2
-    text_pt_size = int(0.60 * image_size[1])
     font_path = os.path.join(resources_path, "font.ttf")
+    text_pt_size = min(
+        int(0.60 * image_size[1]), int(4 * 0.60 * image_size[0] / len(text))
+    )
     font = ImageFont.truetype(font_path, size=text_pt_size)
     draw.text((cx, cy), text, fill=(200, 200, 200), font=font, anchor="mm")
     return image
@@ -190,16 +194,21 @@ def load_or_create_image(
     obj: Union[ItemStack, Zone], resources_path: str, bg_color=None
 ):
     """Load or create an image for an item or zone."""
-    quantity = 0
+
     if isinstance(obj, ItemStack):
+        obj_name = str(obj)
         quantity = obj.quantity
         obj = obj.item
+    else:
+        obj_name = obj.name
+        quantity = 0
+
     image = load_image(obj=obj, resources_path=resources_path)
     if image is None:
-        image_size = (120, 120)
+        image_size = (None, 120)
         if isinstance(obj, Zone):
             image_size = (699, 394)
-        image = create_text_image(str(obj), resources_path, image_size=image_size)
+        image = create_text_image(obj_name, resources_path, image_size=image_size)
     elif quantity > 0:
         image = draw_text_on_image(image, str(quantity), resources_path)
     if bg_color is not None:
@@ -219,7 +228,7 @@ def _add_background_elipsis(
 ) -> "Image.Image":
     image_bg = Image.new("RGBA", image.size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(image_bg)
-    draw.ellipse((0, 0, image.width, image.height), fill=bg_color)
+    draw.ellipse((0, 0, image.width, image.height), fill=(*bg_color, 25))
     image_bg.alpha_composite(image)
     return image_bg
 
