@@ -90,8 +90,9 @@ class CraftingWindow:
         #     widget.draw(screen)
 
         # Update inventories
-        self.player_inventory.update(self.env.player_inventory, events)
-        self.player_inventory.draw(self.screen)
+        if self.player_inventory:
+            self.player_inventory.update(self.env.player_inventory, events)
+            self.player_inventory.draw(self.screen)
 
         if self.zone_inventory:
             self.zone_inventory.update(self.env.current_zone_inventory, events)
@@ -137,22 +138,26 @@ class CraftingWindow:
             theme=THEME_DARK,
         )
 
-        player_menu_width = int(0.475 * self.window_shape[0])
-        self.player_inventory = InventoryWidget(
-            title="Inventory",
-            height=self.window_shape[1],
-            width=player_menu_width,
-            position=(action_menu_width, 0, False),
-            items=self.env.world.items,
-            resources_path=self.env.resources_path,
-            theme=Theme(
-                background_color=(60, 60, 60),
-                title_background_color=(47, 48, 51),
-                title_font_color=(215, 215, 215),
-                selection_color=(255, 255, 255, 0),
-                widget_font_color=(255, 255, 255),
-            ),
-        )
+        # Player inventory
+        self.player_inventory = None
+        player_menu_width = 0
+        if self.env.world.n_items > 0:
+            player_menu_width = int(0.475 * self.window_shape[0])
+            self.player_inventory = InventoryWidget(
+                title="Inventory",
+                height=self.window_shape[1],
+                width=player_menu_width,
+                position=(action_menu_width, 0, False),
+                items=self.env.world.items,
+                resources_path=self.env.resources_path,
+                theme=Theme(
+                    background_color=(60, 60, 60),
+                    title_background_color=(47, 48, 51),
+                    title_font_color=(215, 215, 215),
+                    selection_color=(255, 255, 255, 0),
+                    widget_font_color=(255, 255, 255),
+                ),
+            )
 
         # Current zone inventory
         self.zone_inventory = None
