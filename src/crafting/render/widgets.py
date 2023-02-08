@@ -81,7 +81,9 @@ class InventoryWidget(Menu):
         for item in self.items:
             self._build_button(item)
 
-    def update(self, inventory: np.ndarray, discovered: np.ndarray, events) -> bool:
+    def update_inventory(
+        self, inventory: np.ndarray, discovered: np.ndarray, events
+    ) -> bool:
         items_buttons = [
             widget
             for widget in self.get_widgets()
@@ -97,18 +99,9 @@ class InventoryWidget(Menu):
                 continue
 
             if isinstance(button, PyImage):
-                base_image = self.base_images[item]
-                if quantity == 0:
-                    # Grayscale
-                    base_image = base_image.convert("LA").convert("RGBA")
-                if quantity != 1:
-                    image = draw_text_on_image(
-                        base_image,
-                        text=str(quantity),
-                        resources_path=self.resources_path,
-                    )
-                button.set_image(_to_menu_image(image, 0.5))
-                button.render()
+                self._update_button_image(
+                    button, self.base_images[item], quantity, self.resources_path
+                )
 
             button.set_title(str(ItemStack(item, quantity)))
             self.old_quantity[item] = quantity
@@ -134,6 +127,22 @@ class InventoryWidget(Menu):
             button: Button = self.add.button(str(item))
         button.is_selectable = False
         self.button_id_to_item[button.get_id()] = item
+
+    @staticmethod
+    def _update_button_image(
+        button: PyImage, base_image: "Image", quantity: int, resources_path: str
+    ):
+        if quantity == 0:
+            # Grayscale
+            base_image = base_image.convert("LA").convert("RGBA")
+        if quantity != 1:
+            image = draw_text_on_image(
+                base_image,
+                text=str(quantity),
+                resources_path=resources_path,
+            )
+        button.set_image(_to_menu_image(image, 0.5))
+        button.render()
 
 
 def _load_base_images(
