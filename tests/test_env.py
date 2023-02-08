@@ -241,29 +241,51 @@ class TestCratingEnv:
         check.is_true(done)
         check.is_true(env.truncated)
 
-    def test_discovered_items(self):
-        """items should be discovered if they have been obtained anytime in this episode."""
-        env = CraftingEnv(self.transformations, start_zone=self.start_zone)
 
-        expected_discovered_items = np.zeros(env.world.n_items)
-        check_np_equal(env.discovered_items, expected_discovered_items)
-        action = env.transformations.index(
-            self.named_transformations.get("search_wood")
-        )
-        _, _, _, _ = env.step(action)
-        expected_discovered_items[env.world.items.index(Item("wood"))] = 1
-        check_np_equal(env.discovered_items, expected_discovered_items)
+def test_discovered_items():
+    """items should be discovered if they have been obtained anytime in this episode."""
+    named_transformations, start_zone, _, _, _ = player_only_env()
+    transformations = list(named_transformations.values())
+    env = CraftingEnv(transformations, start_zone=start_zone)
 
-        action = env.transformations.index(
-            self.named_transformations.get("craft_plank")
-        )
-        _, _, _, _ = env.step(action)
-        expected_discovered_items[env.world.items.index(Item("plank"))] = 1
-        check_np_equal(env.discovered_items, expected_discovered_items)
+    expected_discovered_items = np.zeros(env.world.n_items)
+    check_np_equal(env.discovered_items, expected_discovered_items)
+    action = env.transformations.index(named_transformations.get("search_wood"))
+    _, _, _, _ = env.step(action)
+    expected_discovered_items[env.world.items.index(Item("wood"))] = 1
+    check_np_equal(env.discovered_items, expected_discovered_items)
 
-        env.reset()
-        expected_discovered_items = np.zeros(env.world.n_items)
-        check_np_equal(env.discovered_items, expected_discovered_items)
+    action = env.transformations.index(named_transformations.get("craft_plank"))
+    _, _, _, _ = env.step(action)
+    expected_discovered_items[env.world.items.index(Item("plank"))] = 1
+    check_np_equal(env.discovered_items, expected_discovered_items)
+
+    env.reset()
+    expected_discovered_items = np.zeros(env.world.n_items)
+    check_np_equal(env.discovered_items, expected_discovered_items)
+
+
+def test_discovered_zones_items():
+    """zones items should be discovered if they have been obtained anytime in this episode."""
+    named_transformations, start_zone, _, _, _ = zone_only_env()
+    transformations = list(named_transformations.values())
+    env = CraftingEnv(transformations, start_zone=start_zone)
+
+    expected_discovered_zones_items = np.zeros(env.world.n_zones_items)
+    check_np_equal(env.discovered_zones_items, expected_discovered_zones_items)
+    action = env.transformations.index(named_transformations.get("search_wood"))
+    _, _, _, _ = env.step(action)
+    expected_discovered_zones_items[env.world.zones_items.index(Item("wood"))] = 1
+    check_np_equal(env.discovered_zones_items, expected_discovered_zones_items)
+
+    action = env.transformations.index(named_transformations.get("craft_plank"))
+    _, _, _, _ = env.step(action)
+    expected_discovered_zones_items[env.world.zones_items.index(Item("plank"))] = 1
+    check_np_equal(env.discovered_zones_items, expected_discovered_zones_items)
+
+    env.reset()
+    expected_discovered_items = np.zeros(env.world.n_zones_items)
+    check_np_equal(env.discovered_zones_items, expected_discovered_items)
 
 
 def test_observation_no_zone_no_zone_items():

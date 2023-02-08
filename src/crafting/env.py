@@ -222,9 +222,13 @@ class CraftingEnv(Env):
         self.discovered_items = np.bitwise_or(
             self.discovered_items, self.player_inventory > 0
         )
+        self.discovered_zones_items = np.bitwise_or(
+            self.discovered_zones_items, np.sum(self.zones_inventories, axis=0) > 0
+        )
 
     def _reset_discoveries(self) -> None:
         self.discovered_items = np.zeros(self.world.n_items, dtype=np.ubyte)
+        self.discovered_zones_items = np.zeros(self.world.n_zones_items, dtype=np.ubyte)
 
     def _step_output(self, reward: float):
         infos = {"action_is_legal": self.actions_mask}
