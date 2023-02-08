@@ -310,6 +310,7 @@ def test_discovered_zones():
 
 
 def test_discovered_transformations():
+    """transformation should be discovered if player has applied it anytime in the episode."""
     named_transformations, start_zone, _, _, _ = classic_env()
     transformations = list(named_transformations.values())
     env = CraftingEnv(transformations, start_zone=start_zone)
