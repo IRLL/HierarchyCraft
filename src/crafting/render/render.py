@@ -6,7 +6,7 @@
 
 import os
 import sys
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union, Tuple
 
 try:
     import pygame
@@ -127,11 +127,12 @@ class CraftingWindow:
         """
 
         # Transformations (Actions)
-        action_menu_width = int(0.3 * self.window_shape[0])
+        menus_shapes = menus_sizes(self.env, self.window_shape)
+
         self.actions_menu = TransformationsWidget(
             title="Actions",
-            height=self.window_shape[1],
-            width=action_menu_width,
+            height=menus_shapes["actions"][1],
+            width=menus_shapes["actions"][0],
             transformations=self.env.transformations,
             position=(0, 0),
             resources_path=self.env.resources_path,
@@ -140,14 +141,12 @@ class CraftingWindow:
 
         # Player inventory
         self.player_inventory = None
-        player_menu_width = 0
         if self.env.world.n_items > 0:
-            player_menu_width = int(0.475 * self.window_shape[0])
             self.player_inventory = InventoryWidget(
                 title="Inventory",
-                height=self.window_shape[1],
-                width=player_menu_width,
-                position=(action_menu_width, 0, False),
+                height=menus_shapes["player"][1],
+                width=menus_shapes["player"][0],
+                position=(menus_shapes["actions"][0], 0, False),
                 items=self.env.world.items,
                 resources_path=self.env.resources_path,
                 theme=Theme(
@@ -162,17 +161,13 @@ class CraftingWindow:
         # Current zone inventory
         self.zone_inventory = None
         if self.env.world.n_zones_items > 0:
-            zone_menu_height = int(0.78 * self.window_shape[1])
-            zone_menu_width = (
-                self.window_shape[0] - action_menu_width - player_menu_width
-            )
             self.zone_inventory = InventoryWidget(
                 title="Zone",
-                height=zone_menu_height,
-                width=zone_menu_width,
+                height=menus_shapes["zone"][1],
+                width=menus_shapes["zone"][0],
                 position=(
-                    action_menu_width + player_menu_width,
-                    self.window_shape[1] - zone_menu_height,
+                    menus_shapes["actions"][0] + menus_shapes["player"][0],
+                    self.window_shape[1] - menus_shapes["zone"][1],
                     False,
                 ),
                 items=self.env.world.zones_items,
@@ -190,12 +185,15 @@ class CraftingWindow:
         # Position
         self.position = None
         if self.env.world.n_zones > 1:
-            position_menu_height = self.window_shape[1] - zone_menu_height
             self.position = PostitionWidget(
                 title="Position",
-                height=position_menu_height,
-                width=zone_menu_width,
-                position=(action_menu_width + player_menu_width, 0, False),
+                height=menus_shapes["position"][1],
+                width=menus_shapes["position"][0],
+                position=(
+                    menus_shapes["actions"][0] + menus_shapes["player"][0],
+                    0,
+                    False,
+                ),
                 zones=self.env.world.zones,
                 resources_path=self.env.resources_path,
             )
@@ -203,3 +201,29 @@ class CraftingWindow:
     def close(self):
         """Closes the pygame window."""
         pygame.display.quit()
+
+
+def menus_sizes(env: "CraftingEnv", window_shape: Tuple[int, int]):
+    actions_size = (int(0.3 * window_shape[0]), window_shape[1])
+
+    player_size = (0, 0)
+    if env.world.n_items > 0:
+        player_size = (int(0.475 * window_shape[0]), window_shape[1])
+
+    zone_size = (0, 0)
+    if env.world.n_zones_items > 0:
+        zone_size = (
+            window_shape[0] - actions_size[0] - player_size[0],
+            int(0.78 * window_shape[1]),
+        )
+
+    position_size = (0, 0)
+    if env.world.n_zones > 1:
+        position_size = (zone_size[0], window_shape[1] - zone_size[1])
+
+    return {
+        "actions": actions_size,
+        "player": player_size,
+        "zone": zone_size,
+        "position": position_size,
+    }

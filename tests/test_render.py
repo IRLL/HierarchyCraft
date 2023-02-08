@@ -12,17 +12,28 @@ from tests.envs import classic_env, player_only_env, zone_only_env
 
 def test_render_rgb_array_classic_env():
     named_transformations, start_zone, _, _, _ = classic_env()
-    _render_env(list(named_transformations.values()), start_zone)
+    _render_env(
+        list(named_transformations.values()),
+        start_zone,
+        test_with_human=False,
+    )
 
 
 def test_render_rgb_array_player_only_env():
     named_transformations, _, _, _, _ = player_only_env()
-    _render_env(list(named_transformations.values()))
+    _render_env(
+        list(named_transformations.values()),
+        test_with_human=False,
+    )
 
 
 def test_render_rgb_array_zone_only_env():
     named_transformations, start_zone, _, _, _ = zone_only_env()
-    _render_env(list(named_transformations.values()), start_zone)
+    _render_env(
+        list(named_transformations.values()),
+        start_zone,
+        test_with_human=False,
+    )
 
 
 def _render_env(
