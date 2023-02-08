@@ -241,6 +241,30 @@ class TestCratingEnv:
         check.is_true(done)
         check.is_true(env.truncated)
 
+    def test_discovered_items(self):
+        """items should be discovered if they have been obtained anytime in this episode."""
+        env = CraftingEnv(self.transformations, start_zone=self.start_zone)
+
+        expected_discovered_items = np.zeros(env.world.n_items)
+        check_np_equal(env.discovered_items, expected_discovered_items)
+        action = env.transformations.index(
+            self.named_transformations.get("search_wood")
+        )
+        _, _, _, _ = env.step(action)
+        expected_discovered_items[env.world.items.index(Item("wood"))] = 1
+        check_np_equal(env.discovered_items, expected_discovered_items)
+
+        action = env.transformations.index(
+            self.named_transformations.get("craft_plank")
+        )
+        _, _, _, _ = env.step(action)
+        expected_discovered_items[env.world.items.index(Item("plank"))] = 1
+        check_np_equal(env.discovered_items, expected_discovered_items)
+
+        env.reset()
+        expected_discovered_items = np.zeros(env.world.n_items)
+        check_np_equal(env.discovered_items, expected_discovered_items)
+
 
 def test_observation_no_zone_no_zone_items():
     """observation should only show player items if no zone and no zone_items."""

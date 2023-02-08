@@ -72,10 +72,11 @@ class CraftingEnv(Env):
         self._build_transformations()
 
         self.player_inventory = np.array([], dtype=np.uint16)
+        self.discovered_items = np.array([], dtype=np.ubyte)
         self.position = np.array([], dtype=np.uint16)
         self.zones_inventories = np.array([], dtype=np.uint16)
         self.current_step = 0
-        self._reset_state()
+        self.reset()
 
         if purpose is None:
             purpose = Purpose(None)
@@ -178,6 +179,7 @@ class CraftingEnv(Env):
             self.position,
             self.zones_inventories,
         )
+        self._update_discoveries()
         reward = self.purpose.reward(*self.state)
         return self._step_output(reward)
 
@@ -194,7 +196,9 @@ class CraftingEnv(Env):
 
     def reset(self, seed: int = 0):
         """Resets the state of the environement."""
+        self.current_step = 0
         self._reset_state()
+        self._reset_discoveries()
 
     def close(self):
         """Closes the environment."""
@@ -213,6 +217,14 @@ class CraftingEnv(Env):
         if self._requirements_graph is None:
             self._requirements_graph = build_requirements_graph(self)
         return self._requirements_graph
+
+    def _update_discoveries(self) -> None:
+        self.discovered_items = np.bitwise_or(
+            self.discovered_items, self.player_inventory > 0
+        )
+
+    def _reset_discoveries(self) -> None:
+        self.discovered_items = np.zeros(self.world.n_items, dtype=np.ubyte)
 
     def _step_output(self, reward: float):
         infos = {"action_is_legal": self.actions_mask}
