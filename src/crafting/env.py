@@ -70,6 +70,7 @@ class CraftingEnv(Env):
         self.invalid_reward = invalid_reward
         self.world = self._build_world()
         self._build_transformations()
+        self.discovered_transformations = np.array([], dtype=np.ubyte)
 
         self.player_inventory = np.array([], dtype=np.uint16)
         self.discovered_items = np.array([], dtype=np.ubyte)
@@ -181,7 +182,7 @@ class CraftingEnv(Env):
             self.position,
             self.zones_inventories,
         )
-        self._update_discoveries()
+        self._update_discoveries(action)
         reward = self.purpose.reward(*self.state)
         return self._step_output(reward)
 
@@ -221,7 +222,7 @@ class CraftingEnv(Env):
             self._requirements_graph = build_requirements_graph(self)
         return self._requirements_graph
 
-    def _update_discoveries(self) -> None:
+    def _update_discoveries(self, action: Optional[int] = None) -> None:
         self.discovered_items = np.bitwise_or(
             self.discovered_items, self.player_inventory > 0
         )
@@ -229,11 +230,16 @@ class CraftingEnv(Env):
             self.discovered_zones_items, np.sum(self.zones_inventories, axis=0) > 0
         )
         self.discovered_zones = np.bitwise_or(self.discovered_zones, self.position > 0)
+        if action is not None:
+            self.discovered_transformations[action] = 1
 
     def _reset_discoveries(self) -> None:
         self.discovered_items = np.zeros(self.world.n_items, dtype=np.ubyte)
         self.discovered_zones_items = np.zeros(self.world.n_zones_items, dtype=np.ubyte)
         self.discovered_zones = np.zeros(self.world.n_zones, dtype=np.ubyte)
+        self.discovered_transformations = np.zeros(
+            len(self.transformations), dtype=np.ubyte
+        )
 
     def _step_output(self, reward: float):
         infos = {"action_is_legal": self.actions_mask}
