@@ -8,12 +8,7 @@ import numpy as np
 import crafting
 from crafting.behaviors.solving_behaviors import Behavior, build_all_solving_behaviors
 from crafting.purpose import Purpose
-from crafting.render.render import (
-    CraftingWindow,
-    InventoryDisplayMode,
-    TransformationContentMode,
-    TransformationDisplayMode,
-)
+from crafting.render.render import CraftingWindow
 from crafting.render.utils import surface_to_rgb_array
 from crafting.requirement_graph import build_requirements_graph, draw_requirements_graph
 from crafting.transformation import Transformation
@@ -48,10 +43,10 @@ class CraftingEnv(Env):
         purpose: Optional[Purpose] = None,
         invalid_reward: float = -10.0,
         render_mode="rgb_array",
+        render_window: Optional[CraftingWindow] = None,
         resources_path: Optional[str] = None,
         name: str = "Crafting",
         max_step: Optional[int] = None,
-        **kwargs,
     ) -> None:
         """Initialize a Crafting environement.
 
@@ -65,18 +60,10 @@ class CraftingEnv(Env):
             invalid_reward (float, optional): Reward given to the agent for invalid actions.
                 Defaults to -10.0.
             render_mode (str, optional): Render mode. Defaults to "rgb_array".
+            render_window (CraftingWindow): Window using to render the environment with pygame.
             name (str): Name of the environement.
-
-        Kwargs:
-            player_inventory_display (InventoryDisplayMode): When to display items.
-                See InventoryDisplayMode for more informations.
-            zone_inventory_display (InventoryDisplayMode): When to display zone items.
-                See InventoryDisplayMode for more informations.
-            transformation_content_mode (TransformationContentMode): When to display
-                transformations content. See TransformationContentMode for more informations.
-            transformation_display_mode (TransformationDisplayMode): When to display
-                transformations. See TransformationDisplayMode for more informations.
-
+            max_step: (Optional[int], optional): Maximum number of steps before episode truncation.
+                If None, never truncates the episode. Defaults to None.
         """
         self.transformations = transformations
         self.start_zone = start_zone
@@ -106,23 +93,11 @@ class CraftingEnv(Env):
         self.purpose.build(self)
 
         self.render_mode = render_mode
-        self.render_window = None
+        self.render_window = render_window
         if resources_path is None:
             render_dir = os.path.dirname(crafting.render.__file__)
             resources_path = os.path.join(render_dir, "default_resources")
         self.resources_path = resources_path
-        self.player_inventory_display = kwargs.get(
-            "player_inventory_display", InventoryDisplayMode.DISCOVERED
-        )
-        self.zone_inventory_display = kwargs.get(
-            "zone_inventory_display", InventoryDisplayMode.DISCOVERED
-        )
-        self.transformation_content_mode = kwargs.get(
-            "transformation_content_mode", TransformationContentMode.DISCOVERED
-        )
-        self.transformation_display_mode = kwargs.get(
-            "transformation_display_mode", TransformationDisplayMode.DISCOVERED
-        )
 
         self.max_step = max_step
 
@@ -338,13 +313,9 @@ class CraftingEnv(Env):
         Create the rendering window if not existing yet.
         """
         if self.render_window is None:
-            self.render_window = CraftingWindow(
-                self,
-                self.player_inventory_display,
-                self.zone_inventory_display,
-                self.transformation_content_mode,
-                self.transformation_display_mode,
-            )
+            self.render_window = CraftingWindow()
+        if not self.render_window.built:
+            self.render_window.build(self)
         fps = self.metadata.get("video.frames_per_second")
         self.render_window.update_rendering(fps=fps)
         return surface_to_rgb_array(self.render_window.screen)

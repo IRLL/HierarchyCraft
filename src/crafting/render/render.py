@@ -23,22 +23,22 @@ if TYPE_CHECKING:
 
 from crafting.render.widgets import (
     InventoryWidget,
-    InventoryDisplayMode,
     PostitionWidget,
     TransformationsWidget,
-    TransformationContentMode,
-    TransformationDisplayMode,
+    ContentMode,
+    DisplayMode,
 )
 
 
 class CraftingWindow:
     def __init__(
         self,
-        env: "CraftingEnv",
-        player_inventory_display: InventoryDisplayMode,
-        zone_inventory_display: InventoryDisplayMode,
-        transformation_content_mode: TransformationContentMode,
-        transformation_display_mode: TransformationDisplayMode,
+        window_shape: Tuple[int, int] = (int(16 / 9 * 720), 720),
+        player_inventory_display: DisplayMode = DisplayMode.CURRENT,
+        zone_inventory_display: DisplayMode = DisplayMode.CURRENT,
+        position_display: DisplayMode = DisplayMode.CURRENT,
+        transformation_display_mode: DisplayMode = DisplayMode.DISCOVERED,
+        transformation_content_mode: ContentMode = ContentMode.DISCOVERED,
     ) -> None:
         """Initialise pygame window, menus and widgets for the UI.
 
@@ -53,9 +53,31 @@ class CraftingWindow:
                 "Install using 'pip install crafting-gym[gui]'."
             ) from error
 
-        self.env = env
-        self.window_shape = (int(16 / 9 * 720), 720)
+        self.env = None
+        self.clock = None
+        self.screen = None
+        self.menus = {}
+        self.window_shape = window_shape
         os.environ["SDL_VIDEO_CENTERED"] = "1"
+
+        self.player_inventory_display = player_inventory_display
+        self.zone_inventory_display = zone_inventory_display
+        self.position_display = position_display
+        self.transformation_display_mode = transformation_display_mode
+        self.transformation_content_mode = transformation_content_mode
+
+    @property
+    def built(self) -> bool:
+        """True only if the render window has been built on a specific Crafting environement."""
+        return self.env is not None
+
+    def build(self, env: "CraftingEnv"):
+        """Build the render window on the given environement.
+
+        Args:
+            env (CraftingEnv): Crafting environment on which to build the render window.
+        """
+        self.env = env
         self.clock = Clock()
 
         # Create window
@@ -63,11 +85,12 @@ class CraftingWindow:
         pygame.display.set_caption("Crafting")
 
         # Create menus
-        self.make_menus(
-            player_inventory_display,
-            zone_inventory_display,
-            transformation_content_mode,
-            transformation_display_mode,
+        self.menus = self.make_menus(
+            self.player_inventory_display,
+            self.zone_inventory_display,
+            self.position_display,
+            self.transformation_display_mode,
+            self.transformation_content_mode,
         )
 
     def update_rendering(
@@ -85,6 +108,10 @@ class CraftingWindow:
             Action found while updating the UI. (can be None)
 
         """
+
+        if not self.built:
+            raise RuntimeError("Render window tried to update before being built.")
+
         # Tick
         if fps is not None:
             self.clock.tick(fps)
@@ -105,30 +132,30 @@ class CraftingWindow:
         #     widget.draw(screen)
 
         # Update inventories
-        if self.player_inventory:
-            self.player_inventory.update_inventory(
+        if self.menus["player_inventory"]:
+            self.menus["player_inventory"].update_inventory(
                 self.env.player_inventory, self.env.discovered_items, events
             )
-            self.player_inventory.draw(self.screen)
+            self.menus["player_inventory"].draw(self.screen)
 
-        if self.zone_inventory:
-            self.zone_inventory.update_inventory(
+        if self.menus["zone_inventory"]:
+            self.menus["zone_inventory"].update_inventory(
                 self.env.current_zone_inventory, self.env.discovered_zones_items, events
             )
-            self.zone_inventory.draw(self.screen)
+            self.menus["zone_inventory"].draw(self.screen)
 
         # Update position
-        if self.position:
-            self.position.update(self.env.position, events)
-            self.position.draw(self.screen)
+        if self.menus["position"]:
+            self.menus["position"].update(self.env.position, events)
+            self.menus["position"].draw(self.screen)
 
         # Update actions menu
-        self.actions_menu.update(self.env, events)
-        self.actions_menu.draw(self.screen)
+        self.menus["actions"].update(self.env, events)
+        self.menus["actions"].draw(self.screen)
 
         # Gather action taken if any
         action_taken = None
-        selected_widget = self.actions_menu.get_selected_widget()
+        selected_widget = self.menus["actions"].get_selected_widget()
         if selected_widget is not None and selected_widget.update(events):
             action_taken: int = selected_widget.apply()
 
@@ -138,10 +165,11 @@ class CraftingWindow:
 
     def make_menus(
         self,
-        player_inventory_display: InventoryDisplayMode,
-        zone_inventory_display: InventoryDisplayMode,
-        transformation_content_mode: TransformationContentMode,
-        transformation_display_mode: TransformationDisplayMode,
+        player_inventory_display: DisplayMode,
+        zone_inventory_display: DisplayMode,
+        position_display: DisplayMode,
+        transformation_display_mode: DisplayMode,
+        transformation_content_mode: ContentMode,
     ):
         """Build menus for user interface.
 
@@ -159,7 +187,7 @@ class CraftingWindow:
             self.window_shape,
         )
 
-        self.actions_menu = TransformationsWidget(
+        actions_menu = TransformationsWidget(
             title="Actions",
             height=menus_shapes["actions"][1],
             width=menus_shapes["actions"][0],
@@ -172,9 +200,9 @@ class CraftingWindow:
         )
 
         # Player inventory
-        self.player_inventory = None
+        player_inventory = None
         if menus_shapes["player"] != (0, 0):
-            self.player_inventory = InventoryWidget(
+            player_inventory = InventoryWidget(
                 title="Inventory",
                 height=menus_shapes["player"][1],
                 width=menus_shapes["player"][0],
@@ -196,9 +224,9 @@ class CraftingWindow:
             )
 
         # Current zone inventory
-        self.zone_inventory = None
+        zone_inventory = None
         if menus_shapes["zone"] != (0, 0):
-            self.zone_inventory = InventoryWidget(
+            zone_inventory = InventoryWidget(
                 title="Zone",
                 height=menus_shapes["zone"][1],
                 width=menus_shapes["zone"][0],
@@ -221,9 +249,9 @@ class CraftingWindow:
             )
 
         # Position
-        self.position = None
+        position = None
         if menus_shapes["position"] != (0, 0):
-            self.position = PostitionWidget(
+            position = PostitionWidget(
                 title="Position",
                 height=menus_shapes["position"][1],
                 width=menus_shapes["position"][0],
@@ -234,7 +262,15 @@ class CraftingWindow:
                 ),
                 zones=self.env.world.zones,
                 resources_path=self.env.resources_path,
+                display_mode=position_display,
             )
+
+        return {
+            "actions": actions_menu,
+            "player_inventory": player_inventory,
+            "zone_inventory": zone_inventory,
+            "position": position,
+        }
 
     def close(self):
         """Closes the pygame window."""

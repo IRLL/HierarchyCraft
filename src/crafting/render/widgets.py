@@ -27,13 +27,11 @@ from crafting.render.utils import (
     build_transformation_image,
     draw_text_on_image,
     load_image,
-    pilImageToSurface,
     create_text_image,
-    scale,
 )
 from crafting.transformation import Transformation
 from crafting.world import Item, ItemStack, Zone
-from PIL.Image import Image, new as new_image
+from PIL.Image import Image
 
 if TYPE_CHECKING:
     from pygame.surface import Surface
@@ -41,10 +39,32 @@ if TYPE_CHECKING:
     from crafting.env import CraftingEnv
 
 
-class InventoryDisplayMode(Enum):
+class DisplayMode(Enum):
+    """Display modes for menus buttons.
+
+    ALL: Button are all displayed.
+    DISCOVERED: Button are displayed if they have been discovered or are currently available.
+    CURRENT: Button are only displayed if currently available.
+
+    """
+
     ALL = "all"
     DISCOVERED = "discovered"
     CURRENT = "current"
+
+
+class ContentMode(Enum):
+    """Display modes for buttons content.
+
+    ALWAYS: Button content are always displayed.
+    DISCOVERED: Button content are displayed if they have been discovered.
+    NEVER: Button content are never displayed.
+
+    """
+
+    ALWAYS = "always"
+    DISCOVERED = "discovered"
+    NEVER = "never"
 
 
 class InventoryWidget(Menu):
@@ -56,7 +76,7 @@ class InventoryWidget(Menu):
         position,
         items: List[Item],
         resources_path: str,
-        display_mode: InventoryDisplayMode,
+        display_mode: DisplayMode,
         rows: int = 7,
         theme: "Theme" = THEME_DEFAULT,
     ):
@@ -74,7 +94,7 @@ class InventoryWidget(Menu):
 
         self.items = items
         self.resources_path = resources_path
-        self.display_mode = InventoryDisplayMode(display_mode)
+        self.display_mode = DisplayMode(display_mode)
         self.base_images = _load_base_images(items, resources_path)
 
         self.button_id_to_item = {}
@@ -107,13 +127,7 @@ class InventoryWidget(Menu):
             button.set_title(str(ItemStack(item, quantity)))
             self.old_quantity[item] = quantity
 
-            show_button = True
-            if self.display_mode is InventoryDisplayMode.CURRENT:
-                show_button = quantity > 0
-            elif self.display_mode is InventoryDisplayMode.DISCOVERED:
-                show_button = discovered[item_slot]
-
-            if show_button:
+            if show_button(self.display_mode, quantity > 0, discovered[item_slot]):
                 button.show()
             else:
                 button.hide()
@@ -155,18 +169,6 @@ def _load_base_images(
     return base_images
 
 
-class TransformationDisplayMode(Enum):
-    ALL = "all"
-    DISCOVERED = "discovered"
-    VALID = "valid"
-
-
-class TransformationContentMode(Enum):
-    ALWAYS = "always"
-    DISCOVERED = "discovered"
-    NEVER = "never"
-
-
 class TransformationsWidget(Menu):
     def __init__(
         self,
@@ -176,8 +178,8 @@ class TransformationsWidget(Menu):
         position,
         transformations: List[Transformation],
         resources_path: str,
-        display_mode: TransformationDisplayMode,
-        content_display_mode: TransformationContentMode,
+        display_mode: DisplayMode,
+        content_display_mode: ContentMode,
         theme: "Theme" = THEME_DEFAULT,
     ):
         super().__init__(
@@ -194,8 +196,8 @@ class TransformationsWidget(Menu):
 
         self.transformations = transformations
         self.resources_path = resources_path
-        self.display_mode = TransformationDisplayMode(display_mode)
-        self.content_display_mode = TransformationContentMode(content_display_mode)
+        self.display_mode = DisplayMode(display_mode)
+        self.content_display_mode = ContentMode(content_display_mode)
         self.button_id_to_transfo = {}
         self.old_display = {}
         self.old_legal = {}
@@ -240,9 +242,7 @@ class TransformationsWidget(Menu):
             old_legal = self.old_legal.get(button.get_id(), None)
 
             button_image = self.buttons_base_image.get(button.get_id(), None)
-            display_content = self._display_content(
-                self.content_display_mode, discovered
-            )
+            display_content = show_content(self.content_display_mode, discovered)
             self.old_display[button.get_id()] = display_content
             self.old_legal[button.get_id()] = legal
 
@@ -261,33 +261,11 @@ class TransformationsWidget(Menu):
                     else:
                         button.set_title(str(action))
 
-            if self._show_button(self.display_mode, legal, discovered):
+            if show_button(self.display_mode, legal, discovered):
                 button.show()
             else:
                 button.hide()
         return super().update(events)
-
-    @staticmethod
-    def _show_button(
-        display_mode: TransformationDisplayMode, legal: bool, discovered: bool
-    ) -> bool:
-        show_button = True
-        if display_mode is TransformationDisplayMode.VALID:
-            show_button = legal
-        elif display_mode is TransformationDisplayMode.DISCOVERED:
-            show_button = legal or discovered
-        return show_button
-
-    @staticmethod
-    def _display_content(
-        content_display_mode: TransformationContentMode, discovered: bool
-    ) -> bool:
-        display_content = True
-        if content_display_mode is TransformationContentMode.NEVER:
-            display_content = False
-        elif content_display_mode is TransformationContentMode.DISCOVERED:
-            display_content = discovered
-        return display_content
 
     @staticmethod
     def _add_button_image(button: "Button", image: "Image") -> str:
@@ -318,6 +296,7 @@ class PostitionWidget(Menu):
         position,
         zones: List[Zone],
         resources_path: str,
+        display_mode: DisplayMode,
     ):
         super().__init__(
             title=title,
@@ -345,20 +324,22 @@ class PostitionWidget(Menu):
         self.zones = zones
         self.base_images = _load_base_images(zones, resources_path)
         self.resources_path = resources_path
+        self.display_mode = DisplayMode(display_mode)
         self.button_id_to_zone = {}
         self.old_quantity = {}
         for zone in self.zones:
             self._build_button(zone)
 
-    def update(self, position: np.ndarray, events) -> bool:
+    def update(self, position: np.ndarray, discovered: np.ndarray, events) -> bool:
         buttons = [
             widget for widget in self.get_widgets() if isinstance(widget, Button)
         ]
         for button in buttons:
             zone = self.button_id_to_zone[button.get_id()]
             zone_slot = self.zones.index(zone)
-            show_button = position[zone_slot] == 1
-            if show_button:
+            if show_button(
+                self.display_mode, position[zone_slot], discovered[zone_slot]
+            ):
                 button.show()
             else:
                 button.hide()
@@ -384,6 +365,26 @@ class PostitionWidget(Menu):
             button.set_padding((height_padding, width_padding))
         button.is_selectable = False
         self.button_id_to_zone[button.get_id()] = zone
+
+
+def show_button(display_mode: DisplayMode, is_current: bool, discovered: bool) -> bool:
+    """Whether to show the button depending on its display mode and current state."""
+    _show_button = True
+    if display_mode is DisplayMode.CURRENT:
+        _show_button = is_current
+    elif display_mode is DisplayMode.DISCOVERED:
+        _show_button = discovered or is_current
+    return _show_button
+
+
+def show_content(content_mode: ContentMode, discovered: bool) -> bool:
+    """Whether to show the button content depending on its content mode and current state."""
+    display_content = True
+    if content_mode is ContentMode.NEVER:
+        display_content = False
+    elif content_mode is ContentMode.DISCOVERED:
+        display_content = discovered
+    return display_content
 
 
 # class ScoreWidget:
