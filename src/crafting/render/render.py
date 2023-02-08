@@ -93,12 +93,14 @@ class CraftingWindow:
         self.player_inventory.update(self.env.player_inventory, events)
         self.player_inventory.draw(self.screen)
 
-        self.zone_inventory.update(self.env.current_zone_inventory, events)
-        self.zone_inventory.draw(self.screen)
+        if self.zone_inventory:
+            self.zone_inventory.update(self.env.current_zone_inventory, events)
+            self.zone_inventory.draw(self.screen)
 
         # Update position
-        self.position.update(self.env.position, events)
-        self.position.draw(self.screen)
+        if self.position:
+            self.position.update(self.env.position, events)
+            self.position.draw(self.screen)
 
         # Update actions menu
         self.actions_menu.update(self.env, events)
@@ -153,39 +155,45 @@ class CraftingWindow:
         )
 
         # Current zone inventory
-        zone_menu_height = int(0.78 * self.window_shape[1])
-        zone_menu_width = self.window_shape[0] - action_menu_width - player_menu_width
-        self.zone_inventory = InventoryWidget(
-            title="Zone",
-            height=zone_menu_height,
-            width=zone_menu_width,
-            position=(
-                action_menu_width + player_menu_width,
-                self.window_shape[1] - zone_menu_height,
-                False,
-            ),
-            items=self.env.world.zones_items,
-            resources_path=self.env.resources_path,
-            theme=Theme(
-                title=False,
-                background_color=(186, 214, 177),
-                title_background_color=(47, 48, 51),
-                title_font_color=(215, 215, 215),
-                selection_color=(255, 255, 255, 0),
-                widget_font_color=(255, 255, 255),
-            ),
-        )
+        self.zone_inventory = None
+        if self.env.world.n_zones_items > 0:
+            zone_menu_height = int(0.78 * self.window_shape[1])
+            zone_menu_width = (
+                self.window_shape[0] - action_menu_width - player_menu_width
+            )
+            self.zone_inventory = InventoryWidget(
+                title="Zone",
+                height=zone_menu_height,
+                width=zone_menu_width,
+                position=(
+                    action_menu_width + player_menu_width,
+                    self.window_shape[1] - zone_menu_height,
+                    False,
+                ),
+                items=self.env.world.zones_items,
+                resources_path=self.env.resources_path,
+                theme=Theme(
+                    title=False,
+                    background_color=(186, 214, 177),
+                    title_background_color=(47, 48, 51),
+                    title_font_color=(215, 215, 215),
+                    selection_color=(255, 255, 255, 0),
+                    widget_font_color=(255, 255, 255),
+                ),
+            )
 
         # Position
-        position_menu_height = self.window_shape[1] - zone_menu_height
-        self.position = PostitionWidget(
-            title="Position",
-            height=position_menu_height,
-            width=zone_menu_width,
-            position=(action_menu_width + player_menu_width, 0, False),
-            zones=self.env.world.zones,
-            resources_path=self.env.resources_path,
-        )
+        self.position = None
+        if self.env.world.n_zones > 1:
+            position_menu_height = self.window_shape[1] - zone_menu_height
+            self.position = PostitionWidget(
+                title="Position",
+                height=position_menu_height,
+                width=zone_menu_width,
+                position=(action_menu_width + player_menu_width, 0, False),
+                zones=self.env.world.zones,
+                resources_path=self.env.resources_path,
+            )
 
     def close(self):
         """Closes the pygame window."""

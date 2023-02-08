@@ -52,3 +52,30 @@ def classic_env():
     }
 
     return named_transformations, start_zone, items, zones, zones_items
+
+
+def player_only_env():
+    wood = Item("wood")
+    search_wood = Transformation(
+        added_player_items=[ItemStack(wood)],
+    )
+
+    stone = Item("stone")
+    search_stone = Transformation(
+        added_player_items=[ItemStack(stone, 1)],
+    )
+
+    plank = Item("plank")
+    craft_plank = Transformation(
+        removed_player_items=[ItemStack(wood, 1)],
+        added_player_items=[ItemStack(plank, 4)],
+    )
+
+    items = [wood, stone, plank]
+    named_transformations = {
+        "search_wood": search_wood,
+        "search_stone": search_stone,
+        "craft_plank": craft_plank,
+    }
+
+    return named_transformations, None, items, [], []
