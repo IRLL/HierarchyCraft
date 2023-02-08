@@ -8,7 +8,12 @@ import numpy as np
 import crafting
 from crafting.behaviors.solving_behaviors import Behavior, build_all_solving_behaviors
 from crafting.purpose import Purpose
-from crafting.render.render import CraftingWindow, InventoryDisplayMode
+from crafting.render.render import (
+    CraftingWindow,
+    InventoryDisplayMode,
+    TransformationContentMode,
+    TransformationDisplayMode,
+)
 from crafting.render.utils import surface_to_rgb_array
 from crafting.requirement_graph import build_requirements_graph, draw_requirements_graph
 from crafting.transformation import Transformation
@@ -46,8 +51,7 @@ class CraftingEnv(Env):
         resources_path: Optional[str] = None,
         name: str = "Crafting",
         max_step: Optional[int] = None,
-        player_inventory_display: InventoryDisplayMode = InventoryDisplayMode.CURRENT,
-        zone_inventory_display: InventoryDisplayMode = InventoryDisplayMode.CURRENT,
+        **kwargs,
     ) -> None:
         """Initialize a Crafting environement.
 
@@ -62,6 +66,17 @@ class CraftingEnv(Env):
                 Defaults to -10.0.
             render_mode (str, optional): Render mode. Defaults to "rgb_array".
             name (str): Name of the environement.
+
+        Kwargs:
+            player_inventory_display (InventoryDisplayMode): When to display items.
+                See InventoryDisplayMode for more informations.
+            zone_inventory_display (InventoryDisplayMode): When to display zone items.
+                See InventoryDisplayMode for more informations.
+            transformation_content_mode (TransformationContentMode): When to display
+                transformations content. See TransformationContentMode for more informations.
+            transformation_display_mode (TransformationDisplayMode): When to display
+                transformations. See TransformationDisplayMode for more informations.
+
         """
         self.transformations = transformations
         self.start_zone = start_zone
@@ -96,8 +111,18 @@ class CraftingEnv(Env):
             render_dir = os.path.dirname(crafting.render.__file__)
             resources_path = os.path.join(render_dir, "default_resources")
         self.resources_path = resources_path
-        self.player_inventory_display = player_inventory_display
-        self.zone_inventory_display = zone_inventory_display
+        self.player_inventory_display = kwargs.get(
+            "player_inventory_display", InventoryDisplayMode.DISCOVERED
+        )
+        self.zone_inventory_display = kwargs.get(
+            "zone_inventory_display", InventoryDisplayMode.DISCOVERED
+        )
+        self.transformation_content_mode = kwargs.get(
+            "transformation_content_mode", TransformationContentMode.DISCOVERED
+        )
+        self.transformation_display_mode = kwargs.get(
+            "transformation_display_mode", TransformationDisplayMode.DISCOVERED
+        )
 
         self.max_step = max_step
 
@@ -231,7 +256,7 @@ class CraftingEnv(Env):
             self.discovered_items, self.player_inventory > 0
         )
         self.discovered_zones_items = np.bitwise_or(
-            self.discovered_zones_items, np.sum(self.zones_inventories, axis=0) > 0
+            self.discovered_zones_items, self.current_zone_inventory > 0
         )
         self.discovered_zones = np.bitwise_or(self.discovered_zones, self.position > 0)
         if action is not None:
@@ -314,7 +339,11 @@ class CraftingEnv(Env):
         """
         if self.render_window is None:
             self.render_window = CraftingWindow(
-                self, self.player_inventory_display, self.zone_inventory_display
+                self,
+                self.player_inventory_display,
+                self.zone_inventory_display,
+                self.transformation_content_mode,
+                self.transformation_display_mode,
             )
         fps = self.metadata.get("video.frames_per_second")
         self.render_window.update_rendering(fps=fps)

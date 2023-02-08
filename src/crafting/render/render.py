@@ -26,6 +26,8 @@ from crafting.render.widgets import (
     InventoryDisplayMode,
     PostitionWidget,
     TransformationsWidget,
+    TransformationContentMode,
+    TransformationDisplayMode,
 )
 
 
@@ -35,6 +37,8 @@ class CraftingWindow:
         env: "CraftingEnv",
         player_inventory_display: InventoryDisplayMode,
         zone_inventory_display: InventoryDisplayMode,
+        transformation_content_mode: TransformationContentMode,
+        transformation_display_mode: TransformationDisplayMode,
     ) -> None:
         """Initialise pygame window, menus and widgets for the UI.
 
@@ -59,7 +63,12 @@ class CraftingWindow:
         pygame.display.set_caption("Crafting")
 
         # Create menus
-        self.make_menus(player_inventory_display, zone_inventory_display)
+        self.make_menus(
+            player_inventory_display,
+            zone_inventory_display,
+            transformation_content_mode,
+            transformation_display_mode,
+        )
 
     def update_rendering(
         self,
@@ -97,13 +106,13 @@ class CraftingWindow:
 
         # Update inventories
         if self.player_inventory:
-            self.player_inventory.update(
+            self.player_inventory.update_inventory(
                 self.env.player_inventory, self.env.discovered_items, events
             )
             self.player_inventory.draw(self.screen)
 
         if self.zone_inventory:
-            self.zone_inventory.update(
+            self.zone_inventory.update_inventory(
                 self.env.current_zone_inventory, self.env.discovered_zones_items, events
             )
             self.zone_inventory.draw(self.screen)
@@ -131,6 +140,8 @@ class CraftingWindow:
         self,
         player_inventory_display: InventoryDisplayMode,
         zone_inventory_display: InventoryDisplayMode,
+        transformation_content_mode: TransformationContentMode,
+        transformation_display_mode: TransformationDisplayMode,
     ):
         """Build menus for user interface.
 
@@ -155,6 +166,8 @@ class CraftingWindow:
             transformations=self.env.transformations,
             position=(0, 0),
             resources_path=self.env.resources_path,
+            display_mode=transformation_display_mode,
+            content_display_mode=transformation_content_mode,
             theme=THEME_DARK,
         )
 

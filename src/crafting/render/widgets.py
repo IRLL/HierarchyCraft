@@ -28,13 +28,14 @@ from crafting.render.utils import (
     draw_text_on_image,
     load_image,
     pilImageToSurface,
+    create_text_image,
     scale,
 )
 from crafting.transformation import Transformation
 from crafting.world import Item, ItemStack, Zone
+from PIL.Image import Image, new as new_image
 
 if TYPE_CHECKING:
-    from PIL.Image import Image
     from pygame.surface import Surface
 
     from crafting.env import CraftingEnv
@@ -56,7 +57,7 @@ class InventoryWidget(Menu):
         items: List[Item],
         resources_path: str,
         display_mode: InventoryDisplayMode,
-        rows: int = 9,
+        rows: int = 7,
         theme: "Theme" = THEME_DEFAULT,
     ):
         super().__init__(
@@ -130,14 +131,14 @@ class InventoryWidget(Menu):
 
     @staticmethod
     def _update_button_image(
-        button: PyImage, base_image: "Image", quantity: int, resources_path: str
+        button: PyImage, image: "Image", quantity: int, resources_path: str
     ):
         if quantity == 0:
             # Grayscale
-            base_image = base_image.convert("LA").convert("RGBA")
+            image = image.convert("LA").convert("RGBA")
         if quantity != 1:
             image = draw_text_on_image(
-                base_image,
+                image,
                 text=str(quantity),
                 resources_path=resources_path,
             )
@@ -154,6 +155,18 @@ def _load_base_images(
     return base_images
 
 
+class TransformationDisplayMode(Enum):
+    ALL = "all"
+    DISCOVERED = "discovered"
+    VALID = "valid"
+
+
+class TransformationContentMode(Enum):
+    ALWAYS = "always"
+    DISCOVERED = "discovered"
+    NEVER = "never"
+
+
 class TransformationsWidget(Menu):
     def __init__(
         self,
@@ -163,6 +176,8 @@ class TransformationsWidget(Menu):
         position,
         transformations: List[Transformation],
         resources_path: str,
+        display_mode: TransformationDisplayMode,
+        content_display_mode: TransformationContentMode,
         theme: "Theme" = THEME_DEFAULT,
     ):
         super().__init__(
@@ -179,8 +194,13 @@ class TransformationsWidget(Menu):
 
         self.transformations = transformations
         self.resources_path = resources_path
+        self.display_mode = TransformationDisplayMode(display_mode)
+        self.content_display_mode = TransformationContentMode(content_display_mode)
         self.button_id_to_transfo = {}
-        self.old_quantity = {}
+        self.old_display = {}
+        self.old_legal = {}
+        self.buttons_base_image: Dict[str, "Image"] = {}
+        self.buttons_hidden_image: Dict[str, "Image"] = {}
         for index, transfo in enumerate(self.transformations):
             button = self._build_transformation_button(transfo, index)
             self.button_id_to_transfo[button.get_id()] = transfo
@@ -188,7 +208,7 @@ class TransformationsWidget(Menu):
     def _build_transformation_button(
         self, transfo: Transformation, action_id: int
     ) -> "Button":
-        button: PyImage = self.add.button(
+        button: "Button" = self.add.button(
             " ",
             lambda x: x,
             action_id,
@@ -197,16 +217,13 @@ class TransformationsWidget(Menu):
         )
         image = build_transformation_image(transfo, self.resources_path)
         if image is not None:
-            decorator = button.get_decorator()
-            menu_image = _to_menu_image(image, 0.4)
-            decorator.add_baseimage(0, 0, menu_image, centered=True)
-            img_width, img_height = menu_image.get_size()
-            width_padding = (img_width - button.get_width(apply_padding=False)) // 2
-            height_padding = (img_height - button.get_height(apply_padding=False)) // 2
-            button.set_padding((height_padding, width_padding))
-            button.set_margin(8, 16)
-        else:
-            button.set_title(str(transfo))
+            self.buttons_base_image[button.get_id()] = image
+            self.buttons_hidden_image[button.get_id()] = create_text_image(
+                text=str(action_id),
+                resources_path=self.resources_path,
+                image_size=image.size,
+            )
+            self._add_button_image(button, image)
         return button
 
     def update(self, env: "CraftingEnv", events) -> bool:
@@ -217,12 +234,79 @@ class TransformationsWidget(Menu):
         for button in action_buttons:
             transfo = self.button_id_to_transfo[button.get_id()]
             action = env.transformations.index(transfo)
-            show_button = action_is_legal[action]
-            if show_button:
+            discovered = env.discovered_transformations[action]
+            legal = action_is_legal[action]
+            old_display = self.old_display.get(button.get_id(), None)
+            old_legal = self.old_legal.get(button.get_id(), None)
+
+            button_image = self.buttons_base_image.get(button.get_id(), None)
+            display_content = self._display_content(
+                self.content_display_mode, discovered
+            )
+            self.old_display[button.get_id()] = display_content
+            self.old_legal[button.get_id()] = legal
+
+            if old_display != display_content or legal != old_legal:
+                if display_content:
+                    if button_image:
+                        if not legal:
+                            button_image = button_image.convert("LA").convert("RGBA")
+                        self._update_button_image(button, button_image)
+                    else:
+                        button.set_title(str(transfo))
+                else:
+                    if button_image:
+                        hidden_image = self.buttons_hidden_image[button.get_id()]
+                        self._update_button_image(button, hidden_image)
+                    else:
+                        button.set_title(str(action))
+
+            if self._show_button(self.display_mode, legal, discovered):
                 button.show()
             else:
                 button.hide()
         return super().update(events)
+
+    @staticmethod
+    def _show_button(
+        display_mode: TransformationDisplayMode, legal: bool, discovered: bool
+    ) -> bool:
+        show_button = True
+        if display_mode is TransformationDisplayMode.VALID:
+            show_button = legal
+        elif display_mode is TransformationDisplayMode.DISCOVERED:
+            show_button = legal or discovered
+        return show_button
+
+    @staticmethod
+    def _display_content(
+        content_display_mode: TransformationContentMode, discovered: bool
+    ) -> bool:
+        display_content = True
+        if content_display_mode is TransformationContentMode.NEVER:
+            display_content = False
+        elif content_display_mode is TransformationContentMode.DISCOVERED:
+            display_content = discovered
+        return display_content
+
+    @staticmethod
+    def _add_button_image(button: "Button", image: "Image") -> str:
+        decorator = button.get_decorator()
+        menu_image = _to_menu_image(image, 0.4)
+        baseimage_id = decorator.add_baseimage(0, 0, menu_image, centered=True)
+        img_width, img_height = menu_image.get_size()
+        width_padding = (img_width - button.get_width(apply_padding=False)) // 2
+        height_padding = (img_height - button.get_height(apply_padding=False)) // 2
+        button.set_padding((height_padding, width_padding))
+        button.set_margin(8, 16)
+        return baseimage_id
+
+    @staticmethod
+    def _update_button_image(button: "Button", image: "Image") -> str:
+        menu_image = _to_menu_image(image, 0.4)
+        decorator = button.get_decorator()
+        decorator.remove_all()
+        return decorator.add_baseimage(0, 0, menu_image, centered=True)
 
 
 class PostitionWidget(Menu):
