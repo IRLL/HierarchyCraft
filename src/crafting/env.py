@@ -8,7 +8,7 @@ import numpy as np
 import crafting
 from crafting.behaviors.solving_behaviors import Behavior, build_all_solving_behaviors
 from crafting.purpose import Purpose
-from crafting.render.render import CraftingWindow
+from crafting.render.render import CraftingWindow, InventoryDisplayMode
 from crafting.render.utils import surface_to_rgb_array
 from crafting.requirement_graph import build_requirements_graph, draw_requirements_graph
 from crafting.transformation import Transformation
@@ -46,6 +46,8 @@ class CraftingEnv(Env):
         resources_path: Optional[str] = None,
         name: str = "Crafting",
         max_step: Optional[int] = None,
+        player_inventory_display: InventoryDisplayMode = InventoryDisplayMode.CURRENT,
+        zone_inventory_display: InventoryDisplayMode = InventoryDisplayMode.CURRENT,
     ) -> None:
         """Initialize a Crafting environement.
 
@@ -94,6 +96,8 @@ class CraftingEnv(Env):
             render_dir = os.path.dirname(crafting.render.__file__)
             resources_path = os.path.join(render_dir, "default_resources")
         self.resources_path = resources_path
+        self.player_inventory_display = player_inventory_display
+        self.zone_inventory_display = zone_inventory_display
 
         self.max_step = max_step
 
@@ -309,7 +313,9 @@ class CraftingEnv(Env):
         Create the rendering window if not existing yet.
         """
         if self.render_window is None:
-            self.render_window = CraftingWindow(self)
+            self.render_window = CraftingWindow(
+                self, self.player_inventory_display, self.zone_inventory_display
+            )
         fps = self.metadata.get("video.frames_per_second")
         self.render_window.update_rendering(fps=fps)
         return surface_to_rgb_array(self.render_window.screen)

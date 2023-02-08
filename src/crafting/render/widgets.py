@@ -4,6 +4,7 @@
 """ Widgets for rendering of the Crafting environments """
 
 import os
+from enum import Enum
 from typing import TYPE_CHECKING, Dict, List, Union
 
 import numpy as np
@@ -39,6 +40,12 @@ if TYPE_CHECKING:
     from crafting.env import CraftingEnv
 
 
+class InventoryDisplayMode(Enum):
+    ALL = "all"
+    DISCOVERED = "discovered"
+    CURRENT = "current"
+
+
 class InventoryWidget(Menu):
     def __init__(
         self,
@@ -48,6 +55,7 @@ class InventoryWidget(Menu):
         position,
         items: List[Item],
         resources_path: str,
+        display_mode: InventoryDisplayMode,
         rows: int = 9,
         theme: "Theme" = THEME_DEFAULT,
     ):
@@ -65,6 +73,7 @@ class InventoryWidget(Menu):
 
         self.items = items
         self.resources_path = resources_path
+        self.display_mode = InventoryDisplayMode(display_mode)
         self.base_images = _load_base_images(items, resources_path)
 
         self.button_id_to_item = {}
@@ -72,7 +81,7 @@ class InventoryWidget(Menu):
         for item in self.items:
             self._build_button(item)
 
-    def update(self, inventory: np.ndarray, events) -> bool:
+    def update(self, inventory: np.ndarray, discovered: np.ndarray, events) -> bool:
         items_buttons = [
             widget
             for widget in self.get_widgets()
@@ -88,18 +97,28 @@ class InventoryWidget(Menu):
                 continue
 
             if isinstance(button, PyImage):
-                image = draw_text_on_image(
-                    self.base_images[item],
-                    text=str(quantity),
-                    resources_path=self.resources_path,
-                )
+                base_image = self.base_images[item]
+                if quantity == 0:
+                    # Grayscale
+                    base_image = base_image.convert("LA").convert("RGBA")
+                if quantity != 1:
+                    image = draw_text_on_image(
+                        base_image,
+                        text=str(quantity),
+                        resources_path=self.resources_path,
+                    )
                 button.set_image(_to_menu_image(image, 0.5))
                 button.render()
 
             button.set_title(str(ItemStack(item, quantity)))
             self.old_quantity[item] = quantity
 
-            show_button = quantity > 0
+            show_button = True
+            if self.display_mode is InventoryDisplayMode.CURRENT:
+                show_button = quantity > 0
+            elif self.display_mode is InventoryDisplayMode.DISCOVERED:
+                show_button = discovered[item_slot]
+
             if show_button:
                 button.show()
             else:

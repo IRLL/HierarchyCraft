@@ -23,13 +23,19 @@ if TYPE_CHECKING:
 
 from crafting.render.widgets import (
     InventoryWidget,
+    InventoryDisplayMode,
     PostitionWidget,
     TransformationsWidget,
 )
 
 
 class CraftingWindow:
-    def __init__(self, env: "CraftingEnv") -> None:
+    def __init__(
+        self,
+        env: "CraftingEnv",
+        player_inventory_display: InventoryDisplayMode,
+        zone_inventory_display: InventoryDisplayMode,
+    ) -> None:
         """Initialise pygame window, menus and widgets for the UI.
 
         Args:
@@ -53,7 +59,7 @@ class CraftingWindow:
         pygame.display.set_caption("Crafting")
 
         # Create menus
-        self.make_menus()
+        self.make_menus(player_inventory_display, zone_inventory_display)
 
     def update_rendering(
         self,
@@ -91,11 +97,15 @@ class CraftingWindow:
 
         # Update inventories
         if self.player_inventory:
-            self.player_inventory.update(self.env.player_inventory, events)
+            self.player_inventory.update(
+                self.env.player_inventory, self.env.discovered_items, events
+            )
             self.player_inventory.draw(self.screen)
 
         if self.zone_inventory:
-            self.zone_inventory.update(self.env.current_zone_inventory, events)
+            self.zone_inventory.update(
+                self.env.current_zone_inventory, self.env.discovered_zones_items, events
+            )
             self.zone_inventory.draw(self.screen)
 
         # Update position
@@ -117,7 +127,11 @@ class CraftingWindow:
         pygame.display.update()
         return action_taken
 
-    def make_menus(self):
+    def make_menus(
+        self,
+        player_inventory_display: InventoryDisplayMode,
+        zone_inventory_display: InventoryDisplayMode,
+    ):
         """Build menus for user interface.
 
         Args:
@@ -158,6 +172,7 @@ class CraftingWindow:
                 ),
                 items=self.env.world.items,
                 resources_path=self.env.resources_path,
+                display_mode=player_inventory_display,
                 theme=Theme(
                     background_color=(60, 60, 60),
                     title_background_color=(47, 48, 51),
@@ -181,6 +196,7 @@ class CraftingWindow:
                 ),
                 items=self.env.world.zones_items,
                 resources_path=self.env.resources_path,
+                display_mode=zone_inventory_display,
                 theme=Theme(
                     title=False,
                     background_color=(186, 214, 177),
