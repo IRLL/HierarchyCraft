@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 import pytest
 import pytest_check as check
@@ -7,58 +9,22 @@ from crafting.task import GetItemTask
 from crafting.transformation import Transformation
 from crafting.world import Item, ItemStack, Zone
 from tests.custom_checks import check_np_equal
+from tests.envs import classic_env
 
 
 class TestCratingEnv:
     @pytest.fixture(autouse=True)
     def setup_method(self):
-        self.start_zone = Zone("start")
-        self.other_zone = Zone("other_zone")
-        self.zones = [self.start_zone, self.other_zone]
-
-        self.move_to_other_zone = Transformation(
-            destination=self.other_zone,
-            zones=[self.start_zone],
+        (
+            self.named_transformations,
+            self.start_zone,
+            self.items,
+            self.zones,
+            self.zones_items,
+        ) = classic_env()
+        self.transformations: List[Transformation] = list(
+            self.named_transformations.values()
         )
-
-        self.wood = Item("wood")
-        self.search_wood = Transformation(
-            added_player_items=[ItemStack(self.wood)],
-        )
-
-        self.stone = Item("stone")
-        self.search_stone = Transformation(
-            added_player_items=[ItemStack(self.stone, 1)],
-        )
-
-        self.plank = Item("plank")
-        self.craft_plank = Transformation(
-            removed_player_items=[ItemStack(self.wood, 1)],
-            added_player_items=[ItemStack(self.plank, 4)],
-        )
-
-        self.table = Item("table")
-        self.craft_table = Transformation(
-            removed_player_items=[ItemStack(self.plank, 4)],
-            added_zone_items=[ItemStack(self.table)],
-        )
-
-        self.wood_house = Item("wood house")
-        self.build_house = Transformation(
-            removed_player_items=[ItemStack(self.plank, 32), ItemStack(self.wood, 8)],
-            added_zone_items=[ItemStack(self.wood_house)],
-        )
-
-        self.items = [self.wood, self.stone, self.plank]
-        self.zones_items = [self.table, self.wood_house]
-        self.transformations = [
-            self.move_to_other_zone,
-            self.search_wood,
-            self.search_stone,
-            self.craft_plank,
-            self.craft_table,
-            self.build_house,
-        ]
 
     def test_world_initialisation(self):
         """should find all items, zones and zones_items in transformations."""
@@ -102,12 +68,12 @@ class TestCratingEnv:
         env = CraftingEnv(
             self.transformations,
             start_zone=self.start_zone,
-            start_items=[ItemStack(start_item, 2), ItemStack(self.wood, 3)],
+            start_items=[ItemStack(start_item, 2), ItemStack(Item("wood"), 3)],
         )
         player_items, _, _ = env.state
         expected_items = np.zeros(env.world.n_items, np.uint16)
         expected_items[env.world.items.index(start_item)] = 2
-        expected_items[env.world.items.index(self.wood)] = 3
+        expected_items[env.world.items.index(Item("wood"))] = 3
         check_np_equal(player_items, expected_items)
 
     def test_start_zones_items(self):
@@ -120,7 +86,7 @@ class TestCratingEnv:
             self.transformations,
             start_zone=self.start_zone,
             start_zones_items={
-                new_zone: [ItemStack(new_zone_item, 2), ItemStack(self.wood, 3)],
+                new_zone: [ItemStack(new_zone_item, 2), ItemStack(Item("wood"), 3)],
             },
         )
         _, _, zones_inventories = env.state
@@ -128,7 +94,7 @@ class TestCratingEnv:
         expected_position = np.zeros_like(zones_inventories, np.int32)
         new_zone_item_slot = env.world.zones_items.index(new_zone_item)
         expected_position[zone_slot, new_zone_item_slot] = 2
-        wood_item_slot = env.world.zones_items.index(self.wood)
+        wood_item_slot = env.world.zones_items.index(Item("wood"))
         expected_position[zone_slot, wood_item_slot] = 3
         check_np_equal(zones_inventories, expected_position)
 
@@ -151,7 +117,9 @@ class TestCratingEnv:
         expected_positon = np.zeros(env.world.n_zones)
         expected_positon[start_zone_slot] = 1
         check_np_equal(env.position, expected_positon)
-        action = self.transformations.index(self.move_to_other_zone)
+        action = self.transformations.index(
+            self.named_transformations.get("move_to_other_zone")
+        )
         env.step(action)
         expected_positon = np.zeros(env.world.n_zones)
         expected_positon[1 - start_zone_slot] = 1
@@ -160,19 +128,23 @@ class TestCratingEnv:
     def test_step_search(self):
         """step transformation should work correctly."""
         env = CraftingEnv(self.transformations, start_zone=self.start_zone)
-        wood_slot = env.world.items.index(self.wood)
+        wood_slot = env.world.items.index(Item("wood"))
 
         check.equal(env.player_inventory[wood_slot], 0)
-        action = self.transformations.index(self.search_wood)
+        action = self.transformations.index(
+            self.named_transformations.get("search_wood")
+        )
         env.step(action)
         check.equal(env.player_inventory[wood_slot], 1)
 
     def test_step_craft(self):
         """craft transformation should work correctly."""
         env = CraftingEnv(self.transformations, start_zone=self.start_zone)
-        wood_slot = env.world.items.index(self.wood)
-        plank_slot = env.world.items.index(self.plank)
-        action = self.transformations.index(self.craft_plank)
+        wood_slot = env.world.items.index(Item("wood"))
+        plank_slot = env.world.items.index(Item("plank"))
+        action = self.transformations.index(
+            self.named_transformations.get("craft_plank")
+        )
 
         # Invalid craft does not change state
         env.step(action)
@@ -198,15 +170,15 @@ class TestCratingEnv:
         env.zones_inventories[1, 1] = 4
 
         env.reset()
-        expected_player_inventory = np.zeros(len(self.items), np.uint16)
+        expected_player_inventory = np.zeros(len(env.world.items), np.uint16)
         check_np_equal(env.player_inventory, expected_player_inventory)
 
-        expected_position = np.zeros(len(self.zones), np.uint16)
+        expected_position = np.zeros(len(env.world.zones), np.uint16)
         expected_position[start_zone_index] = 1
         check_np_equal(env.position, expected_position)
 
         expected_zones_inventories = np.zeros(
-            (len(self.zones), len(self.zones_items)), np.uint16
+            (len(env.world.zones), len(env.world.zones_items)), np.uint16
         )
         check_np_equal(env.zones_inventories, expected_zones_inventories)
 
@@ -216,7 +188,9 @@ class TestCratingEnv:
         env = CraftingEnv(
             self.transformations, start_zone=self.start_zone, purpose=task
         )
-        action = env.transformations.index(self.search_wood)
+        action = env.transformations.index(
+            self.named_transformations.get("search_wood")
+        )
         _, reward, done, _ = env.step(action)
         check.equal(reward, 5)
         check.is_true(done)
@@ -230,12 +204,16 @@ class TestCratingEnv:
         env = CraftingEnv(
             self.transformations, start_zone=self.start_zone, purpose=tasks
         )
-        action = env.transformations.index(self.search_wood)
+        action = env.transformations.index(
+            self.named_transformations.get("search_wood")
+        )
         _, reward, done, _ = env.step(action)
         check.equal(reward, 5)
         check.is_false(done)
 
-        action = env.transformations.index(self.search_stone)
+        action = env.transformations.index(
+            self.named_transformations.get("search_stone")
+        )
         _, reward, done, _ = env.step(action)
         check.equal(reward, 10)
         check.is_true(done)
@@ -244,7 +222,9 @@ class TestCratingEnv:
         env = CraftingEnv(self.transformations, self.start_zone)
         check_np_equal(env.actions_mask, np.array([1, 1, 1, 0, 0, 0]))
 
-        _, _, _, infos = env.step(env.transformations.index(self.search_wood))
+        _, _, _, infos = env.step(
+            env.transformations.index(self.named_transformations.get("search_wood"))
+        )
         check_np_equal(env.actions_mask, np.array([1, 1, 1, 1, 0, 0]))
         check_np_equal(infos["action_is_legal"], np.array([1, 1, 1, 1, 0, 0]))
 
