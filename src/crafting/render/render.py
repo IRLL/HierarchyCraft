@@ -6,7 +6,7 @@
 
 import os
 import sys
-from typing import TYPE_CHECKING, List, Optional, Union, Tuple
+from typing import TYPE_CHECKING, List, Dict, Optional, Union, Tuple
 
 try:
     import pygame
@@ -127,7 +127,12 @@ class CraftingWindow:
         """
 
         # Transformations (Actions)
-        menus_shapes = menus_sizes(self.env, self.window_shape)
+        menus_shapes = menus_sizes(
+            self.env.world.n_items,
+            self.env.world.n_zones_items,
+            self.env.world.n_zones,
+            self.window_shape,
+        )
 
         self.actions_menu = TransformationsWidget(
             title="Actions",
@@ -141,12 +146,16 @@ class CraftingWindow:
 
         # Player inventory
         self.player_inventory = None
-        if self.env.world.n_items > 0:
+        if menus_shapes["player"] != (0, 0):
             self.player_inventory = InventoryWidget(
                 title="Inventory",
                 height=menus_shapes["player"][1],
                 width=menus_shapes["player"][0],
-                position=(menus_shapes["actions"][0], 0, False),
+                position=(
+                    menus_shapes["actions"][0],
+                    self.window_shape[1] - menus_shapes["player"][1],
+                    False,
+                ),
                 items=self.env.world.items,
                 resources_path=self.env.resources_path,
                 theme=Theme(
@@ -160,7 +169,7 @@ class CraftingWindow:
 
         # Current zone inventory
         self.zone_inventory = None
-        if self.env.world.n_zones_items > 0:
+        if menus_shapes["zone"] != (0, 0):
             self.zone_inventory = InventoryWidget(
                 title="Zone",
                 height=menus_shapes["zone"][1],
@@ -184,13 +193,13 @@ class CraftingWindow:
 
         # Position
         self.position = None
-        if self.env.world.n_zones > 1:
+        if menus_shapes["position"] != (0, 0):
             self.position = PostitionWidget(
                 title="Position",
                 height=menus_shapes["position"][1],
                 width=menus_shapes["position"][0],
                 position=(
-                    menus_shapes["actions"][0] + menus_shapes["player"][0],
+                    self.window_shape[0] - menus_shapes["position"][0],
                     0,
                     False,
                 ),
@@ -203,23 +212,29 @@ class CraftingWindow:
         pygame.display.quit()
 
 
-def menus_sizes(env: "CraftingEnv", window_shape: Tuple[int, int]):
+def menus_sizes(
+    n_items: int, n_zones_items: int, n_zones: int, window_shape: Tuple[int, int]
+) -> Dict[str, Tuple[int, int]]:
     actions_size = (int(0.3 * window_shape[0]), window_shape[1])
+    header_height = int(0.22 * window_shape[1])
 
     player_size = (0, 0)
-    if env.world.n_items > 0:
-        player_size = (int(0.475 * window_shape[0]), window_shape[1])
+    if n_items > 0:
+        player_width = window_shape[0] - actions_size[0]
+        if n_zones_items > 0:
+            player_width = int(0.475 * window_shape[0])
+        player_size = (player_width, window_shape[1] - header_height)
 
     zone_size = (0, 0)
-    if env.world.n_zones_items > 0:
+    if n_zones_items > 0:
         zone_size = (
             window_shape[0] - actions_size[0] - player_size[0],
-            int(0.78 * window_shape[1]),
+            window_shape[1] - header_height,
         )
 
     position_size = (0, 0)
-    if env.world.n_zones > 1:
-        position_size = (zone_size[0], window_shape[1] - zone_size[1])
+    if n_zones > 1:
+        position_size = (int(16 * header_height / 9), header_height)
 
     return {
         "actions": actions_size,
