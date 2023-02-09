@@ -24,31 +24,11 @@ Crafting is a meta-environment allowing to generate
 arbitrarely hierarchical environments for research purpose.
 
 A Crafting environment is a sandbox environment composed of
-items, zones, and recipes.
-Zones are abstractions of a physical environment
-that can be accessed with or without a tool,
-they contain findable items that can be gathered with or
-without a tool.
-Zones have specific properties that can be modified by
-the agent.
-Recipes are transformations of items to craft new items
-or to modify the current zone properties.
-
-Interactions of elements of a Crafting environment can be summarized like this:
-
-.. figure:: docs/_static/images/General_crafting.png
-   :align: center
-   :alt: MineCrafting craft hierarchy
-   :width: 400
+items, zones, and transformations.
 
 
 The main example of Crafting environment is the MineCrafting environment 
-that mimics the craft hierarchy of the popular game Minecraft:
-
-.. figure:: docs/_static/images/minecrafting_crafts_hierarchy.png
-   :align: center
-   :alt: MineCrafting craft hierarchy
-
+that mimics the popular game Minecraft.
 
 Installation
 ------------
@@ -57,8 +37,96 @@ Using pip:
 
 .. code:: bash
 
-   pip install git+https://github.com/MathisFederico/Crafting.git#egg=crafting
+   pip install irll-crafting
 
+
+Usage
+-----
+
+
+Run MineCrafting with human
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Install optional gui requirements:
+
+.. code:: bash
+
+   pip install irll-crafting[gui]
+
+
+Using the command line interface:
+
+.. code:: bash
+
+   python -m crafting.examples.minecraft
+
+
+Using the programmatic interface:
+
+.. code:: python
+
+    from crafting import MineCraftingEnv, get_human_action
+
+
+    env = MineCraftingEnv()
+    n_episodes = 2
+    for _ in range(n_episodes):
+        env.reset()
+        done = False
+        total_reward = 0
+        while not done:
+            env.render()
+            action = get_human_action(env)
+            print(f"Human pressed: {env.transformations[action]}")
+
+            _observation, reward, done, _info = env.step(action)
+            total_reward += reward
+
+        print(f"SCORE: {total_reward}")
+
+
+Environment can also be obtained throught the gym interface:
+
+Install optional gym requirements:
+
+.. code:: bash
+
+   pip install irll-crafting[gym]
+
+
+.. code:: python
+
+   env = gym.make("MineCrafting-NoReward-v1")
+
+
+.. Run MineCrafting with RandomLegal Agent [code]
+.. Run MineCrafting with sb3 agent [code]
+
+.. Run other crafting examples [recursive, tower, random] [gym, class]
+
+.. ## Custom purposes
+.. Single task
+.. Reward shaping
+
+.. Multi task (terminal groups)
+.. Reward shaping subtasks are optional
+
+.. Custom task
+
+.. ## Rendering options
+
+.. ## Requirements graphs
+
+.. ## Solving behavior
+.. Install HEBG [bash]
+
+.. Solve MineCrafting [code]
+.. Plot rolled / unrolled [wooden pickaxe]
+.. Generated code
+
+.. Solve RandomCrafting [code]
+.. Plot rolled / unrolled
+.. Generated code
 
 Online documentation
 --------------------
