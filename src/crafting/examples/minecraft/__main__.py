@@ -1,6 +1,3 @@
-# Crafting a meta-environment to simultate inventory managment
-# Copyright (C) 2021-2023 Mathïs FEDERICO <https://www.gnu.org/licenses/>
-
 """Main module for MineCrafting environment."""
 
 from crafting.examples.minecraft.env import MineCraftingEnv

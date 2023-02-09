@@ -7,14 +7,18 @@ from crafting.world import Item, ItemStack, World, Zone
 from tests.custom_checks import check_np_equal
 
 
+def simple_world() -> World:
+    return World(
+        items=[Item("dirt"), Item("wood"), Item("stone"), Item("plank")],
+        zones=[Zone("start"), Zone("other_zone")],
+        zones_items=[Item("dirt"), Item("table"), Item("wood_house")],
+    )
+
+
 class TestGetItem:
     @pytest.fixture(autouse=True)
     def setup_method(self):
-        self.world = World(
-            items=[Item("dirt"), Item("wood"), Item("stone"), Item("plank")],
-            zones=[Zone("start"), Zone("other_zone")],
-            zones_items=[Item("dirt"), Item("table"), Item("wood_house")],
-        )
+        self.world = simple_world()
         self.task = GetItemTask(ItemStack(Item("wood"), 3), reward=5)
 
     def test_build(self):
@@ -53,11 +57,7 @@ class TestGetItem:
 class TestGoToZone:
     @pytest.fixture(autouse=True)
     def setup_method(self):
-        self.world = World(
-            items=[Item("dirt"), Item("wood"), Item("stone"), Item("plank")],
-            zones=[Zone("start"), Zone("other_zone")],
-            zones_items=[Item("dirt"), Item("table"), Item("wood_house")],
-        )
+        self.world = simple_world()
         self.task = GoToZoneTask(Zone("other_zone"), reward=5)
 
     def test_build(self):
@@ -88,11 +88,7 @@ class TestGoToZone:
 class TestPlaceItem:
     @pytest.fixture(autouse=True)
     def setup_method(self):
-        self.world = World(
-            items=[Item("dirt"), Item("wood"), Item("stone"), Item("plank")],
-            zones=[Zone("start"), Zone("other_zone")],
-            zones_items=[Item("dirt"), Item("table"), Item("wood_house")],
-        )
+        self.world = simple_world()
         self.task = PlaceItemTask(
             ItemStack(Item("wood_house"), 2), Zone("other_zone"), reward=5
         )
