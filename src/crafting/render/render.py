@@ -146,11 +146,13 @@ class CraftingWindow:
 
         # Update position
         if self.menus["position"]:
-            self.menus["position"].update(self.env.position, events)
+            self.menus["position"].update_position(
+                self.env.position, self.env.discovered_zones, events
+            )
             self.menus["position"].draw(self.screen)
 
         # Update actions menu
-        self.menus["actions"].update(self.env, events)
+        self.menus["actions"].update_transformations(self.env, events)
         self.menus["actions"].draw(self.screen)
 
         # Gather action taken if any
@@ -170,7 +172,7 @@ class CraftingWindow:
         position_display: DisplayMode,
         transformation_display_mode: DisplayMode,
         transformation_content_mode: ContentMode,
-    ):
+    ) -> Dict[str, Union[TransformationsWidget, InventoryWidget, PostitionWidget]]:
         """Build menus for user interface.
 
         Args:

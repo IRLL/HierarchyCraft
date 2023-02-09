@@ -228,7 +228,7 @@ class TransformationsWidget(Menu):
             self._add_button_image(button, image)
         return button
 
-    def update(self, env: "CraftingEnv", events) -> bool:
+    def update_transformations(self, env: "CraftingEnv", events) -> bool:
         action_is_legal = env.actions_mask
         action_buttons = [
             widget for widget in self.get_widgets() if isinstance(widget, (Button))
@@ -330,7 +330,9 @@ class PostitionWidget(Menu):
         for zone in self.zones:
             self._build_button(zone)
 
-    def update(self, position: np.ndarray, discovered: np.ndarray, events) -> bool:
+    def update_position(
+        self, position: np.ndarray, discovered: np.ndarray, events
+    ) -> bool:
         buttons = [
             widget for widget in self.get_widgets() if isinstance(widget, Button)
         ]
