@@ -104,13 +104,47 @@ Using the programmatic interface:
 
 
 
-.. Run MineCrafting with agents
-.. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Run MineCrafting with agents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. Run MineCrafting with RandomLegal Agent [code]
-.. Run MineCrafting with sb3 agent [code]
+Using the programmatic interface, any Crafting environment can easily be interfaced with any agent.
 
-.. Run other crafting examples [recursive, tower, random] [gym, class]
+.. code:: python
+
+    import numpy as np
+    from crafting import MineCraftingEnv
+
+    def random_legal_agent(observation, action_is_legal):
+        action = np.random.choice(np.nonzero(action_is_legal)[0])
+        return action
+
+    env = MineCraftingEnv(max_step=10)
+    done = False
+    observation = env.reset()
+    while not done:
+        action_is_legal = env.actions_mask
+        action = random_legal_agent(observation, action_is_legal)
+        _observation, _reward, done, _info = env.step(action)
+
+
+
+.. Run MineCrafting with MaskablePPO from sb3 agent [code]
+
+Other crafting environments examples
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: python
+
+    from crafting import TowerCrafting, RecursiveCrafting, RandomCrafting
+
+    tower_env = TowerCrafting(height=3, width=2)
+    # or env = gym.make("TowerCrafting-v1", height=3, width=2)
+    recursive_env = RecursiveCrafting(n_items=6)
+    # or env = gym.make("RecursiveCrafting-v1", n_items=6)
+    random_env = RandomCrafting(n_items_per_n_inputs={0:2, 1:5, 2:10}, seed=42)
+    # or env = gym.make("RandomCrafting-v1", n_items_per_n_inputs={0:2, 1:5, 2:10}, seed=42)
+
+
 
 .. ## Custom purposes
 .. Single task
