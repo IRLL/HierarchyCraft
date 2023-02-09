@@ -31,19 +31,34 @@ from crafting.render.widgets import (
 
 
 class CraftingWindow:
+    """Render window for any Crafting environment UI."""
+
     def __init__(
         self,
-        window_shape: Tuple[int, int] = (int(16 / 9 * 720), 720),
+        window_shape: Tuple[int, int] = (1280, 720),
         player_inventory_display: DisplayMode = DisplayMode.CURRENT,
         zone_inventory_display: DisplayMode = DisplayMode.CURRENT,
         position_display: DisplayMode = DisplayMode.CURRENT,
         transformation_display_mode: DisplayMode = DisplayMode.DISCOVERED,
         transformation_content_mode: ContentMode = ContentMode.DISCOVERED,
     ) -> None:
-        """Initialise pygame window, menus and widgets for the UI.
+        """Initialize a Crafting window without building it on a specific environment (yet).
 
         Args:
-            env: The running Crafting environment.
+            window_shape (Tuple[int, int], optional): Size of the window. Defaults to (1280, 720).
+            player_inventory_display (DisplayMode, optional): When to see items in inventory.
+                Defaults to DisplayMode.CURRENT.
+            zone_inventory_display (DisplayMode, optional): When to see current zone items.
+                Defaults to DisplayMode.CURRENT.
+            position_display (DisplayMode, optional): When to see zones.
+                Defaults to DisplayMode.CURRENT.
+            transformation_display_mode (DisplayMode, optional): When to see transformations.
+                Defaults to DisplayMode.DISCOVERED.
+            transformation_content_mode (ContentMode, optional): When to reveal transformations.
+                Defaults to ContentMode.DISCOVERED.
+
+        Raises:
+            ImportError: If pygame could not be imported.
         """
         try:
             pygame.init()
@@ -58,7 +73,6 @@ class CraftingWindow:
         self.screen = None
         self.menus = {}
         self.window_shape = window_shape
-        os.environ["SDL_VIDEO_CENTERED"] = "1"
 
         self.player_inventory_display = player_inventory_display
         self.zone_inventory_display = zone_inventory_display
@@ -80,9 +94,11 @@ class CraftingWindow:
         self.env = env
         self.clock = Clock()
 
-        # Create window
+        # Create window with loading screen
+        os.environ["SDL_VIDEO_CENTERED"] = "1"
         self.screen = pygame.display.set_mode(self.window_shape)
         pygame.display.set_caption("Crafting")
+        self._loading_screen()
 
         # Create menus
         self.menus = self.make_menus(
@@ -277,6 +293,31 @@ class CraftingWindow:
     def close(self):
         """Closes the pygame window."""
         pygame.display.quit()
+
+    def _loading_screen(self):
+        bg_color = (55, 55, 55)
+        self.screen.fill(bg_color)
+        quarter_width = self.window_shape[0] // 4
+        quarter_height = self.window_shape[1] // 4
+        pygame.draw.rect(
+            self.screen,
+            color=(0, 130, 60),
+            rect=(quarter_width, quarter_height, 2 * quarter_width, 2 * quarter_height),
+            border_radius=8,
+        )
+        font = pygame.font.SysFont(
+            os.path.join(self.env.resources_path, "font.ttf"), 30
+        )
+        font_surface = font.render("Loading ...", True, bg_color)
+        text_size = font_surface.get_size()
+        self.screen.blit(
+            font_surface,
+            (
+                self.window_shape[0] // 2 - text_size[0] // 2,
+                self.window_shape[1] // 2 - text_size[1] // 2,
+            ),
+        )
+        pygame.display.update()
 
 
 def menus_sizes(
