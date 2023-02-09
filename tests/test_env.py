@@ -169,7 +169,8 @@ class TestCratingEnv:
         env.zones_inventories[0, 0] = 3
         env.zones_inventories[1, 1] = 4
 
-        env.reset()
+        observation = env.reset()
+        check.greater(observation.shape[0], 0)
         expected_player_inventory = np.zeros(len(env.world.items), np.uint16)
         check_np_equal(env.player_inventory, expected_player_inventory)
 

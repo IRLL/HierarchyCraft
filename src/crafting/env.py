@@ -201,12 +201,17 @@ class CraftingEnv(Env):
             raise NotImplementedError
         raise NotImplementedError
 
-    def reset(self, seed: int = 0):
-        """Resets the state of the environement."""
+    def reset(self, seed: int = 0) -> np.ndarray:
+        """Resets the state of the environement.
+
+        Returns:
+            (np.ndarray): The first observation.
+        """
         self.current_step = 0
         self._reset_discoveries()
         self._reset_state()
         self._update_discoveries()
+        return self.observation
 
     def close(self):
         """Closes the environment."""
