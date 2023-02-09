@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from crafting import MineCraftingEnv
+from crafting.examples.minecraft.env import MineCraftingEnv
 
 if __name__ == "__main__":
     fig, ax = plt.subplots()

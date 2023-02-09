@@ -34,6 +34,8 @@ WOOD_PLANK = Item("wood_plank")  #: WOOD_PLANK
 
 @dataclass
 class McItem:
+    """Minecraft item with its specific properties."""
+
     item: Item
     zones: List[Zone]
     required_tool_types: Optional[List[Union[None, ToolType]]] = None

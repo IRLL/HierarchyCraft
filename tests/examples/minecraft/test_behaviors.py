@@ -8,7 +8,7 @@ import pytest
 import pytest_check as check
 from hebg.unrolling import unroll_graph
 
-from crafting import MineCraftingEnv
+from crafting.examples.minecraft.env import MineCraftingEnv
 from crafting.behaviors.utils import get_items_in_graph, get_zones_items_in_graph
 from crafting.examples.minecraft.items import (
     CRAFTING_TABLE,

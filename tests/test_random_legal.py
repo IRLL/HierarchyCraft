@@ -1,4 +1,4 @@
-from crafting import CraftingEnv
+from crafting.env import CraftingEnv
 
 import pytest_check as check
 

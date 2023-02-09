@@ -321,7 +321,6 @@ def draw_requirements_graph(
     ax: Axes,
     requirements_graph: nx.DiGraph,
     layout: RequirementsGraphLayout = RequirementsGraphLayout.LEVEL,
-    **kwargs,
 ):
     """Draw the requirement graph on a given Axes.
 

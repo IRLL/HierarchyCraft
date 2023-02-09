@@ -1,3 +1,5 @@
+"""Here lies CraftingEnv, the main interface of the crafting package."""
+
 import collections
 import os
 from typing import Dict, List, Optional, Set, Tuple, Union
@@ -190,7 +192,7 @@ class CraftingEnv(Env):
         reward = self.purpose.reward(*self.state)
         return self._step_output(reward)
 
-    def render(self, mode: Optional[str] = None, **kwargs) -> Union[str, np.ndarray]:
+    def render(self, mode: Optional[str] = None, **_kwargs) -> Union[str, np.ndarray]:
         """Render the observation of the agent in a format depending on `render_mode`."""
         if mode is not None:
             self.render_mode = mode
@@ -201,7 +203,12 @@ class CraftingEnv(Env):
             raise NotImplementedError
         raise NotImplementedError
 
-    def reset(self, seed: int = 0) -> np.ndarray:
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict] = None,
+    ) -> np.ndarray:
         """Resets the state of the environement.
 
         Returns:

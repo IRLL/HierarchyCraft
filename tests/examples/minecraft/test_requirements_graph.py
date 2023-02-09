@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pytest
 import pytest_check as check
 
-from crafting import MineCraftingEnv
+from crafting.examples.minecraft.env import MineCraftingEnv
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.tools import (
     MC_TOOLS_BY_TYPE_AND_MATERIAL,

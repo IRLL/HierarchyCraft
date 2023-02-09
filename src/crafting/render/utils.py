@@ -7,7 +7,7 @@ import logging
 import os
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -114,13 +114,13 @@ def create_text_image(
     image = Image.new("RGBA", image_size, (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
 
-    cx, cy = image_size[0] // 2, image_size[1] // 2
+    center_x, center_y = image_size[0] // 2, image_size[1] // 2
     font_path = os.path.join(resources_path, "font.ttf")
     text_pt_size = min(
         int(0.60 * image_size[1]), int(4 * 0.60 * image_size[0] / len(text))
     )
     font = ImageFont.truetype(font_path, size=text_pt_size)
-    draw.text((cx, cy), text, fill=(200, 200, 200), font=font, anchor="mm")
+    draw.text((center_x, center_y), text, fill=(200, 200, 200), font=font, anchor="mm")
     return image
 
 

@@ -136,7 +136,7 @@ def _zones_search() -> List[Transformation]:
             else:
                 allowed_materials = mc_item.required_tool_material
                 if allowed_materials is None:
-                    allowed_materials = [material for material in Material]
+                    allowed_materials = list(Material)
                 for material in allowed_materials:
                     quantity = max(
                         1, round(material_speed[material] / mc_item.hardness)

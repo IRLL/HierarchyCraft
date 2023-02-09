@@ -11,8 +11,6 @@ import numpy as np
 
 # pygame in an optional dependency
 try:
-    from pygame.font import Font
-    from pygame.image import load as load_pygame_image
     from pygame_menu.locals import ALIGN_LEFT
     from pygame_menu.menu import Menu
     from pygame_menu.themes import THEME_DEFAULT, Theme
