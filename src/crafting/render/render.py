@@ -6,7 +6,7 @@
 
 import os
 import sys
-from typing import TYPE_CHECKING, List, Dict, Optional, Union, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 try:
     import pygame
@@ -16,18 +16,19 @@ except ImportError:
     pass
 
 
-if TYPE_CHECKING:
-    from PIL.Image import Image
-    from pygame.event import Event
-    from crafting.env import CraftingEnv
-
 from crafting.render.widgets import (
+    ContentMode,
+    DisplayMode,
     InventoryWidget,
     PostitionWidget,
     TransformationsWidget,
-    ContentMode,
-    DisplayMode,
 )
+
+if TYPE_CHECKING:
+    from PIL.Image import Image
+    from pygame.event import Event
+
+    from crafting.env import CraftingEnv
 
 
 class CraftingWindow:

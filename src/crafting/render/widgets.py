@@ -22,16 +22,17 @@ except ImportError:
     Menu = object
     THEME_DEFAULT = None
 
+from PIL.Image import Image
+
 from crafting.render.utils import (
     _to_menu_image,
     build_transformation_image,
+    create_text_image,
     draw_text_on_image,
     load_image,
-    create_text_image,
 )
 from crafting.transformation import Transformation
 from crafting.world import Item, ItemStack, Zone
-from PIL.Image import Image
 
 if TYPE_CHECKING:
     from pygame.surface import Surface
