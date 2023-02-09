@@ -27,7 +27,7 @@ class Purpose:
         tasks: Optional[Union[Task, List[Task]]] = None,
         timestep_reward: float = 0.0,
         default_reward_shaping: RewardShaping = RewardShaping.NONE,
-        shaping_reward: float = 1.0,
+        shaping_value: float = 1.0,
     ) -> None:
         """A purpose for a Crafting player based on a list of tasks.
 
@@ -38,12 +38,12 @@ class Purpose:
                 Defaults to 0.0.
             default_reward_shaping (RewardShaping, optional): Default reward shaping for tasks.
                 Defaults to RewardShaping.NONE.
-            shaping_reward (float, optional): Reward value used in reward shaping if any.
+            shaping_value (float, optional): Reward value used in reward shaping if any.
                 Defaults to 1.0.
         """
         self.tasks: List[Task] = []
         self.timestep_reward = timestep_reward
-        self.shaping_reward = shaping_reward
+        self.shaping_value = shaping_value
         self.default_reward_shaping = default_reward_shaping
 
         self.task_has_ended: Dict[Task, bool] = {}
@@ -160,11 +160,11 @@ class Purpose:
         if reward_shaping == RewardShaping.NONE:
             return []
         if reward_shaping == RewardShaping.ALL_ACHIVEMENTS:
-            return _all_subtasks(env, self.shaping_reward)
+            return _all_subtasks(env, self.shaping_value)
         if reward_shaping == RewardShaping.INPUTS_ACHIVEMENT:
-            return _inputs_subtasks(task, env, self.shaping_reward)
+            return _inputs_subtasks(task, env, self.shaping_value)
         if reward_shaping == RewardShaping.REQUIRED_ACHIVEMENTS:
-            return _required_subtasks(task, env, self.shaping_reward)
+            return _required_subtasks(task, env, self.shaping_value)
         raise NotImplementedError
 
     def __str__(self) -> str:
