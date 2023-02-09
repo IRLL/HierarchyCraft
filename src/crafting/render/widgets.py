@@ -138,15 +138,15 @@ class InventoryWidget(Menu):
         image = self.base_images[item]
         if image is not None:
             image = draw_text_on_image(image, "0", self.resources_path)
-            button: PyImage = self.add.image(_to_menu_image(image, 0.5))
+            button: "PyImage" = self.add.image(_to_menu_image(image, 0.5))
         else:
-            button: Button = self.add.button(str(item))
+            button: "Button" = self.add.button(str(item))
         button.is_selectable = False
         self.button_id_to_item[button.get_id()] = item
 
     @staticmethod
     def _update_button_image(
-        button: PyImage, image: "Image", quantity: int, resources_path: str
+        button: "PyImage", image: "Image", quantity: int, resources_path: str
     ):
         if quantity == 0:
             # Grayscale
