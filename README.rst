@@ -191,7 +191,7 @@ Reward shaping can be one of:
 * "required": All (recursively) required items and zones for the given task will be associated with an achievement subtask.
 * "inputs": Items and zones consumed by any transformation solving the task will be associated with an achievement subtask.
 
-For example, let's add the "required" reward shaping to out get_diamond task:
+For example, let's add the "required" reward shaping to the get_diamond task:
 
 .. code:: python
 
@@ -200,10 +200,15 @@ For example, let's add the "required" reward shaping to out get_diamond task:
     from crafting.examples.minecraft.items import DIAMOND
 
     get_diamond = GetItemTask(DIAMOND, reward=10)
-    purpose = Purpose()
+    purpose = Purpose(shaping_value=2)
     purpose.add_task(get_diamond, reward_shaping="required")
 
     env = MineCraftingEnv(purpose=purpose)
+
+
+Then getting the IRON_INGOT item for the first time will give a reward of 2.0 to the player, because
+IRON_INGOT is used to craft the IRON_PICKAXE that is itself used to get a DIAMOND.
+
 
 
 Multi-tasks and terminal groups
