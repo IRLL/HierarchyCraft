@@ -28,7 +28,11 @@ items, zones, and transformations.
 
 
 The main example of Crafting environment is the MineCrafting environment 
-that mimics the popular game Minecraft.
+that mimics the (complex) hierarchies of the popular game Minecraft.
+
+.. figure:: docs/_static/images/minecrafting_crafts_hierarchy.png
+   :align: center
+   :alt: MineCrafting craft hierarchy
 
 Installation
 ------------
