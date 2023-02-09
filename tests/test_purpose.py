@@ -87,11 +87,11 @@ class TestPurposeMultiTasks:
         self.go_to_0 = DummyPosEqualTask(reward=10, goal_position=0)
         self.purpose.add_task(self.go_to_0)
         self.go_to_1 = DummyPosEqualTask(reward=5, goal_position=1)
-        self.purpose.add_task(self.go_to_1)
+        self.purpose.add_task(self.go_to_1, terminal_groups=["other", "default"])
         self.go_to_2 = DummyPosEqualTask(reward=3, goal_position=2)
-        self.purpose.add_task(self.go_to_2, terminal_group="other")
+        self.purpose.add_task(self.go_to_2, terminal_groups="other")
         self.go_to_3 = DummyPosEqualTask(reward=1, goal_position=3)
-        self.purpose.add_task(self.go_to_3, terminal_group="")
+        self.purpose.add_task(self.go_to_3, terminal_groups="")
         self.env = CraftingEnv([])
 
     def test_build(self):
@@ -110,7 +110,8 @@ class TestPurposeMultiTasks:
         check.is_false(self.purpose.is_terminal(None, 0, None))  # Task 0 ends
         check.is_true(self.purpose.is_terminal(None, 1, None))  # Task 1 ends
 
-    def test_is_terminal_by_2(self):
+    def test_is_terminal_by_1_and_2(self):
+        check.is_false(self.purpose.is_terminal(None, 1, None))  # Task 1 ends
         check.is_true(self.purpose.is_terminal(None, 2, None))  # Task 2 ends
 
     def test_is_not_terminal_by_3(self):
@@ -131,14 +132,14 @@ class TestPurposeMultiTasks:
     def test_str_full(self):
         check.equal(
             str(self.purpose),
-            "Purpose(default:[Task(0),Task(1)], other:[Task(2)], optional:[Task(3)])",
+            "Purpose(default:[Task(0),Task(1)], other:[Task(1),Task(2)], optional:[Task(3)])",
         )
 
     def test_str_without_optional(self):
         purpose = Purpose()
         purpose.add_task(self.go_to_0)
         purpose.add_task(self.go_to_1)
-        purpose.add_task(self.go_to_2, terminal_group="other")
+        purpose.add_task(self.go_to_2, terminal_groups="other")
         check.equal(
             str(purpose),
             "Purpose(default:[Task(0),Task(1)], other:[Task(2)])",

@@ -61,7 +61,7 @@ class Purpose:
         self,
         task: Task,
         reward_shaping: Optional[RewardShaping] = None,
-        terminal_group: Optional[str] = "default",
+        terminal_groups: Optional[Union[str, List[str]]] = "default",
     ):
         """Add a new task to the purpose.
 
@@ -69,9 +69,9 @@ class Purpose:
             task (Task): Task to be added to the purpose.
             reward_shaping (Optional[RewardShaping], optional): Reward shaping for this task.
                 Defaults to purpose's default reward shaping.
-            terminal_group: (Optional[str], optional): Purpose terminates when all the tasks of
-                any terminal_group have been done.
-                If terminal group is '' or None, task will be optional and will
+            terminal_groups: (Optional[Union[str, List[str]]], optional): Purpose terminates
+                when all the tasks of any terminal group have been done.
+                If terminal groups is '' or None, task will be optional and will
                 not allow to terminate the purpose at all.
                 By default, tasks are added in the 'default' group and hence
                 all tasks have to be done to terminate the purpose.
@@ -80,10 +80,13 @@ class Purpose:
             reward_shaping = self.default_reward_shaping
         reward_shaping = RewardShaping(reward_shaping)
         self.task_has_ended[task] = False
-        if terminal_group:
-            if terminal_group not in self.terminal_groups:
-                self.terminal_groups[terminal_group] = []
-            self.terminal_groups[terminal_group].append(task)
+        if terminal_groups:
+            if isinstance(terminal_groups, str):
+                terminal_groups = [terminal_groups]
+            for terminal_group in terminal_groups:
+                if terminal_group not in self.terminal_groups:
+                    self.terminal_groups[terminal_group] = []
+                self.terminal_groups[terminal_group].append(task)
         self.reward_shaping[task] = reward_shaping
         self.tasks.append(task)
 
@@ -99,7 +102,7 @@ class Purpose:
                 task, env, self.reward_shaping[task]
             )
             for subtask in subtasks:
-                self.add_task(subtask, RewardShaping.NONE, terminal_group=None)
+                self.add_task(subtask, RewardShaping.NONE, terminal_groups=None)
 
         # Build all tasks
         for task in self.tasks:
