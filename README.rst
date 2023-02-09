@@ -33,11 +33,35 @@ that mimics the popular game Minecraft.
 Installation
 ------------
 
-Using pip:
+Installation can simply be done using pip.
+
+Without optional dependencies:
 
 .. code:: bash
 
    pip install irll-crafting
+
+With all optional dependencies:
+
+.. code:: bash
+
+   pip install irll-crafting[all]
+
+
+All crafting environments can use a common graphical user interface.
+With gui requirements:
+
+.. code:: bash
+
+   pip install irll-crafting[gui]
+
+
+Environment can also be obtained throught the gym interface:
+With gym requirements:
+
+.. code:: bash
+
+   pip install irll-crafting[gym]
 
 
 Usage
@@ -46,12 +70,6 @@ Usage
 
 Run MineCrafting with human
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Install optional gui requirements:
-
-.. code:: bash
-
-   pip install irll-crafting[gui]
 
 
 Using the command line interface:
@@ -67,8 +85,8 @@ Using the programmatic interface:
 
     from crafting import MineCraftingEnv, get_human_action
 
-
     env = MineCraftingEnv()
+    # or env: MineCraftingEnv = gym.make("MineCrafting-NoReward-v1")
     n_episodes = 2
     for _ in range(n_episodes):
         env.reset()
@@ -85,19 +103,9 @@ Using the programmatic interface:
         print(f"SCORE: {total_reward}")
 
 
-Environment can also be obtained throught the gym interface:
 
-Install optional gym requirements:
-
-.. code:: bash
-
-   pip install irll-crafting[gym]
-
-
-.. code:: python
-
-   env = gym.make("MineCrafting-NoReward-v1")
-
+.. Run MineCrafting with agents
+.. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. Run MineCrafting with RandomLegal Agent [code]
 .. Run MineCrafting with sb3 agent [code]
