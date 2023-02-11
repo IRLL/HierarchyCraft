@@ -58,9 +58,14 @@ pip install irll-crafting[gym]
 Using the command line interface:
 
 ```bash
-python -m crafting.examples.minecraft
+crafting minecraft
 ```
 
+See more options with:
+
+```bash
+crafting --help
+```
 
 Using the programmatic interface:
 
@@ -130,7 +135,6 @@ There is much more to discover in crafting:
 - Add a Purpose to the player: `crafting.purpose`
 - Plot the underlying requirements graph: `crafting.requirement_graph`
 - Create your own customize environment: `crafting.env`
-- Gather useful metrics: `crafting.metrics`
 
 Find everything in the documentation:
 

@@ -34,6 +34,7 @@ Source = "https://github.com/IRLL/Crafting"
 license-files = ['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']
 
 [project.scripts]
+crafting = "crafting.__main__:main"
 
 [tool.setuptools.dynamic]
 readme = { file = ["README.rst"] }
