@@ -1,13 +1,48 @@
-""" Recursive Crafting Environment
+r""" # Recursive Crafting Environments
 
 Simple environments with recursivity oriented constructor rules.
+
+## RecursiveCrafting
+
+The goal of the environment is to get the last item.
+But each item requires all the previous items,
+hence the number of actions required is exponential with the number of items.
+
+### *Proof*
+
+Let $u_n$ be the number of transitions needed for item $n$.
+
+Then $u_0 = 1$ and $\forall n \in N, u_n = 1 + \sum_{k=1}^{n} u_{n-k}$.
+
+Thus $\forall n \in N, u_n = u_{n-1} + 1 + \sum_{k=1}^{n-1} u_{n-k}$.
+
+Thus $\forall n \in N, u_n = 2 * u_{n-1}$.
+
+We recognize a geometrical sequence of common ratio 2.
+
+Thus $\forall n \in N, u_n = u_0*2^n = 2^n$.
+
+### Example
+
+For example, if there is $n=4$ items, the last item is 3.
+
+But 3 requires all previous items: {2, 1, 0}.
+
+And 2 requires all previous items: {1, 0}.
+
+And 1 requires all previous items: {0}.
+
+Item 0 can be obtained directly.
+
+Thus the number of actions required is $1 + 2 + 4 + 1 = 8 = 2^4$.
+
+
 
 """
 
 from typing import List
 
 from crafting.env import CraftingEnv
-from crafting.render.human import render_env_with_human
 from crafting.transformation import Transformation
 from crafting.world import Item, ItemStack
 
@@ -41,21 +76,21 @@ class RecursiveCraftingEnv(CraftingEnv):
     def __init__(self, n_items: int, **kwargs):
         items = [Item(str(i)) for i in range(n_items)]
         self.n_items = n_items
-        transformations = self._transformations(items)
+        transformations = self.build_transformations(items)
         super().__init__(
             transformations,
             name=f"RecursiveCrafting-I{n_items}",
             **kwargs,
         )
 
-    def _transformations(self, items: List[Item]) -> List[Transformation]:
-        """Build recipes to make every item accessible.
+    def build_transformations(self, items: List[Item]) -> List[Transformation]:
+        """Build transformations to make every item accessible.
 
         Args:
             items: List of items.
 
         Returns:
-            List of craft recipes as transformations.
+            List of transformations.
 
         """
         transformation = []
@@ -67,7 +102,6 @@ class RecursiveCraftingEnv(CraftingEnv):
                 inputs = [ItemStack(items[item_id]) for item_id in range(index)]
             outputs = [ItemStack(item)]
 
-            # Build recipe
             new_recipe = Transformation(
                 removed_player_items=inputs,
                 added_player_items=outputs,
