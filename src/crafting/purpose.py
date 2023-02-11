@@ -322,6 +322,8 @@ def _required_subtasks(
 
     for requirement_node in goal_requirement_nodes:
         for ancestor in nx.ancestors(env.requirements_graph, requirement_node):
+            if ancestor == "#START":
+                continue
             ancestor_node = env.requirements_graph.nodes[ancestor]
             item_or_zone: Union[Item, Zone] = ancestor_node["obj"]
             ancestor_type = ReqNodesTypes(ancestor_node["type"])
