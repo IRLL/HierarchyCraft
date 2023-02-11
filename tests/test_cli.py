@@ -1,3 +1,4 @@
+import pytest
 import pytest_check as check
 
 
@@ -10,6 +11,8 @@ from crafting.examples import (
 )
 
 from crafting.cli import crafting_cli
+
+pygame = pytest.importorskip("pygame")
 
 
 def test_purposeless_minecrafting_cli():
