@@ -41,3 +41,11 @@ def test_recursive_cli():
     env = crafting_cli(["recursive", "--n-items", "5"])
     check.is_instance(env, RecursiveCraftingEnv)
     check.equal(env.n_items, 5)
+
+
+def test_light_recursive_cli():
+    env = crafting_cli(
+        ["light-recursive", "--n-items", "5", "--n-required-previous", "2"]
+    )
+    check.is_instance(env, LightRecursiveCraftingEnv)
+    check.equal(env.n_items, 5)

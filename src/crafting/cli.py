@@ -32,6 +32,7 @@ def crafting_cli(args: Optional[List[str]] = None) -> CraftingEnv:
     _minecraft_sub_parser(subparsers)
     _tower_sub_parser(subparsers)
     _recursive_sub_parser(subparsers)
+    _light_recursive_sub_parser(subparsers)
 
     purpose = parser.add_argument_group("purpose")
     purpose.add_argument(
@@ -125,11 +126,11 @@ def _purpose_from_cli(args: Namespace):
 
 
 def _minecraft_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
-    minecraft_parser = subparsers.add_parser(
+    subparser = subparsers.add_parser(
         "minecraft",
         help="MineCrafting: Inspired from the popular game Minecraft.",
     )
-    minecraft_parser.set_defaults(func=_minecrafting_from_cli)
+    subparser.set_defaults(func=_minecrafting_from_cli)
 
 
 def _minecrafting_from_cli(args: Namespace):
@@ -140,13 +141,13 @@ def _minecrafting_from_cli(args: Namespace):
 
 
 def _tower_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
-    tower_parser = subparsers.add_parser(
+    subparser = subparsers.add_parser(
         "tower",
         help="TowerCrafting: Evaluate sub-behaviors reusability.",
     )
-    tower_parser.set_defaults(func=_towercrafting_from_cli)
-    tower_parser.add_argument("--height", "-t", type=int, required=True)
-    tower_parser.add_argument("--width", "-w", type=int, required=True)
+    subparser.set_defaults(func=_towercrafting_from_cli)
+    subparser.add_argument("--height", "-t", type=int, required=True)
+    subparser.add_argument("--width", "-w", type=int, required=True)
 
 
 def _towercrafting_from_cli(args: Namespace):
@@ -156,18 +157,37 @@ def _towercrafting_from_cli(args: Namespace):
 
 
 def _recursive_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
-    recursive_parser = subparsers.add_parser(
+    subparser = subparsers.add_parser(
         "recursive",
         help="RecursiveCrafting: naive worst case if not using reusability.",
     )
-    recursive_parser.set_defaults(func=_recursivecrafting_from_cli)
-    recursive_parser.add_argument("--n-items", "-n", type=int, required=True)
+    subparser.set_defaults(func=_recursivecrafting_from_cli)
+    subparser.add_argument("--n-items", "-n", type=int, required=True)
 
 
 def _recursivecrafting_from_cli(args: Namespace):
     window = _window_from_cli(args)
     env = RecursiveCraftingEnv(n_items=args.n_items, render_window=window)
     return env
+
+
+def _light_recursive_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
+    subparser = subparsers.add_parser(
+        "light-recursive",
+        help="LightRecursiveCrafting: Lighter naive worst case if not using reusability.",
+    )
+    subparser.set_defaults(func=_light_recursivecrafting_from_cli)
+    subparser.add_argument("--n-items", "-n", type=int, required=True)
+    subparser.add_argument("--n-required-previous", "-p", type=int, required=True)
+
+
+def _light_recursivecrafting_from_cli(args: Namespace):
+    window = _window_from_cli(args)
+    return LightRecursiveCraftingEnv(
+        n_items=args.n_items,
+        n_required_previous=args.n_required_previous,
+        render_window=window,
+    )
 
 
 if __name__ == "__main__":
