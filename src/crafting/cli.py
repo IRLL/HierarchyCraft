@@ -1,4 +1,4 @@
-import argparse
+from argparse import _SubParsersAction, ArgumentParser, Namespace
 
 from typing import Optional, List
 
@@ -26,29 +26,12 @@ def crafting_cli(args: Optional[List[str]] = None) -> CraftingEnv:
     Args:
         args: Optional list of arguments to parse. Parses argv if None. Defaults to None.
     """
-    parser = argparse.ArgumentParser()
+    parser = ArgumentParser()
 
     subparsers = parser.add_subparsers(help="Available Crafting environments")
-    minecraft_parser = subparsers.add_parser(
-        "minecraft",
-        help="MineCrafting: Inspired from the popular game Minecraft.",
-    )
-    minecraft_parser.set_defaults(func=_minecrafting_from_cli)
-
-    tower_parser = subparsers.add_parser(
-        "tower",
-        help="TowerCrafting: Evaluate sub-behaviors reusability.",
-    )
-    tower_parser.set_defaults(func=_towercrafting_from_cli)
-    tower_parser.add_argument("--height", "-t", type=int, required=True)
-    tower_parser.add_argument("--width", "-w", type=int, required=True)
-
-    recursive_parser = subparsers.add_parser(
-        "recursive",
-        help="RecursiveCrafting: naive worst case if not using reusability.",
-    )
-    recursive_parser.set_defaults(func=_recursivecrafting_from_cli)
-    recursive_parser.add_argument("--n-items", "-n", type=int, required=True)
+    _minecraft_sub_parser(subparsers)
+    _tower_sub_parser(subparsers)
+    _recursive_sub_parser(subparsers)
 
     purpose = parser.add_argument_group("purpose")
     purpose.add_argument(
@@ -122,7 +105,7 @@ def crafting_cli(args: Optional[List[str]] = None) -> CraftingEnv:
     )
 
 
-def _window_from_cli(args: argparse.Namespace):
+def _window_from_cli(args: Namespace):
     return CraftingWindow(
         window_shape=args.window_shape,
         player_inventory_display=args.player_inventory_display,
@@ -133,7 +116,7 @@ def _window_from_cli(args: argparse.Namespace):
     )
 
 
-def _purpose_from_cli(args: argparse.Namespace):
+def _purpose_from_cli(args: Namespace):
     purpose = Purpose()
     for item_name in args.get_items:
         task = GetItemTask(Item(item_name), reward=args.goal_reward)
@@ -141,20 +124,47 @@ def _purpose_from_cli(args: argparse.Namespace):
     return purpose
 
 
-def _minecrafting_from_cli(args: argparse.Namespace):
+def _minecraft_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
+    minecraft_parser = subparsers.add_parser(
+        "minecraft",
+        help="MineCrafting: Inspired from the popular game Minecraft.",
+    )
+    minecraft_parser.set_defaults(func=_minecrafting_from_cli)
+
+
+def _minecrafting_from_cli(args: Namespace):
     window = _window_from_cli(args)
     purpose = _purpose_from_cli(args)
     env = MineCraftingEnv(purpose=purpose, render_window=window)
     return env
 
 
-def _towercrafting_from_cli(args: argparse.Namespace):
+def _tower_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
+    tower_parser = subparsers.add_parser(
+        "tower",
+        help="TowerCrafting: Evaluate sub-behaviors reusability.",
+    )
+    tower_parser.set_defaults(func=_towercrafting_from_cli)
+    tower_parser.add_argument("--height", "-t", type=int, required=True)
+    tower_parser.add_argument("--width", "-w", type=int, required=True)
+
+
+def _towercrafting_from_cli(args: Namespace):
     window = _window_from_cli(args)
     env = TowerCraftingEnv(height=args.height, width=args.width, render_window=window)
     return env
 
 
-def _recursivecrafting_from_cli(args: argparse.Namespace):
+def _recursive_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
+    recursive_parser = subparsers.add_parser(
+        "recursive",
+        help="RecursiveCrafting: naive worst case if not using reusability.",
+    )
+    recursive_parser.set_defaults(func=_recursivecrafting_from_cli)
+    recursive_parser.add_argument("--n-items", "-n", type=int, required=True)
+
+
+def _recursivecrafting_from_cli(args: Namespace):
     window = _window_from_cli(args)
     env = RecursiveCraftingEnv(n_items=args.n_items, render_window=window)
     return env
