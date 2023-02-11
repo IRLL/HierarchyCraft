@@ -1,13 +1,36 @@
-""" Tower Crafting Environment
+"""# TowerCrafting Environment
 
-Simple environment with tower-structured constructor rules.
+Simple environment with tower-structured constructor rules
+to evaluate polynomial sub-behaviors reusability.
+
+The goal of the environment is to get the item on top of the tower.
+
+The tower has 'height' layers and 'width' items per layer,
+plus the final item on top of the last layer.
+
+Each item in the tower requires all the items of the previous layer to be built.
+Items of the floor layer require nothing and can be built from the start.
+
+## Example
+
+For example here is a tower of height 2 and width 3:
+
+|   | 6 |   |
+|:-:|:-:|:-:|
+| 3 | 4 | 5 |
+| 0 | 1 | 2 |
+
+The goal here is to get the item 6.
+Item 6 requires the items {3, 4, 5}.
+Each of the items 3, 4 and 5 requires items {0, 1, 2}.
+Each of the items 0, 1 and 2 requires nothing and can be crafted from the start.
+
 
 """
 
 from typing import List
 
 from crafting.env import CraftingEnv
-from crafting.render.human import render_env_with_human
 from crafting.transformation import Transformation
 from crafting.world import Item, ItemStack
 
@@ -27,20 +50,13 @@ class TowerCraftingEnv(CraftingEnv):
 
     """Tower, a tower-structured hierarchical Environment.
 
-    Item of layer l requires all items of the previous layer l-1.
+    Item of given layer requires all items of the previous.
     The goal is to obtain the last item on top of the tower.
-
-    For example, a tower of height 3 and width 2:
-        #6##
-        #45#
-        #23#
-        #01#
 
     """
 
     def __init__(self, height: int, width: int, **kwargs):
-        """Tower, a tower-structured hierarchical Environment.
-
+        """
         Args:
             height (int): Number of layers of the tower (ignoring goal item).
             width (int): Number of items per layer.
@@ -58,11 +74,11 @@ class TowerCraftingEnv(CraftingEnv):
                 kwargs["max_step"] = 1 + int(
                     (1 - self.width ** (self.height + 1)) / (1 - self.width)
                 )
-        transformations = self._transformations(items)
+        transformations = self.build_transformations(items)
         super().__init__(transformations, name=name, **kwargs)
 
-    def _transformations(self, items: List[Item]) -> List[Transformation]:
-        """Build recipes to make every item accessible.
+    def build_transformations(self, items: List[Item]) -> List[Transformation]:
+        """Build transformations to make every item accessible.
 
         Args:
             items: List of items.
