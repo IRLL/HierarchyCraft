@@ -144,10 +144,19 @@ def _tower_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
     subparser = subparsers.add_parser(
         "tower",
         help="TowerCrafting: Evaluate sub-behaviors reusability.",
+        description="The goal of the environment is to get the item on top of the tower."
+        " The tower has 'height' layers and 'width' items per layer"
+        "plus the final item on top of the last layer."
+        " Each item in the tower requires all the items of the previous layer to be built."
+        " Items of the floor layer require nothing and can be built from the start.",
     )
     subparser.set_defaults(func=_towercrafting_from_cli)
-    subparser.add_argument("--height", "-t", type=int, required=True)
-    subparser.add_argument("--width", "-w", type=int, required=True)
+    subparser.add_argument(
+        "--height", "-t", type=int, required=True, help="Height of the tower."
+    )
+    subparser.add_argument(
+        "--width", "-w", type=int, required=True, help="Width of the tower."
+    )
 
 
 def _towercrafting_from_cli(args: Namespace):
