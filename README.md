@@ -134,7 +134,7 @@ There is much more to discover in crafting:
 
 Find everything in the documentation:
 
-[![DOCUMENTATION](docs/_static/images/doc_index.png)](https://crafting.readthedocs.io/en/latest/index.html)
+[![DOCUMENTATION](docs/_static/images/doc_index.png)](https://irll.github.io/Crafting/crafting.html)
 
 
 <!-- Rendering options -->
