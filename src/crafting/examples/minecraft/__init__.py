@@ -2,6 +2,7 @@ from crafting.examples.minecraft.env import MineCraftingEnv
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.zones import *
 from crafting.task import GetItemTask, GoToZoneTask
+from crafting.purpose import Purpose
 
 # gym is an optional dependency
 try:
@@ -60,6 +61,18 @@ try:
         },
     )
 
+    # Kill the ender dragon
+    purpose = Purpose()
+    purpose.add_task(
+        GetItemTask(ENDER_DRAGON_HEAD, reward=100), reward_shaping="required"
+    )
+    gym.register(
+        id="MineCrafting-Dragon-v1",
+        entry_point=ENV_PATH,
+        kwargs={
+            "purpose": purpose,
+        },
+    )
 
 except ImportError:
     pass

@@ -45,3 +45,10 @@ def test_the_end_gym_make():
     check.equal(len(env.purpose.tasks), 1)
     task = env.purpose.tasks[0]
     check.equal(task.name, "Go to end")
+
+
+def test_the_end_gym_make():
+    env: MineCraftingEnv = gym.make("MineCrafting-Dragon-v1")
+    check.equal(len(env.purpose.tasks), 1)
+    task = env.purpose.tasks[0]
+    check.equal(task.name, "Get ender_dragon_head")
