@@ -1,12 +1,12 @@
 """# Purpose in Crafting
 
 Crafting environments are sandbox environments and do not have a precise purpose by default.
-But of course, purpose can be added in any Crafting environment by setting up one or multiple tasks.
+But of course, purpose can be added in any Crafting environment by setting up one or multiple `crafting.task.Task`.
 
 Tasks can be one of:
-* GetItemTask: Get the given item
-* GoToZoneTask: Go to the given zone
-* PlaceItemTask: Place the given item in the given zone (or any zone if none given).
+* `crafting.task.GetItemTask`: Get the given item
+* `crafting.task.GoToZoneTask`: Go to the given zone
+* `crafting.task.PlaceItemTask`: Place the given item in the given zone (or any zone if none given).
 
 
 ## Single task purpose
@@ -28,13 +28,7 @@ env = MineCraftingEnv(purpose=get_diamond)
 Achievement tasks only rewards the player when completed. But this long term feedback is known 
 to be challenging. To ease learning such tasks, Crafting Purpose can generate substasks to give 
 intermediate feedback, this process is also known as reward shaping.
-
-Reward shaping can be one of:
-
-* "none": No reward shaping
-* "all": All items and zones will be associated with an achievement subtask.
-* "required": All (recursively) required items and zones for the given task will be associated with an achievement subtask.
-* "inputs": Items and zones consumed by any transformation solving the task will be associated with an achievement subtask.
+See `crafting.purpose.RewardShaping` for more details.
 
 For example, let's add the "required" reward shaping to the get_diamond task:
 
@@ -110,10 +104,18 @@ if TYPE_CHECKING:
 
 
 class RewardShaping(Enum):
+    """Enumeration of all reward shapings possible."""
+
     NONE = "none"
+    """No reward shaping"""
     ALL_ACHIVEMENTS = "all"
+    """All items and zones will be associated with an achievement subtask."""
     REQUIRED_ACHIVEMENTS = "required"
+    """All (recursively) required items and zones for the given task
+    will be associated with an achievement subtask."""
     INPUTS_ACHIVEMENT = "inputs"
+    """Items and zones consumed by any transformation solving the task
+    will be associated with an achievement subtask."""
 
 
 class Purpose:
@@ -126,16 +128,15 @@ class Purpose:
         default_reward_shaping: RewardShaping = RewardShaping.NONE,
         shaping_value: float = 1.0,
     ) -> None:
-        """A purpose for a Crafting player based on a list of tasks.
-
+        """
         Args:
-            tasks (Union[Task, List[Task]], optional): Tasks to add to the Purpose.
+            tasks: Tasks to add to the Purpose.
                 Defaults to None.
-            timestep_reward (float, optional): Reward for each timestep.
+            timestep_reward: Reward for each timestep.
                 Defaults to 0.0.
-            default_reward_shaping (RewardShaping, optional): Default reward shaping for tasks.
+            default_reward_shaping: Default reward shaping for tasks.
                 Defaults to RewardShaping.NONE.
-            shaping_value (float, optional): Reward value used in reward shaping if any.
+            shaping_value: Reward value used in reward shaping if any.
                 Defaults to 1.0.
         """
         self.tasks: List[Task] = []
@@ -163,15 +164,14 @@ class Purpose:
         """Add a new task to the purpose.
 
         Args:
-            task (Task): Task to be added to the purpose.
-            reward_shaping (Optional[RewardShaping], optional): Reward shaping for this task.
+            task: Task to be added to the purpose.
+            reward_shaping: Reward shaping for this task.
                 Defaults to purpose's default reward shaping.
-            terminal_groups: (Optional[Union[str, List[str]]], optional): Purpose terminates
-                when all the tasks of any terminal group have been done.
-                If terminal groups is '' or None, task will be optional and will
+            terminal_groups: Purpose terminates when ALL the tasks of ANY terminal group terminates.
+                If terminal groups is "" or None, task will be optional and will
                 not allow to terminate the purpose at all.
-                By default, tasks are added in the 'default' group and hence
-                all tasks have to be done to terminate the purpose.
+                By default, tasks are added in the "default" group and hence
+                ALL tasks have to be done to terminate the purpose.
         """
         if reward_shaping is None:
             reward_shaping = self.default_reward_shaping
@@ -189,7 +189,10 @@ class Purpose:
 
     def build(self, env: "CraftingEnv"):
         """
-        Builds the purpose of the player based on the given world.
+        Builds the purpose of the player relative to the given environment.
+
+        Args:
+            env: The Crafting environment to build upon.
         """
         if not self.tasks:
             return
@@ -228,7 +231,7 @@ class Purpose:
         zones_inventory: np.ndarray,
     ) -> bool:
         """
-        Returns True if the state is terminal for the whole purpose.
+        Returns True if the given state is terminal for the whole purpose.
         """
         if not self.tasks:
             return False
@@ -245,7 +248,7 @@ class Purpose:
 
     @property
     def optional_tasks(self) -> List[Task]:
-        """List of tasks in no terminal group at all."""
+        """List of tasks in no terminal group hence being optinal."""
         terminal_tasks = []
         for term_tasks in self.terminal_groups.values():
             terminal_tasks += term_tasks
