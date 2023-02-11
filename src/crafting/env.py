@@ -74,6 +74,17 @@ class CraftingEnv(Env):
             start_zones_items if start_zones_items is not None else {}
         )
         self.invalid_reward = invalid_reward
+        self.max_step = max_step
+        self.name = name
+        self._requirements_graph = None
+
+        self.render_mode = render_mode
+        self.render_window = render_window
+        if resources_path is None:
+            render_dir = os.path.dirname(crafting.render.__file__)
+            resources_path = os.path.join(render_dir, "default_resources")
+        self.resources_path = resources_path
+
         self.world = self._build_world()
         self._build_transformations()
         self.discovered_transformations = np.array([], dtype=np.ubyte)
@@ -94,19 +105,7 @@ class CraftingEnv(Env):
         self.purpose = purpose
         self.purpose.build(self)
 
-        self.render_mode = render_mode
-        self.render_window = render_window
-        if resources_path is None:
-            render_dir = os.path.dirname(crafting.render.__file__)
-            resources_path = os.path.join(render_dir, "default_resources")
-        self.resources_path = resources_path
-
-        self.max_step = max_step
-
         self.metadata = {}
-        self.name = name
-
-        self._requirements_graph = None
 
     @property
     def state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
