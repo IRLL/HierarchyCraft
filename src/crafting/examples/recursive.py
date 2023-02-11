@@ -40,6 +40,7 @@ class RecursiveCraftingEnv(CraftingEnv):
 
     def __init__(self, n_items: int, **kwargs):
         items = [Item(str(i)) for i in range(n_items)]
+        self.n_items = n_items
         transformations = self._transformations(items)
         super().__init__(
             transformations,
@@ -85,6 +86,7 @@ class LightRecursiveCraftingEnv(CraftingEnv):
     """
 
     def __init__(self, n_items: int, n_required_previous: int = 2, **kwargs):
+        self.n_items = n_items
         self.n_required_previous = n_required_previous
         if n_required_previous == 1:
             env_name = "LinearRecursiveCrafting"
