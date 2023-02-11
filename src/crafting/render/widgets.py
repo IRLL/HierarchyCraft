@@ -36,31 +36,25 @@ if TYPE_CHECKING:
 
 
 class DisplayMode(Enum):
-    """Display modes for menus buttons.
-
-    ALL: Button are all displayed.
-    DISCOVERED: Button are displayed if they have been discovered or are currently available.
-    CURRENT: Button are only displayed if currently available.
-
-    """
+    """Display modes for menus buttons."""
 
     ALL = "all"
+    """Button are all displayed."""
     DISCOVERED = "discovered"
+    """Button are displayed if they have been discovered or are currently available."""
     CURRENT = "current"
+    """Button are only displayed if currently available."""
 
 
 class ContentMode(Enum):
-    """Display modes for buttons content.
-
-    ALWAYS: Button content are always displayed.
-    DISCOVERED: Button content are displayed if they have been discovered.
-    NEVER: Button content are never displayed.
-
-    """
+    """Display modes for buttons content."""
 
     ALWAYS = "always"
+    """Button content are always displayed."""
     DISCOVERED = "discovered"
+    """Button content are displayed if they have been discovered."""
     NEVER = "never"
+    """Button content are never displayed."""
 
 
 class InventoryWidget(Menu):
