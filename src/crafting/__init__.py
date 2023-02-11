@@ -1,3 +1,7 @@
+"""
+.. include:: ../../README.md
+"""
+
 from crafting.env import CraftingEnv
 from crafting.examples.minecraft.env import MineCraftingEnv
 from crafting.examples.recursive import RecursiveCraftingEnv

@@ -1,0 +1,1 @@
+pdoc -d google -t docs/template --logo https://irll.net/irll-logo.png --logo-link https://irll.ca/ -o docs/build --math crafting
