@@ -45,6 +45,9 @@ class Task:
         Returns the reward for the given state.
         """
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class AchievementTask(Task):
     """Task giving a reward to the player only the first time achieved."""
