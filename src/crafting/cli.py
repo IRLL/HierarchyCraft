@@ -35,6 +35,14 @@ def crafting_cli(args: Optional[List[str]] = None) -> CraftingEnv:
     )
     minecraft_parser.set_defaults(func=_minecrafting_from_cli)
 
+    tower_parser = subparsers.add_parser(
+        "tower",
+        help="TowerCrafting environment to evaluate sub-behaviors reusability.",
+    )
+    tower_parser.set_defaults(func=_towercrafting_from_cli)
+    tower_parser.add_argument("--height", "-t", type=int, required=True)
+    tower_parser.add_argument("--width", "-w", type=int, required=True)
+
     purpose = parser.add_argument_group("purpose")
     purpose.add_argument(
         "--goal-reward",
@@ -130,6 +138,12 @@ def _minecrafting_from_cli(args: argparse.Namespace):
     window = _window_from_cli(args)
     purpose = _purpose_from_cli(args)
     env = MineCraftingEnv(purpose=purpose, render_window=window)
+    return env
+
+
+def _towercrafting_from_cli(args: argparse.Namespace):
+    window = _window_from_cli(args)
+    env = TowerCraftingEnv(height=args.height, width=args.width, render_window=window)
     return env
 
 

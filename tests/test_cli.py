@@ -1,7 +1,13 @@
 import pytest_check as check
 
 
-from crafting.examples import MineCraftingEnv
+from crafting.examples import (
+    MineCraftingEnv,
+    RandomCraftingEnv,
+    TowerCraftingEnv,
+    RecursiveCraftingEnv,
+    LightRecursiveCraftingEnv,
+)
 
 from crafting.cli import crafting_cli
 
@@ -22,3 +28,10 @@ def test_purposed_minecrafting_cli():
 
     for task in env.purpose.tasks:
         check.equal(task._reward, 100)
+
+
+def test_tower_cli():
+    env = crafting_cli(["tower", "--height", "4", "--width", "3"])
+    check.is_instance(env, TowerCraftingEnv)
+    check.equal(env.height, 4)
+    check.equal(env.width, 3)
