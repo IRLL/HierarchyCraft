@@ -4,13 +4,13 @@ Here is the table of available Crafting environments examples.
 
 If you built one of your own, send us a pull request so we can add it to the list!
 
-| Environment name       | CLI name          |Interest                                              | Reference                               | 
-|:-----------------------|:------------------|:-----------------------------------------------------|:----------------------------------------|
-| MineCrafting           | `minecraft`       | Complex real-case hierarchies.                       |`crafting.examples.minecraft`            |
-| TowerCrafting          | `tower`           | Polynomial growth with reuse hierarchies.            |`crafting.examples.tower`                |
-| RecursiveCrafting      | `recursive`       | Exponential growth with reuse hierarchies.           |`crafting.examples.recursive`            |
-| LightRecursiveCrafting | `light-recursive` | Exponential (smaller) growth with reuse hierarchies. |`crafting.examples.recursive`            |
-| RandomCrafting         | `random`          | Random hierarchical structures.                      |`crafting.examples.random_simple`        |
+| Gym name                    | CLI name          |Interest                                              | Reference                               | 
+|:----------------------------|:------------------|:-----------------------------------------------------|:----------------------------------------|
+| "MineCrafting-Dragon-v1"    | `minecraft`       | Complex real-case hierarchies.                       |`crafting.examples.minecraft`            |
+| "TowerCrafting-v1"          | `tower`           | Polynomial growth with reuse hierarchies.            |`crafting.examples.tower`                |
+| "RecursiveCrafting-v1"      | `recursive`       | Exponential growth with reuse hierarchies.           |`crafting.examples.recursive`            |
+| "LightRecursiveCrafting-v1" | `light-recursive` | Exponential (smaller) growth with reuse hierarchies. |`crafting.examples.recursive`            |
+| "RandomCrafting-v1"         | `random`          | Random hierarchical structures.                      |`crafting.examples.random_simple`        |
 
 
 """
