@@ -1,15 +1,15 @@
-# Crafting a gym-environment to simultate inventory managment
-# Copyright (C) 2021-2022 Mathïs FEDERICO <https://www.gnu.org/licenses/>
-
 """ Module for utility functions to apply on handcrafted Behavior. """
 
 from typing import Dict, Set, Union
 
-from hebg import HEBGraph, Behavior
+from hebg import Behavior, HEBGraph
 
-from crafting.behaviors.actions import CraftRecipe, SearchItem
-from crafting.behaviors.behaviors import GetItem, ReachZone
-from crafting.world.items import Item
+from crafting.behaviors.behaviors import (
+    AbleAndPerformTransformation,
+    GetItem,
+    ReachZone,
+)
+from crafting.world import Item
 
 
 def get_items_in_graph(
@@ -27,13 +27,55 @@ def get_items_in_graph(
     all_behaviors = all_behaviors if all_behaviors is not None else {}
     items_in_graph = set()
     for node in graph.nodes():
-        if isinstance(node, Behavior) and str(node) in all_behaviors:
-            node = all_behaviors[str(node)]
-        if isinstance(node, (SearchItem, GetItem)):
-            if isinstance(node.item, Item):
-                items_in_graph.add(node.item)
-        if isinstance(node, CraftRecipe):
-            if node.recipe.outputs is not None:
-                for itemstack in node.recipe.outputs:
-                    items_in_graph.add(itemstack.item)
+        if isinstance(node, Behavior) and node in all_behaviors:
+            node = all_behaviors[node]
+        if isinstance(node, GetItem) and isinstance(node.item, Item):
+            items_in_graph.add(node.item)
+        if isinstance(node, AbleAndPerformTransformation):
+            if node.transformation.added_player_items is not None:
+                items_in_graph |= {
+                    itemstack.item
+                    for itemstack in node.transformation.added_player_items
+                }
+            if node.transformation.removed_player_items is not None:
+                items_in_graph |= {
+                    itemstack.item
+                    for itemstack in node.transformation.removed_player_items
+                }
     return items_in_graph
+
+
+def get_zones_items_in_graph(
+    graph: HEBGraph,
+    all_behaviors: Dict[str, Union[GetItem, ReachZone]] = None,
+) -> Set[Item]:
+    """Get properties in a Crafting HEBGraph.
+
+    Args:
+        graph (HEBGraph): An HEBehavior graph of the Crafting environment.
+        all_behaviors (Dict[str, Union[GetItem, ReachZone]): References to all known behaviors.
+
+    Returns:
+        Set[Item]: Set of zone items that appears in the given graph.
+    """
+    all_behaviors = all_behaviors if all_behaviors is not None else {}
+    zone_items_in_graph = set()
+    for node in graph.nodes():
+        if isinstance(node, Behavior) and node in all_behaviors:
+            node = all_behaviors[node]
+        if isinstance(node, GetItem) and isinstance(node.item, str):
+            zone_items_in_graph.add(node.item)
+        if (
+            isinstance(node, AbleAndPerformTransformation)
+            and node.transformation.added_zone_items is not None
+        ):
+            if node.transformation.added_zone_items is not None:
+                zone_items_in_graph |= {
+                    itemstack.item for itemstack in node.transformation.added_zone_items
+                }
+            if node.transformation.removed_zone_items is not None:
+                zone_items_in_graph |= {
+                    itemstack.item
+                    for itemstack in node.transformation.removed_zone_items
+                }
+    return zone_items_in_graph

@@ -1,354 +1,340 @@
-# Crafting a gym-environment to simultate inventory managment
-# Copyright (C) 2021-2022 Mathïs FEDERICO <https://www.gnu.org/licenses/>
+"""Here lies CraftingEnv, the main interface of the crafting package."""
 
-"""  Module for the base gym environment of any crafting environement. """
-from copy import deepcopy
-from typing import TYPE_CHECKING, List, Optional, Tuple, Union
+import collections
+import os
+from typing import Dict, List, Optional, Set, Tuple, Union
 
-import gym
+import networkx as nx
 import numpy as np
-from gym import spaces
 
-from crafting.player.player import Player
-from crafting.render.render import create_window, surface_to_rgb_array, update_rendering
-from crafting.task import TaskList, Task, get_task_from_name
+import crafting
+from crafting.behaviors.solving_behaviors import Behavior, build_all_solving_behaviors
+from crafting.purpose import Purpose
+from crafting.render.render import CraftingWindow
+from crafting.render.utils import surface_to_rgb_array
+from crafting.requirement_graph import build_requirements_graph, draw_requirements_graph
+from crafting.transformation import Transformation
+from crafting.world import Item, ItemStack, World, Zone
 
-if TYPE_CHECKING:
-    from crafting.world.world import World
+# Gym is an optional dependency.
+try:
+    import gym
+
+    DiscreteSpace = gym.spaces.Discrete
+    BoxSpace = gym.spaces.Box
+    TupleSpace = gym.spaces.Tuple
+    MultiBinarySpace = gym.spaces.MultiBinary
+    Env = gym.Env
+except ImportError:
+    DiscreteSpace = collections.namedtuple("DiscreteSpace", "n")
+    BoxSpace = collections.namedtuple("BoxSpace", "low, high, shape, dtype")
+    TupleSpace = collections.namedtuple("TupleSpace", "spaces")
+    MultiBinarySpace = collections.namedtuple("MultiBinary", "n")
+    Env = object
 
 
-class CraftingEnv(gym.Env):
-
-    """Generic Crafting Environment"""
-
-    metadata = {"render.modes": ["rgb_array"], "video.frames_per_second": 10}
+class CraftingEnv(Env):
+    """A gym-like environment built from a list of `Transformation`."""
 
     def __init__(
         self,
-        world: "World",
-        player: Player,
+        transformations: List[Transformation],
+        start_zone: Optional[Zone] = None,
+        start_items: Optional[List[ItemStack]] = None,
+        start_zones_items: Optional[Dict[Zone, List[ItemStack]]] = None,
+        purpose: Optional[Purpose] = None,
+        invalid_reward: float = -10.0,
+        render_mode="rgb_array",
+        render_window: Optional[CraftingWindow] = None,
+        resources_path: Optional[str] = None,
         name: str = "Crafting",
-        max_step: int = 100,
-        verbose: int = 0,
-        observe_legal_actions: bool = False,
-        tasks: Optional[List[Union[str, "Task"]]] = None,
-        fail_penalty: float = 9,
-        timestep_penalty: float = 1,
-        moving_penalty: float = 9,
-        render_mode: str = "rgb_array",
-        seed: int = None,
-        gymnasium_interface: bool = False,
-    ):
-        """Generic Crafting Environment.
+        max_step: Optional[int] = None,
+    ) -> None:
+        """Initialize a Crafting environement.
 
         Args:
-            world: The world containing items, crafts and zones.
-            player: The player containing an inventory and a position.
-            max_step: The maximum number of steps until done.
-            verbose: Verbosity level. {0: quiet, 1: print actions results}.
-            observe_legal_actions: If True, add legal actions to observations.
-            tasks: List of tasks.
-            fail_penalty: Reward penalty for each non-successful action.
-            timestep_penalty: Reward penalty for each timestep.
-            moving_penalty: Reward penalty for moving to an other zone.
-
+            transformations (List[Transformation]): The list of transformations
+                defining the environment.
+            start_zone (Optional[Zone], optional): The Zone in which the player starts.
+                If not given, start in the first indexed zone.
+            purpose (Optional[Purpose], optional): Purpose of the player,
+                defining rewards and termination. Defaults to None, hence a sandbox environment.
+            invalid_reward (float, optional): Reward given to the agent for invalid actions.
+                Defaults to -10.0.
+            render_mode (str, optional): Render mode. Defaults to "rgb_array".
+            render_window (CraftingWindow): Window using to render the environment with pygame.
+            name (str): Name of the environement.
+            max_step: (Optional[int], optional): Maximum number of steps before episode truncation.
+                If None, never truncates the episode. Defaults to None.
         """
+        self.transformations = transformations
+        self.start_zone = start_zone
+        self.start_items = start_items if start_items is not None else []
+        self.start_zones_items = (
+            start_zones_items if start_zones_items is not None else {}
+        )
+        self.invalid_reward = invalid_reward
+        self.world = self._build_world()
+        self._build_transformations()
+        self.discovered_transformations = np.array([], dtype=np.ubyte)
+
+        self.player_inventory = np.array([], dtype=np.uint16)
+        self.discovered_items = np.array([], dtype=np.ubyte)
+        self.position = np.array([], dtype=np.uint16)
+        self.discovered_zones = np.array([], dtype=np.ubyte)
+        self.zones_inventories = np.array([], dtype=np.uint16)
+        self.discovered_zones_items = np.array([], dtype=np.ubyte)
+        self.current_step = 0
+        self.reset()
+
+        if purpose is None:
+            purpose = Purpose(None)
+        if not isinstance(purpose, Purpose):
+            purpose = Purpose(tasks=purpose)
+        self.purpose = purpose
+        self.purpose.build(self)
+
+        self.render_mode = render_mode
+        self.render_window = render_window
+        if resources_path is None:
+            render_dir = os.path.dirname(crafting.render.__file__)
+            resources_path = os.path.join(render_dir, "default_resources")
+        self.resources_path = resources_path
+
+        self.max_step = max_step
+
+        self.metadata = {}
         self.name = name
 
-        # World
-        self.world = deepcopy(world)
-        self.initial_world = deepcopy(world)
+        self._requirements_graph = None
 
-        # Player
-        self.player = deepcopy(player)
-        self.initial_player = deepcopy(player)
+    @property
+    def state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Current state of the environment."""
+        return self.player_inventory, self.position, self.zones_inventories
 
-        # Tasks
-        self.tasks = self._init_tasklist(tasks)
+    @property
+    def current_zone_inventory(self) -> np.ndarray:
+        """Current zone inventory."""
+        if self.position.shape[0] == 0:
+            return np.array([])  # No Zone
+        current_zone_slot = self.position.nonzero()[0]
+        return self.zones_inventories[current_zone_slot, :][0]
 
-        # Reward penalties
-        self.fail_penalty = fail_penalty
-        self.timestep_penalty = timestep_penalty
-        self.moving_penalty = moving_penalty
-
-        # Other properties
-        self.max_step = max_step
-        self.steps = 1
-        self.verbose = verbose
-        self.observe_legal_actions = observe_legal_actions
-        self.gymnasium_interface = gymnasium_interface
-
-        # Action space
-        # (get_item or use_recipe or move_to_zone)
-        self.action_space = spaces.Discrete(
-            self.world.n_foundable_items + self.world.n_recipes + self.world.n_zones
+    @property
+    def observation(self) -> np.ndarray:
+        """Observation given to the player."""
+        return np.concatenate(
+            (self.player_inventory, self.position, self.current_zone_inventory)
         )
 
-        # Observation space
-        # (n_stacks_per_item, inv_filled_proportion, one_hot_zone)
-        self.observation_space = spaces.Box(
+    @property
+    def truncated(self) -> bool:
+        """Whether the time limit has been exceeded."""
+        if self.max_step is None:
+            return False
+        return self.current_step >= self.max_step
+
+    @property
+    def terminated(self) -> bool:
+        """Whether the environment tasks are all done (if any)"""
+        return self.purpose.is_terminal(*self.state)
+
+    @property
+    def observation_space(self) -> Union[BoxSpace, TupleSpace]:
+        """Observation space for the Agent in the Crafting environment."""
+        obs_space = BoxSpace(
             low=np.array(
                 [0 for _ in range(self.world.n_items)]
                 + [0 for _ in range(self.world.n_zones)]
-                + [0 for _ in range(self.world.n_zone_properties)]
+                + [0 for _ in range(self.world.n_zones_items)]
             ),
             high=np.array(
                 [np.inf for _ in range(self.world.n_items)]
                 + [1 for _ in range(self.world.n_zones)]
-                + [1 for _ in range(self.world.n_zone_properties)]
+                + [np.inf for _ in range(self.world.n_zones_items)]
             ),
-            dtype=np.float32,
         )
 
-        if self.observe_legal_actions:
-            self.legal_actions_space = spaces.MultiBinary(self.action_space.n)
-            self.observation_space = spaces.Tuple(
-                (self.observation_space, self.legal_actions_space)
-            )
+        return obs_space
 
-        self.observation_legend = np.concatenate(
-            (
-                [str(item) for item in self.world.items],
-                [str(zone) for zone in self.world.zones],
-                [str(prop) for prop in self.world.zone_properties],
-            )
-        )
+    @property
+    def action_space(self) -> DiscreteSpace:
+        """Action space for the Agent in the Crafting environment.
 
-        # Rendering
-        self.render_mode = render_mode
-        self.render_variables = None
-
-        # Seeding
-        self.original_seed = seed
-        self.rng_seeds = self.seed(seed)
-        self.action_space.seed(seed)
-        self.observation_space.seed(seed)
-
-    def seed(self, seed: int = None) -> List[int]:
-        """Seed the environment for random reproductibility.
-
-        Args:
-            seed (int, optional): Seed to base the randomness on, if None generate a random seed.
-                Defaults to None.
-
-        Returns:
-            List[int]: List of seeds used by this environment.
+        Actions are expected to often be invalid.
         """
-        self.np_random = np.random.RandomState(seed)  # pylint: disable=no-member
-        return [seed]
+        return DiscreteSpace(len(self.transformations))
 
-    def action(self, action_type: str, identification: int) -> int:
-        """Return action_id from action type and identifier.
+    @property
+    def actions_mask(self) -> np.ndarray:
+        """Boolean mask of valid actions."""
+        return np.array([t.is_valid(*self.state) for t in self.transformations])
 
-        Args:
-            action_type: One of {'get', 'craft', 'move'}.
-            identification: Id of the item, recipe or zone.
+    def step(self, action: int):
+        """Perform one step in the environment given the index of a wanted transformation.
 
-        Returns:
-            The corresponding discrete action ID.
+        If the selected transformation can be performed, the state is updated and
+        a reward is given depending of the environment tasks.
+        Else the state is left unchanged and the `invalid_reward` is given to the player.
 
         """
-        return self.world.action(action_type, identification)
-
-    def action_from_id(self, action_id: int) -> str:
-        """Return action_id from action type and identifier.
-
-        Args:
-            action_id: A discrete action ID.
-
-        Return:
-            The action type and object concerned by the action.
-
-        """
-        return self.world.action_from_id(action_id)
-
-    def step(
-        self, action: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray, bool, bool, dict]:
-        previous_observation = self.get_observation()
-        reward = 0
-
-        # Get an item
-        if action < self.world.n_foundable_items:
-            item_slot = action
-            item = self.world.foundable_items[item_slot]
-            tool = self.player.choose_tool(item)
-            n_found = self.player.search_for(item, tool)
-            success = n_found > 0
-            if self.verbose > 0:
-                status_msg = "SUCCEDED" if success else "FAILED"
-                print(f"{status_msg} at getting {item}[{n_found}] with {tool}")
-
-        # Craft a recipe
-        start_index = self.world.n_foundable_items
-        if 0 <= action - start_index < self.world.n_recipes:
-            recipe_slot = action - start_index
-            recipe = self.world.recipes[recipe_slot]
-            success = self.player.craft(recipe)
-            if self.verbose > 0:
-                status_msg = "SUCCEDED" if success else "FAILED"
-                print(f"{status_msg} at crafting {recipe}")
-
-        # Change zone
-        start_index = self.world.n_foundable_items + self.world.n_recipes
-        if 0 <= action - start_index < self.world.n_zones:
-            zone_slot = action - start_index
-            zone = self.world.zones[zone_slot]
-            success = self.player.move_to(zone)
-            reward -= self.moving_penalty
-            if self.verbose > 0:
-                status_msg = "SUCCEDED" if success else "FAILED"
-                print(f"{status_msg} at moving to {zone}")
-
-        # Synchronise world zone with player zone
-        zone_slot = self.world.zone_id_to_slot[self.player.zone.zone_id]
-        self.world.zones[zone_slot] = self.player.zone
-
-        # Obtain new observation
-        observation = self.get_observation()
-
-        # Tasks
-        tasks_reward, tasks_done = self.tasks(observation, previous_observation, action)
-        reward += tasks_reward
-        reward -= self.timestep_penalty
-        if not success:
-            reward -= self.fail_penalty
-
-        self.player.score += int(reward)
-
-        # Termination
-        terminated = tasks_done
-        truncated = self.steps >= self.max_step
-
-        # Infos
-        action_is_legal = self.action_masks()
-        infos = {
-            "env_step": self.steps,
-            "action_is_legal": action_is_legal,
-            "tasks_done": tasks_done,
-        }
-
-        self.steps += 1
-
-        if self.observe_legal_actions:
-            observation = (observation, action_is_legal)
-
-        if not self.gymnasium_interface:
-            done = terminated or truncated
-            return observation, reward, done, infos
-
-        return observation, reward, terminated, truncated, infos
-
-    def add_task(self, task: "Task", weight: float = 1.0, can_end: bool = False):
-        """Add a new task to the Crafting environment.
-
-        Args:
-            task (Task): Task to be added, must be an instance of Task.
-            weight (float, optional): Weight of this task rewards. Defaults to 1.0.
-            can_end (bool, optional): If True, this task could make the env done when completed.
-                See TaskList early_stopping for more details. Defaults to False.
-        """
-        self.tasks.add(task, weight, can_end)
-
-    def action_masks(self) -> np.ndarray:
-        """Return the legal actions"""
-        can_get = np.array(
-            [
-                self.player.can_get(item, self.player.choose_tool(item))
-                for item in self.world.foundable_items
-            ]
+        self.current_step += 1
+        choosen_transformation = self.transformations[action]
+        if not choosen_transformation.is_valid(*self.state):
+            return self._step_output(self.invalid_reward)
+        choosen_transformation.apply(
+            self.player_inventory,
+            self.position,
+            self.zones_inventories,
         )
-        can_craft = np.array(
-            [self.player.can_craft(recipe) for recipe in self.world.recipes]
-        )
-        can_move = np.array(
-            [self.player.can_move_to(zone) for zone in self.world.zones]
-        )
-        return np.concatenate((can_get, can_craft, can_move))
+        self._update_discoveries(action)
+        reward = self.purpose.reward(*self.state)
+        return self._step_output(reward)
 
-    def get_observation(self) -> np.ndarray:
-        """Return the current observation"""
-        one_hot_zone = np.zeros(self.world.n_zones, np.float32)
-        zone_slot = self.world.zone_id_to_slot[self.player.zone.zone_id]
-        one_hot_zone[zone_slot] = 1
-
-        inventory_content = self.player.inventory.content
-
-        zone_properties = np.zeros(self.world.n_zone_properties)
-        for i, prop in enumerate(self.world.zone_properties):
-            if prop in self.player.zone.properties:
-                zone_properties[i] = self.player.zone.properties[prop]
-
-        observation = np.concatenate(
-            (inventory_content, one_hot_zone, zone_properties), axis=-1
-        )
-
-        return observation
-
-    def reset(self) -> Tuple[np.ndarray, dict]:
-        self.steps = 0
-        self.player = deepcopy(self.initial_player)
-        self.world = deepcopy(self.initial_world)
-        self.tasks.reset()
-
-        observation = self.get_observation()
-        legal_actions = self.action_masks()
-        if self.observe_legal_actions:
-            observation = (observation, legal_actions)
-
-        infos = {
-            "env_step": self.steps,
-            "action_is_legal": legal_actions,
-            "tasks_done": False,
-        }
-
-        if not self.gymnasium_interface:
-            return observation
-
-        return observation, infos
-
-    def render(self, mode: Optional[str] = None, **kwargs) -> Union[str, np.ndarray]:
+    def render(self, mode: Optional[str] = None, **_kwargs) -> Union[str, np.ndarray]:
+        """Render the observation of the agent in a format depending on `render_mode`."""
         if mode is not None:
             self.render_mode = mode
 
-        if self.render_mode == "human":  # for human interaction
-            return self.render_rgb_array()
+        if self.render_mode in ("human", "rgb_array"):  # for human interaction
+            return self._render_rgb_array()
         if self.render_mode == "console":  # for console print
-            return str(self.player)
-        if self.render_mode == "rgb_array":
-            return self.render_rgb_array()
-        return super().render()  # just raise an exception
+            raise NotImplementedError
+        raise NotImplementedError
 
-    def render_rgb_array(self) -> np.ndarray:
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict] = None,
+    ) -> np.ndarray:
+        """Resets the state of the environement.
+
+        Returns:
+            (np.ndarray): The first observation.
+        """
+        self.current_step = 0
+        self._reset_discoveries()
+        self._reset_state()
+        self._update_discoveries()
+        return self.observation
+
+    def close(self):
+        """Closes the environment."""
+        if self.render_window is not None:
+            self.render_window.close()
+
+    def get_all_behaviors(self) -> Dict[str, "Behavior"]:
+        """Build all solving behaviors using hebg."""
+        return build_all_solving_behaviors(self)
+
+    def draw_requirements_graph(self, ax, **kwargs):
+        return draw_requirements_graph(ax, self.requirements_graph, **kwargs)
+
+    @property
+    def requirements_graph(self) -> nx.DiGraph:
+        if self._requirements_graph is None:
+            self._requirements_graph = build_requirements_graph(self)
+        return self._requirements_graph
+
+    def _update_discoveries(self, action: Optional[int] = None) -> None:
+        self.discovered_items = np.bitwise_or(
+            self.discovered_items, self.player_inventory > 0
+        )
+        self.discovered_zones_items = np.bitwise_or(
+            self.discovered_zones_items, self.current_zone_inventory > 0
+        )
+        self.discovered_zones = np.bitwise_or(self.discovered_zones, self.position > 0)
+        if action is not None:
+            self.discovered_transformations[action] = 1
+
+    def _reset_discoveries(self) -> None:
+        self.discovered_items = np.zeros(self.world.n_items, dtype=np.ubyte)
+        self.discovered_zones_items = np.zeros(self.world.n_zones_items, dtype=np.ubyte)
+        self.discovered_zones = np.zeros(self.world.n_zones, dtype=np.ubyte)
+        self.discovered_transformations = np.zeros(
+            len(self.transformations), dtype=np.ubyte
+        )
+
+    def _step_output(self, reward: float):
+        infos = {"action_is_legal": self.actions_mask}
+        return (self.observation, reward, self.terminated or self.truncated, infos)
+
+    def _build_world(self) -> World:
+        """Reads the transformation to build the list of items, zones and zones_items
+        composing the world."""
+
+        # Start elements
+        zones = set()
+        if self.start_zone is not None:
+            zones.add(self.start_zone)
+
+        items = set(itemstack.item for itemstack in self.start_items)
+        zones_items = set()
+        for zone, zone_items in self.start_zones_items.items():
+            zones.add(zone)
+            zones_items |= set(itemstack.item for itemstack in zone_items)
+
+        # Elements by transformations
+        for transfo in self.transformations:
+            if transfo.destination is not None:
+                zones.add(transfo.destination)
+            if transfo.zones is not None:
+                zones |= set(transfo.zones)
+            items = _add_items_to(transfo.removed_player_items, items)
+            items = _add_items_to(transfo.added_player_items, items)
+            zones_items = _add_items_to(transfo.removed_destination_items, zones_items)
+            zones_items = _add_items_to(transfo.added_destination_items, zones_items)
+            zones_items = _add_items_to(transfo.removed_zone_items, zones_items)
+            zones_items = _add_items_to(transfo.added_zone_items, zones_items)
+
+        return World(list(items), list(zones), list(zones_items))
+
+    def _build_transformations(self):
+        for transformation in self.transformations:
+            transformation.build(self.world)
+
+    def _reset_state(self) -> None:
+        self.player_inventory = np.zeros(self.world.n_items, dtype=np.uint16)
+        for itemstack in self.start_items:
+            item_slot = self.world.items.index(itemstack.item)
+            self.player_inventory[item_slot] = itemstack.quantity
+
+        self.position = np.zeros(self.world.n_zones, dtype=np.uint16)
+        start_slot = 0  # Start in first Zone by default
+        if self.start_zone is not None:
+            start_slot = self.world.slot_from_zone(self.start_zone)
+        if self.position.shape[0] > 0:
+            self.position[start_slot] = 1
+
+        self.zones_inventories = np.zeros(
+            (self.world.n_zones, self.world.n_zones_items), dtype=np.uint16
+        )
+        for zone, zone_itemstacks in self.start_zones_items.items():
+            zone_slot = self.world.zones.index(zone)
+            for itemstack in zone_itemstacks:
+                item_slot = self.world.zones_items.index(itemstack.item)
+                self.zones_inventories[zone_slot, item_slot] = itemstack.quantity
+
+        self.current_step = 0
+
+    def _render_rgb_array(self) -> np.ndarray:
         """Render an image of the game.
 
         Create the rendering window if not existing yet.
         """
-        if self.render_variables is None:
-            self.render_variables = create_window(self)
-        update_rendering(
-            env=self,
-            fps=self.metadata.get("video.frames_per_second"),
-            **self.render_variables,
-        )
-        return surface_to_rgb_array(self.render_variables["screen"])
+        if self.render_window is None:
+            self.render_window = CraftingWindow()
+        if not self.render_window.built:
+            self.render_window.build(self)
+        fps = self.metadata.get("video.frames_per_second")
+        self.render_window.update_rendering(fps=fps)
+        return surface_to_rgb_array(self.render_window.screen)
 
-    def _init_tasklist(self, tasks: Optional[List[Union[Task, str]]]):
-        if isinstance(tasks, TaskList):
-            return tasks
 
-        if tasks is None:
-            tasks = []
-
-        for i, task in enumerate(tasks):
-            if isinstance(task, Task):
-                continue
-            if isinstance(task, str):
-                tasks[i] = get_task_from_name(self.world, task)
-                continue
-            raise TypeError(f"Unsupported type for task: {type(task)} of {task}")
-
-        return TaskList(tasks=tasks)
-
-    def __call__(self, action):
-        return self.step(action)
+def _add_items_to(itemstacks: Optional[List[ItemStack]], items_set: Set[Item]):
+    if itemstacks is not None:
+        for itemstack in itemstacks:
+            items_set.add(itemstack.item)
+    return items_set

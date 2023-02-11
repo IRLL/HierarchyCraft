@@ -1,119 +1,202 @@
-# Crafting a gym-environment to simultate inventory managment
-# Copyright (C) 2021-2022 Mathïs FEDERICO <https://www.gnu.org/licenses/>
-
 """ Minecraft Items
 
 All used minecraft items.
-They are three kinds of items: Loots and Blocks that can be found,
+They are three kinds of items: Loots and McItems that can be found,
 and other items that can only be obtain through crafting.
 
 """
+from dataclasses import dataclass
+from typing import List, Optional, Union
 
-from crafting.examples.minecraft.abc import Block, Item, Loot
 from crafting.examples.minecraft.tools import *
+from crafting.examples.minecraft.zones import *
+from crafting.world import Item, Zone
 
-#: Items
-DIAMOND = Item(264, "diamond")  #: DIAMOND
-IRON_INGOT = Item(265, "iron_ingot")  #: IRON_INGOT
-GOLD_INGOT = Item(266, "gold_ingot")  #: GOLD_INGOT
-PAPER = Item(339, "paper")  #: PAPER
-BOOK = Item(340, "book")  #: BOOK
-REDSTONE = Item(331, "redstone")  #: REDSTONE
-CLOCK = Item(347, "clock")  #: CLOCK
-ENCHANTING_TABLE = Item(116, "enchanting_table")  #: ENCHANTING_TABLE
-STICK = Item(280, "stick")  #: STICK
+#: Items obtainable only with crafts
+IRON_INGOT = Item("iron_ingot")  #: IRON_INGOT
+GOLD_INGOT = Item("gold_ingot")  #: GOLD_INGOT
+PAPER = Item("paper")  #: PAPER
+BOOK = Item("book")  #: BOOK
+CLOCK = Item("clock")  #: CLOCK
+ENCHANTING_TABLE = Item("enchanting_table")  #: ENCHANTING_TABLE
+CRAFTING_TABLE = Item("crafting_table")  #: CRAFTING_TABLE
+FURNACE = Item("furnace")  #: CRAFTING_TABLE
+STICK = Item("stick")  #: STICK
+BLAZE_POWDER = Item("blaze_powder")  #: BLAZE_POWDER
+ENDER_EYE = Item("ender_eye")  #: ENDER_EYE
+FLINT = Item("flint")  #: FLINT
+FLINT_AND_STEEL = Item("flint_and_steel")  #: FLINT_AND_STEEL
+WOOD_PLANK = Item("wood_plank")  #: WOOD_PLANK
+
+
+@dataclass
+class McItem:
+    """Minecraft item with its specific properties."""
+
+    item: Item
+    zones: List[Zone]
+    required_tool_types: Optional[List[Union[None, ToolType]]] = None
+    required_tool_material: Optional[List[Material]] = None
+    hardness: float = 1.0
+
 
 #: Blocks
-DIRT = Block(3, "dirt", hardness=0.5)  #: DIRT
-COBBLESTONE = Block(
-    4, "cobblestone", hardness=2, required_tools=PICKAXES
-)  #: COBBLESTONE
-STONE = Block(
-    1, "stone", hardness=1.5, drops=[COBBLESTONE], required_tools=PICKAXES
-)  #: STONE
-WOOD_PLANK = Block(
-    5, "wood_plank", hardness=2, required_tools=[None] + AXES
-)  #: WOOD_PLANK
-GOLD_ORE = Block(14, "gold_ore", hardness=3, required_tools=PICKAXES[2:])  #: GOLD_ORE
-IRON_ORE = Block(15, "iron_ore", hardness=3, required_tools=PICKAXES[1:])  #: IRON_ORE
-WOOD = Block(17, "wood", hardness=2, required_tools=[None] + AXES)  #: WOOD
-DIAMOND_ORE = Block(
-    56, "diamond_ore", hardness=3, drops=[DIAMOND], required_tools=PICKAXES[2:]
-)  #: DIAMOND_ORE
-OBSIDIAN = Block(
-    49, "obsidian", hardness=50, required_tools=[DIAMOND_PICKAXE]
-)  #: OBSIDIAN
-REDSTONE_ORE = Block(
-    73, "redstone_ore", hardness=3, drops=[REDSTONE], required_tools=PICKAXES[2:]
-)  #: REDSTONE_ORE
+#: DIRT
+DIRT = Item("dirt")
+MC_DIRT = McItem(
+    DIRT,
+    zones=[FOREST, SWAMP, MEADOW],
+    required_tool_types=[None, ToolType.SHOVEL],
+    hardness=0.5,
+)
+#: WOOD
+WOOD = Item("wood")
+MC_WOOD = McItem(
+    WOOD, zones=[FOREST], hardness=2, required_tool_types=[None, ToolType.AXE]
+)
+#: GRAVEL
+GRAVEL = Item("gravel")
+MC_GRAVEL = McItem(
+    GRAVEL,
+    zones=[SWAMP],
+    hardness=0.6,
+    required_tool_types=[ToolType.SHOVEL],
+)
+#: COBBLESTONE
+COBBLESTONE = Item("cobblestone")
+MC_COBBLESTONE = McItem(
+    COBBLESTONE,
+    zones=[FOREST, SWAMP, MEADOW, UNDERGROUND, BEDROCK],
+    hardness=2,
+    required_tool_types=[ToolType.PICKAXE],
+)
+#: COAL
+COAL = Item("coal")
+MC_COAL = McItem(
+    COAL,
+    zones=[UNDERGROUND, BEDROCK],
+    hardness=3,
+    required_tool_types=[ToolType.PICKAXE],
+)
+#: IRON_ORE
+IRON_ORE = Item("iron_ore")
+MC_IRON_ORE = McItem(
+    IRON_ORE,
+    zones=[UNDERGROUND, BEDROCK],
+    hardness=3,
+    required_tool_types=[ToolType.PICKAXE],
+    required_tool_material=[Material.STONE, Material.IRON, Material.DIAMOND],
+)
+#: GOLD_ORE
+GOLD_ORE = Item("gold_ore")
+MC_GOLD_ORE = McItem(
+    GOLD_ORE,
+    zones=[BEDROCK, NETHER],
+    hardness=3,
+    required_tool_types=[ToolType.PICKAXE],
+    required_tool_material=[Material.IRON, Material.DIAMOND],
+)
+#: DIAMOND_ORE
+DIAMOND = Item("diamond")
+MC_DIAMOND = McItem(
+    DIAMOND,
+    zones=[BEDROCK],
+    hardness=3,
+    required_tool_types=[ToolType.PICKAXE],
+    required_tool_material=[Material.IRON, Material.DIAMOND],
+)
+#: OBSIDIAN
+OBSIDIAN = Item("obsidian")
+MC_OBSIDIAN = McItem(
+    OBSIDIAN,
+    zones=[BEDROCK],
+    hardness=50,
+    required_tool_types=[ToolType.PICKAXE],
+    required_tool_material=[Material.DIAMOND],
+)
+#: REDSTONE_ORE
+REDSTONE = Item("redstone")
+MC_REDSTONE = McItem(
+    REDSTONE,
+    zones=[BEDROCK],
+    hardness=3,
+    required_tool_types=[ToolType.PICKAXE],
+    required_tool_material=[Material.IRON, Material.DIAMOND],
+)
+#: NETHERRACK
+NETHERRACK = Item("netherrack")
+MC_NETHERRACK = McItem(
+    NETHERRACK,
+    zones=[NETHER],
+    hardness=0.4,
+    required_tool_types=[ToolType.PICKAXE],
+)
 
 #: Loots
-REEDS = Loot(83, "reeds", stack_size=3)  #: REEDS
-EGG = Loot(344, "egg")  #: EGG
-LEATHER = Loot(334, "leather", stack_size=2, required_tools=SWORDS)  #: LEATHER
-
-MC_BLOCKS = [
-    DIRT,
-    STONE,
-    COBBLESTONE,
-    GOLD_ORE,
-    IRON_ORE,
-    WOOD,
-    DIAMOND_ORE,
-    OBSIDIAN,
-    REDSTONE_ORE,
-]
-
-MC_BASE_ITEMS = [
-    DIAMOND,
-    REDSTONE,
-    REEDS,
-    EGG,
+#: REEDS
+REEDS = Item("reeds")
+MC_REEDS = McItem(REEDS, hardness=1 / 3, zones=[SWAMP])
+#: EGG
+EGG = Item("egg")
+MC_EGG = McItem(EGG, zones=[MEADOW])
+#: LEATHER
+LEATHER = Item("leather")
+MC_LEATHER = McItem(
     LEATHER,
+    hardness=2,
+    zones=[MEADOW],
+    required_tool_types=[ToolType.SWORD],
+)
+#: BLAZE_ROD
+BLAZE_ROD = Item("blaze_rod")
+MC_BLAZE_ROD = McItem(
+    BLAZE_ROD,
+    hardness=4,
+    zones=[NETHER],
+    required_tool_types=[ToolType.SWORD],
+    required_tool_material=[Material.GOLD],
+)
+#: ENDER_PEARL
+ENDER_PEARL = Item("ender_pearl")
+MC_ENDER_PEARL = McItem(
+    ENDER_PEARL,
+    hardness=4,
+    zones=[UNDERGROUND, END],
+    required_tool_types=[ToolType.SWORD],
+    required_tool_material=[Material.IRON, Material.DIAMOND],
+)
+#: ENDER_DRAGON_HEAD
+ENDER_DRAGON_HEAD = Item("ender_dragon_head")
+MC_ENDER_DRAGON_HEAD = McItem(
+    ENDER_DRAGON_HEAD,
+    hardness=8,
+    zones=[END],
+    required_tool_types=[ToolType.SWORD],
+    required_tool_material=[Material.DIAMOND],
+)
+
+MC_ITEMS = [
+    MC_DIRT,
+    MC_WOOD,
+    MC_GRAVEL,
+    MC_COBBLESTONE,
+    MC_COAL,
+    MC_IRON_ORE,
+    MC_GOLD_ORE,
+    MC_DIAMOND,
+    MC_OBSIDIAN,
+    MC_REDSTONE,
+    MC_NETHERRACK,
+    MC_REEDS,
+    MC_EGG,
+    MC_LEATHER,
+    MC_BLAZE_ROD,
+    MC_ENDER_PEARL,
+    MC_ENDER_DRAGON_HEAD,
 ]
 
-MC_CRAFT_ITEMS = [
-    WOOD_PLANK,
-    STICK,
-    IRON_INGOT,
-    GOLD_INGOT,
-    PAPER,
-    BOOK,
-    CLOCK,
-    ENCHANTING_TABLE,
-]
-
-MC_FOUDABLE_ITEMS = [
-    DIRT,
-    EGG,
-    COBBLESTONE,
-    GOLD_ORE,
-    IRON_ORE,
-    WOOD,
-    DIAMOND,
-    OBSIDIAN,
-    REDSTONE,
-    REEDS,
-    LEATHER,
-]
-
-MC_SEARCHABLE_ITEMS = [
-    DIRT,
-    EGG,
-    STONE,
-    GOLD_ORE,
-    IRON_ORE,
-    WOOD,
-    DIAMOND_ORE,
-    OBSIDIAN,
-    REDSTONE_ORE,
-    REEDS,
-    LEATHER,
-]
-
-MC_ITEMS = MC_BLOCKS + MC_BASE_ITEMS + MC_CRAFT_ITEMS
-
-if __name__ == "__main__":
-    print("Blocks: ", str(MC_BLOCKS))
-    print("Base items: ", str(MC_BASE_ITEMS))
-    print("Craft items: ", str(MC_CRAFT_ITEMS))
+#: Buildings
+CLOSE_NETHER_PORTAL = Item("close_nether_portal")  #: NETHER_PORTAL
+OPEN_NETHER_PORTAL = Item("open_nether_portal")  #: OPEN_NETHER_PORTAL
+CLOSE_ENDER_PORTAL = Item("close_ender_portal")  #: ENDER_PORTAL
+OPEN_ENDER_PORTAL = Item("open_ender_portal")  #: OPEN_ENDER_PORTAL

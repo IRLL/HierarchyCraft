@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MPLBACKEND: Agg  # https://github.com/orgs/community/discussions/26434
+      SDL_VIDEODRIVER: "dummy" # for PyGame render https://stackoverflow.com/questions/15933493/pygame-error-no-available-video-device
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.10
@@ -20,7 +21,7 @@ jobs:
       run: |
         git submodule update --init --recursive
         python -m pip install --upgrade pip
-        pip install -e .
+        pip install -e .[all]
         pip install -r requirements-dev.txt
     - name: Build coverage using pytest-cov
       run: |

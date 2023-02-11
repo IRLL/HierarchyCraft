@@ -2,8 +2,8 @@
 requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 
 [project]
-name = "crafting"
-description = "A gym-environment to simultate inventory managment"
+name = "irll-crafting"
+description = "Lightweight environments to study hierarchical reasoning"
 
 dynamic = ["version", "readme", "dependencies"]
 license = { text = "GNU General Public License v3 or later (GPLv3+)" }
@@ -20,6 +20,12 @@ keywords = [
     "reinforcement",
     "learning",
 ]
+
+
+[project.optional-dependencies]
+gym = ["gym >= 0.17.3"]
+gui = ["pygame >= 2.1.0", "pygame-menu >= 4.2.8"]
+all = ["gym >= 0.17.3", "pygame >= 2.1.0", "pygame-menu >= 4.2.8"]
 
 [project.urls]
 Source = "https://github.com/IRLL/Crafting"

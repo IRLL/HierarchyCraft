@@ -1,198 +1,422 @@
-# Crafting a gym-environment to simultate inventory managment
-# Copyright (C) 2021-2022 Mathïs FEDERICO <https://www.gnu.org/licenses/>
-
 """ Widgets for rendering of the Crafting environments """
 
 import os
-from typing import TYPE_CHECKING, List, Tuple
+from enum import Enum
+from typing import TYPE_CHECKING, Dict, List, Union
 
 import numpy as np
-import pygame
-from pygame.font import Font
 
-from crafting.render.utils import load_or_create_image, pilImageToSurface, scale
+# pygame in an optional dependency
+try:
+    from pygame_menu.locals import ALIGN_LEFT
+    from pygame_menu.menu import Menu
+    from pygame_menu.themes import THEME_DEFAULT, Theme
+    from pygame_menu.widgets import Button
+    from pygame_menu.widgets import Image as PyImage
+except ImportError:
+    Menu = object
+    THEME_DEFAULT = None
+
+from PIL.Image import Image
+
+from crafting.render.utils import (
+    _to_menu_image,
+    build_transformation_image,
+    create_text_image,
+    draw_text_on_image,
+    load_image,
+)
+from crafting.transformation import Transformation
+from crafting.world import Item, ItemStack, Zone
 
 if TYPE_CHECKING:
     from pygame.surface import Surface
 
     from crafting.env import CraftingEnv
-    from crafting.player.inventory import Inventory
-    from crafting.world.world import World
-    from crafting.world.zones import Zone
 
 
-class EnvWidget:
+class DisplayMode(Enum):
+    """Display modes for menus buttons.
 
-    """Display widget base class for any crafting environment."""
+    ALL: Button are all displayed.
+    DISCOVERED: Button are displayed if they have been discovered or are currently available.
+    CURRENT: Button are only displayed if currently available.
 
-    def update(self, env: "CraftingEnv"):
-        """Update the widget given the environment state."""
-        raise NotImplementedError
+    """
 
-    def draw(self, surface: "Surface"):
-        """Draw the widget on a given surface."""
-        raise NotImplementedError
+    ALL = "all"
+    DISCOVERED = "discovered"
+    CURRENT = "current"
 
 
-class InventoryWidget(EnvWidget):
+class ContentMode(Enum):
+    """Display modes for buttons content.
 
-    """Displays the player's inventory."""
+    ALWAYS: Button content are always displayed.
+    DISCOVERED: Button content are displayed if they have been discovered.
+    NEVER: Button content are never displayed.
 
+    """
+
+    ALWAYS = "always"
+    DISCOVERED = "discovered"
+    NEVER = "never"
+
+
+class InventoryWidget(Menu):
     def __init__(
         self,
-        inventory: "Inventory",
-        world: "World",
-        position: Tuple[int],
-        window_shape: Tuple[int],
+        title: str,
+        height: int,
+        width: int,
+        position,
+        items: List[Item],
+        resources_path: str,
+        display_mode: DisplayMode,
+        rows: int = 7,
+        theme: "Theme" = THEME_DEFAULT,
     ):
-        self.inventory = inventory
-        self.world = world
-
-        self.background = self._load_background(window_shape)
-        self.shape = self.background.get_size()
-        self.position = np.array(position)
-        self.font = Font(world.font_path, int(0.1 * self.shape[1]))
-
-        self.item_images_per_id = {
-            item_id: self._load_image(item_id) for item_id in self.inventory.items_ids
-        }
-
-    def _load_background(self, window_shape) -> "Surface":
-        background_path = os.path.join(self.world.resources_path, "inventory.png")
-        background_image = pygame.image.load(background_path)
-        return scale(background_image, window_shape, 0.65)
-
-    def _load_image(self, item_id) -> "Surface":
-        image = load_or_create_image(self.world, self.world.item_from_id[item_id])
-        image = pilImageToSurface(image)
-        return scale(image, self.shape, 0.09)
-
-    def update(self, env: "CraftingEnv"):
-        self.inventory = env.player.inventory
-
-    def draw(self, surface: "Surface"):
-        surface.blit(self.background, self.position)
-
-        non_empty_items = self.inventory.content != 0
-
-        items_in_inv = np.array(self.inventory.items)[non_empty_items]
-        content = self.inventory.content[non_empty_items]
-
-        offset = np.array([int(0.029 * self.shape[0]), int(0.155 * self.shape[1])])
-        x_step = y_step = int(0.108 * self.shape[0])
-        font_offset = np.array([int(0.85 * x_step), int(0.9 * y_step)])
-
-        content_position = self.position + offset
-        for i, (item, quantity) in enumerate(zip(items_in_inv, content)):
-            x_offset = (i % 9) * x_step
-            y_last_offset = int(0.22 * y_step) if i // 9 > 2 else 0
-            y_offset = (i // 9) * y_step + y_last_offset
-            item_position = content_position + np.array([x_offset, y_offset])
-            surface.blit(self.item_images_per_id[item.item_id], item_position)
-            if quantity > 1:
-                text_position = item_position + font_offset
-                text = self.font.render(str(quantity), False, "white")
-                text_rect = text.get_rect()
-                text_rect.right = text_position[0]
-                text_rect.bottom = text_position[1]
-                surface.blit(text, text_rect)
-
-
-class ZoneWidget(EnvWidget):
-
-    """Displays the current player zone and its active properties."""
-
-    def __init__(
-        self,
-        zones: List["Zone"],
-        properties: List[str],
-        world: "World",
-        position: Tuple[int],
-        window_shape: Tuple[int],
-    ):
-        self.zone = zones[0]
-        self.position = np.array(position)
-        self.world = world
-
-        self.zones_images = {
-            zone.zone_id: self._load_zone_image(zone.zone_id, window_shape)
-            for zone in zones
-        }
-
-        self.shape = self.zones_images[0].get_size()
-
-        self.properties_images = {
-            prop: self._load_property_image(prop) for prop in properties
-        }
-
-        self.font = Font(world.font_path, int(0.3 * self.shape[1]))
-
-    def _load_zone_image(self, zone_id, window_shape):
-        image = load_or_create_image(self.world, self.world.zone_from_id[zone_id])
-        image = pilImageToSurface(image)
-        return scale(image, window_shape, 0.25)
-
-    def _load_property_image(self, prop: str):
-        image = load_or_create_image(self.world, prop)
-        image = pilImageToSurface(image)
-        return scale(image, self.shape, 0.2)
-
-    def update(self, env: "CraftingEnv"):
-        self.zone = env.player.zone
-
-    def draw(self, surface: "Surface"):
-        zone_image = self.zones_images[self.zone.zone_id]
-        surface.blit(zone_image, self.position)
-
-        zone_name_img = self.font.render(self.zone.name.capitalize(), False, "white")
-        font_shift = np.array([int(0.05 * self.shape[0]), 0])
-        surface.blit(zone_name_img, self.position + font_shift)
-
-        prop_shift = np.array([int(0.02 * self.shape[0]), int(0.55 * self.shape[1])])
-        x_step = int(0.22 * self.shape[0])
-
-        n_active_props = 0
-        for prop, prop_is_true in self.zone.properties.items():
-            if prop_is_true:
-                prop_image = self.properties_images[prop]
-                shift = np.array([n_active_props * x_step, 0])
-                prop_position = self.position + prop_shift + shift
-                surface.blit(prop_image, prop_position)
-                n_active_props += 1
-
-
-class ScoreWidget(EnvWidget):
-
-    """Display the current score"""
-
-    def __init__(self, font_path: str, position: Tuple[int], font_size: int):
-        self.position = position
-        self.font = Font(font_path, font_size)
-        self.reward = 0
-        self.score = 0
-
-    def update(self, env: "CraftingEnv"):
-        self.score = env.player.score
-
-    def draw(self, surface: "Surface"):
-        score_name_img = self.font.render(f"SCORE {self.score}", False, "#c95149")
-        surface.blit(score_name_img, self.position)
-
-
-class StepLeftWidget(EnvWidget):
-
-    """Display the number of steps left until the environment is done."""
-
-    def __init__(self, font_path: str, position: Tuple[int], font_size: int):
-        self.position = position
-        self.font = Font(font_path, font_size)
-        self.steps_left = None
-
-    def update(self, env: "CraftingEnv"):
-        self.steps_left = env.max_step - env.steps
-
-    def draw(self, surface: "Surface"):
-        score_name_img = self.font.render(
-            f"Steps left: {self.steps_left}", False, "#803300"
+        super().__init__(
+            title=title,
+            center_content=True,
+            height=height,
+            width=width,
+            rows=rows,
+            columns=len(items) // rows + 1,
+            position=position,
+            overflow=(False, True),
+            theme=theme,
         )
-        surface.blit(score_name_img, self.position)
+
+        self.items = items
+        self.resources_path = resources_path
+        self.display_mode = DisplayMode(display_mode)
+        self.base_images = _load_base_images(items, resources_path)
+
+        self.button_id_to_item = {}
+        self.old_quantity = {}
+        for item in self.items:
+            self._build_button(item)
+
+    def update_inventory(
+        self, inventory: np.ndarray, discovered: np.ndarray, events
+    ) -> bool:
+        items_buttons = [
+            widget
+            for widget in self.get_widgets()
+            if isinstance(widget, (Button, PyImage))
+        ]
+        for button in items_buttons:
+            item = self.button_id_to_item[button.get_id()]
+            item_slot = self.items.index(item)
+            quantity = inventory[item_slot]
+            old_quantity = self.old_quantity.get(item, None)
+
+            if old_quantity is not None and quantity == old_quantity:
+                continue
+
+            if isinstance(button, PyImage):
+                self._update_button_image(
+                    button, self.base_images[item], quantity, self.resources_path
+                )
+
+            button.set_title(str(ItemStack(item, quantity)))
+            self.old_quantity[item] = quantity
+
+            if show_button(self.display_mode, quantity > 0, discovered[item_slot]):
+                button.show()
+            else:
+                button.hide()
+        return super().update(events)
+
+    def _build_button(self, item: Item) -> None:
+        image = self.base_images[item]
+        if image is not None:
+            image = draw_text_on_image(image, "0", self.resources_path)
+            button: "PyImage" = self.add.image(_to_menu_image(image, 0.5))
+        else:
+            button: "Button" = self.add.button(str(item))
+        button.is_selectable = False
+        self.button_id_to_item[button.get_id()] = item
+
+    @staticmethod
+    def _update_button_image(
+        button: "PyImage", image: "Image", quantity: int, resources_path: str
+    ):
+        if quantity == 0:
+            # Grayscale
+            image = image.convert("LA").convert("RGBA")
+        if quantity != 1:
+            image = draw_text_on_image(
+                image,
+                text=str(quantity),
+                resources_path=resources_path,
+            )
+        button.set_image(_to_menu_image(image, 0.5))
+        button.render()
+
+
+def _load_base_images(
+    objs: List[Union[Item, Zone]], resources_path: str
+) -> Dict[Union[Item, Zone], "Image"]:
+    base_images = {}
+    for obj in objs:
+        base_images[obj] = load_image(resources_path, obj=obj)
+    return base_images
+
+
+class TransformationsWidget(Menu):
+    def __init__(
+        self,
+        title: str,
+        height: int,
+        width: int,
+        position,
+        transformations: List[Transformation],
+        resources_path: str,
+        display_mode: DisplayMode,
+        content_display_mode: ContentMode,
+        theme: "Theme" = THEME_DEFAULT,
+    ):
+        super().__init__(
+            title=title,
+            center_content=False,
+            height=height,
+            width=width,
+            rows=len(transformations),
+            columns=1,
+            position=position,
+            overflow=(False, True),
+            theme=theme,
+        )
+
+        self.transformations = transformations
+        self.resources_path = resources_path
+        self.display_mode = DisplayMode(display_mode)
+        self.content_display_mode = ContentMode(content_display_mode)
+        self.button_id_to_transfo = {}
+        self.old_display = {}
+        self.old_legal = {}
+        self.buttons_base_image: Dict[str, "Image"] = {}
+        self.buttons_hidden_image: Dict[str, "Image"] = {}
+        for index, transfo in enumerate(self.transformations):
+            button = self._build_transformation_button(transfo, index)
+            self.button_id_to_transfo[button.get_id()] = transfo
+
+    def _build_transformation_button(
+        self, transfo: Transformation, action_id: int
+    ) -> "Button":
+        button: "Button" = self.add.button(
+            " ",
+            lambda x: x,
+            action_id,
+            padding=(16, 16, 16, 16),
+            align=ALIGN_LEFT,
+        )
+        image = build_transformation_image(transfo, self.resources_path)
+        if image is not None:
+            self.buttons_base_image[button.get_id()] = image
+            self.buttons_hidden_image[button.get_id()] = create_text_image(
+                text=str(action_id),
+                resources_path=self.resources_path,
+                image_size=image.size,
+            )
+            self._add_button_image(button, image)
+        return button
+
+    def update_transformations(self, env: "CraftingEnv", events) -> bool:
+        action_is_legal = env.actions_mask
+        action_buttons = [
+            widget for widget in self.get_widgets() if isinstance(widget, (Button))
+        ]
+        for button in action_buttons:
+            transfo = self.button_id_to_transfo[button.get_id()]
+            action = env.transformations.index(transfo)
+            discovered = env.discovered_transformations[action]
+            legal = action_is_legal[action]
+            old_display = self.old_display.get(button.get_id(), None)
+            old_legal = self.old_legal.get(button.get_id(), None)
+
+            button_image = self.buttons_base_image.get(button.get_id(), None)
+            display_content = show_content(self.content_display_mode, discovered)
+            self.old_display[button.get_id()] = display_content
+            self.old_legal[button.get_id()] = legal
+
+            if old_display != display_content or legal != old_legal:
+                if display_content:
+                    if button_image:
+                        if not legal:
+                            button_image = button_image.convert("LA").convert("RGBA")
+                        self._update_button_image(button, button_image)
+                    else:
+                        button.set_title(str(transfo))
+                else:
+                    if button_image:
+                        hidden_image = self.buttons_hidden_image[button.get_id()]
+                        self._update_button_image(button, hidden_image)
+                    else:
+                        button.set_title(str(action))
+
+            if show_button(self.display_mode, legal, discovered):
+                button.show()
+            else:
+                button.hide()
+        return super().update(events)
+
+    @staticmethod
+    def _add_button_image(button: "Button", image: "Image") -> str:
+        decorator = button.get_decorator()
+        menu_image = _to_menu_image(image, 0.4)
+        baseimage_id = decorator.add_baseimage(0, 0, menu_image, centered=True)
+        img_width, img_height = menu_image.get_size()
+        width_padding = (img_width - button.get_width(apply_padding=False)) // 2
+        height_padding = (img_height - button.get_height(apply_padding=False)) // 2
+        button.set_padding((height_padding, width_padding))
+        button.set_margin(8, 16)
+        return baseimage_id
+
+    @staticmethod
+    def _update_button_image(button: "Button", image: "Image") -> str:
+        menu_image = _to_menu_image(image, 0.4)
+        decorator = button.get_decorator()
+        decorator.remove_all()
+        return decorator.add_baseimage(0, 0, menu_image, centered=True)
+
+
+class PostitionWidget(Menu):
+    def __init__(
+        self,
+        title: str,
+        height: int,
+        width: int,
+        position,
+        zones: List[Zone],
+        resources_path: str,
+        display_mode: DisplayMode,
+    ):
+        super().__init__(
+            title=title,
+            center_content=False,
+            height=height,
+            width=width,
+            rows=len(zones),
+            columns=1,
+            position=position,
+            overflow=(False, True),
+            theme=Theme(
+                background_color=(186, 214, 177),
+                selection_color=(255, 255, 255, 0),
+                widget_font_color=(255, 255, 255),
+                title=False,
+                border_width=0,
+                widget_border_width=0,
+                scrollbar_slider_pad=0,
+                scrollarea_outer_margin=(0, 0),
+                scrollbar_thick=8,
+                widget_alignment=ALIGN_LEFT,
+            ),
+        )
+
+        self.zones = zones
+        self.base_images = _load_base_images(zones, resources_path)
+        self.resources_path = resources_path
+        self.display_mode = DisplayMode(display_mode)
+        self.button_id_to_zone = {}
+        self.old_quantity = {}
+        for zone in self.zones:
+            self._build_button(zone)
+
+    def update_position(
+        self, position: np.ndarray, discovered: np.ndarray, events
+    ) -> bool:
+        buttons = [
+            widget for widget in self.get_widgets() if isinstance(widget, Button)
+        ]
+        for button in buttons:
+            zone = self.button_id_to_zone[button.get_id()]
+            zone_slot = self.zones.index(zone)
+            if show_button(
+                self.display_mode, position[zone_slot], discovered[zone_slot]
+            ):
+                button.show()
+            else:
+                button.hide()
+        return super().update(events)
+
+    def _build_button(self, zone: Zone) -> None:
+        image = self.base_images[zone]
+        font = os.path.join(self.resources_path, "font.ttf")
+        button: Button = self.add.button(
+            zone.name.capitalize(),
+            font_name=font,
+            font_color="white",
+            font_size=48,
+            border_width=0,
+        )
+        if image is not None:
+            decorator = button.get_decorator()
+            menu_image = _to_menu_image(image, 0.4)
+            decorator.add_baseimage(0, 0, menu_image, centered=True)
+            img_width, img_height = menu_image.get_size()
+            width_padding = (img_width - button.get_width(apply_padding=False)) // 2
+            height_padding = (img_height - button.get_height(apply_padding=False)) // 2
+            button.set_padding((height_padding, width_padding))
+        button.is_selectable = False
+        self.button_id_to_zone[button.get_id()] = zone
+
+
+def show_button(display_mode: DisplayMode, is_current: bool, discovered: bool) -> bool:
+    """Whether to show the button depending on its display mode and current state."""
+    _show_button = True
+    if display_mode is DisplayMode.CURRENT:
+        _show_button = is_current
+    elif display_mode is DisplayMode.DISCOVERED:
+        _show_button = discovered or is_current
+    return _show_button
+
+
+def show_content(content_mode: ContentMode, discovered: bool) -> bool:
+    """Whether to show the button content depending on its content mode and current state."""
+    display_content = True
+    if content_mode is ContentMode.NEVER:
+        display_content = False
+    elif content_mode is ContentMode.DISCOVERED:
+        display_content = discovered
+    return display_content
+
+
+# class ScoreWidget:
+
+#     """Display the current score"""
+
+#     def __init__(self, font_path: str, position: Tuple[int], font_size: int):
+#         self.position = position
+#         self.font = Font(font_path, font_size)
+#         self.reward = 0
+#         self.score = 0
+
+#     def update(self, env: "CraftingEnv"):
+#         self.score = env.player.score
+
+#     def draw(self, surface: "Surface"):
+#         score_name_img = self.font.render(f"SCORE {self.score}", False, "#c95149")
+#         surface.blit(score_name_img, self.position)
+
+
+# class StepLeftWidget:
+
+#     """Display the number of steps left until the environment is done."""
+
+#     def __init__(self, font_path: str, position: Tuple[int], font_size: int):
+#         self.position = position
+#         self.font = Font(font_path, font_size)
+#         self.steps_left = None
+
+#     def update(self, env: "CraftingEnv"):
+#         self.steps_left = env.max_step - env.steps
+
+#     def draw(self, surface: "Surface"):
+#         score_name_img = self.font.render(
+#             f"Steps left: {self.steps_left}", False, "#803300"
+#         )
+#         surface.blit(score_name_img, self.position)
