@@ -35,3 +35,9 @@ def test_tower_cli():
     check.is_instance(env, TowerCraftingEnv)
     check.equal(env.height, 4)
     check.equal(env.width, 3)
+
+
+def test_recursive_cli():
+    env = crafting_cli(["recursive", "--n-items", "5"])
+    check.is_instance(env, RecursiveCraftingEnv)
+    check.equal(env.n_items, 5)
