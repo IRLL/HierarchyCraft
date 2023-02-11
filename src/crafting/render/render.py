@@ -38,8 +38,8 @@ class CraftingWindow:
         player_inventory_display: DisplayMode = DisplayMode.CURRENT,
         zone_inventory_display: DisplayMode = DisplayMode.CURRENT,
         position_display: DisplayMode = DisplayMode.CURRENT,
-        transformation_display_mode: DisplayMode = DisplayMode.DISCOVERED,
-        transformation_content_mode: ContentMode = ContentMode.DISCOVERED,
+        transformation_display: DisplayMode = DisplayMode.DISCOVERED,
+        transformation_content: ContentMode = ContentMode.DISCOVERED,
     ) -> None:
         """Initialize a Crafting window without building it on a specific environment (yet).
 
@@ -76,8 +76,8 @@ class CraftingWindow:
         self.player_inventory_display = player_inventory_display
         self.zone_inventory_display = zone_inventory_display
         self.position_display = position_display
-        self.transformation_display_mode = transformation_display_mode
-        self.transformation_content_mode = transformation_content_mode
+        self.transformation_display = transformation_display
+        self.transformation_content = transformation_content
 
     @property
     def built(self) -> bool:
@@ -104,8 +104,8 @@ class CraftingWindow:
             self.player_inventory_display,
             self.zone_inventory_display,
             self.position_display,
-            self.transformation_display_mode,
-            self.transformation_content_mode,
+            self.transformation_display,
+            self.transformation_content,
         )
 
     def update_rendering(
