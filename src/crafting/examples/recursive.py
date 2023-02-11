@@ -122,12 +122,3 @@ class LightRecursiveCraftingEnv(CraftingEnv):
             transformation.append(new_recipe)
 
         return transformation
-
-
-def main():
-    env = RecursiveCraftingEnv(n_items=7)
-    render_env_with_human(env)
-
-
-if __name__ == "__main__":
-    main()
