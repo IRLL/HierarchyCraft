@@ -1,3 +1,15 @@
+"""# Requirements graph
+
+The crafting package is meant to able the conception of arbitrary underlying hierarchial
+structures in environments.
+
+But of course, it's better to be able to manipulate and visualize those underlying hierachies !
+We call those underlying hierachies in crafting environments "requirements graph".
+
+![MineCrafting hierarchy](../../docs/_static/images/minecrafting_crafts_hierarchy.png)
+
+"""
+
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
@@ -314,7 +326,9 @@ def break_cycles_through_level(multidigraph: nx.MultiDiGraph):
 
 class RequirementsGraphLayout(Enum):
     LEVEL = "level"
+    """Layout using requirement level and a metaheuristic."""
     SPRING = "spring"
+    """Classic spring layout."""
 
 
 def draw_requirements_graph(
