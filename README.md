@@ -137,7 +137,7 @@ There is much more to discover in crafting:
 - Plot the underlying requirements graph: `crafting.requirement_graph`
 - Create your own customize environment: `crafting.env`
 
-Find everything in the documentation:
+Find everything in the [documentation](https://irll.github.io/Crafting/crafting.html):
 
 [![DOCUMENTATION](docs/images/doc_index.png)](https://irll.github.io/Crafting/crafting.html)
 
