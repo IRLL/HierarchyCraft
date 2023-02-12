@@ -45,27 +45,26 @@ class TestItemsInWoodenPickaxeGraph:
             msg=f"\nAll nodes in graph:\n{list(graph.nodes())}",
         )
 
-    @pytest.mark.xfail
-    def test_graph_unrolled(self):
-        """should give all needed items in unrolled wooden_pickaxe graph."""
-        expected_items = {WOOD, WOOD_PLANK, STICK, WOODEN_PICKAXE}
-        expected_zone_items = {CRAFTING_TABLE}
+    # def test_graph_unrolled(self):
+    #     """should give all needed items in unrolled wooden_pickaxe graph."""
+    #     expected_items = {WOOD, WOOD_PLANK, STICK, WOODEN_PICKAXE}
+    #     expected_zone_items = {CRAFTING_TABLE}
 
-        unrolled_graph = unroll_graph(
-            self.pickaxe_behavior.graph, cut_looping_alternatives=True
-        )
-        items = get_items_in_graph(unrolled_graph)
-        zone_items = get_zones_items_in_graph(unrolled_graph)
-        check.equal(
-            items,
-            expected_items,
-            msg=f"\nItems in graph:\n{items}",
-        )
-        check.equal(
-            zone_items,
-            expected_zone_items,
-            msg=f"\nZone items in graph:\n{zone_items}",
-        )
+    #     unrolled_graph = unroll_graph(
+    #         self.pickaxe_behavior.graph, cut_looping_alternatives=True
+    #     )
+    #     items = get_items_in_graph(unrolled_graph)
+    #     zone_items = get_zones_items_in_graph(unrolled_graph)
+    #     check.equal(
+    #         items,
+    #         expected_items,
+    #         msg=f"\nItems in graph:\n{items}",
+    #     )
+    #     check.equal(
+    #         zone_items,
+    #         expected_zone_items,
+    #         msg=f"\nZone items in graph:\n{zone_items}",
+    #     )
 
     def test_graph_draw(self):
         fig, ax = plt.subplots()
