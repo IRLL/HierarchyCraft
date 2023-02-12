@@ -6,7 +6,7 @@ structures in environments.
 But of course, it's better to be able to manipulate and visualize those underlying hierachies !
 We call those underlying hierachies in crafting environments "requirements graph".
 
-![MineCrafting hierarchy](../../docs/_static/images/minecrafting_crafts_hierarchy.png)
+![MineCrafting hierarchy](../../docs/images/minecrafting_crafts_hierarchy.png)
 
 """
 
