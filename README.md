@@ -53,7 +53,7 @@ pip install irll-crafting[gym]
 # Quickstart
 
 
-## Run MineCrafting with human
+## Run MineCrafting with human (need gui dependencies)
 
 Using the command line interface:
 
