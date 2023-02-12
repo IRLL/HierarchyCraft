@@ -20,9 +20,37 @@ from crafting.examples.minecraft.tools import (
     ToolType,
 )
 from crafting.examples.minecraft.zones import NETHER, UNDERGROUND
+from crafting.purpose import Purpose
+from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask
 
 WOODEN_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.WOOD]
 STONE_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.STONE]
+
+
+@pytest.mark.slow
+def test_solving_behaviors():
+    """All tasks should be solved by their solving behavior."""
+    mc_env = MineCraftingEnv()
+
+    do_all_purpose = Purpose()
+    for item in mc_env.world.items:
+        do_all_purpose.add_task(GetItemTask(item, reward=1))
+    for zone in mc_env.world.zones:
+        do_all_purpose.add_task(GoToZoneTask(zone, reward=1))
+    for item in mc_env.world.zones_items:
+        do_all_purpose.add_task(PlaceItemTask(item, reward=1))
+
+    mc_env = MineCraftingEnv(purpose=do_all_purpose, max_step=1000)
+    done = False
+    observation = mc_env.reset()
+    while not done:
+        for task in mc_env.purpose.tasks:
+            if not task.is_terminated:
+                solving_behavior = mc_env.solving_behavior(task)
+                break
+        action = solving_behavior(observation)
+        observation, _rew, done, _infos = mc_env.step(action)
+    check.is_true(done)
 
 
 class TestItemsInWoodenPickaxeGraph:
@@ -31,14 +59,14 @@ class TestItemsInWoodenPickaxeGraph:
     @pytest.fixture(autouse=True)
     def setup_method(self):
         self.mc_env = MineCraftingEnv()
-        self.all_behaviors = self.mc_env.get_all_behaviors()
-        self.pickaxe_behavior = self.all_behaviors[f"Get {WOODEN_PICKAXE.name}"]
+        task = GetItemTask(WOODEN_PICKAXE)
+        self.pickaxe_behavior = self.mc_env.solving_behavior(task)
 
     def test_graph_rolled(self):
         """should give direct needed items in wooden_pickaxe graph."""
         expected_items = {WOOD_PLANK, STICK, WOODEN_PICKAXE}
         graph = self.pickaxe_behavior.graph
-        items = get_items_in_graph(graph, all_behaviors=self.all_behaviors)
+        items = get_items_in_graph(graph, all_behaviors=self.mc_env.all_behaviors)
         check.equal(
             items,
             expected_items,
@@ -74,17 +102,17 @@ class TestItemsInWoodenPickaxeGraph:
 
 def test_go_to_zone_with_tool_needed():
     env = MineCraftingEnv()
-    all_behaviors = env.get_all_behaviors()
-    go_to_behavior = all_behaviors[f"Reach {UNDERGROUND.name}"]
-    items = get_items_in_graph(go_to_behavior.graph, all_behaviors=all_behaviors)
+    task = GoToZoneTask(UNDERGROUND)
+    go_to_underground = env.solving_behavior(task)
+    items = get_items_in_graph(go_to_underground.graph, all_behaviors=env.all_behaviors)
     check.is_in(STONE_PICKAXE, items)
 
 
 def test_go_to_nether_needs_open_portal():
     env = MineCraftingEnv()
-    all_behaviors = env.get_all_behaviors()
-    go_to_behavior = all_behaviors[f"Reach {NETHER.name}"]
+    task = GoToZoneTask(NETHER)
+    go_to_nether = env.solving_behavior(task)
     zone_items = get_zones_items_in_graph(
-        go_to_behavior.graph, all_behaviors=all_behaviors
+        go_to_nether.graph, all_behaviors=env.all_behaviors
     )
     check.is_in(OPEN_NETHER_PORTAL, zone_items)

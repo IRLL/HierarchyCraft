@@ -43,6 +43,9 @@ dependencies = { file = ["requirements.txt"] }
 [tool.setuptools_scm]
 
 [tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
 testpaths = ["tests"]
 log_level = "DEBUG"
 

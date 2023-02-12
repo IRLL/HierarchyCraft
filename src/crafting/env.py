@@ -8,8 +8,13 @@ import networkx as nx
 import numpy as np
 
 import crafting
-from crafting.behaviors.solving_behaviors import Behavior, build_all_solving_behaviors
+from crafting.solving_behaviors import (
+    Behavior,
+    build_all_solving_behaviors,
+    task_to_behavior_name,
+)
 from crafting.purpose import Purpose
+from crafting.task import Task
 from crafting.render.render import CraftingWindow
 from crafting.render.utils import surface_to_rgb_array
 from crafting.requirement_graph import build_requirements_graph, draw_requirements_graph
@@ -77,6 +82,7 @@ class CraftingEnv(Env):
         self.max_step = max_step
         self.name = name
         self._requirements_graph = None
+        self._all_behaviors = None
 
         self.render_mode = render_mode
         self.render_window = render_window
@@ -224,9 +230,23 @@ class CraftingEnv(Env):
         if self.render_window is not None:
             self.render_window.close()
 
-    def get_all_behaviors(self) -> Dict[str, "Behavior"]:
-        """Build all solving behaviors using hebg."""
-        return build_all_solving_behaviors(self)
+    @property
+    def all_behaviors(self) -> Dict[str, "Behavior"]:
+        """All solving behaviors using hebg."""
+        if self._all_behaviors is None:
+            self._all_behaviors = build_all_solving_behaviors(self)
+        return self._all_behaviors
+
+    def solving_behavior(self, task: "Task") -> "Behavior":
+        """Get teh solving behavior for a given task.
+
+        Args:
+            task: Task to solve.
+
+        Returns:
+            Behavior: Behavior solving the task.
+        """
+        return self.all_behaviors[task_to_behavior_name(task)]
 
     def draw_requirements_graph(self, ax, **kwargs):
         return draw_requirements_graph(ax, self.requirements_graph, **kwargs)
