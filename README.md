@@ -133,6 +133,7 @@ random_env = RandomCrafting(n_items_per_n_inputs={0:2, 1:5, 2:10}, seed=42)
 There is much more to discover in crafting:
 
 - Add a Purpose to the player: `crafting.purpose`
+- Get a solving behavior for any given task: `crafting.solving_behaviors`
 - Plot the underlying requirements graph: `crafting.requirement_graph`
 - Create your own customize environment: `crafting.env`
 

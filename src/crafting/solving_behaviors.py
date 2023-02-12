@@ -1,3 +1,46 @@
+"""# Solving behaviors
+
+The crafting environment comes with built-in solutions.
+For ANY task in ANY crafting enviornment, a solving behavior can be given 
+thanks to the fact that no feature extraction is required.
+
+This behavior can be called on the observation and will return relevant actions, like any agent.
+
+Solving behavior for any task can simply be obtained like this:
+
+```python
+behavior = env.solving_behavior(task)
+action = behavior(observation)
+```
+
+Solving behaviors can be used for imitation learning, as teacher or an expert policy.
+
+## Example
+
+Let's get a DIAMOND in MineCrafting:
+
+```python
+from crafting.examples import MineCraftingEnv
+from crafting.examples.minecraft.items import DIAMOND
+from crafting.task import GetItemTask
+
+get_diamond = GetItemTask(DIAMOND)
+env = MineCraftingEnv(purpose=get_diamond)
+solving_behavior = env.solving_behavior(get_diamond)
+
+done = False
+observation = env.reset()
+while not done:
+    action = solving_behavior(observation)
+    observation, _reward, done, _info = env.step(action)
+
+assert get_diamond.is_terminated # DIAMOND has been obtained !
+```
+
+
+"""
+
+
 from typing import TYPE_CHECKING, Dict
 
 from hebg import Behavior
