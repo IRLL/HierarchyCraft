@@ -74,7 +74,7 @@ class AchievementTask(Task):
 class GetItemTask(AchievementTask):
     """Task of getting a given quantity of an item."""
 
-    def __init__(self, item_stack: Union[Item, ItemStack], reward: float):
+    def __init__(self, item_stack: Union[Item, ItemStack], reward: float = 1.0):
         self.item_stack = stack_item(item_stack)
         super().__init__(name=self.get_name(self.item_stack), reward=reward)
 
@@ -101,7 +101,7 @@ class GetItemTask(AchievementTask):
 class GoToZoneTask(AchievementTask):
     """Task to go to a given zone."""
 
-    def __init__(self, zone: Zone, reward: float) -> None:
+    def __init__(self, zone: Zone, reward: float = 1.0) -> None:
         super().__init__(name=self.get_name(zone), reward=reward)
         self.zone = zone
 
