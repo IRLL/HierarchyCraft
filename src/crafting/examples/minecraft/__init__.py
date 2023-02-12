@@ -1,3 +1,13 @@
+"""# MineCrafting: Inspired from the popular game Minecraft.
+
+<img src="../../../../docs/images/MineCrafting_human_demo.gif"
+alt="minecrafting demo" width="100%"/>
+
+<img src="../../../../docs/images/minecrafting_crafts_hierarchy.png"
+alt="minecrafting hierarchy" width="100%"/>
+
+"""
+
 from crafting.examples.minecraft.env import MineCraftingEnv
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.zones import *
