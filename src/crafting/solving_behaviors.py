@@ -55,15 +55,16 @@ from crafting.behaviors.behaviors import (
 
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv
+    from crafting.world import World
 
 
-def build_all_solving_behaviors(env: "CraftingEnv") -> Dict[str, "Behavior"]:
+def build_all_solving_behaviors(world: "World") -> Dict[str, "Behavior"]:
     """Return a dictionary of handcrafted behaviors to get each item, zone and property."""
     all_behaviors = {}
-    all_behaviors = _reach_zones_behaviors(env, all_behaviors)
-    all_behaviors = _get_item_behaviors(env, all_behaviors)
-    all_behaviors = _get_zone_item_behaviors(env, all_behaviors)
-    all_behaviors = _do_transfo_behaviors(env, all_behaviors)
+    all_behaviors = _reach_zones_behaviors(world, all_behaviors)
+    all_behaviors = _get_item_behaviors(world, all_behaviors)
+    all_behaviors = _get_zone_item_behaviors(world, all_behaviors)
+    all_behaviors = _do_transfo_behaviors(world, all_behaviors)
     return all_behaviors
 
 
@@ -112,7 +113,7 @@ def _get_zone_item_behaviors(env: "CraftingEnv", all_behaviors: Dict[str, "Behav
 
 
 def _do_transfo_behaviors(env: "CraftingEnv", all_behaviors: Dict[str, "Behavior"]):
-    for transfo in env.transformations:
+    for transfo in env.world.transformations:
         behavior = AbleAndPerformTransformation(
             env, transfo, all_behaviors=all_behaviors
         )

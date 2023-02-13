@@ -78,6 +78,6 @@ def test_tower_accessible_items():
     """items from the base of the tower should be accessible from the start."""
     env = TowerCraftingEnv(height=2, width=3)
     searchable_items = env.world.items[: env.width]
-    for transfo in env.transformations:
+    for transfo in env.world.transformations:
         if any(item in searchable_items for item in transfo.added_player_items):
             check.equal(len(transfo.removed_player_items), 0)

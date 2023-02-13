@@ -93,14 +93,13 @@ from enum import Enum
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 
 import networkx as nx
-import numpy as np
 
 from crafting.requirement_graph import ReqNodesTypes, req_node_name
 from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
-from crafting.world import Item, Zone
+from crafting.world import Item, Zone, World
 
 if TYPE_CHECKING:
-    from crafting.env import CraftingEnv
+    from crafting.env import CraftingEnv, CraftingState
 
 
 class RewardShaping(Enum):
@@ -208,12 +207,7 @@ class Purpose:
         for task in self.tasks:
             task.build(env.world)
 
-    def reward(
-        self,
-        player_inventory: np.ndarray,
-        position: np.ndarray,
-        zones_inventory: np.ndarray,
-    ) -> float:
+    def reward(self, state: "CraftingState") -> float:
         """
         Returns the purpose reward for the given state based on tasks.
         """
@@ -221,24 +215,17 @@ class Purpose:
         if not self.tasks:
             return reward
         for task in self.tasks:
-            reward += task.reward(player_inventory, position, zones_inventory)
+            reward += task.reward(state)
         return reward
 
-    def is_terminal(
-        self,
-        player_inventory: np.ndarray,
-        position: np.ndarray,
-        zones_inventory: np.ndarray,
-    ) -> bool:
+    def is_terminal(self, state: "CraftingState") -> bool:
         """
         Returns True if the given state is terminal for the whole purpose.
         """
         if not self.tasks:
             return False
         for task in self.tasks:
-            if not self.task_has_ended[task] and task.is_terminal(
-                player_inventory, position, zones_inventory
-            ):
+            if not self.task_has_ended[task] and task.is_terminal(state):
                 self.task_has_ended[task] = True
         for _terminal_group, group_tasks in self.terminal_groups.items():
             group_has_ended = all(self.task_has_ended[task] for task in group_tasks)
@@ -260,9 +247,9 @@ class Purpose:
         if reward_shaping == RewardShaping.NONE:
             return []
         if reward_shaping == RewardShaping.ALL_ACHIVEMENTS:
-            return _all_subtasks(env, self.shaping_value)
+            return _all_subtasks(env.world, self.shaping_value)
         if reward_shaping == RewardShaping.INPUTS_ACHIVEMENT:
-            return _inputs_subtasks(task, env, self.shaping_value)
+            return _inputs_subtasks(task, env.world, self.shaping_value)
         if reward_shaping == RewardShaping.REQUIRED_ACHIVEMENTS:
             return _required_subtasks(task, env, self.shaping_value)
         raise NotImplementedError
@@ -289,9 +276,9 @@ class Purpose:
         return ",".join(tasks_str)
 
 
-def _all_subtasks(env: "CraftingEnv", shaping_reward: float) -> List[Task]:
+def _all_subtasks(world: "World", shaping_reward: float) -> List[Task]:
     return _build_reward_shaping_subtasks(
-        env.world.items, env.world.zones, env.world.zones_items, shaping_reward
+        world.items, world.zones, world.zones_items, shaping_reward
     )
 
 
@@ -341,9 +328,7 @@ def _required_subtasks(
     )
 
 
-def _inputs_subtasks(
-    task: Task, env: "CraftingEnv", shaping_reward: float
-) -> List[Task]:
+def _inputs_subtasks(task: Task, world: "World", shaping_reward: float) -> List[Task]:
     relevant_items = set()
     relevant_zones = set()
     relevant_zone_items = set()
@@ -367,19 +352,19 @@ def _inputs_subtasks(
         )
     transfo_giving_item = [
         transfo
-        for transfo in env.transformations
+        for transfo in world.transformations
         if goal_item in transfo.produced_items
         and goal_item not in transfo.consumed_items
     ]
     transfo_placing_zone_item = [
         transfo
-        for transfo in env.transformations
+        for transfo in world.transformations
         if goal_zone_item in transfo.produced_zones_items
         and goal_zone_item not in transfo.consumed_zones_items
     ]
     transfo_going_to_any_zones = [
         transfo
-        for transfo in env.transformations
+        for transfo in world.transformations
         if transfo.destination is not None and transfo.destination in goal_zones
     ]
     relevant_transformations = (

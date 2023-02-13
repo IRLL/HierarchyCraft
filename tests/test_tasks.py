@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from typing import Any
+
 import numpy as np
 import pytest
 import pytest_check as check
@@ -7,11 +10,19 @@ from crafting.world import Item, ItemStack, World, Zone
 from tests.custom_checks import check_np_equal
 
 
+@dataclass
+class DummyState:
+    player_inventory: Any = None
+    position: Any = None
+    zones_inventories: Any = None
+
+
 def simple_world() -> World:
     return World(
         items=[Item("dirt"), Item("wood"), Item("stone"), Item("plank")],
         zones=[Zone("start"), Zone("other_zone")],
         zones_items=[Item("dirt"), Item("table"), Item("wood_house")],
+        transformations=[],
     )
 
 
@@ -36,22 +47,22 @@ class TestGetItem:
         """should terminate only when the player has more than wanted items."""
         self.task.build(self.world)
 
-        state = np.array([10, 2, 10, 10]), None, None
-        check.is_false(self.task.is_terminal(*state))
-        state = np.array([0, 3, 0, 0]), None, None
-        check.is_true(self.task.is_terminal(*state))
-        state = np.array([0, 4, 0, 0]), None, None
-        check.is_true(self.task.is_terminal(*state))
+        state = DummyState(player_inventory=np.array([10, 2, 10, 10]))
+        check.is_false(self.task.is_terminal(state))
+        state = DummyState(player_inventory=np.array([0, 3, 0, 0]))
+        check.is_true(self.task.is_terminal(state))
+        state = DummyState(player_inventory=np.array([0, 4, 0, 0]))
+        check.is_true(self.task.is_terminal(state))
 
     def test_reward(self):
         """should reward only the first time the task terminates."""
         self.task.build(self.world)
 
-        state = np.array([10, 2, 10, 10]), None, None
-        check.equal(self.task.reward(*state), 0)
-        state = np.array([0, 4, 0, 0]), None, None
-        check.equal(self.task.reward(*state), 5)
-        check.equal(self.task.reward(*state), 0)
+        state = DummyState(player_inventory=np.array([10, 2, 10, 10]))
+        check.equal(self.task.reward(state), 0)
+        state = DummyState(player_inventory=np.array([0, 4, 0, 0]))
+        check.equal(self.task.reward(state), 5)
+        check.equal(self.task.reward(state), 0)
 
 
 class TestGoToZone:
@@ -69,20 +80,20 @@ class TestGoToZone:
         """should terminate only when the player is in the zone"""
         self.task.build(self.world)
 
-        state = None, np.array([1, 0]), None
-        check.is_false(self.task.is_terminal(*state))
-        state = None, np.array([0, 1]), None
-        check.is_true(self.task.is_terminal(*state))
+        state = DummyState(position=np.array([1, 0]))
+        check.is_false(self.task.is_terminal(state))
+        state = DummyState(position=np.array([0, 1]))
+        check.is_true(self.task.is_terminal(state))
 
     def test_reward(self):
         """should reward only the first time the task terminates."""
         self.task.build(self.world)
 
-        state = None, np.array([1, 0]), None
-        check.equal(self.task.reward(*state), 0)
-        state = None, np.array([0, 1]), None
-        check.equal(self.task.reward(*state), 5)
-        check.equal(self.task.reward(*state), 0)
+        state = DummyState(position=np.array([1, 0]))
+        check.equal(self.task.reward(state), 0)
+        state = DummyState(position=np.array([0, 1]))
+        check.equal(self.task.reward(state), 5)
+        check.equal(self.task.reward(state), 0)
 
 
 class TestPlaceItem:
@@ -128,19 +139,19 @@ class TestPlaceItem:
         """should terminate only when the given zone has more than wanted items."""
         self.task.build(self.world)
 
-        state = None, None, np.array([[10, 10, 10], [10, 10, 0]])
-        check.is_false(self.task.is_terminal(*state))
-        state = None, None, np.array([[0, 0, 0], [0, 0, 2]])
-        check.is_true(self.task.is_terminal(*state))
-        state = None, None, np.array([[0, 0, 0], [0, 0, 3]])
-        check.is_true(self.task.is_terminal(*state))
+        state = DummyState(zones_inventories=np.array([[10, 10, 10], [10, 10, 0]]))
+        check.is_false(self.task.is_terminal(state))
+        state = DummyState(zones_inventories=np.array([[0, 0, 0], [0, 0, 2]]))
+        check.is_true(self.task.is_terminal(state))
+        state = DummyState(zones_inventories=np.array([[0, 0, 0], [0, 0, 3]]))
+        check.is_true(self.task.is_terminal(state))
 
     def test_reward(self):
         """should reward only the first time the task terminates."""
         self.task.build(self.world)
 
-        state = None, None, np.array([[10, 10, 10], [10, 10, 0]])
-        check.equal(self.task.reward(*state), 0)
-        state = None, None, np.array([[0, 0, 0], [0, 0, 2]])
-        check.equal(self.task.reward(*state), 5)
-        check.equal(self.task.reward(*state), 0)
+        state = DummyState(zones_inventories=np.array([[10, 10, 10], [10, 10, 0]]))
+        check.equal(self.task.reward(state), 0)
+        state = DummyState(zones_inventories=np.array([[0, 0, 0], [0, 0, 2]]))
+        check.equal(self.task.reward(state), 5)
+        check.equal(self.task.reward(state), 0)

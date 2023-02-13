@@ -12,7 +12,7 @@ import numpy as np
 
 from crafting.env import CraftingEnv
 from crafting.transformation import Transformation
-from crafting.world import Item, ItemStack
+from crafting.world import Item, ItemStack, world_from_transformations
 
 
 class RandomCraftingEnv(CraftingEnv):
@@ -43,7 +43,8 @@ class RandomCraftingEnv(CraftingEnv):
         )
         name = f"RandomCrafing-{env_characteristics}-S{seed}"
         transformations = self._transformations(n_items_per_n_inputs)
-        super().__init__(transformations=transformations, name=name, **kwargs)
+        world = world_from_transformations(transformations)
+        super().__init__(world, name=name, **kwargs)
 
     def _transformations(
         self,

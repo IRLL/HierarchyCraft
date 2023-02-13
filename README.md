@@ -82,7 +82,7 @@ for _ in range(n_episodes):
     while not done:
         env.render()
         action = get_human_action(env)
-        print(f"Human pressed: {env.transformations[action]}")
+        print(f"Human pressed: {env.world.transformations[action]}")
 
         _observation, reward, done, _info = env.step(action)
         total_reward += reward

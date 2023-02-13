@@ -1,6 +1,6 @@
-from typing import List, Tuple
+from typing import List, Tuple, Any
+from dataclasses import dataclass
 
-import numpy as np
 import pytest
 import pytest_check as check
 
@@ -8,25 +8,36 @@ from crafting.env import CraftingEnv
 from crafting.purpose import Purpose, RewardShaping
 from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
 from crafting.transformation import Transformation
-from crafting.world import Item, ItemStack, World, Zone
+from crafting.world import Item, ItemStack, World, Zone, world_from_transformations
+
+
+@dataclass
+class DummyState:
+    player_inventory: Any
+    position: Any
+    zones_inventories: Any
+
+    @staticmethod
+    def from_pos(position: Any) -> "DummyState":
+        return DummyState(None, position, None)
 
 
 class TestNoPurpose:
     @pytest.fixture(autouse=True)
     def setup_method(self):
         self.purpose = Purpose(None)
+        self.state = DummyState(None, None, None)
 
     def test_reward(self):
-        reward = self.purpose.reward(None, None, None)
+        reward = self.purpose.reward(self.state)
         check.equal(reward, 0)
 
     def test_is_terminal(self):
-        check.is_false(self.purpose.is_terminal(None, None, None))
+        check.is_false(self.purpose.is_terminal(self.state))
 
-
-def test_time_penalty():
-    purpose = Purpose(None, timestep_reward=-1)
-    check.equal(purpose.reward(None, None, None), -1)
+    def test_time_penalty(self):
+        purpose = Purpose(None, timestep_reward=-1)
+        check.equal(purpose.reward(self.state), -1)
 
 
 class DummyPosEqualTask(Task):
@@ -35,23 +46,13 @@ class DummyPosEqualTask(Task):
         self._reward = reward
         self.goal_position = goal_position
 
-    def reward(
-        self,
-        player_inventory: np.ndarray,
-        position: np.ndarray,
-        zones_inventory: np.ndarray,
-    ) -> float:
-        if position == self.goal_position:
+    def reward(self, state: DummyState) -> float:
+        if state.position == self.goal_position:
             return self._reward
         return 0.0
 
-    def is_terminal(
-        self,
-        player_inventory: np.ndarray,
-        position: np.ndarray,
-        zones_inventory: np.ndarray,
-    ) -> bool:
-        return position == self.goal_position
+    def is_terminal(self, state: DummyState) -> bool:
+        return state.position == self.goal_position
 
     def build(self, world: World) -> None:
         self.is_built = True
@@ -65,19 +66,21 @@ class TestPurposeSingleTask:
     def setup_method(self):
         self.go_to_1 = DummyPosEqualTask(reward=5, goal_position=1)
         self.purpose = Purpose(self.go_to_1)
-        self.env = CraftingEnv([])
+        self.env = CraftingEnv(World([], [], [], []))
+        self.pos_0 = DummyState.from_pos(0)
+        self.pos_1 = DummyState.from_pos(1)
 
     def test_build(self):
         self.purpose.build(self.env)
         check.is_true(self.go_to_1.is_built)
 
     def test_reward(self):
-        check.equal(self.purpose.reward(None, 0, None), 0)
-        check.equal(self.purpose.reward(None, 1, None), 5)
+        check.equal(self.purpose.reward(self.pos_0), 0)
+        check.equal(self.purpose.reward(self.pos_1), 5)
 
     def test_is_terminal(self):
-        check.is_false(self.purpose.is_terminal(None, 0, None))
-        check.is_true(self.purpose.is_terminal(None, 1, None))
+        check.is_false(self.purpose.is_terminal(self.pos_0))
+        check.is_true(self.purpose.is_terminal(self.pos_1))
 
 
 class TestPurposeMultiTasks:
@@ -92,7 +95,7 @@ class TestPurposeMultiTasks:
         self.purpose.add_task(self.go_to_2, terminal_groups="other")
         self.go_to_3 = DummyPosEqualTask(reward=1, goal_position=3)
         self.purpose.add_task(self.go_to_3, terminal_groups="")
-        self.env = CraftingEnv([])
+        self.env = CraftingEnv(World([], [], [], []))
 
     def test_build(self):
         self.purpose.build(self.env)
@@ -100,22 +103,22 @@ class TestPurposeMultiTasks:
             check.is_true(task.is_built)
 
     def test_reward(self):
-        check.equal(self.purpose.reward(None, -1, None), 0)
-        check.equal(self.purpose.reward(None, 0, None), 10)
-        check.equal(self.purpose.reward(None, 1, None), 5)
-        check.equal(self.purpose.reward(None, 2, None), 3)
-        check.equal(self.purpose.reward(None, 3, None), 1)
+        check.equal(self.purpose.reward(DummyState.from_pos(-1)), 0)
+        check.equal(self.purpose.reward(DummyState.from_pos(0)), 10)
+        check.equal(self.purpose.reward(DummyState.from_pos(1)), 5)
+        check.equal(self.purpose.reward(DummyState.from_pos(2)), 3)
+        check.equal(self.purpose.reward(DummyState.from_pos(3)), 1)
 
     def test_is_terminal_by_0_and_1(self):
-        check.is_false(self.purpose.is_terminal(None, 0, None))  # Task 0 ends
-        check.is_true(self.purpose.is_terminal(None, 1, None))  # Task 1 ends
+        check.is_false(self.purpose.is_terminal(DummyState.from_pos(0)))  # Task 0 ends
+        check.is_true(self.purpose.is_terminal(DummyState.from_pos(1)))  # Task 1 ends
 
     def test_is_terminal_by_1_and_2(self):
-        check.is_false(self.purpose.is_terminal(None, 1, None))  # Task 1 ends
-        check.is_true(self.purpose.is_terminal(None, 2, None))  # Task 2 ends
+        check.is_false(self.purpose.is_terminal(DummyState.from_pos(1)))  # Task 1 ends
+        check.is_true(self.purpose.is_terminal(DummyState.from_pos(2)))  # Task 2 ends
 
     def test_is_not_terminal_by_3(self):
-        check.is_false(self.purpose.is_terminal(None, 3, None))  # Task 3 ends
+        check.is_false(self.purpose.is_terminal(DummyState.from_pos(3)))  # Task 3 ends
 
     def test_add_task_with_default_reward_shaping(self):
         purpose = Purpose()
@@ -212,19 +215,20 @@ class TestPurposeRewardShaping:
         self.place_item_2_in_zone_0 = PlaceItemTask(
             item_stack=self.items[2], zones=[self.zones[3]], reward=10.0
         )
+
         self.go_to_4 = GoToZoneTask(self.zones[4], reward=10.0)
-        self.env = CraftingEnv(
-            transformations=[
-                search_0,
-                craft_1,
-                craft_2,
-                craft_2_with_2,
-                search_3,
-                place_0,
-                place_2,
-                *go_to_zones,
-            ]
-        )
+
+        transformations = [
+            search_0,
+            craft_1,
+            craft_2,
+            craft_2_with_2,
+            search_3,
+            place_0,
+            place_2,
+            *go_to_zones,
+        ]
+        self.env = CraftingEnv(world_from_transformations(transformations))
         self.zone_items = self.env.world.zones_items
 
     def test_no_reward_shaping(self):

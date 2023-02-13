@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from typing import Any
+
 import numpy as np
 import pytest
 import pytest_check as check
@@ -7,13 +10,20 @@ from crafting.world import Item, ItemStack, World, Zone
 from tests.custom_checks import check_np_equal
 
 
+@dataclass
+class DummyState:
+    player_inventory: Any = None
+    position: Any = None
+    zones_inventories: Any = None
+
+
 class TestTransformationIsValid:
     @pytest.fixture(autouse=True)
     def setup_method(self):
         self.zones = [Zone("0"), Zone("1"), Zone("2")]
         self.items = [Item("0"), Item("1"), Item("2")]
         self.zones_items = [Item("0"), Item("z1")]
-        self.world = World(self.items, self.zones, self.zones_items)
+        self.world = World(self.items, self.zones, self.zones_items, [])
 
     def test_item_as_input(self):
         transfo = Transformation(
@@ -33,9 +43,10 @@ class TestTransformationIsValid:
     def test_position_is_valid(self):
         transfo = Transformation(zones=[self.zones[0], self.zones[2]])
         transfo.build(self.world)
-        check.is_true(transfo.is_valid(None, np.array([1, 0, 0]), None))
-        check.is_true(transfo.is_valid(None, np.array([0, 0, 1]), None))
-        check.is_false(transfo.is_valid(None, np.array([0, 1, 0]), None))
+
+        check.is_true(transfo.is_valid(DummyState(position=np.array([1, 0, 0]))))
+        check.is_true(transfo.is_valid(DummyState(position=np.array([0, 0, 1]))))
+        check.is_false(transfo.is_valid(DummyState(position=np.array([0, 1, 0]))))
 
     def test_player_items_is_valid(self):
         transfo = Transformation(
@@ -49,9 +60,13 @@ class TestTransformationIsValid:
         )
         transfo.build(self.world)
         position = np.array([1, 0, 0])
-        check.is_true(transfo.is_valid(np.array([2, 0, 3]), position, None))
-        check.is_false(transfo.is_valid(np.array([1, 0, 3]), position, None))
-        check.is_false(transfo.is_valid(np.array([3, 5, 2]), position, None))
+
+        state = DummyState(position=position, player_inventory=np.array([2, 0, 3]))
+        check.is_true(transfo.is_valid(state))
+        state = DummyState(position=position, player_inventory=np.array([1, 0, 3]))
+        check.is_false(transfo.is_valid(state))
+        state = DummyState(position=position, player_inventory=np.array([3, 5, 2]))
+        check.is_false(transfo.is_valid(state))
 
     def test_zone_items_is_valid(self):
         transfo = Transformation(
@@ -64,12 +79,15 @@ class TestTransformationIsValid:
         )
         transfo.build(self.world)
         position = np.array([0, 1, 0])
-        check.is_true(
-            transfo.is_valid(None, position, np.array([[0, 0], [3, 0], [0, 0]]))
+
+        state = DummyState(
+            position=position, zones_inventories=np.array([[0, 0], [3, 0], [0, 0]])
         )
-        check.is_false(
-            transfo.is_valid(None, position, np.array([[10, 10], [0, 10], [10, 10]]))
+        check.is_true(state)
+        state = DummyState(
+            position=position, zones_inventories=np.array([[10, 10], [0, 10], [10, 10]])
         )
+        check.is_false(transfo.is_valid(state))
 
     def test_destination_items_is_valid(self):
         transfo = Transformation(
@@ -83,12 +101,14 @@ class TestTransformationIsValid:
         )
         transfo.build(self.world)
         position = np.array([1, 0, 0])
-        check.is_true(
-            transfo.is_valid(None, position, np.array([[0, 0], [3, 0], [0, 0]]))
+        state = DummyState(
+            position=position, zones_inventories=np.array([[0, 0], [3, 0], [0, 0]])
         )
-        check.is_false(
-            transfo.is_valid(None, position, np.array([[10, 10], [0, 10], [10, 10]]))
+        check.is_true(transfo.is_valid(state))
+        state = DummyState(
+            position=position, zones_inventories=np.array([[10, 10], [0, 10], [10, 10]])
         )
+        check.is_false(transfo.is_valid(state))
 
     def test_destination(self):
         transfo = Transformation(destination=self.zones[1])

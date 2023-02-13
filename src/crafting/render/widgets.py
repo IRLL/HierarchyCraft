@@ -225,8 +225,8 @@ class TransformationsWidget(Menu):
         ]
         for button in action_buttons:
             transfo = self.button_id_to_transfo[button.get_id()]
-            action = env.transformations.index(transfo)
-            discovered = env.discovered_transformations[action]
+            action = env.world.transformations.index(transfo)
+            discovered = env.state.discovered_transformations[action]
             legal = action_is_legal[action]
             old_display = self.old_display.get(button.get_id(), None)
             old_legal = self.old_legal.get(button.get_id(), None)

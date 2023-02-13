@@ -14,7 +14,7 @@ from crafting.examples.minecraft.transformations import (
     build_minecrafting_transformations,
 )
 from crafting.examples.minecraft.zones import FOREST, NETHER, STRONGHOLD
-from crafting.world import ItemStack
+from crafting.world import ItemStack, world_from_transformations
 
 
 class MineCraftingEnv(CraftingEnv):
@@ -26,14 +26,17 @@ class MineCraftingEnv(CraftingEnv):
         resources_path = os.path.join(mc_dir, "resources")
         mc_transformations = build_minecrafting_transformations()
         start_zone = kwargs.pop("start_zone", FOREST)
-        super().__init__(
+        mc_world = world_from_transformations(
             mc_transformations,
-            name="MineCrafting",
             start_zone=start_zone,
             start_zones_items={
                 NETHER: [ItemStack(OPEN_NETHER_PORTAL)],
                 STRONGHOLD: [ItemStack(CLOSE_ENDER_PORTAL)],
             },
+        )
+        super().__init__(
+            world=mc_world,
+            name="MineCrafting",
             resources_path=resources_path,
             **kwargs,
         )

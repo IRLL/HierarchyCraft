@@ -32,7 +32,7 @@ from typing import List
 
 from crafting.env import CraftingEnv
 from crafting.transformation import Transformation
-from crafting.world import Item, ItemStack
+from crafting.world import Item, ItemStack, world_from_transformations
 
 try:
     import gym
@@ -75,7 +75,8 @@ class TowerCraftingEnv(CraftingEnv):
                     (1 - self.width ** (self.height + 1)) / (1 - self.width)
                 )
         transformations = self.build_transformations(items)
-        super().__init__(transformations, name=name, **kwargs)
+        world = world_from_transformations(transformations)
+        super().__init__(world, name=name, **kwargs)
 
     def build_transformations(self, items: List[Item]) -> List[Transformation]:
         """Build transformations to make every item accessible.

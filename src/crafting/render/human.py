@@ -2,7 +2,6 @@ from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     from pygame.event import Event
-
     from crafting.env import CraftingEnv
 
 
@@ -47,7 +46,7 @@ def render_env_with_human(env: "CraftingEnv", n_episodes: int = 1):
         while not done:
             env.render()
             action = get_human_action(env)
-            print(f"Human did: {env.transformations[action]}")
+            print(f"Human did: {env.world.transformations[action]}")
 
             _observation, reward, done, _info = env.step(action)
             total_reward += reward

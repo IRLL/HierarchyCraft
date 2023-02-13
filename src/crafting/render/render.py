@@ -147,22 +147,23 @@ class CraftingWindow:
         #     widget.draw(screen)
 
         # Update inventories
+        state = self.env.state
         if self.menus["player_inventory"]:
             self.menus["player_inventory"].update_inventory(
-                self.env.player_inventory, self.env.discovered_items, events
+                state.player_inventory, state.discovered_items, events
             )
             self.menus["player_inventory"].draw(self.screen)
 
         if self.menus["zone_inventory"]:
             self.menus["zone_inventory"].update_inventory(
-                self.env.current_zone_inventory, self.env.discovered_zones_items, events
+                state.current_zone_inventory, state.discovered_zones_items, events
             )
             self.menus["zone_inventory"].draw(self.screen)
 
         # Update position
         if self.menus["position"]:
             self.menus["position"].update_position(
-                self.env.position, self.env.discovered_zones, events
+                state.position, state.discovered_zones, events
             )
             self.menus["position"].draw(self.screen)
 
@@ -208,7 +209,7 @@ class CraftingWindow:
             title="Actions",
             height=menus_shapes["actions"][1],
             width=menus_shapes["actions"][0],
-            transformations=self.env.transformations,
+            transformations=self.env.world.transformations,
             position=(0, 0),
             resources_path=self.env.resources_path,
             display_mode=transformation_display_mode,

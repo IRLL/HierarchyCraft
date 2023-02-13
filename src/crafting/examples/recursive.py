@@ -44,7 +44,7 @@ from typing import List
 
 from crafting.env import CraftingEnv
 from crafting.transformation import Transformation
-from crafting.world import Item, ItemStack
+from crafting.world import Item, ItemStack, world_from_transformations
 
 # gym is an optional dependency
 try:
@@ -77,8 +77,9 @@ class RecursiveCraftingEnv(CraftingEnv):
         items = [Item(str(i)) for i in range(n_items)]
         self.n_items = n_items
         transformations = self.build_transformations(items)
+        world = world_from_transformations(transformations)
         super().__init__(
-            transformations,
+            world,
             name=f"RecursiveCrafting-I{n_items}",
             **kwargs,
         )
@@ -128,7 +129,8 @@ class LightRecursiveCraftingEnv(CraftingEnv):
             env_name = f"LightRecursiveCrafting-K{n_required_previous}-I{n_items}"
         items = [Item(str(i)) for i in range(n_items)]
         transformations = self._transformations(items)
-        super().__init__(transformations, name=env_name, **kwargs)
+        world = world_from_transformations(transformations)
+        super().__init__(world, name=env_name, **kwargs)
 
     def _transformations(self, items: List[Item]) -> List[Transformation]:
         """Build recipes to make every item accessible.

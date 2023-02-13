@@ -54,7 +54,7 @@ def build_requirements_graph(env: "CraftingEnv") -> nx.MultiDiGraph:
     graph = nx.MultiDiGraph()
     _add_requirements_nodes(env, graph)
     edge_index = _add_start_edges(env, graph)
-    for transfo in env.transformations:
+    for transfo in env.world.transformations:
         if transfo.zones is not None:
             for zone in transfo.zones:
                 _add_transformation_edges(graph, transfo, edge_index, zone)
@@ -178,16 +178,16 @@ def _add_crafts(
 
 def _add_start_edges(env: "CraftingEnv", graph: nx.MultiDiGraph) -> int:
     start_index = 0
-    if env.start_zone is not None:
+    if env.world.start_zone is not None:
         graph.add_edge(
             "#START",
-            req_node_name(env.start_zone, ReqNodesTypes.ZONE),
+            req_node_name(env.world.start_zone, ReqNodesTypes.ZONE),
             key=start_index,
             type="start_zone",
             color=[0, 1, 0, 1],
         )
         start_index += 1
-    for start_itemstack in env.start_items:
+    for start_itemstack in env.world.start_items:
         graph.add_edge(
             "#START",
             req_node_name(start_itemstack.item, ReqNodesTypes.ZONE_ITEM),
@@ -196,7 +196,7 @@ def _add_start_edges(env: "CraftingEnv", graph: nx.MultiDiGraph) -> int:
             color=[0, 1, 0, 1],
         )
         start_index += 1
-    for zone, start_zone_items in env.start_zones_items.items():
+    for zone, start_zone_items in env.world.start_zones_items.items():
         for start_zone_itemstack in start_zone_items:
             graph.add_edge(
                 req_node_name(zone, ReqNodesTypes.ZONE),

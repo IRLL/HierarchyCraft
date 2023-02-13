@@ -1,8 +1,11 @@
-from typing import List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
 import numpy as np
 
 from crafting.world import Item, ItemStack, World, Zone
+
+if TYPE_CHECKING:
+    from crafting.env import CraftingState
 
 
 class Transformation:
@@ -75,22 +78,17 @@ class Transformation:
             position[...] = self._destination
         return player_inventory, position, zones_inventories
 
-    def is_valid(
-        self,
-        player_inventory: np.ndarray,
-        position: np.ndarray,
-        zones_inventories: np.ndarray,
-    ) -> bool:
-        if self._zones is not None and not np.any(np.multiply(self._zones, position)):
+    def is_valid(self, state: "CraftingState") -> bool:
+        if self._zones is not None and not np.any(np.multiply(self._zones, state.position)):
             return False
         if self._removed_player_items is not None and not np.all(
-            player_inventory >= self._removed_player_items
+            state.player_inventory >= self._removed_player_items
         ):
             return False
 
         if self._removed_zone_items is not None:
-            current_zone_slot = position.nonzero()[0]
-            current_zone_inventory = zones_inventories[current_zone_slot, :]
+            current_zone_slot = state.position.nonzero()[0]
+            current_zone_inventory = state.zones_inventories[current_zone_slot, :]
             if not np.all(current_zone_inventory >= self._removed_zone_items):
                 return False
 
@@ -99,7 +97,7 @@ class Transformation:
             and self._removed_destination_items is not None
         ):
             destination_zone_slot = self._destination.nonzero()[0]
-            destination_inventory = zones_inventories[destination_zone_slot, :]
+            destination_inventory = state.zones_inventories[destination_zone_slot, :]
             if not np.all(destination_inventory >= self._removed_destination_items):
                 return False
         return True

@@ -1,9 +1,12 @@
 from abc import abstractmethod
-from typing import List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import numpy as np
 
 from crafting.world import Item, ItemStack, World, Zone
+
+if TYPE_CHECKING:
+    from crafting.env import CraftingState
 
 
 class Task:
@@ -24,23 +27,13 @@ class Task:
         )
 
     @abstractmethod
-    def is_terminal(
-        self,
-        player_inventory: np.ndarray,
-        position: np.ndarray,
-        zones_inventory: np.ndarray,
-    ) -> bool:
+    def is_terminal(self, state: "CraftingState") -> bool:
         """
         Returns whether the task is terminated.
         """
 
     @abstractmethod
-    def reward(
-        self,
-        player_inventory: np.ndarray,
-        position: np.ndarray,
-        zones_inventory: np.ndarray,
-    ) -> float:
+    def reward(self, state: "CraftingState") -> float:
         """
         Returns the reward for the given state.
         """
@@ -57,15 +50,14 @@ class AchievementTask(Task):
         self._reward = reward
         self.is_terminated = False
 
-    def reward(
-        self,
-        player_inventory: np.ndarray,
-        position: np.ndarray,
-        zones_inventory: np.ndarray,
-    ) -> float:
-        if not self.is_terminated and self.is_terminal(
-            player_inventory, position, zones_inventory
-        ):
+    @abstractmethod
+    def is_terminal(self, state: "CraftingState") -> bool:
+        """
+        Returns whether the task is terminated.
+        """
+
+    def reward(self, state: "CraftingState") -> float:
+        if not self.is_terminated and self.is_terminal(state):
             self.is_terminated = True
             return self._reward
         return 0.0
@@ -75,7 +67,7 @@ class GetItemTask(AchievementTask):
     """Task of getting a given quantity of an item."""
 
     def __init__(self, item_stack: Union[Item, ItemStack], reward: float = 1.0):
-        self.item_stack = stack_item(item_stack)
+        self.item_stack = _stack_item(item_stack)
         super().__init__(name=self.get_name(self.item_stack), reward=reward)
 
     def build(self, world: World) -> None:
@@ -83,13 +75,8 @@ class GetItemTask(AchievementTask):
         item_slot = world.items.index(self.item_stack.item)
         self._terminate_player_items[item_slot] = self.item_stack.quantity
 
-    def is_terminal(
-        self,
-        player_inventory: np.ndarray,
-        position: np.ndarray,
-        zones_inventory: np.ndarray,
-    ) -> bool:
-        return np.all(player_inventory >= self._terminate_player_items)
+    def is_terminal(self, state: "CraftingState") -> bool:
+        return np.all(state.player_inventory >= self._terminate_player_items)
 
     @staticmethod
     def get_name(stack: ItemStack):
@@ -110,13 +97,8 @@ class GoToZoneTask(AchievementTask):
         zone_slot = world.zones.index(self.zone)
         self._terminate_position[zone_slot] = 1
 
-    def is_terminal(
-        self,
-        player_inventory: np.ndarray,
-        position: np.ndarray,
-        zones_inventory: np.ndarray,
-    ) -> bool:
-        return np.all(position == self._terminate_position)
+    def is_terminal(self, state: "CraftingState") -> bool:
+        return np.all(state.position == self._terminate_position)
 
     @staticmethod
     def get_name(zone: Zone):
@@ -137,7 +119,7 @@ class PlaceItemTask(AchievementTask):
         zones: Optional[Union[Zone, List[Zone]]] = None,
         reward: float = 1.0,
     ):
-        item_stack = stack_item(item_stack)
+        item_stack = _stack_item(item_stack)
         self.item_stack = item_stack
         if isinstance(zones, Zone):
             zones = [zones]
@@ -155,13 +137,8 @@ class PlaceItemTask(AchievementTask):
             zones_slots, zone_item_slot
         ] = self.item_stack.quantity
 
-    def is_terminal(
-        self,
-        player_inventory: np.ndarray,
-        position: np.ndarray,
-        zones_inventory: np.ndarray,
-    ) -> bool:
-        return np.all(zones_inventory >= self._terminate_zones_items)
+    def is_terminal(self, state: "CraftingState") -> bool:
+        return np.all(state.zones_inventories >= self._terminate_zones_items)
 
     @staticmethod
     def get_name(stack: ItemStack, zones: Optional[List[Zone]]):
@@ -171,7 +148,7 @@ class PlaceItemTask(AchievementTask):
         return f"Place{quantity_str}{stack.item.name}{zones_str}"
 
 
-def stack_item(item_or_stack: Union[Item, ItemStack]) -> ItemStack:
+def _stack_item(item_or_stack: Union[Item, ItemStack]) -> ItemStack:
     if not isinstance(item_or_stack, ItemStack):
         item_or_stack = ItemStack(item_or_stack)
     return item_or_stack

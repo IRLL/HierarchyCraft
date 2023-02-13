@@ -40,7 +40,7 @@ class GetItem(Behavior):
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
 
         # Any of the Tranformation that gives the item
-        for transfo in self.env.transformations:
+        for transfo in self.env.world.transformations:
             item_is_added = transfo.added_player_items is not None and self.item in [
                 itemstack.item for itemstack in transfo.added_player_items
             ]
@@ -79,7 +79,7 @@ class GetZoneItem(Behavior):
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
 
         # Any of the Tranformation that gives the item
-        for transfo in self.env.transformations:
+        for transfo in self.env.world.transformations:
             zone_item_is_added = transfo.added_zone_items is not None and self.item in [
                 itemstack.item for itemstack in transfo.added_zone_items
             ]
@@ -93,7 +93,7 @@ class GetZoneItem(Behavior):
                 graph.add_node(sub_behavior)
 
         # Go to any zone where the zone_item is from the start
-        for zone, items_stacks in self.env.start_zones_items.items():
+        for zone, items_stacks in self.env.world.start_zones_items.items():
             if self.item in [itemstack.item for itemstack in items_stacks]:
                 sub_behavior = Behavior(ReachZone.get_name(zone))
                 graph.add_node(sub_behavior)
@@ -125,7 +125,7 @@ class ReachZone(Behavior):
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
 
         # Any of the Tranformation that has the zone as destination
-        for transfo in self.env.transformations:
+        for transfo in self.env.world.transformations:
             if transfo.destination is not None and transfo.destination == self.zone:
                 sub_behavior = Behavior(AbleAndPerformTransformation.get_name(transfo))
                 graph.add_node(sub_behavior)

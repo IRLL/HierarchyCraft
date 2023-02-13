@@ -18,7 +18,7 @@ class DoTransformation(Action):
 
     def __init__(self, transformation: "Transformation", env: "CraftingEnv") -> None:
         image = np.array(build_transformation_image(transformation, env.resources_path))
-        action = env.transformations.index(transformation)
+        action = env.world.transformations.index(transformation)
         self.transformation = transformation
         super().__init__(
             action,
