@@ -1,6 +1,8 @@
+import pytest
 import pytest_check as check
 
 
+@pytest.mark.slow
 def test_doc_example():
     from crafting.examples import MineCraftingEnv
     from crafting.examples.minecraft.items import DIAMOND
