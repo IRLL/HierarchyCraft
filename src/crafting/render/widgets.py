@@ -30,9 +30,8 @@ from crafting.transformation import Transformation
 from crafting.world import Item, ItemStack, Zone
 
 if TYPE_CHECKING:
-    from pygame.surface import Surface
-
     from crafting.env import CraftingEnv
+    from pygame_menu.menu import Menu
 
 
 class DisplayMode(Enum):
