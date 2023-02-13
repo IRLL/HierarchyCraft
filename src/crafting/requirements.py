@@ -48,12 +48,29 @@ class Requirements:
     def __init__(self, world: World, resources_path: str):
         self.world = world
         self.graph = nx.MultiDiGraph()
-        self.build(resources_path)
+        self._digraph: nx.DiGraph = None
+        self._build(resources_path)
 
-    def draw(self, ax: Axes, layout: "RequirementsGraphLayout" = "level") -> Axes:
-        return draw_requirements_graph(ax, self, layout=layout)
+    def draw(self, ax: Axes, layout: "RequirementsGraphLayout" = "level") -> None:
+        """Draw the requirements graph on the given Axes.
 
-    def build(self, resources_path: str) -> None:
+        Args:
+            ax: Matplotlib Axes to draw on.
+            layout: Drawing layout. Defaults to "level".
+        """
+        draw_requirements_graph(ax, self, layout=layout)
+
+    @property
+    def digraph(self) -> nx.DiGraph:
+        """Collapsed leveleld acyclic DiGraph of requirements."""
+        if self._digraph is not None:
+            return self._digraph
+        compute_levels(self.graph)
+        acyclic_graph = break_cycles_through_level(self.graph)
+        self._digraph = collapse_as_digraph(acyclic_graph)
+        return self._digraph
+
+    def _build(self, resources_path: str) -> None:
         self._add_requirements_nodes(self.world, resources_path)
         edge_index = self._add_start_edges(self.world)
         for transfo in self.world.transformations:
@@ -199,15 +216,11 @@ class Requirements:
         return start_index
 
 
-def _str_zone_item(name: str):
-    return f"{name} in zone"
-
-
 def req_node_name(obj: Union[Item, Zone], node_type: ReqNodesTypes):
     """Get a unique node name for the requirements graph"""
     name = obj.name
     if node_type == ReqNodesTypes.ZONE_ITEM:
-        name = _str_zone_item(name)
+        name = f"{name} in zone"
     return node_type.value + "#" + name
 
 
@@ -275,33 +288,18 @@ def compute_levels(graph: Requirements):
     return get_nodes_by_level(graph)
 
 
-def compute_edges_color(graph: nx.DiGraph):
-    """Compute the edges colors of a leveled graph for readability.
-
-    Requires nodes to have a 'level' attribute.
-    Adds the attribute 'color' and 'linestyle' to each edge in the given graph.
-    Nodes with a lot of successors will have more transparent edges.
-    Edges going from high to low level will be dashed.
-
-    Args:
-        graph: A networkx DiGraph.
-
-    """
-    alphas = [1, 1, 1, 1, 1, 0.5, 0.5, 0.5]
-    for node in graph.nodes():
-        successors = list(graph.successors(node))
-        for succ in successors:
-            alpha = 0.05
-            if graph.nodes[node]["level"] < graph.nodes[succ]["level"]:
-                if len(successors) < len(alphas):
-                    alpha = alphas[len(successors) - 1]
-            else:
-                graph.edges[node, succ]["linestyle"] = "dashed"
-            if isinstance(graph.edges[node, succ]["color"], list):
-                graph.edges[node, succ]["color"][-1] = alpha
+def break_cycles_through_level(multidigraph: nx.MultiDiGraph):
+    """Break cycles in a leveled multidigraph by cutting edges from high to low levels."""
+    acyclical_multidigraph = multidigraph.copy()
+    nodes_level = acyclical_multidigraph.nodes(data="level", default=0)
+    for pred, node, key in multidigraph.edges(keys=True):
+        if nodes_level[pred] >= nodes_level[node]:
+            acyclical_multidigraph.remove_edge(pred, node, key)
+    return acyclical_multidigraph
 
 
 def collapse_as_digraph(multidigraph: nx.MultiDiGraph) -> nx.DiGraph:
+    """Create a collapsed DiGraph from a MultiDiGraph by removing duplicated edges."""
     digraph = nx.DiGraph()
     digraph.graph = multidigraph.graph
     for node, data in multidigraph.nodes(data=True):
@@ -313,15 +311,6 @@ def collapse_as_digraph(multidigraph: nx.MultiDiGraph) -> nx.DiGraph:
     return digraph
 
 
-def break_cycles_through_level(multidigraph: nx.MultiDiGraph):
-    acyclical_multidigraph = multidigraph.copy()
-    nodes_level = acyclical_multidigraph.nodes(data="level", default=0)
-    for pred, node, key in multidigraph.edges(keys=True):
-        if nodes_level[pred] >= nodes_level[node]:
-            acyclical_multidigraph.remove_edge(pred, node, key)
-    return acyclical_multidigraph
-
-
 class RequirementsGraphLayout(Enum):
     LEVEL = "level"
     """Layout using requirement level and a metaheuristic."""
@@ -331,8 +320,8 @@ class RequirementsGraphLayout(Enum):
 
 def draw_requirements_graph(
     ax: Axes,
-    requirements_graph: nx.DiGraph,
-    layout: RequirementsGraphLayout = RequirementsGraphLayout.LEVEL,
+    requirements: Requirements,
+    layout: RequirementsGraphLayout = "level",
 ):
     """Draw the requirement graph on a given Axes.
 
@@ -343,9 +332,7 @@ def draw_requirements_graph(
         The Axes with requirements_graph drawn on it.
 
     """
-    compute_levels(requirements_graph.graph)
-    acyclic_requirements_graph = break_cycles_through_level(requirements_graph.graph)
-    digraph = collapse_as_digraph(acyclic_requirements_graph)
+    digraph = requirements.digraph
     compute_edges_color(digraph)
 
     layout = RequirementsGraphLayout(layout)
@@ -428,3 +415,29 @@ def draw_requirements_graph(
             ax.text(mean_x - 1, -0.07, "Depth", ha="left", va="center")
         ax.text(mean_x, -0.07, str(level), ha="center", va="center")
     return ax
+
+
+def compute_edges_color(graph: nx.DiGraph):
+    """Compute the edges colors of a leveled graph for readability.
+
+    Requires nodes to have a 'level' attribute.
+    Adds the attribute 'color' and 'linestyle' to each edge in the given graph.
+    Nodes with a lot of successors will have more transparent edges.
+    Edges going from high to low level will be dashed.
+
+    Args:
+        graph: A networkx DiGraph.
+
+    """
+    alphas = [1, 1, 1, 1, 1, 0.5, 0.5, 0.5]
+    for node in graph.nodes():
+        successors = list(graph.successors(node))
+        for succ in successors:
+            alpha = 0.05
+            if graph.nodes[node]["level"] < graph.nodes[succ]["level"]:
+                if len(successors) < len(alphas):
+                    alpha = alphas[len(successors) - 1]
+            else:
+                graph.edges[node, succ]["linestyle"] = "dashed"
+            if isinstance(graph.edges[node, succ]["color"], list):
+                graph.edges[node, succ]["color"][-1] = alpha
