@@ -94,7 +94,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 
 import networkx as nx
 
-from crafting.requirement_graph import ReqNodesTypes, req_node_name
+from crafting.requirements import ReqNodesTypes, req_node_name
 from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
 from crafting.world import Item, Zone, World
 

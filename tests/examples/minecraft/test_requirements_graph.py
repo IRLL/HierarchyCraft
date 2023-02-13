@@ -10,7 +10,7 @@ from crafting.examples.minecraft.tools import (
     ToolType,
 )
 from crafting.examples.minecraft.zones import *
-from crafting.requirement_graph import ReqNodesTypes, req_node_name
+from crafting.requirements import ReqNodesTypes, req_node_name
 
 IRON_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.IRON]
 

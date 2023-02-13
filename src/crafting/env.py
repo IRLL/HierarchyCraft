@@ -16,7 +16,7 @@ from crafting.purpose import Purpose
 from crafting.task import Task
 from crafting.render.render import CraftingWindow
 from crafting.render.utils import surface_to_rgb_array
-from crafting.requirement_graph import Requirements
+from crafting.requirements import Requirements
 from crafting.world import World
 
 # Gym is an optional dependency.
