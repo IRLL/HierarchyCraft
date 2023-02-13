@@ -4,7 +4,6 @@ import collections
 import os
 from typing import List, Dict, Optional, Union
 
-import networkx as nx
 import numpy as np
 
 import crafting
@@ -17,7 +16,7 @@ from crafting.purpose import Purpose
 from crafting.task import Task
 from crafting.render.render import CraftingWindow
 from crafting.render.utils import surface_to_rgb_array
-from crafting.requirement_graph import build_requirements_graph, draw_requirements_graph
+from crafting.requirement_graph import Requirements
 from crafting.world import World
 
 # Gym is an optional dependency.
@@ -66,7 +65,7 @@ class CraftingEnv(Env):
         self.invalid_reward = invalid_reward
         self.max_step = max_step
         self.name = name
-        self._requirements_graph = None
+        self._requirements = None
         self._all_behaviors = None
 
         self.render_window = render_window
@@ -198,7 +197,7 @@ class CraftingEnv(Env):
         return self._all_behaviors
 
     def solving_behavior(self, task: "Task") -> "Behavior":
-        """Get teh solving behavior for a given task.
+        """Get the solving behavior for a given task.
 
         Args:
             task: Task to solve.
@@ -208,14 +207,11 @@ class CraftingEnv(Env):
         """
         return self.all_behaviors[task_to_behavior_name(task)]
 
-    def draw_requirements_graph(self, ax, **kwargs):
-        return draw_requirements_graph(ax, self.requirements_graph, **kwargs)
-
     @property
-    def requirements_graph(self) -> nx.DiGraph:
-        if self._requirements_graph is None:
-            self._requirements_graph = build_requirements_graph(self)
-        return self._requirements_graph
+    def requirements(self) -> Requirements:
+        if self._requirements is None:
+            self._requirements = Requirements(self.world, self.resources_path)
+        return self._requirements
 
     def _step_output(self, reward: float):
         infos = {"action_is_legal": self.actions_mask}

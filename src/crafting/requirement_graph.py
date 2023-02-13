@@ -23,7 +23,7 @@ from matplotlib.legend_handler import HandlerPatch
 
 from crafting.render.utils import load_or_create_image
 from crafting.transformation import Transformation
-from crafting.world import Item, Zone
+from crafting.world import Item, Zone, World
 
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv
@@ -44,51 +44,163 @@ NODE_COLOR_BY_TYPE: Dict[ReqNodesTypes, str] = {
 }
 
 
-def build_requirements_graph(env: "CraftingEnv") -> nx.MultiDiGraph:
-    """Build the world requirements graph.
+class Requirements:
+    def __init__(self, world: World, resources_path: str):
+        self.world = world
+        self.graph = nx.MultiDiGraph()
+        self.build(resources_path)
 
-    Returns:
-        The world requirements graph as a networkx DiGraph.
+    def draw(self, ax: Axes, layout: "RequirementsGraphLayout" = "level") -> Axes:
+        return draw_requirements_graph(ax, self, layout=layout)
 
-    """
-    graph = nx.MultiDiGraph()
-    _add_requirements_nodes(env, graph)
-    edge_index = _add_start_edges(env, graph)
-    for transfo in env.world.transformations:
-        if transfo.zones is not None:
-            for zone in transfo.zones:
-                _add_transformation_edges(graph, transfo, edge_index, zone)
+    def build(self, resources_path: str) -> None:
+        self._add_requirements_nodes(self.world, resources_path)
+        edge_index = self._add_start_edges(self.world)
+        for transfo in self.world.transformations:
+            if transfo.zones is not None:
+                for zone in transfo.zones:
+                    self._add_transformation_edges(transfo, edge_index, zone)
+                    edge_index += 1
+            else:
+                self._add_transformation_edges(transfo, edge_index)
                 edge_index += 1
-        else:
-            _add_transformation_edges(graph, transfo, edge_index)
-            edge_index += 1
-    return graph
+
+    def _add_requirements_nodes(
+        self,
+        world: "World",
+        resources_path: str,
+    ) -> None:
+        self._add_nodes(world.items, ReqNodesTypes.ITEM, resources_path)
+        self._add_nodes(world.zones_items, ReqNodesTypes.ZONE_ITEM, resources_path)
+        if len(world.zones) >= 1:
+            self._add_nodes(world.zones, ReqNodesTypes.ZONE, resources_path)
+
+    def _add_nodes(
+        self,
+        objs: List[Union[Item, Zone]],
+        node_type: ReqNodesTypes,
+        resources_path: str,
+    ) -> None:
+        """Add colored nodes to the graph"""
+        for obj in objs:
+            self.graph.add_node(
+                req_node_name(obj, node_type),
+                obj=obj,
+                type=node_type.value,
+                color=NODE_COLOR_BY_TYPE[node_type],
+                image=np.array(load_or_create_image(obj, resources_path)),
+                label=obj.name.capitalize(),
+            )
+
+    def _add_transformation_edges(
+        self,
+        transfo: "Transformation",
+        transfo_index: int,
+        zone: Optional[Zone] = None,
+    ) -> None:
+        """Add edges induced by a Crafting recipe."""
+        in_items = transfo.consumed_items
+        out_items = [item for item in transfo.produced_items if item not in in_items]
+
+        in_zone_items = transfo.consumed_zones_items
+        out_zone_items = [
+            item for item in transfo.produced_zones_items if item not in in_zone_items
+        ]
+
+        destinations = []
+        if transfo.destination is not None:
+            destinations = [transfo.destination]
+
+        transfo_params = {
+            "in_items": in_items,
+            "in_zone_items": in_zone_items,
+            "zone": zone,
+            "transfo": transfo,
+            "index": transfo_index,
+        }
+
+        for out_item in out_items:
+            node_name = req_node_name(out_item, ReqNodesTypes.ITEM)
+            self._add_crafts(out_node=node_name, **transfo_params)
+
+        for out_zone_item in out_zone_items:
+            node_name = req_node_name(out_zone_item, ReqNodesTypes.ZONE_ITEM)
+            self._add_crafts(out_node=node_name, **transfo_params)
+
+        for destination in destinations:
+            node_name = req_node_name(destination, ReqNodesTypes.ZONE)
+            self._add_crafts(out_node=node_name, **transfo_params)
+
+    def _add_crafts(
+        self,
+        in_items: List[Item],
+        in_zone_items: List[Item],
+        zone: Optional[Zone],
+        out_node: str,
+        transfo: Transformation,
+        index: int,
+    ) -> None:
+        if zone is not None:
+            self.graph.add_edge(
+                req_node_name(zone, ReqNodesTypes.ZONE),
+                out_node,
+                type="zone_required",
+                color=[0, 1, 0, 1],
+                key=index,
+            )
+        for node in set(in_items):
+            self.graph.add_edge(
+                req_node_name(node, ReqNodesTypes.ITEM),
+                out_node,
+                type="item_needed",
+                color=[1, 0, 0, 1],
+                transformation=transfo,
+                key=index,
+            )
+        for node in set(in_zone_items):
+            self.graph.add_edge(
+                req_node_name(node, ReqNodesTypes.ZONE_ITEM),
+                out_node,
+                type="zone_item_needed",
+                color=[0.2, 1, 0.2, 1],
+                key=index,
+            )
+
+    def _add_start_edges(self, world: "World") -> int:
+        start_index = 0
+        if world.start_zone is not None:
+            self.graph.add_edge(
+                "#START",
+                req_node_name(world.start_zone, ReqNodesTypes.ZONE),
+                key=start_index,
+                type="start_zone",
+                color=[0, 1, 0, 1],
+            )
+            start_index += 1
+        for start_itemstack in world.start_items:
+            self.graph.add_edge(
+                "#START",
+                req_node_name(start_itemstack.item, ReqNodesTypes.ZONE_ITEM),
+                key=start_index,
+                type="start_item",
+                color=[0, 1, 0, 1],
+            )
+            start_index += 1
+        for zone, start_zone_items in world.start_zones_items.items():
+            for start_zone_itemstack in start_zone_items:
+                self.graph.add_edge(
+                    req_node_name(zone, ReqNodesTypes.ZONE),
+                    req_node_name(start_zone_itemstack.item, ReqNodesTypes.ZONE_ITEM),
+                    key=start_index,
+                    type="start_zone_item",
+                    color=[0, 1, 0, 1],
+                )
+                start_index += 1
+        return start_index
 
 
-def _add_requirements_nodes(env: "CraftingEnv", graph: nx.MultiDiGraph):
-    resources_path = env.resources_path
-    _add_nodes(env.world.items, ReqNodesTypes.ITEM, resources_path, graph)
-    _add_nodes(env.world.zones_items, ReqNodesTypes.ZONE_ITEM, resources_path, graph)
-    if len(env.world.zones) >= 1:
-        _add_nodes(env.world.zones, ReqNodesTypes.ZONE, resources_path, graph)
-
-
-def _add_nodes(
-    objs: List[Union[Item, Zone]],
-    node_type: ReqNodesTypes,
-    resources_path: str,
-    graph: nx.MultiDiGraph,
-):
-    """Add colored nodes to the graph"""
-    for obj in objs:
-        graph.add_node(
-            req_node_name(obj, node_type),
-            obj=obj,
-            type=node_type.value,
-            color=NODE_COLOR_BY_TYPE[node_type],
-            image=np.array(load_or_create_image(obj, resources_path)),
-            label=obj.name.capitalize(),
-        )
+def _str_zone_item(name: str):
+    return f"{name} in zone"
 
 
 def req_node_name(obj: Union[Item, Zone], node_type: ReqNodesTypes):
@@ -99,129 +211,15 @@ def req_node_name(obj: Union[Item, Zone], node_type: ReqNodesTypes):
     return node_type.value + "#" + name
 
 
-def _add_transformation_edges(
-    graph: nx.MultiDiGraph,
-    transfo: "Transformation",
-    transfo_index: int,
-    zone: Optional[Zone] = None,
-):
-    """Add edges induced by a Crafting recipe."""
-    in_items = transfo.consumed_items
-    out_items = [item for item in transfo.produced_items if item not in in_items]
-
-    in_zone_items = transfo.consumed_zones_items
-    out_zone_items = [
-        item for item in transfo.produced_zones_items if item not in in_zone_items
-    ]
-
-    destinations = []
-    if transfo.destination is not None:
-        destinations = [transfo.destination]
-
-    transfo_params = {
-        "graph": graph,
-        "in_items": in_items,
-        "in_zone_items": in_zone_items,
-        "zone": zone,
-        "transfo": transfo,
-        "index": transfo_index,
-    }
-
-    for out_item in out_items:
-        node_name = req_node_name(out_item, ReqNodesTypes.ITEM)
-        _add_crafts(out_node=node_name, **transfo_params)
-
-    for out_zone_item in out_zone_items:
-        node_name = req_node_name(out_zone_item, ReqNodesTypes.ZONE_ITEM)
-        _add_crafts(out_node=node_name, **transfo_params)
-
-    for destination in destinations:
-        node_name = req_node_name(destination, ReqNodesTypes.ZONE)
-        _add_crafts(out_node=node_name, **transfo_params)
-
-
-def _add_crafts(
-    graph: nx.MultiDiGraph,
-    in_items: List[Item],
-    in_zone_items: List[Item],
-    zone: Optional[Zone],
-    out_node: str,
-    transfo: Transformation,
-    index: int,
-):
-    if zone is not None:
-        graph.add_edge(
-            req_node_name(zone, ReqNodesTypes.ZONE),
-            out_node,
-            type="zone_required",
-            color=[0, 1, 0, 1],
-            key=index,
-        )
-    for node in set(in_items):
-        graph.add_edge(
-            req_node_name(node, ReqNodesTypes.ITEM),
-            out_node,
-            type="item_needed",
-            color=[1, 0, 0, 1],
-            transformation=transfo,
-            key=index,
-        )
-    for node in set(in_zone_items):
-        graph.add_edge(
-            req_node_name(node, ReqNodesTypes.ZONE_ITEM),
-            out_node,
-            type="zone_item_needed",
-            color=[0.2, 1, 0.2, 1],
-            key=index,
-        )
-
-
-def _add_start_edges(env: "CraftingEnv", graph: nx.MultiDiGraph) -> int:
-    start_index = 0
-    if env.world.start_zone is not None:
-        graph.add_edge(
-            "#START",
-            req_node_name(env.world.start_zone, ReqNodesTypes.ZONE),
-            key=start_index,
-            type="start_zone",
-            color=[0, 1, 0, 1],
-        )
-        start_index += 1
-    for start_itemstack in env.world.start_items:
-        graph.add_edge(
-            "#START",
-            req_node_name(start_itemstack.item, ReqNodesTypes.ZONE_ITEM),
-            key=start_index,
-            type="start_item",
-            color=[0, 1, 0, 1],
-        )
-        start_index += 1
-    for zone, start_zone_items in env.world.start_zones_items.items():
-        for start_zone_itemstack in start_zone_items:
-            graph.add_edge(
-                req_node_name(zone, ReqNodesTypes.ZONE),
-                req_node_name(start_zone_itemstack.item, ReqNodesTypes.ZONE_ITEM),
-                key=start_index,
-                type="start_zone_item",
-                color=[0, 1, 0, 1],
-            )
-            start_index += 1
-    return start_index
-
-
-def _str_zone_item(name: str):
-    return f"{name} in zone"
-
-
-def compute_levels(graph: nx.MultiDiGraph):
-    """Compute the hierachical levels of all DiGraph nodes.
+def compute_levels(graph: Requirements):
+    """Compute the hierachical levels of a RequirementsGraph.
 
     Adds the attribute 'level' to each node in the given graph.
     Adds the attribute 'nodes_by_level' to the given graph.
     Adds the attribute 'depth' to the given graph.
 
     Args:
-        graph: A networkx DiGraph.
+        graph: A RequirementsGraph.
 
     Returns:
         Dictionary of nodes by level.
@@ -345,8 +343,8 @@ def draw_requirements_graph(
         The Axes with requirements_graph drawn on it.
 
     """
-    compute_levels(requirements_graph)
-    acyclic_requirements_graph = break_cycles_through_level(requirements_graph)
+    compute_levels(requirements_graph.graph)
+    acyclic_requirements_graph = break_cycles_through_level(requirements_graph.graph)
     digraph = collapse_as_digraph(acyclic_requirements_graph)
     compute_edges_color(digraph)
 

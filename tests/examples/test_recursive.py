@@ -25,7 +25,7 @@ def test_recursive_requirements_graph():
     expected_graph.add_edge(2, 3)
 
     env = RecursiveCraftingEnv(n_items=n_items)
-    check_isomorphic(env.requirements_graph, expected_graph)
+    check_isomorphic(env.requirements.graph, expected_graph)
 
 
 def test_solve_recursive():
@@ -87,7 +87,7 @@ def test_light_recursive_requirements_graph():
     expected_graph.add_edge(3, 5)
     expected_graph.add_edge(4, 5)
 
-    check_isomorphic(env.requirements_graph, expected_graph)
+    check_isomorphic(env.requirements.graph, expected_graph)
 
 
 def test_solve_light_recursive():
