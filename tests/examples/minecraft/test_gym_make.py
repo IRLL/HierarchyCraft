@@ -49,6 +49,50 @@ def test_the_end_gym_make():
 
 def test_the_end_gym_make():
     env: MineCraftingEnv = gym.make("MineCrafting-Dragon-v1")
-    check.greater(len(env.purpose.tasks), 1)
-    task = env.purpose.tasks[0]
-    check.equal(task.name, "Get ender_dragon_head")
+    expected_tasknames = {
+        "Go to meadow",
+        "Go to swamp",
+        "Go to forest",
+        "Get wood",
+        "Get wood_plank",
+        "Get stick",
+        "Get crafting_table",
+        "Place crafting_table anywhere",
+        "Get wood_shovel",
+        "Get wood_pickaxe",
+        "Get cobblestone",
+        "Get stone_pickaxe",
+        "Go to underground",
+        "Get iron_ore",
+        "Get furnace",
+        "Place furnace anywhere",
+        "Get coal",
+        "Get iron_ingot",
+        "Get iron_pickaxe",
+        "Get iron_sword",
+        "Go to bedrock",
+        "Get diamond",
+        "Get diamond_pickaxe",
+        "Get diamond_sword",
+        "Get gold_ore",
+        "Get gold_ingot",
+        "Get gold_sword",
+        "Get obsidian",
+        "Place close_nether_portal anywhere",
+        "Place open_nether_portal anywhere",
+        "Get gravel",
+        "Get flint",
+        "Get flint_and_steel",
+        "Go to nether",
+        "Get blaze_rod",
+        "Get blaze_powder",
+        "Get ender_pearl",
+        "Get ender_eye",
+        "Go to stronghold",
+        "Place close_ender_portal anywhere",
+        "Place open_ender_portal anywhere",
+        "Go to end",
+        "Get ender_dragon_head",
+    }
+    tasks_names = set(task.name for task in env.purpose.tasks)
+    check.equal(tasks_names, expected_tasknames)

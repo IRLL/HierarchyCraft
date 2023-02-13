@@ -307,12 +307,12 @@ def _required_subtasks(
             f"for given task type: {type(task)} of {task}"
         )
 
-    requirements_graph = env.requirements.graph
+    requirements_acydigraph = env.requirements.digraph
     for requirement_node in goal_requirement_nodes:
-        for ancestor in nx.ancestors(requirements_graph, requirement_node):
+        for ancestor in nx.ancestors(requirements_acydigraph, requirement_node):
             if ancestor == "#START":
                 continue
-            ancestor_node = requirements_graph.nodes[ancestor]
+            ancestor_node = requirements_acydigraph.nodes[ancestor]
             item_or_zone: Union[Item, Zone] = ancestor_node["obj"]
             ancestor_type = ReqNodesTypes(ancestor_node["type"])
             if ancestor_type is ReqNodesTypes.ITEM:
