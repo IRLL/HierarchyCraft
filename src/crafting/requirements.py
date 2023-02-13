@@ -1,10 +1,51 @@
-"""# Requirements graph
+"""# Requirements
 
 The crafting package is meant to able the conception of arbitrary underlying hierarchial
 structures in environments.
 
 But of course, it's better to be able to manipulate and visualize those underlying hierachies !
-We call those underlying hierachies in crafting environments "requirements graph".
+
+## Requirements graph
+
+In Crafting, transformations allow to obtain items, to reach zones or to place items in zones.
+Thus transformations are the links between the items and zones.
+
+We can represent all those links in a multi-edged directed graph (or MultiDiGraph), where:
+
+- nodes are either an 'item', a 'zone' or an 'item in zone'.
+(See `crafting.requirements.RequirementNode`)
+- edges have are indexed per transformation and per available zone
+and directed from consumed 'item' or 'item in zone' or necessary 'zone'
+to produced 'item' or 'item in zone' or destination 'zone'.
+
+To represent the initial state of the world, we add a special '#Start' node
+and edges with unique negative indexes from this '#Start' node to the start_zone,
+to every 'item' in the start_items
+and to every 'item in zone' in the start_zones_items.
+
+## Requirements levels
+
+
+
+## Collapsed acyclic requirements graph 
+
+
+
+# Example
+
+```python
+from crafting.examples import MineCraftingEnv
+env = MineCraftingEnv()
+
+# Obtain the raw Networkx MultiDiGraph
+graph = env.requirements.graph 
+
+# Plot the simplified requirements graph
+import matplotlib.pyplot as plt
+_, ax = plt.subplots()
+env.requirements.draw(ax)
+plt.show()
+```
 
 ![MineCrafting hierarchy](../../docs/images/minecrafting_crafts_hierarchy.png)
 
@@ -29,7 +70,7 @@ if TYPE_CHECKING:
     from crafting.env import CraftingEnv
 
 
-class ReqNodesTypes(Enum):
+class RequirementNode(Enum):
     """Node types in the requirements graph."""
 
     ITEM = "item"
@@ -37,10 +78,10 @@ class ReqNodesTypes(Enum):
     ZONE_ITEM = "zone_item"
 
 
-NODE_COLOR_BY_TYPE: Dict[ReqNodesTypes, str] = {
-    ReqNodesTypes.ITEM: "blue",
-    ReqNodesTypes.ZONE: "green",
-    ReqNodesTypes.ZONE_ITEM: "cyan",
+NODE_COLOR_BY_TYPE: Dict[RequirementNode, str] = {
+    RequirementNode.ITEM: "blue",
+    RequirementNode.ZONE: "green",
+    RequirementNode.ZONE_ITEM: "cyan",
 }
 
 
@@ -87,15 +128,15 @@ class Requirements:
         world: "World",
         resources_path: str,
     ) -> None:
-        self._add_nodes(world.items, ReqNodesTypes.ITEM, resources_path)
-        self._add_nodes(world.zones_items, ReqNodesTypes.ZONE_ITEM, resources_path)
+        self._add_nodes(world.items, RequirementNode.ITEM, resources_path)
+        self._add_nodes(world.zones_items, RequirementNode.ZONE_ITEM, resources_path)
         if len(world.zones) >= 1:
-            self._add_nodes(world.zones, ReqNodesTypes.ZONE, resources_path)
+            self._add_nodes(world.zones, RequirementNode.ZONE, resources_path)
 
     def _add_nodes(
         self,
         objs: List[Union[Item, Zone]],
-        node_type: ReqNodesTypes,
+        node_type: RequirementNode,
         resources_path: str,
     ) -> None:
         """Add colored nodes to the graph"""
@@ -137,15 +178,15 @@ class Requirements:
         }
 
         for out_item in out_items:
-            node_name = req_node_name(out_item, ReqNodesTypes.ITEM)
+            node_name = req_node_name(out_item, RequirementNode.ITEM)
             self._add_crafts(out_node=node_name, **transfo_params)
 
         for out_zone_item in out_zone_items:
-            node_name = req_node_name(out_zone_item, ReqNodesTypes.ZONE_ITEM)
+            node_name = req_node_name(out_zone_item, RequirementNode.ZONE_ITEM)
             self._add_crafts(out_node=node_name, **transfo_params)
 
         for destination in destinations:
-            node_name = req_node_name(destination, ReqNodesTypes.ZONE)
+            node_name = req_node_name(destination, RequirementNode.ZONE)
             self._add_crafts(out_node=node_name, **transfo_params)
 
     def _add_crafts(
@@ -159,7 +200,7 @@ class Requirements:
     ) -> None:
         if zone is not None:
             self.graph.add_edge(
-                req_node_name(zone, ReqNodesTypes.ZONE),
+                req_node_name(zone, RequirementNode.ZONE),
                 out_node,
                 type="zone_required",
                 color=[0, 1, 0, 1],
@@ -167,7 +208,7 @@ class Requirements:
             )
         for node in set(in_items):
             self.graph.add_edge(
-                req_node_name(node, ReqNodesTypes.ITEM),
+                req_node_name(node, RequirementNode.ITEM),
                 out_node,
                 type="item_needed",
                 color=[1, 0, 0, 1],
@@ -176,7 +217,7 @@ class Requirements:
             )
         for node in set(in_zone_items):
             self.graph.add_edge(
-                req_node_name(node, ReqNodesTypes.ZONE_ITEM),
+                req_node_name(node, RequirementNode.ZONE_ITEM),
                 out_node,
                 type="zone_item_needed",
                 color=[0.2, 1, 0.2, 1],
@@ -188,7 +229,7 @@ class Requirements:
         if world.start_zone is not None:
             self.graph.add_edge(
                 "#START",
-                req_node_name(world.start_zone, ReqNodesTypes.ZONE),
+                req_node_name(world.start_zone, RequirementNode.ZONE),
                 key=start_index,
                 type="start_zone",
                 color=[0, 1, 0, 1],
@@ -197,7 +238,7 @@ class Requirements:
         for start_itemstack in world.start_items:
             self.graph.add_edge(
                 "#START",
-                req_node_name(start_itemstack.item, ReqNodesTypes.ZONE_ITEM),
+                req_node_name(start_itemstack.item, RequirementNode.ZONE_ITEM),
                 key=start_index,
                 type="start_item",
                 color=[0, 1, 0, 1],
@@ -206,8 +247,8 @@ class Requirements:
         for zone, start_zone_items in world.start_zones_items.items():
             for start_zone_itemstack in start_zone_items:
                 self.graph.add_edge(
-                    req_node_name(zone, ReqNodesTypes.ZONE),
-                    req_node_name(start_zone_itemstack.item, ReqNodesTypes.ZONE_ITEM),
+                    req_node_name(zone, RequirementNode.ZONE),
+                    req_node_name(start_zone_itemstack.item, RequirementNode.ZONE_ITEM),
                     key=start_index,
                     type="start_zone_item",
                     color=[0, 1, 0, 1],
@@ -216,10 +257,10 @@ class Requirements:
         return start_index
 
 
-def req_node_name(obj: Union[Item, Zone], node_type: ReqNodesTypes):
+def req_node_name(obj: Union[Item, Zone], node_type: RequirementNode):
     """Get a unique node name for the requirements graph"""
     name = obj.name
-    if node_type == ReqNodesTypes.ZONE_ITEM:
+    if node_type == RequirementNode.ZONE_ITEM:
         name = f"{name} in zone"
     return node_type.value + "#" + name
 
@@ -244,18 +285,15 @@ def compute_levels(graph: Requirements):
         if len(predecessors) == 0:
             graph.nodes[node]["level"] = 0
             return True
+        if "level" in graph.nodes[node]:
+            return True
 
         pred_level_by_key = {}
         for pred, _node, key in graph.in_edges(node, keys=True):
-            try:
-                pred_level = graph.nodes[pred]["level"]
-            except KeyError:
-                pred_level = None
-
-            if key in pred_level_by_key:
-                pred_level_by_key[key].append(pred_level)
-            else:
-                pred_level_by_key[key] = [pred_level]
+            pred_level = graph.nodes[pred].get("level", None)
+            if key not in pred_level_by_key:
+                pred_level_by_key[key] = []
+            pred_level_by_key[key].append(pred_level)
 
         max_level_by_index = []
         for key, level_list in pred_level_by_key.items():
@@ -377,7 +415,7 @@ def draw_requirements_graph(
     ]
 
     # Add zone_property legend only if there is any
-    for leg_node_type in ReqNodesTypes:
+    for leg_node_type in RequirementNode:
         has_type = [
             node_type == leg_node_type for _, node_type in digraph.nodes(data="type")
         ]

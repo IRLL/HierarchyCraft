@@ -94,7 +94,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 
 import networkx as nx
 
-from crafting.requirements import ReqNodesTypes, req_node_name
+from crafting.requirements import RequirementNode, req_node_name
 from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
 from crafting.world import Item, Zone, World
 
@@ -291,16 +291,16 @@ def _required_subtasks(
 
     if isinstance(task, GetItemTask):
         goal_item = task.item_stack.item
-        goal_requirement_nodes = [req_node_name(goal_item, ReqNodesTypes.ITEM)]
+        goal_requirement_nodes = [req_node_name(goal_item, RequirementNode.ITEM)]
     elif isinstance(task, PlaceItemTask):
         goal_item = task.item_stack.item
-        goal_requirement_nodes = [req_node_name(goal_item, ReqNodesTypes.ZONE_ITEM)]
+        goal_requirement_nodes = [req_node_name(goal_item, RequirementNode.ZONE_ITEM)]
         goal_zones = task.zones if task.zones else []
         for zone in goal_zones:
             relevant_zones.add(zone)
-            goal_requirement_nodes.append(req_node_name(zone, ReqNodesTypes.ZONE))
+            goal_requirement_nodes.append(req_node_name(zone, RequirementNode.ZONE))
     elif isinstance(task, GoToZoneTask):
-        goal_requirement_nodes = [req_node_name(task.zone, ReqNodesTypes.ZONE)]
+        goal_requirement_nodes = [req_node_name(task.zone, RequirementNode.ZONE)]
     else:
         raise NotImplementedError(
             f"Unsupported reward shaping {RewardShaping.REQUIRED_ACHIVEMENTS}"
@@ -314,12 +314,12 @@ def _required_subtasks(
                 continue
             ancestor_node = requirements_acydigraph.nodes[ancestor]
             item_or_zone: Union[Item, Zone] = ancestor_node["obj"]
-            ancestor_type = ReqNodesTypes(ancestor_node["type"])
-            if ancestor_type is ReqNodesTypes.ITEM:
+            ancestor_type = RequirementNode(ancestor_node["type"])
+            if ancestor_type is RequirementNode.ITEM:
                 relevant_items.add(item_or_zone)
-            if ancestor_type is ReqNodesTypes.ZONE:
+            if ancestor_type is RequirementNode.ZONE:
                 relevant_zones.add(item_or_zone)
-            if ancestor_type is ReqNodesTypes.ZONE_ITEM:
+            if ancestor_type is RequirementNode.ZONE_ITEM:
                 relevant_zone_items.add(item_or_zone)
     return _build_reward_shaping_subtasks(
         relevant_items,
