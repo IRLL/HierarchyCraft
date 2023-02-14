@@ -1,21 +1,26 @@
-# **Crafting - A gym environment for inventory management**
+# **Crafting - An environement builder for hierarchical ML research**
 
 [![Codacy - grade](https://app.codacy.com/project/badge/Grade/b5010ccc46274c0eb1e3ae563934efdd)](https://www.codacy.com/gh/IRLL/Crafting/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=IRLL/Crafting&amp;utm_campaign=Badge_Grade)
 [![Codacy - coverage](https://app.codacy.com/project/badge/Coverage/b5010ccc46274c0eb1e3ae563934efdd)](https://www.codacy.com/gh/IRLL/Crafting/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=IRLL/Crafting&amp;utm_campaign=Badge_Coverage)
 [![CodeStyle - Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Licence - GPLv3](https://img.shields.io/github/license/MathisFederico/Crafting?style=plastic)](https://www.gnu.org/licenses/)
 
-# Why Crafting ?
+# But what is Crafting ?
 
-Crafting is a meta-environment allowing to generate 
-arbitrarely hierarchical environments for research purpose.
+Crafting is NOT an environment, it's an environment builder.
+
+Crafting allows to generate arbitrarely hierarchical environments for machine learning research purposes.
+
+It uses the classic reinforcement learning framework, player is in a state and can take actions to update the state.
 
 A Crafting environment is a sandbox environment composed of
 items, zones, and transformations.
 
-
 The main example of Crafting environment is the MineCrafting environment 
 that mimics the (complex) hierarchies of the popular game Minecraft.
+
+You can use Crafting to create your own customized environments.
+For more examples, see [examples](https://irll.github.io/Crafting/crafting/examples.html).
 
 ![A player knowing Minecraft will find MineCrafting easy.](docs/images/MineCrafting_human_demo.gif)
 
@@ -53,7 +58,7 @@ pip install irll-crafting[gym]
 # Quickstart
 
 
-## Run MineCrafting with human (need gui dependencies)
+## Play MineCrafting yourself! (need gui dependencies)
 
 Using the command line interface:
 
@@ -91,7 +96,7 @@ for _ in range(n_episodes):
 ```
 
 
-## Run MineCrafting with agents
+## Run MineCrafting with autonomous agents
 
 Using the programmatic interface, any Crafting environment can easily be interfaced with any agent.
 
@@ -114,6 +119,8 @@ while not done:
 <!-- Run MineCrafting with MaskablePPO from sb3 agent [code] -->
 
 ## Other crafting environments
+
+Add more details
 
 See `crafting.examples`.
 

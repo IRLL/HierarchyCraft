@@ -1,12 +1,12 @@
 """# Purpose in Crafting
 
 Crafting environments are sandbox environments and do not have a precise purpose by default.
-But of course, purpose can be added in any Crafting environment by setting up one or multiple `crafting.task.Task`.
+But of course, purpose can be added in any Crafting environment by setting up one or multiple tasks.
 
 Tasks can be one of:
-* `crafting.task.GetItemTask`: Get the given item
-* `crafting.task.GoToZoneTask`: Go to the given zone
-* `crafting.task.PlaceItemTask`: Place the given item in the given zone (or any zone if none given).
+* Get the given item: `crafting.task.GetItemTask`
+* Go to the given zone: `crafting.task.GoToZoneTask`
+* Place the given item in the given zone (or any zone if none given): `crafting.task.PlaceItemTask`
 
 
 ## Single task purpose
@@ -51,7 +51,7 @@ IRON_INGOT is used to craft the IRON_PICKAXE that is itself used to get a DIAMON
 
 In a sandbox environment, why limit ourselves to only one task ?
 In crafting, a purpose can be composed on multiple tasks.
-But then the question arise: "When does the purpose terminates ?".
+But then the question arises: "When does the purpose terminates ?".
 When any task is done ? When all tasks are done ?
 
 To solve this, we need to introduce terminal groups.
@@ -83,7 +83,7 @@ env = MineCraftingEnv(purpose=purpose)
 
 Here the environment will terminate if the player gets both diamond and gold_ingot items ("get rich!" group) 
 or if the player gets a gold_ingot and reaches the end zone ("golden end" group).
-The task get_egg is optional and cannot terminate the purpose anyhow, but it will still rewards the player if completed.
+The task get_egg is optional and cannot terminate the purpose anyhow, but it will still reward the player if completed.
 
 Just like this last task, reward shaping subtasks are always optional.
 

@@ -1,7 +1,7 @@
 """# Solving behaviors
 
 The crafting environment comes with built-in solutions.
-For ANY task in ANY crafting enviornment, a solving behavior can be given 
+For ANY task in ANY crafting environment, a solving behavior can be given 
 thanks to the fact that no feature extraction is required.
 
 This behavior can be called on the observation and will return relevant actions, like any agent.

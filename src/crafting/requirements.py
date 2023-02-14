@@ -3,7 +3,7 @@
 The crafting package is meant to able the conception of arbitrary underlying hierarchial
 structures in environments.
 
-But of course, it's better to be able to manipulate and visualize those underlying hierachies !
+But of course, it's better to be able to manipulate and visualize those underlying hierarchies !
 
 ## Requirements graph
 
@@ -14,7 +14,7 @@ We can represent all those links in a multi-edged directed graph (or MultiDiGrap
 
 - nodes are either an 'item', a 'zone' or an 'item in zone'.
 (See `crafting.requirements.RequirementNode`)
-- edges have are indexed per transformation and per available zone
+- edges are indexed per transformation and per available zone
 and directed from consumed 'item' or 'item in zone' or necessary 'zone'
 to produced 'item' or 'item in zone' or destination 'zone'.
 (See `crafting.requirements.RequirementEdge`)
@@ -34,7 +34,7 @@ Nodes may be accessible by mutliple options (different transformations),
 those options are represented by the indexes of edges.
 To be attributed a level, a node needs at least an index where
 all the predecessors of this node with this index have a level.
-Then the node's level is 1 + min_over_indexes(max(predecessors_levels_by_index)).
+Then the node's level=1+min_over_indexes(max(predecessors_levels_by_index)).
 
 See `crafting.requirements.compute_levels` for implementation details.
 
