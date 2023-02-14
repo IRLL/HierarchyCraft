@@ -64,10 +64,7 @@ from matplotlib.legend_handler import HandlerPatch
 
 from crafting.render.utils import load_or_create_image
 from crafting.transformation import Transformation
-from crafting.world import Item, Zone, World
-
-if TYPE_CHECKING:
-    from crafting.env import CraftingEnv
+from crafting.world import Item, ItemStack, Zone, World
 
 
 class RequirementNode(Enum):
@@ -157,6 +154,8 @@ class Requirements:
         zone: Optional[Zone] = None,
     ) -> None:
         """Add edges induced by a Crafting recipe."""
+        zones = [] if zone is None else [zone]
+
         in_items = transfo.consumed_items
         out_items = [item for item in transfo.produced_items if item not in in_items]
 
@@ -170,11 +169,19 @@ class Requirements:
         destinations = []
         if transfo.destination is not None:
             destinations = [transfo.destination]
+            # If we require items in destination that are not here from the start,
+            # it means that we have to be able to go there before we can use this transformation.
+            if not _available_from_start(
+                transfo.removed_destination_items,
+                transfo.destination,
+                self.world.start_zones_items,
+            ):
+                zones.append(transfo.destination)
 
         transfo_params = {
             "in_items": in_items,
             "in_zone_items": in_zone_items,
-            "zone": zone,
+            "zones": zones,
             "transfo": transfo,
             "index": transfo_index,
         }
@@ -195,12 +202,12 @@ class Requirements:
         self,
         in_items: List[Item],
         in_zone_items: List[Item],
-        zone: Optional[Zone],
+        zones: List[Zone],
         out_node: str,
         transfo: Transformation,
         index: int,
     ) -> None:
-        if zone is not None:
+        for zone in zones:
             self.graph.add_edge(
                 req_node_name(zone, RequirementNode.ZONE),
                 out_node,
@@ -349,6 +356,35 @@ def collapse_as_digraph(multidigraph: nx.MultiDiGraph) -> nx.DiGraph:
             digraph.add_edge(pred, node, keys=[], **data)
         digraph.edges[pred, node]["keys"].append(key)
     return digraph
+
+
+def _available_from_start(
+    stacks: Optional[List[ItemStack]],
+    zone: Zone,
+    start_zones_stacks: Dict[Zone, List[ItemStack]],
+) -> bool:
+    """
+    Args:
+        stacks: List of stacks that should be available.
+        zone: Zone where the stacks should be available.
+        start_zones_stacks: Stacks present in each zone from the start.
+
+    Returns:
+        True if the given stacks are available from the start. False otherwise.
+    """
+    if stacks is None:
+        return True
+    is_available: Dict[ItemStack, bool] = {}
+    for consumed_stack in stacks:
+        start_stacks = start_zones_stacks.get(zone, [])
+        for start_stack in start_stacks:
+            if start_stack.item != consumed_stack.item:
+                continue
+            if start_stack.quantity >= consumed_stack.quantity:
+                is_available[consumed_stack] = True
+        if consumed_stack not in is_available:
+            is_available[consumed_stack] = False
+    return all(is_available.values())
 
 
 class RequirementsGraphLayout(Enum):

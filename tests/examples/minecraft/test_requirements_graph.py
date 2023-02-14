@@ -62,14 +62,17 @@ class TestMineCraftingReqGraph:
 
         assert self.graph.has_edge(nether_node, stronghold_node)
         assert self.graph.has_edge(stronghold_node, stronghold_node)
-        move_indexes = []
+        from_nether_indexes = []
         self_indexes = []
         for start, end, key in self.graph.in_edges(stronghold_node, keys=True):
             if start == nether_node:
-                move_indexes.append(key)
+                from_nether_indexes.append(key)
             if end == start == stronghold_node:
                 self_indexes.append(key)
-        check.is_true(any(key in self_indexes for key in move_indexes))
+        check.is_true(
+            any(key in self_indexes for key in from_nether_indexes),
+            msg=f"{self_indexes=},{from_nether_indexes=}",
+        )
 
 
 def test_draw_requirements_graph():
