@@ -1,7 +1,7 @@
 """# Purpose in Crafting
 
-Crafting environments are sandbox environments and do not have a precise purpose by default.
-But of course, purpose can be added in any Crafting environment by setting up one or multiple tasks.
+EVERY Crafting environments are sandbox environments and do not have a precise purpose by default.
+But of course, purpose can be added in ANY Crafting environment by setting up one or multiple tasks.
 
 Tasks can be one of:
 * Get the given item: `crafting.task.GetItemTask`
@@ -14,6 +14,8 @@ Tasks can be one of:
 When a single task is passed to a Crafting environment, it will automaticaly build a purpose.
 Then the environment will terminates if the task is completed.
 
+Let's take an example on the MineCrafting environment.
+(This is still work on any other crafting environment)
 ```python
 from crafting import MineCraftingEnv
 from crafting.purpose import GetItemTask
