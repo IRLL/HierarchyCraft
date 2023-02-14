@@ -81,7 +81,6 @@ def test_draw_requirements_graph():
     env = MineCraftingEnv()
     layout = "level" if save else "spring"
     env.requirements.draw(ax, layout=layout)
-    fig.canvas.manager.window.showMaximized()
     plt.subplots_adjust(right=1, left=0, hspace=0, wspace=0)
     fig.set_size_inches((24, 12), forward=False)
     if save:
