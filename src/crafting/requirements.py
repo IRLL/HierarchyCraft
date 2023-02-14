@@ -17,6 +17,7 @@ We can represent all those links in a multi-edged directed graph (or MultiDiGrap
 - edges have are indexed per transformation and per available zone
 and directed from consumed 'item' or 'item in zone' or necessary 'zone'
 to produced 'item' or 'item in zone' or destination 'zone'.
+(See `crafting.requirements.RequirementEdge`)
 
 To represent the initial state of the world, we add a special '#Start' node
 and edges with uniquely indexes from this '#Start' node to the start_zone and
@@ -25,11 +26,28 @@ from every 'zone' to every 'item in zone' in the corresponding zone in start_zon
 
 ## Requirements levels
 
+Hierarchical levels can be computed from a requirements graph.
+The 'START#' node is at level 0 then accessible nodes from the 'START#' node are level 1,
+then accessible items from level 1 items are level 2, ... until all nodes have a level.
+
+Nodes may be accessible by mutliple options (different transformations),
+those options are represented by the indexes of edges.
+To be attributed a level, a node needs at least an index where
+all the predecessors of this node with this index have a level.
+Then the node's level is 1 + min_over_indexes(max(predecessors_levels_by_index)).
+
+See `crafting.requirements.compute_levels` for implementation details.
 
 
-## Collapsed acyclic requirements graph 
+## Collapsed acyclic requirements graph
 
+Once the requirements graph nodes have a level, cycles in the graph can be broken
+by removing edges from higher levels to lower levels.
 
+We then obtain the collapsed acyclic requirements graph by removing duplicated edges.
+This graph can be used to draw a simpler view of the requirements graph.
+This graph is used to find relevant subtasks for any item or zone,
+see `crafting.purpose.RewardShaping.REQUIREMENTS_ACHIVEMENTS`.
 
 # Example
 
@@ -40,14 +58,14 @@ env = MineCraftingEnv()
 # Obtain the raw Networkx MultiDiGraph
 graph = env.requirements.graph 
 
-# Plot the simplified requirements graph
+# Plot the collapsed acyclic requirements graph
 import matplotlib.pyplot as plt
 _, ax = plt.subplots()
 env.requirements.draw(ax)
 plt.show()
 ```
 
-![MineCrafting hierarchy](../../docs/images/minecrafting_crafts_hierarchy.png)
+![MineCrafting hierarchy](../../docs/images/MineCrafting_Requirements_graph.png)
 
 """
 
@@ -87,31 +105,38 @@ class RequirementEdge(Enum):
 
 
 class RequirementTheme:
-    def __init__(
-        self,
-        colors: Dict[Union[RequirementNode, RequirementEdge], Any],
-        default_color: Any = "black",
-    ) -> None:
-        self.colors = colors
+    """Defines the colors to draw requirements graph nodes and edges"""
+
+    DEFAULT_COLORS = {
+        "item": "red",
+        "zone": "green",
+        "zone_item": "blue",
+        "item_required": "red",
+        "zone_required": "green",
+        "item_required_in_zone": "blue",
+        "start_zone": "black",
+        "start_item": "black",
+        "start_item_in_zone": "black",
+    }
+    """Default colors"""
+
+    def __init__(self, default_color: Any = "black", **kwargs) -> None:
+        self.colors = self.DEFAULT_COLORS.copy()
+        self.colors.update(kwargs)
         self.default_color = default_color
 
     def color(self, obj: Union[RequirementNode, RequirementEdge]) -> Any:
-        return self.colors.get(obj, self.default_color)
+        """Give the themed color of the given object.
 
+        Args:
+            obj: Object to color (node or edge).
 
-DEFAULT_THEME = RequirementTheme(
-    {
-        RequirementNode.ITEM: "red",
-        RequirementNode.ZONE: "green",
-        RequirementNode.ZONE_ITEM: "blue",
-        RequirementEdge.ITEM_REQUIRED: "red",
-        RequirementEdge.ZONE_REQUIRED: "green",
-        RequirementEdge.ITEM_REQUIRED_IN_ZONE: "blue",
-        RequirementEdge.START_ZONE: "black",
-        RequirementEdge.START_ITEM: "black",
-        RequirementEdge.START_ITEM_IN_ZONE: "black",
-    }
-)
+        Returns:
+            Color of the object using this theme.
+        """
+        if not obj:
+            return self.default_color
+        return self.colors.get(obj.value, self.default_color)
 
 
 class Requirements:
@@ -124,7 +149,7 @@ class Requirements:
     def draw(
         self,
         ax: Axes,
-        theme: RequirementTheme = DEFAULT_THEME,
+        theme: RequirementTheme = RequirementTheme(),
         layout: "RequirementsGraphLayout" = "level",
     ) -> None:
         """Draw the requirements graph on the given Axes.
@@ -531,7 +556,7 @@ def draw_requirements_graph(
 
 
 def _compute_edge_alpha(pred, _succ, graph: nx.DiGraph):
-    alphas = [1, 1, 1, 0.5, 0.5, 0.3, 0.3, 0.3, 0.2, 0.2, 0.2]
+    alphas = [1, 1, 1, 1, 1, 0.5, 0.5, 0.5, 0.2, 0.2, 0.2]
     n_successors = len(list(graph.successors(pred)))
     alpha = 0.1
     if n_successors < len(alphas):

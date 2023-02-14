@@ -76,7 +76,14 @@ class TestMineCraftingReqGraph:
 
 
 def test_draw_requirements_graph():
+    save = False
     fig, ax = plt.subplots()
     env = MineCraftingEnv()
-    env.requirements.draw(ax, layout="spring")
+    layout = "level" if save else "spring"
+    env.requirements.draw(ax, layout=layout)
+    fig.canvas.manager.window.showMaximized()
+    plt.subplots_adjust(right=1, left=0, hspace=0, wspace=0)
+    fig.set_size_inches((24, 12), forward=False)
+    if save:
+        fig.savefig("MineCrafting_Requirements_graph.png", dpi=100)
     plt.close(fig)

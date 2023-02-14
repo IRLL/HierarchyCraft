@@ -129,7 +129,7 @@ class TestPurposeMultiTasks:
         purpose = Purpose()
         purpose.add_task(self.go_to_0, "required")
         check.equal(
-            purpose.reward_shaping[self.go_to_0], RewardShaping.REQUIRED_ACHIVEMENTS
+            purpose.reward_shaping[self.go_to_0], RewardShaping.REQUIREMENTS_ACHIVEMENTS
         )
 
     def test_str_full(self):
@@ -271,7 +271,7 @@ class TestPurposeRewardShaping:
         purpose = Purpose()
         purpose.add_task(
             self.get_item_2,
-            reward_shaping=RewardShaping.REQUIRED_ACHIVEMENTS,
+            reward_shaping=RewardShaping.REQUIREMENTS_ACHIVEMENTS,
         )
         purpose.build(self.env)
         _check_get_item_tasks(self.items[:2], purpose.tasks)
@@ -292,7 +292,7 @@ class TestPurposeRewardShaping:
         purpose = Purpose()
         purpose.add_task(
             self.place_item_2_in_zone_0,
-            reward_shaping=RewardShaping.REQUIRED_ACHIVEMENTS,
+            reward_shaping=RewardShaping.REQUIREMENTS_ACHIVEMENTS,
         )
         purpose.build(self.env)
         _check_get_item_tasks(self.items[:3], purpose.tasks)
@@ -320,7 +320,7 @@ class TestPurposeRewardShaping:
         purpose = Purpose()
         purpose.add_task(
             self.go_to_4,
-            reward_shaping=RewardShaping.REQUIRED_ACHIVEMENTS,
+            reward_shaping=RewardShaping.REQUIREMENTS_ACHIVEMENTS,
         )
         purpose.build(self.env)
         _check_get_item_tasks(self.items[:1], purpose.tasks)

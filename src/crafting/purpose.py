@@ -109,7 +109,7 @@ class RewardShaping(Enum):
     """No reward shaping"""
     ALL_ACHIVEMENTS = "all"
     """All items and zones will be associated with an achievement subtask."""
-    REQUIRED_ACHIVEMENTS = "required"
+    REQUIREMENTS_ACHIVEMENTS = "required"
     """All (recursively) required items and zones for the given task
     will be associated with an achievement subtask."""
     INPUTS_ACHIVEMENT = "inputs"
@@ -250,7 +250,7 @@ class Purpose:
             return _all_subtasks(env.world, self.shaping_value)
         if reward_shaping == RewardShaping.INPUTS_ACHIVEMENT:
             return _inputs_subtasks(task, env.world, self.shaping_value)
-        if reward_shaping == RewardShaping.REQUIRED_ACHIVEMENTS:
+        if reward_shaping == RewardShaping.REQUIREMENTS_ACHIVEMENTS:
             return _required_subtasks(task, env, self.shaping_value)
         raise NotImplementedError
 
@@ -303,7 +303,7 @@ def _required_subtasks(
         goal_requirement_nodes = [req_node_name(task.zone, RequirementNode.ZONE)]
     else:
         raise NotImplementedError(
-            f"Unsupported reward shaping {RewardShaping.REQUIRED_ACHIVEMENTS}"
+            f"Unsupported reward shaping {RewardShaping.REQUIREMENTS_ACHIVEMENTS}"
             f"for given task type: {type(task)} of {task}"
         )
 
