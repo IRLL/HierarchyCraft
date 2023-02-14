@@ -19,9 +19,9 @@ and directed from consumed 'item' or 'item in zone' or necessary 'zone'
 to produced 'item' or 'item in zone' or destination 'zone'.
 
 To represent the initial state of the world, we add a special '#Start' node
-and edges with unique negative indexes from this '#Start' node to the start_zone,
-to every 'item' in the start_items
-and to every 'item in zone' in the start_zones_items.
+and edges with uniquely indexes from this '#Start' node to the start_zone and
+to every 'item' in the start_items. Also we add a uniquely indexed edge
+from every 'zone' to every 'item in zone' in the corresponding zone in start_zones_items.
 
 ## Requirements levels
 
@@ -52,7 +52,7 @@ plt.show()
 """
 
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import matplotlib.patches as mpatches
 import networkx as nx
@@ -70,16 +70,48 @@ from crafting.world import Item, ItemStack, Zone, World
 class RequirementNode(Enum):
     """Node types in the requirements graph."""
 
-    ITEM = "item"
     ZONE = "zone"
+    ITEM = "item"
     ZONE_ITEM = "zone_item"
 
 
-NODE_COLOR_BY_TYPE: Dict[RequirementNode, str] = {
-    RequirementNode.ITEM: "blue",
-    RequirementNode.ZONE: "green",
-    RequirementNode.ZONE_ITEM: "cyan",
-}
+class RequirementEdge(Enum):
+    """Edge types in the requirements graph."""
+
+    ZONE_REQUIRED = "zone_required"
+    ITEM_REQUIRED = "item_required"
+    ITEM_REQUIRED_IN_ZONE = "item_required_in_zone"
+    START_ZONE = "start_zone"
+    START_ITEM = "start_item"
+    START_ITEM_IN_ZONE = "start_item_in_zone"
+
+
+class RequirementTheme:
+    def __init__(
+        self,
+        colors: Dict[Union[RequirementNode, RequirementEdge], Any],
+        default_color: Any = "black",
+    ) -> None:
+        self.colors = colors
+        self.default_color = default_color
+
+    def color(self, obj: Union[RequirementNode, RequirementEdge]) -> Any:
+        return self.colors.get(obj, self.default_color)
+
+
+DEFAULT_THEME = RequirementTheme(
+    {
+        RequirementNode.ITEM: "red",
+        RequirementNode.ZONE: "green",
+        RequirementNode.ZONE_ITEM: "blue",
+        RequirementEdge.ITEM_REQUIRED: "red",
+        RequirementEdge.ZONE_REQUIRED: "green",
+        RequirementEdge.ITEM_REQUIRED_IN_ZONE: "blue",
+        RequirementEdge.START_ZONE: "black",
+        RequirementEdge.START_ITEM: "black",
+        RequirementEdge.START_ITEM_IN_ZONE: "black",
+    }
+)
 
 
 class Requirements:
@@ -89,14 +121,19 @@ class Requirements:
         self._digraph: nx.DiGraph = None
         self._build(resources_path)
 
-    def draw(self, ax: Axes, layout: "RequirementsGraphLayout" = "level") -> None:
+    def draw(
+        self,
+        ax: Axes,
+        theme: RequirementTheme = DEFAULT_THEME,
+        layout: "RequirementsGraphLayout" = "level",
+    ) -> None:
         """Draw the requirements graph on the given Axes.
 
         Args:
             ax: Matplotlib Axes to draw on.
             layout: Drawing layout. Defaults to "level".
         """
-        draw_requirements_graph(ax, self, layout=layout)
+        draw_requirements_graph(ax, self, theme, layout=layout)
 
     @property
     def digraph(self) -> nx.DiGraph:
@@ -141,8 +178,7 @@ class Requirements:
             self.graph.add_node(
                 req_node_name(obj, node_type),
                 obj=obj,
-                type=node_type.value,
-                color=NODE_COLOR_BY_TYPE[node_type],
+                type=node_type,
                 image=np.array(load_or_create_image(obj, resources_path)),
                 label=obj.name.capitalize(),
             )
@@ -182,7 +218,6 @@ class Requirements:
             "in_items": in_items,
             "in_zone_items": in_zone_items,
             "zones": zones,
-            "transfo": transfo,
             "index": transfo_index,
         }
 
@@ -204,70 +239,65 @@ class Requirements:
         in_zone_items: List[Item],
         zones: List[Zone],
         out_node: str,
-        transfo: Transformation,
         index: int,
     ) -> None:
         for zone in zones:
-            self.graph.add_edge(
-                req_node_name(zone, RequirementNode.ZONE),
-                out_node,
-                type="zone_required",
-                color=[0, 1, 0, 1],
-                key=index,
-            )
-        for node in set(in_items):
-            self.graph.add_edge(
-                req_node_name(node, RequirementNode.ITEM),
-                out_node,
-                type="item_needed",
-                color=[1, 0, 0, 1],
-                transformation=transfo,
-                key=index,
-            )
-        for node in set(in_zone_items):
-            self.graph.add_edge(
-                req_node_name(node, RequirementNode.ZONE_ITEM),
-                out_node,
-                type="zone_item_needed",
-                color=[0.2, 1, 0.2, 1],
-                key=index,
-            )
+            edge_type = RequirementEdge.ZONE_REQUIRED
+            node_type = RequirementNode.ZONE
+            self._add_obj_edge(out_node, edge_type, index, zone, node_type)
+        for item in set(in_items):
+            node_type = RequirementNode.ITEM
+            edge_type = RequirementEdge.ITEM_REQUIRED
+            self._add_obj_edge(out_node, edge_type, index, item, node_type)
+        for item in set(in_zone_items):
+            node_type = RequirementNode.ZONE_ITEM
+            edge_type = RequirementEdge.ITEM_REQUIRED_IN_ZONE
+            self._add_obj_edge(out_node, edge_type, index, item, node_type)
+
+    def _add_obj_edge(
+        self,
+        end_node: str,
+        edge_type: RequirementEdge,
+        index: int,
+        start_obj: Optional[Union[Zone, Item]] = None,
+        start_type: Optional[RequirementNode] = None,
+    ):
+        start_name = req_node_name(start_obj, start_type)
+        self.graph.add_edge(
+            start_name,
+            end_node,
+            type=edge_type,
+            key=index,
+        )
 
     def _add_start_edges(self, world: "World") -> int:
         start_index = 0
         if world.start_zone is not None:
-            self.graph.add_edge(
-                "#START",
-                req_node_name(world.start_zone, RequirementNode.ZONE),
-                key=start_index,
-                type="start_zone",
-                color=[0, 1, 0, 1],
-            )
+            edge_type = RequirementEdge.START_ZONE
+            end_node = req_node_name(world.start_zone, RequirementNode.ZONE)
+            self._add_obj_edge(end_node, edge_type, start_index)
             start_index += 1
-        for start_itemstack in world.start_items:
-            self.graph.add_edge(
-                "#START",
-                req_node_name(start_itemstack.item, RequirementNode.ZONE_ITEM),
-                key=start_index,
-                type="start_item",
-                color=[0, 1, 0, 1],
-            )
+        for start_stack in world.start_items:
+            edge_type = RequirementEdge.START_ITEM
+            end_node = req_node_name(start_stack.item, RequirementNode.ZONE_ITEM)
+            self._add_obj_edge(end_node, edge_type, start_index)
             start_index += 1
         for zone, start_zone_items in world.start_zones_items.items():
-            for start_zone_itemstack in start_zone_items:
-                self.graph.add_edge(
-                    req_node_name(zone, RequirementNode.ZONE),
-                    req_node_name(start_zone_itemstack.item, RequirementNode.ZONE_ITEM),
-                    key=start_index,
-                    type="start_zone_item",
-                    color=[0, 1, 0, 1],
+            edge_type = RequirementEdge.START_ITEM_IN_ZONE
+            start_type = RequirementNode.ZONE
+            for start_zone_stack in start_zone_items:
+                end_node = req_node_name(
+                    start_zone_stack.item, RequirementNode.ZONE_ITEM
                 )
+                self._add_obj_edge(end_node, edge_type, start_index, zone, start_type)
                 start_index += 1
         return start_index
 
 
-def req_node_name(obj: Union[Item, Zone], node_type: RequirementNode):
+def req_node_name(obj: Optional[Union[Item, Zone]], node_type: RequirementNode):
     """Get a unique node name for the requirements graph"""
+    if obj is None:
+        return "START#"
     name = obj.name
     if node_type == RequirementNode.ZONE_ITEM:
         name = f"{name} in zone"
@@ -397,6 +427,7 @@ class RequirementsGraphLayout(Enum):
 def draw_requirements_graph(
     ax: Axes,
     requirements: Requirements,
+    theme: RequirementTheme,
     layout: RequirementsGraphLayout = "level",
 ):
     """Draw the requirement graph on a given Axes.
@@ -409,7 +440,6 @@ def draw_requirements_graph(
 
     """
     digraph = requirements.digraph
-    compute_edges_color(digraph)
 
     layout = RequirementsGraphLayout(layout)
     if layout == RequirementsGraphLayout.LEVEL:
@@ -417,53 +447,57 @@ def draw_requirements_graph(
     elif layout == RequirementsGraphLayout.SPRING:
         pos = nx.spring_layout(digraph)
 
-    plain_edges = [
-        (u, v)
-        for u, v, style in digraph.edges(data="linestyle", default=None)
-        if style is None
+    edges_colors = [
+        theme.color(edge_type) for _, _, edge_type in digraph.edges(data="type")
     ]
-
+    edges_alphas = [_compute_edge_alpha(*edge, digraph) for edge in digraph.edges()]
     # Plain edges
     nx.draw_networkx_edges(
         digraph,
-        pos,
-        edgelist=plain_edges,
+        pos=pos,
         ax=ax,
         arrowsize=20,
         arrowstyle="->",
-        edge_color=[digraph.edges[u, v]["color"] for u, v in plain_edges],
+        edge_color=edges_colors,
+        alpha=edges_alphas,
     )
 
+    for node, node_type in digraph.nodes(data="type"):
+        digraph.nodes[node]["color"] = theme.color(node_type)
     draw_networkx_nodes_images(digraph, pos, ax=ax, img_zoom=0.3)
 
-    # nx.draw_networkx_labels(
-    #     graph, pos,
-    #     ax=ax,
-    #     font_color='black',
-    #     font_size=6,
-    #     labels=dict(graph.nodes(data='label'))
-    # )
-
-    # Create the legend patches
-    legend_patches = []
-    legend_arrows = [
-        mpatches.FancyArrow(
-            *(0, 0, 1, 0), facecolor="red", edgecolor="none", label="Craft"
-        )
-    ]
-
-    # Add zone_property legend only if there is any
-    for leg_node_type in RequirementNode:
+    # Add legend for edges (if any for each type)
+    legend_arrows = []
+    for legend_edge_type in RequirementEdge:
         has_type = [
-            node_type == leg_node_type for _, node_type in digraph.nodes(data="type")
+            edge_type == legend_edge_type.value
+            for _, _, edge_type in digraph.edges(data="type")
         ]
         if any(has_type):
-            legend_item = mpatches.Patch(
-                facecolor="none",
-                edgecolor=NODE_COLOR_BY_TYPE[leg_node_type],
-                label=str(leg_node_type.value).capitalize(),
+            legend_arrows.append(
+                mpatches.FancyArrow(
+                    *(0, 0, 1, 0),
+                    facecolor=theme.color(legend_edge_type),
+                    edgecolor="none",
+                    label=str(legend_edge_type.value).capitalize(),
+                )
             )
-            legend_patches.append(legend_item)
+
+    # Add legend for nodes (if any for each type)
+    legend_patches = []
+    for legend_node_type in RequirementNode:
+        has_type = [
+            node_type == legend_node_type.value
+            for _, node_type in digraph.nodes(data="type")
+        ]
+        if any(has_type):
+            legend_patches.append(
+                mpatches.Patch(
+                    facecolor="none",
+                    edgecolor=theme.color(legend_node_type),
+                    label=str(legend_node_type.value).capitalize(),
+                )
+            )
 
     # Draw the legend
     ax.legend(
@@ -482,6 +516,9 @@ def draw_requirements_graph(
         },
     )
 
+    ax.set_axis_off()
+    ax.margins(0, 0)
+
     # Add Hierarchies numbers
     nodes_by_level: Dict[int, Any] = digraph.graph["nodes_by_level"]
     for level, level_nodes in nodes_by_level.items():
@@ -493,27 +530,10 @@ def draw_requirements_graph(
     return ax
 
 
-def compute_edges_color(graph: nx.DiGraph):
-    """Compute the edges colors of a leveled graph for readability.
-
-    Requires nodes to have a 'level' attribute.
-    Adds the attribute 'color' and 'linestyle' to each edge in the given graph.
-    Nodes with a lot of successors will have more transparent edges.
-    Edges going from high to low level will be dashed.
-
-    Args:
-        graph: A networkx DiGraph.
-
-    """
-    alphas = [1, 1, 1, 1, 1, 0.5, 0.5, 0.5]
-    for node in graph.nodes():
-        successors = list(graph.successors(node))
-        for succ in successors:
-            alpha = 0.05
-            if graph.nodes[node]["level"] < graph.nodes[succ]["level"]:
-                if len(successors) < len(alphas):
-                    alpha = alphas[len(successors) - 1]
-            else:
-                graph.edges[node, succ]["linestyle"] = "dashed"
-            if isinstance(graph.edges[node, succ]["color"], list):
-                graph.edges[node, succ]["color"][-1] = alpha
+def _compute_edge_alpha(pred, _succ, graph: nx.DiGraph):
+    alphas = [1, 1, 1, 0.5, 0.5, 0.3, 0.3, 0.3, 0.2, 0.2, 0.2]
+    n_successors = len(list(graph.successors(pred)))
+    alpha = 0.1
+    if n_successors < len(alphas):
+        alpha = alphas[n_successors - 1]
+    return alpha
