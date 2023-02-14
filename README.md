@@ -134,7 +134,7 @@ There is much more to discover in crafting:
 
 - Add a Purpose to the player: `crafting.purpose`
 - Get a solving behavior for any given task: `crafting.solving_behaviors`
-- Plot the underlying requirements graph: `crafting.requirement_graph`
+- Plot the underlying requirements graph: `crafting.requirements`
 - Create your own customize environment: `crafting.env`
 
 Find everything in the [documentation](https://irll.github.io/Crafting/crafting.html):
