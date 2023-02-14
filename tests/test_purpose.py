@@ -166,7 +166,7 @@ class TestPurposeRewardShaping:
                 destination=self.zones[4],
                 removed_player_items=[self.items[0]],
                 removed_zone_items=[self.items[0]],
-                removed_destination_items=[self.items[1]],
+                removed_destination_items=[self.items[2]],
                 zones=self.zones[:2],
             )
         )
@@ -228,7 +228,12 @@ class TestPurposeRewardShaping:
             place_2,
             *go_to_zones,
         ]
-        self.env = CraftingEnv(world_from_transformations(transformations))
+        self.env = CraftingEnv(
+            world_from_transformations(
+                transformations,
+                start_zones_items={self.zones[4]: [ItemStack(self.items[2], 2)]},
+            )
+        )
         self.zone_items = self.env.world.zones_items
 
     def test_no_reward_shaping(self):
@@ -306,7 +311,7 @@ class TestPurposeRewardShaping:
         _check_place_item_tasks(
             [
                 (self.items[0], None),
-                (self.items[1], None),
+                (self.items[2], None),
             ],
             purpose.tasks,
         )
@@ -323,7 +328,7 @@ class TestPurposeRewardShaping:
         _check_place_item_tasks(
             [
                 (self.items[0], None),
-                (self.items[1], None),
+                (self.items[2], None),
             ],
             purpose.tasks,
         )
