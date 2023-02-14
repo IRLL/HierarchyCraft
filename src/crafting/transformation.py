@@ -79,7 +79,9 @@ class Transformation:
         return player_inventory, position, zones_inventories
 
     def is_valid(self, state: "CraftingState") -> bool:
-        if self._zones is not None and not np.any(np.multiply(self._zones, state.position)):
+        if self._zones is not None and not np.any(
+            np.multiply(self._zones, state.position)
+        ):
             return False
         if self._removed_player_items is not None and not np.all(
             state.player_inventory >= self._removed_player_items
@@ -140,6 +142,12 @@ class Transformation:
         items = []
         if self.removed_zone_items:
             items += _items_from_stack_list(self.removed_zone_items)
+        return items
+
+    @property
+    def consumed_destination_items(self) -> List[Item]:
+        """List of consumed zones items at destination by this transformation."""
+        items = []
         if self.removed_destination_items:
             items += _items_from_stack_list(self.removed_destination_items)
         return items

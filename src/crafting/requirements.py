@@ -160,7 +160,9 @@ class Requirements:
         in_items = transfo.consumed_items
         out_items = [item for item in transfo.produced_items if item not in in_items]
 
-        in_zone_items = transfo.consumed_zones_items
+        in_zone_items = (
+            transfo.consumed_zones_items + transfo.consumed_destination_items
+        )
         out_zone_items = [
             item for item in transfo.produced_zones_items if item not in in_zone_items
         ]
