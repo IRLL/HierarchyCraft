@@ -120,8 +120,6 @@ while not done:
 
 ## Other crafting environments
 
-Add more details
-
 See `crafting.examples`.
 
 ``` python
