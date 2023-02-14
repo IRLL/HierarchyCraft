@@ -120,7 +120,7 @@ while not done:
 
 ## Other crafting environments
 
-See `crafting.examples`.
+See [`crafting.examples`](https://irll.github.io/Crafting/crafting/examples.html).
 
 ``` python
 from crafting import TowerCrafting, RecursiveCrafting, RandomCrafting
@@ -137,10 +137,10 @@ random_env = RandomCrafting(n_items_per_n_inputs={0:2, 1:5, 2:10}, seed=42)
 
 There is much more to discover in crafting:
 
-- Add a Purpose to the player: `crafting.purpose`
-- Get a solving behavior for any given task: `crafting.solving_behaviors`
-- Plot the underlying requirements graph: `crafting.requirements`
-- Create your own customize environment: `crafting.env`
+- Add a Purpose to the player: [`crafting.purpose`](https://irll.github.io/Crafting/crafting/purpose.html)
+- Get a solving behavior for any given task: [`crafting.solving_behaviors`](https://irll.github.io/Crafting/crafting/solving_behaviors.html)
+- Plot the underlying requirements graph: [`crafting.requirements`](https://irll.github.io/Crafting/crafting/requirements.html)
+- Create your own customize environment: [`crafting.env`](https://irll.github.io/Crafting/crafting/env.html)
 
 Find everything in the [documentation](https://irll.github.io/Crafting/crafting.html):
 
