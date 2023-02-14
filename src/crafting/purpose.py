@@ -1,7 +1,9 @@
 """# Purpose in Crafting
 
-EVERY Crafting environments are sandbox environments and do not have a precise purpose by default.
-But of course, purpose can be added in ANY Crafting environment by setting up one or multiple tasks.
+**Every** crafting environments are sandbox environments
+and do not have a precise purpose by default.
+But of course, purpose can be added in **any** Crafting environment
+by setting up one or multiple tasks.
 
 Tasks can be one of:
 * Get the given item: `crafting.task.GetItemTask`
