@@ -1,8 +1,9 @@
 from typing import List
 
 from crafting.env import CraftingEnv
-from crafting.world import Item, Zone, ItemStack, world_from_transformations
+from crafting.world import Item, Zone, world_from_transformations
 from crafting.transformation import Transformation
+from crafting.task import GetItemTask
 
 import pytest_check as check
 
@@ -22,10 +23,13 @@ class KeyDoorCrafting(CraftingEnv):
         transformations = self.build_transformations()
         world = world_from_transformations(
             transformations=transformations,
+            start_zone=self.START,
             start_zones_items={self.BALL_ROOM: [self.BALL]},
         )
+        self.goal = GetItemTask(self.BALL)
         super().__init__(
             world,
+            purpose=self.goal,
             resources_path=None,
             name="KeyDoorCrafting",
             **kwargs,
@@ -55,6 +59,8 @@ class KeyDoorCrafting(CraftingEnv):
         transformations.append(search_for_door)
 
         unlock_door = Transformation(
+            removed_player_items=[self.KEY],
+            added_player_items=[self.KEY],
             removed_zones_items={
                 self.START: [self.LOCKED_DOOR],
                 self.BALL_ROOM: [self.LOCKED_DOOR],
@@ -79,6 +85,22 @@ class KeyDoorCrafting(CraftingEnv):
             zones=[self.START, self.BALL_ROOM],
         )
         transformations.append(open_door)
+
+        move_to_ball_room = Transformation(
+            destination=self.BALL_ROOM,
+            removed_zone_items=[self.OPEN_DOOR],
+            added_zone_items=[self.OPEN_DOOR],
+            zones=[self.START],
+        )
+        transformations.append(move_to_ball_room)
+
+        move_to_start_room = Transformation(
+            destination=self.START,
+            removed_zone_items=[self.OPEN_DOOR],
+            added_zone_items=[self.OPEN_DOOR],
+            zones=[self.BALL_ROOM],
+        )
+        transformations.append(move_to_start_room)
 
         return transformations
 
@@ -116,3 +138,14 @@ def test_build_env():
         set(env.world.zones),
         msg=str(expected_zones - set(env.world.zones)),
     )
+
+
+def test_can_solve():
+    env = KeyDoorCrafting(max_step=20)
+    solving_behavior = env.solving_behavior(env.goal)
+    done = False
+    observation = env.reset()
+    while not done:
+        action = solving_behavior(observation)
+        observation, _reward, done, _ = env.step(action)
+    check.is_true(env.goal.is_terminated)
