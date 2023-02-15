@@ -7,11 +7,15 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class Item:
+    """Represent an item for any crafting environement."""
+
     name: str
 
 
 @dataclass(frozen=True)
 class ItemStack:
+    """Represent a stack of an item for any crafting environement"""
+
     item: Item
     quantity: int = 1
 
@@ -24,12 +28,9 @@ class ItemStack:
 
 @dataclass(frozen=True)
 class Zone:
+    """Represent a zone for any crafting environement."""
+
     name: str
-
-
-@dataclass(frozen=True)
-class Player:
-    name: str = "Player"
 
 
 @dataclass(frozen=True)
@@ -49,24 +50,18 @@ class World:
 
     @property
     def n_items(self) -> int:
+        """Number of different items the player can have."""
         return len(self.items)
 
     @property
     def n_zones(self) -> int:
+        """Number of different zones."""
         return len(self.zones)
 
     @property
     def n_zones_items(self) -> int:
+        """Number of different items the zones can have."""
         return len(self.zones_items)
-
-    def slot_from_item(self, item: Item) -> int:
-        return self.items.index(item)
-
-    def slot_from_zone(self, zone: Zone) -> int:
-        return self.zones.index(zone)
-
-    def slot_from_zoneitem(self, zone: Zone) -> int:
-        return self.zones_items.index(zone)
 
 
 def world_from_transformations(
