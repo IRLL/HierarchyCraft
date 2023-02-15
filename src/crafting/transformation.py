@@ -103,6 +103,10 @@ class Transformation:
             if not np.all(current_zone_inventory >= self._removed_zone_items):
                 return False
 
+        if self._removed_zones_items is not None:
+            if not np.all(state.zones_inventories >= self._removed_zones_items):
+                return False
+
         if (
             self._destination is not None
             and self._removed_destination_items is not None

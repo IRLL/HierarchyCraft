@@ -89,6 +89,16 @@ class TestTransformationIsValid:
         )
         check.is_false(transfo.is_valid(state))
 
+    def test_zones_items_is_valid(self):
+        transfo = Transformation(
+            removed_zones_items={self.zones[1]: [ItemStack(self.zones_items[0], 3)]},
+        )
+        transfo.build(self.world)
+        state = DummyState(zones_inventories=np.array([[0, 0], [3, 0], [0, 0]]))
+        check.is_true(transfo.is_valid(state))
+        state = DummyState(zones_inventories=np.array([[10, 10], [0, 10], [10, 10]]))
+        check.is_false(transfo.is_valid(state))
+
     def test_destination_items_is_valid(self):
         transfo = Transformation(
             destination=self.zones[1],
