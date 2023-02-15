@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, List, Set, Dict, Optional
+from typing import TYPE_CHECKING, List, Set, Dict, Tuple, Optional, Union
 
 if TYPE_CHECKING:
     from crafting.transformation import Transformation
@@ -72,37 +72,29 @@ class World:
 def world_from_transformations(
     transformations: List["Transformation"],
     start_zone: Optional[Zone] = None,
-    start_items: Optional[List[ItemStack]] = None,
-    start_zones_items: Optional[Dict[Zone, List[ItemStack]]] = None,
+    start_items: Optional[List[Union[ItemStack, Item]]] = None,
+    start_zones_items: Optional[Dict[Zone, List[Union[ItemStack, Item]]]] = None,
 ) -> World:
     """Reads the transformation to build the list of items, zones and zones_items
     composing the world."""
     start_items = start_items if start_items is not None else []
+    for i, stack in enumerate(start_items):
+        if not isinstance(stack, ItemStack):
+            start_items[i] = ItemStack(stack)
     start_zones_items = start_zones_items if start_zones_items is not None else {}
+    for zone, items in start_zones_items.items():
+        for i, stack in enumerate(items):
+            if not isinstance(stack, ItemStack):
+                start_zones_items[zone][i] = ItemStack(stack)
 
-    # Start elements
-    zones = set()
-    if start_zone is not None:
-        zones.add(start_zone)
+    zones, items, zones_items = _start_elements(
+        start_zone, start_items, start_zones_items
+    )
 
-    items = set(itemstack.item for itemstack in start_items)
-    zones_items = set()
-    for zone, zone_items in start_zones_items.items():
-        zones.add(zone)
-        zones_items |= set(itemstack.item for itemstack in zone_items)
-
-    # Elements by transformations
     for transfo in transformations:
-        if transfo.destination is not None:
-            zones.add(transfo.destination)
-        if transfo.zones is not None:
-            zones |= set(transfo.zones)
-        items = _add_items_to(transfo.removed_player_items, items)
-        items = _add_items_to(transfo.added_player_items, items)
-        zones_items = _add_items_to(transfo.removed_destination_items, zones_items)
-        zones_items = _add_items_to(transfo.added_destination_items, zones_items)
-        zones_items = _add_items_to(transfo.removed_zone_items, zones_items)
-        zones_items = _add_items_to(transfo.added_zone_items, zones_items)
+        zones, items, zones_items = _transformations_elements(
+            transfo, zones, items, zones_items
+        )
 
     return World(
         items=list(items),
@@ -115,8 +107,62 @@ def world_from_transformations(
     )
 
 
-def _add_items_to(itemstacks: Optional[List[ItemStack]], items_set: Set[Item]):
-    if itemstacks is not None:
-        for itemstack in itemstacks:
+def _start_elements(
+    start_zone: Optional[Zone],
+    start_items: List[Union[ItemStack, Item]],
+    start_zones_items: Dict[Zone, List[Union[ItemStack, Item]]],
+) -> Tuple[Set[Zone], Set[Item], Set[Item]]:
+    zones = set()
+    if start_zone is not None:
+        zones.add(start_zone)
+
+    items = set(itemstack.item for itemstack in start_items)
+    zones_items = set()
+    for zone, zone_items in start_zones_items.items():
+        zones.add(zone)
+        zones_items |= set(itemstack.item for itemstack in zone_items)
+    return zones, items, zones_items
+
+
+def _transformations_elements(
+    transfo: "Transformation",
+    zones: Set[Zone],
+    items: Set[Item],
+    zones_items: Set[Item],
+) -> Tuple[Set[Zone], Set[Item], Set[Item]]:
+    if transfo.destination is not None:
+        zones.add(transfo.destination)
+    if transfo.zones is not None:
+        zones |= set(transfo.zones)
+    items = _add_items_to(transfo.removed_player_items, items)
+    items = _add_items_to(transfo.added_player_items, items)
+    zones_items = _add_items_to(transfo.removed_destination_items, zones_items)
+    zones_items = _add_items_to(transfo.added_destination_items, zones_items)
+    zones_items = _add_items_to(transfo.removed_zone_items, zones_items)
+    zones_items = _add_items_to(transfo.added_zone_items, zones_items)
+    zones_items, zones = _add_dict_items_to(
+        transfo.removed_zones_items, zones_items, zones
+    )
+    zones_items, zones = _add_dict_items_to(
+        transfo.added_zones_items, zones_items, zones
+    )
+    return zones, items, zones_items
+
+
+def _add_items_to(stacks: Optional[List[ItemStack]], items_set: Set[Item]):
+    if stacks is not None:
+        for itemstack in stacks:
             items_set.add(itemstack.item)
     return items_set
+
+
+def _add_dict_items_to(
+    dict_of_stacks: Optional[Dict[Zone, List[ItemStack]]],
+    items_set: Set[Item],
+    zones_set: Set[Zone],
+):
+    if dict_of_stacks is not None:
+        for zone, stacks in dict_of_stacks.items():
+            zones_set.add(zone)
+            items_set = _add_items_to(stacks, items_set)
+    return items_set, zones_set
