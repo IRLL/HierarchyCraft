@@ -69,6 +69,18 @@ class World:
         """Number of different items the zones can have."""
         return len(self.zones_items)
 
+    def slot_from_item(self, item: Item) -> int:
+        """Item's slot in the world"""
+        return self.items.index(item)
+
+    def slot_from_zone(self, zone: Zone) -> int:
+        """Zone's slot in the world"""
+        return self.zones.index(zone)
+
+    def slot_from_zoneitem(self, zone: Zone) -> int:
+        """Item's slot in the world as a zone item."""
+        return self.zones_items.index(zone)
+
 
 def world_from_transformations(
     transformations: List["Transformation"],
