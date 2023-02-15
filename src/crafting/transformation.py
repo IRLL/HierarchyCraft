@@ -255,14 +255,10 @@ class Transformation:
         transfo_text = ""
 
         remove_texts = []
-        if self.removed_player_items is not None:
-            remove_texts.append(_unstacked_str(self.removed_player_items))
-        if self.removed_zone_items is not None:
-            remove_texts.append(_unstacked_str(self.removed_zone_items, "Zone(", ")"))
-        if self.removed_destination_items is not None:
-            remove_texts.append(
-                _unstacked_str(self.removed_destination_items, "Dest(", ")")
-            )
+        remove_texts += _stacks_str(self.removed_player_items)
+        remove_texts += _stacks_str(self.removed_zone_items, "Zone(", ")")
+        remove_texts += _stacks_str(self.removed_destination_items, "Dest(", ")")
+        remove_texts += _dict_stacks_str(self.removed_zones_items)
 
         if remove_texts:
             transfo_text = " ".join(remove_texts)
@@ -271,13 +267,10 @@ class Transformation:
         transfo_text += "> "
 
         add_texts = []
-        if self.added_player_items is not None:
-            add_texts.append(_unstacked_str(self.added_player_items))
-        if self.added_zone_items is not None:
-            add_texts.append(_unstacked_str(self.added_zone_items, "Zone(", ")"))
-        if self.added_destination_items is not None:
-            add_texts.append(_unstacked_str(self.added_destination_items, "Dest(", ")"))
-
+        add_texts += _stacks_str(self.added_player_items)
+        add_texts += _stacks_str(self.added_zone_items, "Zone(", ")")
+        add_texts += _stacks_str(self.added_destination_items, "Dest(", ")")
+        add_texts += _dict_stacks_str(self.added_zones_items)
         if add_texts:
             transfo_text += " ".join(add_texts)
             if self.destination is not None:
@@ -287,6 +280,27 @@ class Transformation:
             transfo_text += f"| {self.destination.name}"
 
         return transfo_text
+
+
+def _dict_stacks_str(dict_of_stacks: Optional[Dict[Zone, List[ItemStack]]]):
+    strings = []
+    if dict_of_stacks is None:
+        return strings
+    for zone, stacks in dict_of_stacks.items():
+        strings += _stacks_str(stacks, f"{zone.name}(", ")")
+    return strings
+
+
+def _stacks_str(
+    stacks: Optional[List[ItemStack]],
+    prefix: str = "",
+    suffix: str = "",
+) -> List[str]:
+    strings = []
+    if stacks is None:
+        return strings
+    strings.append(_unstacked_str(stacks, prefix, suffix))
+    return strings
 
 
 def _unstacked_str(itemstacks: List[ItemStack], prefix: str = "", suffix: str = ""):

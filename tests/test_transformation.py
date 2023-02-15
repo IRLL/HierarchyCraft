@@ -403,6 +403,16 @@ class TestTransformationIsValid:
                 ItemStack(Item("D1")),
                 ItemStack(Item("D2")),
             ],
+            removed_zones_items={
+                Zone("A"): [
+                    ItemStack(Item("A1")),
+                    ItemStack(Item("A2")),
+                ],
+                Zone("B"): [
+                    ItemStack(Item("B1")),
+                    ItemStack(Item("B2")),
+                ],
+            },
             added_player_items=[
                 ItemStack(Item("P3")),
                 ItemStack(Item("P4")),
@@ -415,11 +425,22 @@ class TestTransformationIsValid:
                 ItemStack(Item("D3")),
                 ItemStack(Item("D4")),
             ],
+            added_zones_items={
+                Zone("A"): [
+                    ItemStack(Item("A3")),
+                    ItemStack(Item("A4")),
+                ],
+                Zone("B"): [
+                    ItemStack(Item("B3")),
+                    ItemStack(Item("B4")),
+                ],
+            },
             destination=Zone("D"),
         )
         check_equal_str(
             str(tranfo),
-            "P1,P2 Zone(Z1,Z2) Dest(D1,D2) > P3,P4 Zone(Z3,Z4) Dest(D3,D4) | D",
+            "P1,P2 Zone(Z1,Z2) Dest(D1,D2) A(A1,A2) B(B1,B2) "
+            "> P3,P4 Zone(Z3,Z4) Dest(D3,D4) A(A3,A4) B(B3,B4) | D",
         )
 
 
