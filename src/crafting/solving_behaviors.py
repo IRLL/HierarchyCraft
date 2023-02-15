@@ -85,7 +85,7 @@ def task_to_behavior_name(task: Task) -> str:
     elif isinstance(task, GoToZoneTask):
         behavior_name = ReachZone.get_name(task.zone)
     elif isinstance(task, PlaceItemTask):
-        behavior_name = PlaceItem.get_name(task.item_stack.item)
+        behavior_name = PlaceItem.get_name(task.item_stack.item, task.zones)
     else:
         raise NotImplementedError
     return behavior_name

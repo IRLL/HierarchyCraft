@@ -8,12 +8,12 @@ from hebg import Behavior, HEBGraph
 from crafting.behaviors.actions import DoTransformation
 from crafting.behaviors.feature_conditions import HasItemStack, HasZoneItem, IsInZone
 from crafting.render.utils import load_or_create_image
-
+from crafting.task import _zones_str
+from crafting.world import Item, ItemStack, Zone
 
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv
     from crafting.transformation import Transformation
-    from crafting.world import Item, ItemStack, Zone
 
 
 class GetItem(Behavior):
@@ -22,7 +22,7 @@ class GetItem(Behavior):
 
     def __init__(
         self,
-        item: "Item",
+        item: Item,
         env: "CraftingEnv",
         all_behaviors: Dict[Union[int, str], Behavior],
     ):
@@ -32,7 +32,7 @@ class GetItem(Behavior):
         self.all_behaviors = all_behaviors
 
     @staticmethod
-    def get_name(item: "Item"):
+    def get_name(item: Item):
         """Get the name of the behavior to reach a zone."""
         return f"Get {item.name}"
 
@@ -63,22 +63,23 @@ class PlaceItem(Behavior):
 
     def __init__(
         self,
-        item: "Item",
+        item: Item,
         env: "CraftingEnv",
         all_behaviors: Dict[Union[int, str], Behavior],
-        zone: Optional["Zone"] = None,
+        zones: Optional[Union[Zone, List[Zone]]] = None,
     ):
         super().__init__(name=self.get_name(item))
         self.env = env
         self.item = item
-        self.zone = zone
+        if isinstance(zones, Zone):
+            zones = [zones]
+        self.zones = zones
         self.all_behaviors = all_behaviors
 
     @staticmethod
-    def get_name(item: "Item", zone: Optional["Zone"] = None):
+    def get_name(item: Item, zones: Optional[List[Zone]] = None):
         """Get the name of the behavior to reach a zone."""
-        zone_str = zone.name if zone is not None else "anywhere"
-        return f"Place {item.name} {zone_str}"
+        return f"Place {item.name}{_zones_str(zones)}"
 
     def build_graph(self) -> HEBGraph:
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
@@ -120,15 +121,17 @@ class PlaceItem(Behavior):
 
     def _zone_item_is_in(
         self,
-        zone_items: Optional[List["ItemStack"]],
-        destination_items: Optional[List["ItemStack"]],
-        zones_items: Optional[Dict["Zone", List["ItemStack"]]],
-        zones: Optional[List["Zone"]],
-        destination: Optional["Zone"],
+        zone_items: Optional[List[ItemStack]],
+        destination_items: Optional[List[ItemStack]],
+        zones_items: Optional[Dict[Zone, List[ItemStack]]],
+        zones: Optional[List[Zone]],
+        destination: Optional[Zone],
     ):
-        zone_is_valid = self.zone is None or zones is None or self.zone in zones
-        destination_is_valid = self.zone is None or (
-            destination is not None and self.zone == destination
+        zone_is_valid = (
+            self.zones is None or zones is None or (set(self.zones) - set(zones))
+        )
+        destination_is_valid = self.zones is None or (
+            destination is not None and destination in self.zones
         )
         if self._item_is_in_stack(zone_items) and zone_is_valid:
             return True
@@ -143,12 +146,11 @@ class PlaceItem(Behavior):
     ):
         if dict_of_stack is None:
             return False
-        if self.zone is not None:
-            stacks = dict_of_stack.get(self.zone, [])
-        else:
-            stacks = []
-            for _zone, zone_stacks in dict_of_stack.items():
-                stacks.extend(zone_stacks)
+        valid_zones = list(dict_of_stack.keys()) if self.zones is None else self.zones
+        stacks = []
+        for zone in valid_zones:
+            zone_stacks = dict_of_stack.get(zone, [])
+            stacks.extend(zone_stacks)
         return self._item_is_in_stack(stacks)
 
     def _item_is_in_stack(self, stacks: Optional[List["ItemStack"]]) -> bool:
@@ -161,7 +163,7 @@ class ReachZone(Behavior):
 
     def __init__(
         self,
-        zone: "Zone",
+        zone: Zone,
         env: "CraftingEnv",
         all_behaviors: Dict[Union[int, str], Behavior],
     ):
@@ -171,7 +173,7 @@ class ReachZone(Behavior):
         self.all_behaviors = all_behaviors
 
     @staticmethod
-    def get_name(zone: "Zone"):
+    def get_name(zone: Zone):
         """Get the name of the behavior to reach a zone."""
         return f"Reach {zone.name}"
 
@@ -214,8 +216,8 @@ class AbleAndPerformTransformation(Behavior):
 
         # Require all items to be removed from player env
         if self.transformation.removed_player_items is not None:
-            for itemstack in self.transformation.removed_player_items:
-                has_item = _add_get_item(itemstack, graph, self.env)
+            for stack in self.transformation.removed_player_items:
+                has_item = _add_get_item(stack, graph, self.env)
                 if last_node is not None:
                     graph.add_edge(last_node, has_item, index=int(True))
                 last_node = has_item
@@ -236,10 +238,10 @@ class AbleAndPerformTransformation(Behavior):
         else:  # Require nothing yet
             last_nodes = []
 
-        # Require all items to be removed from current zone env
+        # Require all items to be removed from current zone
         if self.transformation.removed_zone_items is not None:
-            for itemstack in self.transformation.removed_zone_items:
-                has_prop = _add_get_zone_item(itemstack, graph, self.env)
+            for stack in self.transformation.removed_zone_items:
+                has_prop = _add_get_zone_item(graph, self.env, stack)
                 for prev in last_nodes:
                     graph.add_edge(prev, has_prop, index=int(True))
                 last_nodes = [has_prop]
@@ -254,7 +256,7 @@ class AbleAndPerformTransformation(Behavior):
 
 
 def _add_get_item(
-    stack: "ItemStack", graph: HEBGraph, env: "CraftingEnv"
+    stack: ItemStack, graph: HEBGraph, env: "CraftingEnv"
 ) -> HasItemStack:
     has_item = HasItemStack(stack, env)
     image = np.array(load_or_create_image(stack, env.resources_path))
@@ -263,7 +265,7 @@ def _add_get_item(
     return has_item
 
 
-def _add_zone_behavior(zone: "Zone", graph: HEBGraph, env: "CraftingEnv") -> IsInZone:
+def _add_zone_behavior(zone: Zone, graph: HEBGraph, env: "CraftingEnv") -> IsInZone:
     is_in_zone = IsInZone(zone, env)
     image = np.array(load_or_create_image(zone, env.resources_path))
     reach_zone = Behavior(ReachZone.get_name(zone), image=image)
@@ -272,13 +274,16 @@ def _add_zone_behavior(zone: "Zone", graph: HEBGraph, env: "CraftingEnv") -> IsI
 
 
 def _add_get_zone_item(
-    stack: "ItemStack", graph: HEBGraph, env: "CraftingEnv"
+    graph: HEBGraph,
+    env: "CraftingEnv",
+    stack: ItemStack,
+    zone: Optional[Zone] = None,
 ) -> HasZoneItem:
-    has_prop = HasZoneItem(stack, env)
+    has_item_in_zone = HasZoneItem(stack, env)
     image = np.array(load_or_create_image(stack, env.resources_path))
-    get_prop = Behavior(PlaceItem.get_name(stack.item), image=image)
-    graph.add_edge(has_prop, get_prop, index=int(False))
-    return has_prop
+    place_item = Behavior(PlaceItem.get_name(stack.item, zone), image=image)
+    graph.add_edge(has_item_in_zone, place_item, index=int(False))
+    return has_item_in_zone
 
 
 def _ensure_has_node(graph: HEBGraph, behavior: Behavior) -> None:
