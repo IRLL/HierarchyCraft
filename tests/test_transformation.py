@@ -158,6 +158,22 @@ class TestTransformationIsValid:
         transfo.apply(None, position, zones_inventories)
         check_np_equal(zones_inventories, np.array([[3, 1], [1, 9], [5, 3]]))
 
+    def test_zones_items(self):
+        transfo = Transformation(
+            removed_zones_items={
+                self.zones[0]: [
+                    ItemStack(self.zones_items[0], 3),
+                    ItemStack(self.zones_items[1], 1),
+                ]
+            },
+            added_zones_items={self.zones[2]: [ItemStack(self.zones_items[1], 7)]},
+        )
+        transfo.build(self.world)
+        position = np.array([0, 1, 0])
+        zones_inventories = np.array([[3, 1], [4, 2], [5, 3]])
+        transfo.apply(None, position, zones_inventories)
+        check_np_equal(zones_inventories, np.array([[0, 0], [4, 2], [5, 10]]))
+
     def test_destination_items(self):
         transfo = Transformation(
             destination=self.zones[1],

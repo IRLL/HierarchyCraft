@@ -77,6 +77,10 @@ class Transformation:
             zones_inventories[position_slot, :] += self._added_zone_items
         if self._removed_zone_items is not None:
             zones_inventories[position_slot, :] -= self._removed_zone_items
+        if self._added_zones_items is not None:
+            zones_inventories += self._added_zones_items
+        if self._removed_zones_items is not None:
+            zones_inventories -= self._removed_zones_items
         if self._destination is not None:
             destination_slot: int = self._destination.nonzero()[0]
             if self._added_destination_items is not None:
