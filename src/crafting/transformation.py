@@ -57,9 +57,9 @@ class Transformation:
         self._added_zone_items = None
 
         self.removed_zones_items = _stack_dict_items_list(removed_zones_items)
-        self._removed_zone_items = None
+        self._removed_zones_items = None
         self.added_zones_items = _stack_dict_items_list(added_zones_items)
-        self._added_zone_items = None
+        self._added_zones_items = None
 
     def apply(
         self,
@@ -194,6 +194,26 @@ class Transformation:
         for itemstack in itemstacks:
             item_slot = world_item_list.index(itemstack.item)
             operation[item_slot] = itemstack.quantity
+        setattr(self, f"_{op_name}", operation)
+
+    def _build_removed_zones_items_op(self, world: World) -> None:
+        self._build_zones_items_op(
+            "removed_zones_items", world.zones, world.zones_items
+        )
+
+    def _build_added_zones_items_op(self, world: World) -> None:
+        self._build_zones_items_op("added_zones_items", world.zones, world.zones_items)
+
+    def _build_zones_items_op(
+        self, op_name: str, zones: List[Zone], zones_items: List[Item]
+    ):
+        operation = np.zeros((len(zones), len(zones_items)), dtype=np.uint16)
+        stacks_per_zone: Dict[Zone, List[ItemStack]] = getattr(self, op_name)
+        for zone, stacks in stacks_per_zone.items():
+            zone_slot = zones.index(zone)
+            for stack in stacks:
+                item_slot = zones_items.index(stack.item)
+                operation[zone_slot, item_slot] = stack.quantity
         setattr(self, f"_{op_name}", operation)
 
     def __str__(self) -> str:
