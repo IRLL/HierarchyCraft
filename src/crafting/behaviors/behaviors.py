@@ -89,7 +89,7 @@ class PlaceItem(Behavior):
                 sub_behavior = Behavior(ReachZone.get_name(zone))
                 graph.add_node(sub_behavior)
 
-        # Any of the Tranformation that gives the item
+        # Any of the Tranformation that places the item in the given zone
         for transfo in self.env.world.transformations:
             if self._zone_item_is_added(transfo) and not self._zone_item_is_removed(
                 transfo
@@ -126,17 +126,13 @@ class PlaceItem(Behavior):
         zones: Optional[List["Zone"]],
         destination: Optional["Zone"],
     ):
-        if (
-            self._item_is_in_stack(zone_items)
-            and self.zone is None
-            or (zones is None or self.zone in zones)
-        ):
+        zone_is_valid = self.zone is None or zones is None or self.zone in zones
+        destination_is_valid = self.zone is None or (
+            destination is not None and self.zone == destination
+        )
+        if self._item_is_in_stack(zone_items) and zone_is_valid:
             return True
-        if (
-            self._item_is_in_stack(destination_items)
-            and self.zone is None
-            or (destination is not None and self.zone == destination)
-        ):
+        if self._item_is_in_stack(destination_items) and destination_is_valid:
             return True
         if self._zone_item_in_dict_of_stacks(zones_items):
             return True
