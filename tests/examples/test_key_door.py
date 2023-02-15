@@ -1,11 +1,14 @@
 from typing import List
 
+import networkx as nx
+
 from crafting.env import CraftingEnv
 from crafting.world import Item, Zone, world_from_transformations
 from crafting.transformation import Transformation
 from crafting.task import GetItemTask
 
 import pytest_check as check
+from tests.custom_checks import check_isomorphic
 
 
 class KeyDoorCrafting(CraftingEnv):
@@ -149,3 +152,42 @@ def test_can_solve():
         action = solving_behavior(observation)
         observation, _reward, done, _ = env.step(action)
     check.is_true(env.goal.is_terminated)
+
+
+def test_requirements_graph():
+    draw = False
+
+    expected_graph = nx.DiGraph()
+    expected_graph.add_edge("START#", "start_room")
+    expected_graph.add_edge("start_room", "key_in_zone")
+    expected_graph.add_edge("key_in_zone", "key")
+    expected_graph.add_edge("key", "key_in_zone")
+    expected_graph.add_edge("key", "closed_door")
+    expected_graph.add_edge("key", "open_door")
+    expected_graph.add_edge("start_room", "locked_door")
+    expected_graph.add_edge("ball_room", "locked_door")
+    expected_graph.add_edge("locked_door", "closed_door")
+    expected_graph.add_edge("locked_door", "open_door")
+    expected_graph.add_edge("start_room", "closed_door")
+    expected_graph.add_edge("ball_room", "closed_door")
+    expected_graph.add_edge("closed_door", "open_door")
+    expected_graph.add_edge("start_room", "open_door")
+    expected_graph.add_edge("ball_room", "open_door")
+    expected_graph.add_edge("open_door", "ball_room")
+    expected_graph.add_edge("start_room", "ball_room")
+    expected_graph.add_edge("open_door", "start_room")
+    expected_graph.add_edge("ball_room", "start_room")
+    expected_graph.add_edge("ball_in_zone", "ball")
+    expected_graph.add_edge("ball", "ball_in_zone")
+    expected_graph.add_edge("ball_room", "ball_in_zone")
+
+    env = KeyDoorCrafting(max_step=20)
+    check_isomorphic(env.requirements.digraph, expected_graph)
+
+    if draw:
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots()
+        env.requirements.draw(ax, layout="spring")
+        plt.show()
+        plt.close()

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Dict, Optional, Tuple, Union
+from typing import TYPE_CHECKING, List, Dict, Set, Optional, Tuple, Union
 
 import numpy as np
 
@@ -118,43 +118,62 @@ class Transformation:
     @property
     def produced_items(self) -> List[Item]:
         """List of produced items by this transformation."""
-        items = []
+        items = set()
         if self.added_player_items:
-            items += _items_from_stack_list(self.added_player_items)
+            items |= _items_from_stack_list(self.added_player_items)
         return items
 
     @property
-    def produced_zones_items(self) -> List[Item]:
+    def produced_zones_items(self) -> Set[Item]:
         """List of produced zones items by this transformation."""
-        items = []
+        items = set()
         if self.added_zone_items:
-            items += _items_from_stack_list(self.added_zone_items)
+            items |= _items_from_stack_list(self.added_zone_items)
         if self.added_destination_items:
-            items += _items_from_stack_list(self.added_destination_items)
+            items |= _items_from_stack_list(self.added_destination_items)
+        if self.added_zones_items:
+            for _zone, stacks in self.added_zones_items.items():
+                items |= _items_from_stack_list(stacks)
         return items
 
     @property
-    def consumed_items(self) -> List[Item]:
-        """List of consumed items by this transformation."""
-        items = []
+    def consumed_items(self) -> Set[Item]:
+        """Set of consumed items by this transformation."""
+        items = set()
         if self.removed_player_items:
-            items += _items_from_stack_list(self.removed_player_items)
+            items |= _items_from_stack_list(self.removed_player_items)
         return items
 
     @property
-    def consumed_zones_items(self) -> List[Item]:
-        """List of consumed zones items by this transformation."""
-        items = []
+    def consumed_zone_items(self) -> Set[Item]:
+        """Set of consumed zones items by this transformation."""
+        items = set()
         if self.removed_zone_items:
-            items += _items_from_stack_list(self.removed_zone_items)
+            items |= _items_from_stack_list(self.removed_zone_items)
         return items
 
     @property
-    def consumed_destination_items(self) -> List[Item]:
-        """List of consumed zones items at destination by this transformation."""
-        items = []
+    def consumed_destination_items(self) -> Set[Item]:
+        """Set of consumed zones items at destination by this transformation."""
+        items = set()
         if self.removed_destination_items:
-            items += _items_from_stack_list(self.removed_destination_items)
+            items |= _items_from_stack_list(self.removed_destination_items)
+        return items
+
+    @property
+    def consumed_zones_items(self) -> Dict[Zone, Set[Item]]:
+        """List of consumed zones items in specific zones by this transformation."""
+        items_per_zone = {}
+        if self.removed_zones_items:
+            for zone, stacks in self.removed_zones_items.items():
+                items_per_zone[zone] = _items_from_stack_list(stacks)
+        return items_per_zone
+
+    @property
+    def total_consumed_zone_items(self) -> Set[Item]:
+        items = self.consumed_zone_items | self.consumed_destination_items
+        for consumed_zones_items in self.consumed_zones_items.values():
+            items |= consumed_zones_items
         return items
 
     def _is_valid_position(self, position: np.ndarray):
@@ -330,5 +349,5 @@ def _stack_dict_items_list(
     }
 
 
-def _items_from_stack_list(stacks: List[ItemStack]) -> List[Item]:
-    return [stack.item for stack in stacks]
+def _items_from_stack_list(stacks: List[ItemStack]) -> Set[Item]:
+    return set(stack.item for stack in stacks)

@@ -1,4 +1,4 @@
-from crafting.requirements import _available_from_start
+from crafting.requirements import _available_in_zones_stacks
 import pytest_check as check
 
 from crafting.world import Zone, ItemStack, Item
@@ -8,10 +8,10 @@ class TestAvailableFromStart:
     def test_no_consumed_stacks(self):
         zone = Zone("0")
         check.is_true(
-            _available_from_start(
+            _available_in_zones_stacks(
                 stacks=None,
                 zone=zone,
-                start_zones_stacks={zone: []},
+                zones_stacks={zone: []},
             )
         )
 
@@ -20,10 +20,10 @@ class TestAvailableFromStart:
         req_item = Item("requirement")
         req_stack = ItemStack(req_item)
         check.is_true(
-            _available_from_start(
+            _available_in_zones_stacks(
                 stacks=[req_stack],
                 zone=zone,
-                start_zones_stacks={zone: [req_stack]},
+                zones_stacks={zone: [req_stack]},
             )
         )
 
@@ -32,10 +32,10 @@ class TestAvailableFromStart:
         req_item = Item("requirement")
         req_stack = ItemStack(req_item)
         check.is_false(
-            _available_from_start(
+            _available_in_zones_stacks(
                 stacks=[req_stack],
                 zone=zone,
-                start_zones_stacks={zone: []},
+                zones_stacks={zone: []},
             )
         )
 
@@ -44,10 +44,10 @@ class TestAvailableFromStart:
         req_item = Item("requirement")
         req_stack = ItemStack(req_item, 2)
         check.is_false(
-            _available_from_start(
+            _available_in_zones_stacks(
                 stacks=[req_stack],
                 zone=zone,
-                start_zones_stacks={zone: [ItemStack(req_item, 1)]},
+                zones_stacks={zone: [ItemStack(req_item, 1)]},
             )
         )
 
@@ -56,9 +56,9 @@ class TestAvailableFromStart:
         req_item = Item("requirement")
         req_stack = ItemStack(req_item)
         check.is_false(
-            _available_from_start(
+            _available_in_zones_stacks(
                 stacks=[req_stack],
                 zone=zone,
-                start_zones_stacks={zone: [ItemStack(Item("1"))]},
+                zones_stacks={zone: [ItemStack(Item("1"))]},
             )
         )
