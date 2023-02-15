@@ -104,45 +104,6 @@ class Transformation:
             return False
         return True
 
-    def _is_valid_position(self, position: np.ndarray):
-        if self._zones is not None and not np.any(np.multiply(self._zones, position)):
-            return False
-        return True
-
-    def _is_valid_inventory(self, player_inventory: np.ndarray):
-        if self._removed_player_items is not None and not np.all(
-            player_inventory >= self._removed_player_items
-        ):
-            return False
-        return True
-
-    def _is_valid_current_zone_inventory(
-        self, position: np.ndarray, zones_inventories: np.ndarray
-    ):
-        if self._removed_zone_items is not None:
-            current_zone_slot = position.nonzero()[0]
-            current_zone_inventory = zones_inventories[current_zone_slot, :]
-            if not np.all(current_zone_inventory >= self._removed_zone_items):
-                return False
-        return True
-
-    def _is_valid_zones_inventory(self, zones_inventories: np.ndarray):
-        if self._removed_zones_items is not None:
-            if not np.all(zones_inventories >= self._removed_zones_items):
-                return False
-        return True
-
-    def _is_valid_destination_inventory(self, zones_inventories: np.ndarray):
-        if (
-            self._destination is not None
-            and self._removed_destination_items is not None
-        ):
-            destination_zone_slot = self._destination.nonzero()[0]
-            destination_inventory = zones_inventories[destination_zone_slot, :]
-            if not np.all(destination_inventory >= self._removed_destination_items):
-                return False
-        return True
-
     def build(self, world: World) -> None:
         """Build the transformation array operations on the given world."""
         for op_name in self.OPERATIONS:
@@ -191,6 +152,45 @@ class Transformation:
         if self.removed_destination_items:
             items += _items_from_stack_list(self.removed_destination_items)
         return items
+
+    def _is_valid_position(self, position: np.ndarray):
+        if self._zones is not None and not np.any(np.multiply(self._zones, position)):
+            return False
+        return True
+
+    def _is_valid_inventory(self, player_inventory: np.ndarray):
+        if self._removed_player_items is not None and not np.all(
+            player_inventory >= self._removed_player_items
+        ):
+            return False
+        return True
+
+    def _is_valid_current_zone_inventory(
+        self, position: np.ndarray, zones_inventories: np.ndarray
+    ):
+        if self._removed_zone_items is not None:
+            current_zone_slot = position.nonzero()[0]
+            current_zone_inventory = zones_inventories[current_zone_slot, :]
+            if not np.all(current_zone_inventory >= self._removed_zone_items):
+                return False
+        return True
+
+    def _is_valid_zones_inventory(self, zones_inventories: np.ndarray):
+        if self._removed_zones_items is not None:
+            if not np.all(zones_inventories >= self._removed_zones_items):
+                return False
+        return True
+
+    def _is_valid_destination_inventory(self, zones_inventories: np.ndarray):
+        if (
+            self._destination is not None
+            and self._removed_destination_items is not None
+        ):
+            destination_zone_slot = self._destination.nonzero()[0]
+            destination_inventory = zones_inventories[destination_zone_slot, :]
+            if not np.all(destination_inventory >= self._removed_destination_items):
+                return False
+        return True
 
     def _build_destination_op(self, world: World) -> None:
         self._destination = np.zeros(world.n_zones, dtype=np.uint16)
