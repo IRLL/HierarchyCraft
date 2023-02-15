@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Union
 
 import numpy as np
 import pytest
@@ -33,10 +33,17 @@ class TestTransformationIsValid:
             removed_zone_items=[Item("0")],
             added_destination_items=[Item("0")],
             removed_destination_items=[Item("0")],
+            added_zones_items={Zone("0"): [Item("0")]},
+            removed_zones_items={Zone("0"): [Item("0")]},
         )
 
         for operation in transfo.OPERATIONS[2:]:
-            attribute: list = getattr(transfo, operation)
+            attribute: Union[list, dict] = getattr(transfo, operation)
+            if isinstance(attribute, dict):
+                _attribute = []
+                for sub_list in attribute.values():
+                    _attribute.extend(sub_list)
+                attribute = _attribute
             for item_stack in attribute:
                 check.is_instance(item_stack, ItemStack)
 

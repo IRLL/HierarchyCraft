@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, List, Dict, Optional, Tuple, Union
 
 import numpy as np
 
@@ -18,18 +18,22 @@ class Transformation:
         "added_destination_items",
         "removed_zone_items",
         "added_zone_items",
+        "removed_zones_items",
+        "added_zones_items",
     ]
 
     def __init__(
         self,
         destination: Optional[Zone] = None,
         zones: Optional[List[Zone]] = None,
-        removed_player_items: Optional[List[ItemStack]] = None,
-        added_player_items: Optional[List[ItemStack]] = None,
-        removed_destination_items: Optional[List[ItemStack]] = None,
-        added_destination_items: Optional[List[ItemStack]] = None,
-        removed_zone_items: Optional[List[ItemStack]] = None,
-        added_zone_items: Optional[List[ItemStack]] = None,
+        removed_player_items: Optional[List[Union[ItemStack, Item]]] = None,
+        added_player_items: Optional[List[Union[ItemStack, Item]]] = None,
+        removed_destination_items: Optional[List[Union[ItemStack, Item]]] = None,
+        added_destination_items: Optional[List[Union[ItemStack, Item]]] = None,
+        removed_zone_items: Optional[List[Union[ItemStack, Item]]] = None,
+        added_zone_items: Optional[List[Union[ItemStack, Item]]] = None,
+        removed_zones_items: Optional[Dict[Zone, List[Union[ItemStack, Item]]]] = None,
+        added_zones_items: Optional[Dict[Zone, List[Union[ItemStack, Item]]]] = None,
     ) -> None:
         self.destination = destination
         self._destination = None
@@ -50,6 +54,11 @@ class Transformation:
         self.removed_zone_items = _stack_items_list(removed_zone_items)
         self._removed_zone_items = None
         self.added_zone_items = _stack_items_list(added_zone_items)
+        self._added_zone_items = None
+
+        self.removed_zones_items = _stack_dict_items_list(removed_zones_items)
+        self._removed_zone_items = None
+        self.added_zones_items = _stack_dict_items_list(added_zones_items)
         self._added_zone_items = None
 
     def apply(
@@ -239,6 +248,17 @@ def _stack_items_list(
         if not isinstance(item_or_stack, ItemStack):
             items_or_stacks[i] = ItemStack(item_or_stack)
     return items_or_stacks
+
+
+def _stack_dict_items_list(
+    dict_of_stacks: Optional[Dict[Zone, List[Union[ItemStack, Item]]]]
+):
+    if dict_of_stacks is None:
+        return None
+    return {
+        zone: _stack_items_list(items_or_stacks)
+        for zone, items_or_stacks in dict_of_stacks.items()
+    }
 
 
 def _items_from_stack_list(stacks: List[ItemStack]) -> List[Item]:
