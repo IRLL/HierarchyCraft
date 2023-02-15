@@ -35,6 +35,12 @@ class Zone:
 
 @dataclass(frozen=True)
 class World:
+    """Contain all elements a crafting environment will have
+
+    Elements are items, zones, zones_items and transformations
+    Also contain optional start_zone, start_items and start_zones_items.
+    """
+
     items: List[Item]
     zones: List[Zone]
     zones_items: List[Item]
