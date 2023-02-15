@@ -106,9 +106,10 @@ def _get_item_behaviors(env: "CraftingEnv", all_behaviors: Dict[str, "Behavior"]
 
 
 def _get_zone_item_behaviors(env: "CraftingEnv", all_behaviors: Dict[str, "Behavior"]):
-    for item in env.world.zones_items:
-        behavior = PlaceItem(item, env, all_behaviors=all_behaviors)
-        all_behaviors[behavior.name] = behavior
+    for zone in [None] + env.world.zones:  # Anywhere + in every specific zone
+        for item in env.world.zones_items:
+            behavior = PlaceItem(item, env, all_behaviors=all_behaviors, zones=zone)
+            all_behaviors[behavior.name] = behavior
     return all_behaviors
 
 

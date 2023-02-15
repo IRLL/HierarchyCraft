@@ -8,7 +8,7 @@ from hebg import Behavior, HEBGraph
 from crafting.behaviors.actions import DoTransformation
 from crafting.behaviors.feature_conditions import HasItemStack, HasZoneItem, IsInZone
 from crafting.render.utils import load_or_create_image
-from crafting.task import _zones_str
+from crafting.task import _zones_str, _ensure_zone_list
 from crafting.world import Item, ItemStack, Zone
 
 if TYPE_CHECKING:
@@ -68,18 +68,17 @@ class PlaceItem(Behavior):
         all_behaviors: Dict[Union[int, str], Behavior],
         zones: Optional[Union[Zone, List[Zone]]] = None,
     ):
-        super().__init__(name=self.get_name(item))
-        self.env = env
         self.item = item
-        if isinstance(zones, Zone):
-            zones = [zones]
-        self.zones = zones
+        self.zones = _ensure_zone_list(zones)
+        super().__init__(name=self.get_name(self.item, self.zones))
+        self.env = env
         self.all_behaviors = all_behaviors
 
     @staticmethod
     def get_name(item: Item, zones: Optional[List[Zone]] = None):
         """Get the name of the behavior to reach a zone."""
-        return f"Place {item.name}{_zones_str(zones)}"
+        zones_str = _zones_str(_ensure_zone_list(zones))
+        return f"Place {item.name}{zones_str}"
 
     def build_graph(self) -> HEBGraph:
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
@@ -222,6 +221,15 @@ class AbleAndPerformTransformation(Behavior):
                     graph.add_edge(last_node, has_item, index=int(True))
                 last_node = has_item
 
+        # Require all items to be removed from specific zones
+        if self.transformation.removed_zones_items is not None:
+            for zone, stacks in self.transformation.removed_zones_items.items():
+                for stack in stacks:
+                    has_item_in_zone = _add_place_item(graph, self.env, stack, zone)
+                    if last_node is not None:
+                        graph.add_edge(last_node, has_item_in_zone, index=int(True))
+                    last_node = has_item_in_zone
+
         # Require to be in any of the zones possibles
         prev_checks_zone = []
         if self.env.world.n_zones > 1 and self.transformation.zones is not None:
@@ -241,10 +249,10 @@ class AbleAndPerformTransformation(Behavior):
         # Require all items to be removed from current zone
         if self.transformation.removed_zone_items is not None:
             for stack in self.transformation.removed_zone_items:
-                has_prop = _add_get_zone_item(graph, self.env, stack)
+                has_item_in_zone = _add_place_item(graph, self.env, stack)
                 for prev in last_nodes:
-                    graph.add_edge(prev, has_prop, index=int(True))
-                last_nodes = [has_prop]
+                    graph.add_edge(prev, has_item_in_zone, index=int(True))
+                last_nodes = [has_item_in_zone]
 
         # Add last action
         action = DoTransformation(self.transformation, self.env)
@@ -258,7 +266,7 @@ class AbleAndPerformTransformation(Behavior):
 def _add_get_item(
     stack: ItemStack, graph: HEBGraph, env: "CraftingEnv"
 ) -> HasItemStack:
-    has_item = HasItemStack(stack, env)
+    has_item = HasItemStack(env, stack)
     image = np.array(load_or_create_image(stack, env.resources_path))
     get_item = Behavior(GetItem.get_name(stack.item), image=image)
     graph.add_edge(has_item, get_item, index=int(False))
@@ -266,20 +274,20 @@ def _add_get_item(
 
 
 def _add_zone_behavior(zone: Zone, graph: HEBGraph, env: "CraftingEnv") -> IsInZone:
-    is_in_zone = IsInZone(zone, env)
+    is_in_zone = IsInZone(env, zone)
     image = np.array(load_or_create_image(zone, env.resources_path))
     reach_zone = Behavior(ReachZone.get_name(zone), image=image)
     graph.add_edge(is_in_zone, reach_zone, index=int(False))
     return is_in_zone
 
 
-def _add_get_zone_item(
+def _add_place_item(
     graph: HEBGraph,
     env: "CraftingEnv",
     stack: ItemStack,
     zone: Optional[Zone] = None,
 ) -> HasZoneItem:
-    has_item_in_zone = HasZoneItem(stack, env)
+    has_item_in_zone = HasZoneItem(env, stack, zone)
     image = np.array(load_or_create_image(stack, env.resources_path))
     place_item = Behavior(PlaceItem.get_name(stack.item, zone), image=image)
     graph.add_edge(has_item_in_zone, place_item, index=int(False))
