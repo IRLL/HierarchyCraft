@@ -131,7 +131,7 @@ class PlaceItemTask(AchievementTask):
         if self.zones is None:
             zones_slots = np.arange(self._terminate_zones_items.shape[0])
         else:
-            zones_slots = np.array([world.zones.index(zone) for zone in self.zones])
+            zones_slots = np.array([world.slot_from_zone(zone) for zone in self.zones])
         zone_item_slot = world.zones_items.index(self.item_stack.item)
         self._terminate_zones_items[
             zones_slots, zone_item_slot

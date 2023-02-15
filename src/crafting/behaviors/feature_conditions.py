@@ -44,7 +44,7 @@ class IsInZone(FeatureCondition):
         self.n_items = env.world.n_items
         self.n_zones = env.world.n_zones
         self.zone = zone
-        self.slot = env.world.zones.index(zone)
+        self.slot = env.world.slot_from_zone(zone)
 
     def __call__(self, observation) -> int:
         position = observation[self.n_items : self.n_items + self.n_zones]
