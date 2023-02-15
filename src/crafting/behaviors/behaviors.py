@@ -1,6 +1,6 @@
 """ Module for handcrafted Behavior with HEBGraph in any Crafting environment. """
 
-from typing import TYPE_CHECKING, Dict, Union
+from typing import TYPE_CHECKING, Dict, List, Union, Optional
 
 import numpy as np
 from hebg import Behavior, HEBGraph
@@ -52,10 +52,12 @@ class GetItem(Behavior):
             if item_is_added and item_is_not_removed:
                 sub_behavior = Behavior(AbleAndPerformTransformation.get_name(transfo))
                 graph.add_node(sub_behavior)
+
+        _ensure_has_node(graph, self)
         return graph
 
 
-class GetZoneItem(Behavior):
+class PlaceItem(Behavior):
 
     """Behavior for getting an item in the current zone"""
 
@@ -64,41 +66,77 @@ class GetZoneItem(Behavior):
         item: "Item",
         env: "CraftingEnv",
         all_behaviors: Dict[Union[int, str], Behavior],
+        zone: Optional["Zone"] = None,
     ):
         super().__init__(name=self.get_name(item))
         self.env = env
         self.item = item
+        self.zone = zone
         self.all_behaviors = all_behaviors
 
     @staticmethod
-    def get_name(item: "Item"):
+    def get_name(item: "Item", zone: Optional["Zone"] = None):
         """Get the name of the behavior to reach a zone."""
-        return f"Get {item.name} in current Zone"
+        zone_str = zone.name if zone is not None else "anywhere"
+        return f"Place {item.name} {zone_str}"
 
     def build_graph(self) -> HEBGraph:
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
 
-        # Any of the Tranformation that gives the item
-        for transfo in self.env.world.transformations:
-            zone_item_is_added = transfo.added_zone_items is not None and self.item in [
-                itemstack.item for itemstack in transfo.added_zone_items
-            ]
-            zone_item_is_not_removed = (
-                transfo.removed_zone_items is None
-                or self.item
-                not in [itemstack.item for itemstack in transfo.removed_zone_items]
-            )
-            if zone_item_is_added and zone_item_is_not_removed:
-                sub_behavior = Behavior(AbleAndPerformTransformation.get_name(transfo))
-                graph.add_node(sub_behavior)
-
         # Go to any zone where the zone_item is from the start
         for zone, items_stacks in self.env.world.start_zones_items.items():
-            if self.item in [itemstack.item for itemstack in items_stacks]:
+            if self.item in [stack.item for stack in items_stacks]:
                 sub_behavior = Behavior(ReachZone.get_name(zone))
                 graph.add_node(sub_behavior)
 
+        # Any of the Tranformation that gives the item
+        for transfo in self.env.world.transformations:
+            if self._zone_item_is_added(transfo) and not self._zone_item_is_removed(
+                transfo
+            ):
+                sub_behavior = Behavior(AbleAndPerformTransformation.get_name(transfo))
+                graph.add_node(sub_behavior)
+
+        _ensure_has_node(graph, self)
         return graph
+
+    def _zone_item_is_added(self, transformation: "Transformation") -> bool:
+        if self._item_is_in_stack(transformation.added_zone_items):
+            if self.zone is None or self.zone in transformation.zones:
+                return True
+        if self._item_is_in_stack(transformation.added_destination_items):
+            if self.zone is None or self.zone == transformation.destination:
+                return True
+        if self._zone_item_in_dict_of_stacks(transformation.added_zones_items):
+            return True
+        return False
+
+    def _zone_item_is_removed(self, transformation: "Transformation") -> bool:
+        if self._item_is_in_stack(transformation.removed_zone_items):
+            if self.zone is None or self.zone in transformation.zones:
+                return True
+        if self._item_is_in_stack(transformation.removed_destination_items):
+            if self.zone is None or self.zone == transformation.destination:
+                return True
+        if self._zone_item_in_dict_of_stacks(transformation.removed_zones_items):
+            return True
+        return False
+
+    def _zone_item_in_dict_of_stacks(
+        self, dict_of_stack: Optional[Dict["Zone", List["ItemStack"]]]
+    ):
+        if dict_of_stack is None:
+            return False
+        if self.zone is not None:
+            stacks = dict_of_stack.get(self.zone, [])
+        else:
+            stacks = []
+            for _zone, zone_stacks in dict_of_stack.items():
+                stacks.extend(zone_stacks)
+        return self._item_is_in_stack(stacks)
+
+    def _item_is_in_stack(self, stacks: Optional[List["ItemStack"]]) -> bool:
+        return stacks is not None and self.item in [stack.item for stack in stacks]
 
 
 class ReachZone(Behavior):
@@ -129,6 +167,8 @@ class ReachZone(Behavior):
             if transfo.destination is not None and transfo.destination == self.zone:
                 sub_behavior = Behavior(AbleAndPerformTransformation.get_name(transfo))
                 graph.add_node(sub_behavior)
+
+        _ensure_has_node(graph, self)
         return graph
 
 
@@ -198,11 +238,11 @@ class AbleAndPerformTransformation(Behavior):
 
 
 def _add_get_item(
-    itemstack: "ItemStack", graph: HEBGraph, env: "CraftingEnv"
+    stack: "ItemStack", graph: HEBGraph, env: "CraftingEnv"
 ) -> HasItemStack:
-    has_item = HasItemStack(itemstack, env)
-    image = np.array(load_or_create_image(itemstack, env.resources_path))
-    get_item = Behavior(f"Get {itemstack.item.name}", image=image)
+    has_item = HasItemStack(stack, env)
+    image = np.array(load_or_create_image(stack, env.resources_path))
+    get_item = Behavior(GetItem.get_name(stack.item), image=image)
     graph.add_edge(has_item, get_item, index=int(False))
     return has_item
 
@@ -210,16 +250,23 @@ def _add_get_item(
 def _add_zone_behavior(zone: "Zone", graph: HEBGraph, env: "CraftingEnv") -> IsInZone:
     is_in_zone = IsInZone(zone, env)
     image = np.array(load_or_create_image(zone, env.resources_path))
-    reach_zone = Behavior(f"Reach {zone.name}", image=image)
+    reach_zone = Behavior(ReachZone.get_name(zone), image=image)
     graph.add_edge(is_in_zone, reach_zone, index=int(False))
     return is_in_zone
 
 
 def _add_get_zone_item(
-    itemstack: "ItemStack", graph: HEBGraph, env: "CraftingEnv"
+    stack: "ItemStack", graph: HEBGraph, env: "CraftingEnv"
 ) -> HasZoneItem:
-    has_prop = HasZoneItem(itemstack, env)
-    image = np.array(load_or_create_image(itemstack, env.resources_path))
-    get_prop = Behavior(f"Get {itemstack.item.name} in current Zone", image=image)
+    has_prop = HasZoneItem(stack, env)
+    image = np.array(load_or_create_image(stack, env.resources_path))
+    get_prop = Behavior(PlaceItem.get_name(stack.item), image=image)
     graph.add_edge(has_prop, get_prop, index=int(False))
     return has_prop
+
+
+def _ensure_has_node(graph: HEBGraph, behavior: Behavior) -> None:
+    if len(list(graph.nodes())) == 0:
+        raise ValueError(
+            f"No node was build while trying to build HEBGraph for behavior: {behavior}."
+        )

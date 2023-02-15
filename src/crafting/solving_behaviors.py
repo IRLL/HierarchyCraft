@@ -49,7 +49,7 @@ from crafting.task import Task, GetItemTask, GoToZoneTask, PlaceItemTask
 from crafting.behaviors.behaviors import (
     AbleAndPerformTransformation,
     GetItem,
-    GetZoneItem,
+    PlaceItem,
     ReachZone,
 )
 
@@ -85,7 +85,7 @@ def task_to_behavior_name(task: Task) -> str:
     elif isinstance(task, GoToZoneTask):
         behavior_name = ReachZone.get_name(task.zone)
     elif isinstance(task, PlaceItemTask):
-        behavior_name = GetZoneItem.get_name(task.item_stack.item)
+        behavior_name = PlaceItem.get_name(task.item_stack.item)
     else:
         raise NotImplementedError
     return behavior_name
@@ -107,7 +107,7 @@ def _get_item_behaviors(env: "CraftingEnv", all_behaviors: Dict[str, "Behavior"]
 
 def _get_zone_item_behaviors(env: "CraftingEnv", all_behaviors: Dict[str, "Behavior"]):
     for item in env.world.zones_items:
-        behavior = GetZoneItem(item, env, all_behaviors=all_behaviors)
+        behavior = PlaceItem(item, env, all_behaviors=all_behaviors)
         all_behaviors[behavior.name] = behavior
     return all_behaviors
 
