@@ -101,24 +101,44 @@ class PlaceItem(Behavior):
         return graph
 
     def _zone_item_is_added(self, transformation: "Transformation") -> bool:
-        if self._item_is_in_stack(transformation.added_zone_items):
-            if self.zone is None or self.zone in transformation.zones:
-                return True
-        if self._item_is_in_stack(transformation.added_destination_items):
-            if self.zone is None or self.zone == transformation.destination:
-                return True
-        if self._zone_item_in_dict_of_stacks(transformation.added_zones_items):
-            return True
-        return False
+        return self._zone_item_is_in(
+            transformation.added_zone_items,
+            transformation.added_destination_items,
+            transformation.added_zones_items,
+            transformation.zones,
+            transformation.destination,
+        )
 
     def _zone_item_is_removed(self, transformation: "Transformation") -> bool:
-        if self._item_is_in_stack(transformation.removed_zone_items):
-            if self.zone is None or self.zone in transformation.zones:
-                return True
-        if self._item_is_in_stack(transformation.removed_destination_items):
-            if self.zone is None or self.zone == transformation.destination:
-                return True
-        if self._zone_item_in_dict_of_stacks(transformation.removed_zones_items):
+        return self._zone_item_is_in(
+            transformation.removed_zone_items,
+            transformation.removed_destination_items,
+            transformation.removed_zones_items,
+            transformation.zones,
+            transformation.destination,
+        )
+
+    def _zone_item_is_in(
+        self,
+        zone_items: Optional[List["ItemStack"]],
+        destination_items: Optional[List["ItemStack"]],
+        zones_items: Optional[Dict["Zone", List["ItemStack"]]],
+        zones: Optional[List["Zone"]],
+        destination: Optional["Zone"],
+    ):
+        if (
+            self._item_is_in_stack(zone_items)
+            and self.zone is None
+            or (zones is None or self.zone in zones)
+        ):
+            return True
+        if (
+            self._item_is_in_stack(destination_items)
+            and self.zone is None
+            or (destination is not None and self.zone == destination)
+        ):
+            return True
+        if self._zone_item_in_dict_of_stacks(zones_items):
             return True
         return False
 
