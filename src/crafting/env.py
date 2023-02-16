@@ -77,15 +77,15 @@ class CraftingEnv(Env):
 
         self.state = CraftingState(self.world)
         self.current_step = 0
-        self.reset()
+        self.current_score = 0
+        self.cumulated_score = 0
+        self.episodes = 0
 
         if purpose is None:
             purpose = Purpose(None)
         if not isinstance(purpose, Purpose):
             purpose = Purpose(tasks=purpose)
         self.purpose = purpose
-        self.purpose.build(self)
-
         self.metadata = {}
 
     @property
@@ -156,6 +156,8 @@ class CraftingEnv(Env):
             reward = self.purpose.reward(self.state)
         else:
             reward = self.invalid_reward
+        self.current_score += reward
+        self.cumulated_score += reward
         return self._step_output(reward)
 
     def render(self, mode: Optional[str] = None, **_kwargs) -> Union[str, np.ndarray]:
@@ -180,7 +182,11 @@ class CraftingEnv(Env):
         Returns:
             (np.ndarray): The first observation.
         """
+        if not self.purpose.built:
+            self.purpose.build(self)
         self.current_step = 0
+        self.current_score = 0
+        self.episodes += 1
         self.state.reset()
         return self.observation
 
@@ -214,7 +220,11 @@ class CraftingEnv(Env):
         return self._requirements
 
     def _step_output(self, reward: float):
-        infos = {"action_is_legal": self.actions_mask}
+        infos = {
+            "action_is_legal": self.actions_mask,
+            "score": self.current_score,
+            "score_average": self.cumulated_score / self.episodes,
+        }
         return (self.observation, reward, self.terminated or self.truncated, infos)
 
     def _render_rgb_array(self) -> np.ndarray:

@@ -13,9 +13,7 @@ def random_legal_agent(observation, action_is_legal):
 
 
 def test_random_legal_agent():
-    named_transformations, start_zone, _, _, _ = classic_env()
-    transformations = list(named_transformations.values())
-    world = world_from_transformations(transformations, start_zone=start_zone)
+    world = classic_env()[1]
     env = CraftingEnv(world, max_step=10)
     done = False
     observation = env.reset()

@@ -16,6 +16,8 @@ class TestCratingEnv:
     @pytest.fixture(autouse=True)
     def setup_method(self):
         (
+            self.env,
+            self.world,
             self.named_transformations,
             self.start_zone,
             self.items,
@@ -25,10 +27,7 @@ class TestCratingEnv:
         self.transformations: List[Transformation] = list(
             self.named_transformations.values()
         )
-        self.world = world_from_transformations(
-            self.transformations, start_zone=self.start_zone
-        )
-        self.env = CraftingEnv(self.world)
+        self.env.reset()
 
     def test_world_initialisation(self):
         """should find all items, zones and zones_items in transformations."""
@@ -181,6 +180,7 @@ class TestCratingEnv:
         """task should affect the reward and environement termination."""
         task = GetItemTask(Item("wood"), reward=5)
         env = CraftingEnv(self.world, purpose=task)
+        env.reset()
         action = env.world.transformations.index(
             self.named_transformations.get("search_wood")
         )
@@ -195,6 +195,7 @@ class TestCratingEnv:
             GetItemTask(Item("stone"), reward=10),
         ]
         env = CraftingEnv(self.world, purpose=tasks)
+        env.reset()
         action = env.world.transformations.index(
             self.named_transformations.get("search_wood")
         )
@@ -223,6 +224,7 @@ class TestCratingEnv:
     def test_max_step(self):
         """max_step should truncate the episode after desired number of steps."""
         env = CraftingEnv(self.world, max_step=3)
+        env.reset()
         _, _, done, _ = env.step(0)
         check.is_false(done)
         check.is_false(env.truncated)
@@ -236,10 +238,8 @@ class TestCratingEnv:
 
 def test_discovered_items():
     """items should be discovered if they have been obtained anytime in this episode."""
-    named_transformations, start_zone, _, _, _ = player_only_env()
-    transformations = list(named_transformations.values())
-    world = world_from_transformations(transformations, start_zone=start_zone)
-    env = CraftingEnv(world)
+    env, _, named_transformations = player_only_env()[:3]
+    env.reset()
 
     expected_discovered_items = np.zeros(env.world.n_items)
     check_np_equal(env.state.discovered_items, expected_discovered_items)
@@ -260,10 +260,8 @@ def test_discovered_items():
 
 def test_discovered_zones_items():
     """zones items should be discovered if they have been obtained anytime in this episode."""
-    named_transformations, start_zone, _, _, _ = zone_only_env()
-    transformations = list(named_transformations.values())
-    world = world_from_transformations(transformations, start_zone=start_zone)
-    env = CraftingEnv(world)
+    env, _, named_transformations = zone_only_env()[:3]
+    env.reset()
 
     expected_discovered_zones_items = np.zeros(env.world.n_zones_items)
     check_np_equal(env.state.discovered_zones_items, expected_discovered_zones_items)
@@ -284,10 +282,8 @@ def test_discovered_zones_items():
 
 def test_discovered_zones():
     """zones should be discovered if player has been in them anytime in this episode."""
-    named_transformations, start_zone, _, _, _ = classic_env()
-    transformations = list(named_transformations.values())
-    world = world_from_transformations(transformations, start_zone=start_zone)
-    env = CraftingEnv(world)
+    env, _, named_transformations = classic_env()[:3]
+    env.reset()
 
     expected_discovered_zones = np.zeros(env.world.n_zones)
     expected_discovered_zones[env.world.zones.index(Zone("start"))] = 1
@@ -308,10 +304,8 @@ def test_discovered_zones():
 
 def test_discovered_transformations():
     """transformation should be discovered if player has applied it anytime in the episode."""
-    named_transformations, start_zone, _, _, _ = classic_env()
-    transformations = list(named_transformations.values())
-    world = world_from_transformations(transformations, start_zone=start_zone)
-    env = CraftingEnv(world)
+    env, _, named_transformations = classic_env()[:3]
+    env.reset()
 
     expected_discovered_transformations = np.zeros(len(env.world.transformations))
     check_np_equal(
@@ -343,17 +337,13 @@ def test_discovered_transformations():
 
 def test_observation_no_zone_no_zone_items():
     """observation should only show player items if no zone and no zone_items."""
-    names_transformations, _, _, _, _ = player_only_env()
-    transformations = list(names_transformations.values())
-    world = world_from_transformations(transformations)
-    env = CraftingEnv(world)
+    env = player_only_env()[0]
+    env.reset()
     check.equal(env.observation.shape, (env.world.n_items,))
 
 
 def test_observation_one_zone_no_player_items():
     """observation should only show zone items if one zone and no player items."""
-    names_transformations, start_zone, _, _, _ = zone_only_env()
-    transformations = list(names_transformations.values())
-    world = world_from_transformations(transformations, start_zone=start_zone)
-    env = CraftingEnv(world)
+    env = zone_only_env()[0]
+    env.reset()
     check.equal(env.observation.shape, (env.world.n_zones + env.world.n_zones_items,))

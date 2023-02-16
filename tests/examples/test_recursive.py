@@ -41,6 +41,7 @@ def test_solve_recursive():
     ]
 
     env = RecursiveCraftingEnv(n_items=n_items)
+    env.reset()
     for action in actions:
         observation, done, _reward, _info = env.step(action)
         # Should only see items because no zones
@@ -111,6 +112,7 @@ def test_solve_light_recursive():
         n_items=n_items,
         n_required_previous=n_required_previous,
     )
+    env.reset()
     for action in actions:
         observation, done, _reward, _info = env.step(action)
         # Should only see items because no zones

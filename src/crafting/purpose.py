@@ -146,6 +146,7 @@ class Purpose:
         self.timestep_reward = timestep_reward
         self.shaping_value = shaping_value
         self.default_reward_shaping = default_reward_shaping
+        self.built = False
 
         self.task_has_ended: Dict[Task, bool] = {}
         self.reward_shaping: Dict[Task, RewardShaping] = {}
@@ -197,6 +198,9 @@ class Purpose:
         Args:
             env: The Crafting environment to build upon.
         """
+        if self.built:
+            return
+
         if not self.tasks:
             return
         # Add reward shaping subtasks
@@ -210,6 +214,8 @@ class Purpose:
         # Build all tasks
         for task in self.tasks:
             task.build(env.world)
+
+        self.built = True
 
     def reward(self, state: "CraftingState") -> float:
         """

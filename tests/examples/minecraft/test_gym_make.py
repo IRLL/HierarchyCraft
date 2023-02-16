@@ -49,6 +49,7 @@ def test_the_end_gym_make():
 
 def test_the_end_gym_make():
     env: MineCraftingEnv = gym.make("MineCrafting-Dragon-v1")
+    env.reset()
     expected_tasknames = {
         "Go to meadow",
         "Go to swamp",

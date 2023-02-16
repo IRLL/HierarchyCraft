@@ -1,5 +1,6 @@
+from crafting.env import CraftingEnv
 from crafting.transformation import Transformation
-from crafting.world import Item, ItemStack, Zone
+from crafting.world import Item, ItemStack, Zone, world_from_transformations
 
 
 def classic_env():
@@ -51,7 +52,12 @@ def classic_env():
         "build_house": build_house,
     }
 
-    return named_transformations, start_zone, items, zones, zones_items
+    world = world_from_transformations(
+        transformations=list(named_transformations.values()),
+        start_zone=start_zone,
+    )
+    env = CraftingEnv(world)
+    return env, world, named_transformations, start_zone, items, zones, zones_items
 
 
 def player_only_env():
@@ -78,7 +84,11 @@ def player_only_env():
         "craft_plank": craft_plank,
     }
 
-    return named_transformations, None, items, [], []
+    world = world_from_transformations(
+        transformations=list(named_transformations.values())
+    )
+    env = CraftingEnv(world)
+    return env, world, named_transformations, None, items, [], []
 
 
 def zone_only_env():
@@ -106,4 +116,9 @@ def zone_only_env():
         "craft_plank": craft_plank,
     }
 
-    return named_transformations, start_zone, [], [], zones_items
+    world = world_from_transformations(
+        transformations=list(named_transformations.values()),
+        start_zone=start_zone,
+    )
+    env = CraftingEnv(world)
+    return env, world, named_transformations, start_zone, [], [], zones_items
