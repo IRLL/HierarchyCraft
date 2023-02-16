@@ -36,9 +36,7 @@ class TestMetricsMultiPurpose:
                 if episode == 0:
                     check.equal(infos[f"{self.get_wood_task.name} is done"], True)
                     check.equal(infos[f"{self.place_table_task.name} is done"], done)
-                    check.equal(
-                        infos[f"{self.get_wood_task.name} success rate"], float(True)
-                    )
+                    check.equal(infos[f"{self.get_wood_task.name} success rate"], 1.0)
                     check.equal(
                         infos[f"{self.place_table_task.name} success rate"], float(done)
                     )
@@ -48,6 +46,22 @@ class TestMetricsMultiPurpose:
                     check.equal(
                         infos[f"Terminal group 'table' success rate"], float(done)
                     )
+                if episode == 1:
+                    check.equal(infos[f"{self.get_wood_task.name} is done"], True)
+                    check.equal(infos[f"{self.place_table_task.name} is done"], False)
+                    check.equal(infos[f"{self.get_wood_task.name} success rate"], 1.0)
+                    check.equal(
+                        infos[f"{self.place_table_task.name} success rate"], 0.5
+                    )
+                    check.equal(infos["Terminal group 'table' is done"], False)
+                    check.equal(infos[f"Terminal group 'table' success rate"], 0.5)
+                    if done:
+                        check.equal(infos[f"{self.get_stone_task.name} is done"], True)
+                        check.equal(
+                            infos[f"{self.get_stone_task.name} success rate"], 0.5
+                        )
+                        check.equal(infos["Terminal group 'stone' is done"], True)
+                        check.equal(infos["Terminal group 'stone' success rate"], 0.5)
 
     def test_score_values(self):
         for episode, actions in enumerate(self.actions_per_episodes):
