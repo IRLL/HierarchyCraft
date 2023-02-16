@@ -146,6 +146,11 @@ def build_transformation_image(
             resources_path,
             bg_color=dest_bg_color,
         )
+    if transformation.added_zones_items is not None:
+        for _zone, zones_items in transformation.added_zones_items.items():
+            added_images += load_or_create_images(
+                zones_items, resources_path, bg_color=dest_bg_color
+            )
 
     arrow_image = create_text_image("->", resources_path)
 
@@ -166,6 +171,12 @@ def build_transformation_image(
             resources_path,
             bg_color=dest_bg_color,
         )
+
+    if transformation.removed_zones_items is not None:
+        for _zone, zones_items in transformation.removed_zones_items.items():
+            added_images += load_or_create_images(
+                zones_items, resources_path, bg_color=dest_bg_color
+            )
 
     destination_images = []
     if transformation.destination is not None:
