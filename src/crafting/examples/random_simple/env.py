@@ -35,6 +35,7 @@ class RandomCraftingEnv(CraftingEnv):
         """
         self.seed = seed
         self.np_random = np.random.RandomState(seed)
+        self.n_items = sum(n_items_per_n_inputs.values())
         env_characteristics = "".join(
             [
                 f"{n_inputs}I{n_items}"

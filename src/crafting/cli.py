@@ -33,6 +33,7 @@ def crafting_cli(args: Optional[List[str]] = None) -> CraftingEnv:
     _tower_sub_parser(subparsers)
     _recursive_sub_parser(subparsers)
     _light_recursive_sub_parser(subparsers)
+    _random_sub_parser(subparsers)
 
     purpose = parser.add_argument_group("purpose")
     purpose.add_argument(
@@ -195,6 +196,40 @@ def _light_recursivecrafting_from_cli(args: Namespace):
     return LightRecursiveCraftingEnv(
         n_items=args.n_items,
         n_required_previous=args.n_required_previous,
+        render_window=window,
+    )
+
+
+def _random_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
+    subparser = subparsers.add_parser(
+        "random",
+        help="RandomCrafting: Random simple hierarchical structures.",
+    )
+    subparser.set_defaults(func=_randomcrafting_from_cli)
+    subparser.add_argument(
+        "--n-items-0",
+        "-n0",
+        type=int,
+        default=1,
+        help="Number of items without any inputs.",
+    )
+    for n_inputs in range(1, 5):
+        subparser.add_argument(
+            f"--n-items-{n_inputs}",
+            f"-n{n_inputs}",
+            type=int,
+            default=0,
+            help=f"Number of items with {n_inputs} input.",
+        )
+
+
+def _randomcrafting_from_cli(args: Namespace):
+    window = _window_from_cli(args)
+    n_items_per_n_inputs = {
+        n_inputs: getattr(args, f"n_items_{n_inputs}") for n_inputs in range(5)
+    }
+    return RandomCraftingEnv(
+        n_items_per_n_inputs=n_items_per_n_inputs,
         render_window=window,
     )
 

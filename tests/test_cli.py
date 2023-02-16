@@ -56,9 +56,17 @@ def test_light_recursive_cli():
 
 
 def test_random_cli():
-    env = crafting_cli(["random", "--n-items", "5"])
+    env = crafting_cli(
+        [
+            "random",
+            *("--n-items-0", "2"),
+            *("--n-items-1", "3"),
+            *("--n-items-2", "4"),
+            *("--n-items-3", "5"),
+        ]
+    )
     check.is_instance(env, RandomCraftingEnv)
-    check.equal(env.n_items, 5)
+    check.equal(env.n_items, 14)
 
 
 def test_key_door_cli():
