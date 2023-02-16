@@ -1,116 +1,14 @@
-from typing import List
-
 import networkx as nx
 
-from crafting.env import CraftingEnv
-from crafting.world import Item, Zone, world_from_transformations
-from crafting.transformation import Transformation
-from crafting.task import GetItemTask
+from crafting.world import Item, Zone
+from crafting.examples.keydoor import KeyDoorCraftingEnv
 
 import pytest_check as check
 from tests.custom_checks import check_isomorphic
 
 
-class KeyDoorCrafting(CraftingEnv):
-    START = Zone("start_room")
-    BALL_ROOM = Zone("ball_room")
-
-    KEY = Item("key")
-    BALL = Item("ball")
-
-    OPEN_DOOR = Item("open_door")
-    CLOSED_DOOR = Item("closed_door")
-    LOCKED_DOOR = Item("locked_door")
-
-    def __init__(self, **kwargs) -> None:
-        transformations = self.build_transformations()
-        world = world_from_transformations(
-            transformations=transformations,
-            start_zone=self.START,
-            start_zones_items={self.BALL_ROOM: [self.BALL]},
-        )
-        self.goal = GetItemTask(self.BALL)
-        super().__init__(
-            world,
-            purpose=self.goal,
-            resources_path=None,
-            name="KeyDoorCrafting",
-            **kwargs,
-        )
-
-    def build_transformations(self) -> List[Transformation]:
-        transformations = []
-
-        search_for_key = Transformation(added_zone_items=[self.KEY], zones=[self.START])
-        transformations.append(search_for_key)
-        for carriable_item in (self.KEY, self.BALL):
-            pickup = Transformation(
-                removed_zone_items=[carriable_item], added_player_items=[carriable_item]
-            )
-            put_down = Transformation(
-                removed_player_items=[carriable_item], added_zone_items=[carriable_item]
-            )
-            transformations += [pickup, put_down]
-
-        search_for_door = Transformation(
-            added_zones_items={
-                self.START: [self.LOCKED_DOOR],
-                self.BALL_ROOM: [self.LOCKED_DOOR],
-            },
-            zones=[self.START, self.BALL_ROOM],
-        )
-        transformations.append(search_for_door)
-
-        unlock_door = Transformation(
-            removed_player_items=[self.KEY],
-            added_player_items=[self.KEY],
-            removed_zones_items={
-                self.START: [self.LOCKED_DOOR],
-                self.BALL_ROOM: [self.LOCKED_DOOR],
-            },
-            added_zones_items={
-                self.START: [self.CLOSED_DOOR],
-                self.BALL_ROOM: [self.CLOSED_DOOR],
-            },
-            zones=[self.START, self.BALL_ROOM],
-        )
-        transformations.append(unlock_door)
-
-        open_door = Transformation(
-            removed_zones_items={
-                self.START: [self.CLOSED_DOOR],
-                self.BALL_ROOM: [self.CLOSED_DOOR],
-            },
-            added_zones_items={
-                self.START: [self.OPEN_DOOR],
-                self.BALL_ROOM: [self.OPEN_DOOR],
-            },
-            zones=[self.START, self.BALL_ROOM],
-        )
-        transformations.append(open_door)
-
-        move_to_ball_room = Transformation(
-            destination=self.BALL_ROOM,
-            removed_zone_items=[self.OPEN_DOOR],
-            added_zone_items=[self.OPEN_DOOR],
-            zones=[self.START],
-        )
-        transformations.append(move_to_ball_room)
-
-        move_to_start_room = Transformation(
-            destination=self.START,
-            removed_zone_items=[self.OPEN_DOOR],
-            added_zone_items=[self.OPEN_DOOR],
-            zones=[self.BALL_ROOM],
-        )
-        transformations.append(move_to_start_room)
-
-        return transformations
-
-
 def test_build_env():
-    env = KeyDoorCrafting()
-    check.is_instance(env, CraftingEnv)
+    env = KeyDoorCraftingEnv()
     expected_items = {
         Item("key"),
         Item("ball"),
@@ -191,3 +89,7 @@ def test_requirements_graph():
         env.requirements.draw(ax, layout="spring")
         plt.show()
         plt.close()
+
+
+def test_gym_make():
+    raise NotImplementedError
