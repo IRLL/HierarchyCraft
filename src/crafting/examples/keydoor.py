@@ -5,6 +5,17 @@ from crafting.world import Item, Zone, world_from_transformations
 from crafting.transformation import Transformation
 from crafting.task import GetItemTask
 
+# gym is an optional dependency
+try:
+    import gym
+
+    gym.register(
+        id="KeyDoorCrafting-v1",
+        entry_point="crafting.examples.keydoor:KeyDoorCraftingEnv",
+    )
+except ImportError:
+    pass
+
 
 class KeyDoorCraftingEnv(CraftingEnv):
     """Reproduces the classic KeyDoor gridworld environment as a Crafting environment."""

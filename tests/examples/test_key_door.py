@@ -3,6 +3,7 @@ import networkx as nx
 from crafting.world import Item, Zone
 from crafting.examples.keydoor import KeyDoorCraftingEnv
 
+import pytest
 import pytest_check as check
 from tests.custom_checks import check_isomorphic
 
@@ -92,4 +93,6 @@ def test_requirements_graph():
 
 
 def test_gym_make():
-    raise NotImplementedError
+    gym = pytest.importorskip("gym")
+    env: KeyDoorCraftingEnv = gym.make("KeyDoorCrafting-v1")
+    check.equal(env.goal.name, "Get ball")
