@@ -148,7 +148,6 @@ class Purpose:
         self.default_reward_shaping = default_reward_shaping
         self.built = False
 
-        self.task_has_ended: Dict[Task, bool] = {}
         self.reward_shaping: Dict[Task, RewardShaping] = {}
         self.terminal_groups: Dict[str, List[Task]] = {}
 
@@ -180,7 +179,6 @@ class Purpose:
         if reward_shaping is None:
             reward_shaping = self.default_reward_shaping
         reward_shaping = RewardShaping(reward_shaping)
-        self.task_has_ended[task] = False
         if terminal_groups:
             if isinstance(terminal_groups, str):
                 terminal_groups = [terminal_groups]
@@ -235,10 +233,9 @@ class Purpose:
         if not self.tasks:
             return False
         for task in self.tasks:
-            if not self.task_has_ended[task] and task.is_terminal(state):
-                self.task_has_ended[task] = True
+            task.is_terminal(state)
         for _terminal_group, group_tasks in self.terminal_groups.items():
-            group_has_ended = all(self.task_has_ended[task] for task in group_tasks)
+            group_has_ended = all(task.terminated for task in group_tasks)
             if group_has_ended:
                 return True
         return False
@@ -246,7 +243,6 @@ class Purpose:
     def reset(self) -> None:
         """Reset the purpose."""
         for task in self.tasks:
-            self.task_has_ended[task] = False
             task.reset()
 
     @property

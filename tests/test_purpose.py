@@ -45,13 +45,14 @@ class DummyPosEqualTask(Task):
         self.is_built = False
         self._reward = reward
         self.goal_position = goal_position
+        super().__init__(name=f"Go to {goal_position}")
 
     def reward(self, state: DummyState) -> float:
         if state.position == self.goal_position:
             return self._reward
         return 0.0
 
-    def is_terminal(self, state: DummyState) -> bool:
+    def _is_terminal(self, state: DummyState) -> bool:
         return state.position == self.goal_position
 
     def build(self, world: World) -> None:
