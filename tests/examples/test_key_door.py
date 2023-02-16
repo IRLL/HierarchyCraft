@@ -50,7 +50,7 @@ def test_can_solve():
     while not done:
         action = solving_behavior(observation)
         observation, _reward, done, _ = env.step(action)
-    check.is_true(env.goal.is_terminated)
+    check.is_true(env.goal.terminated)
 
 
 def test_requirements_graph():

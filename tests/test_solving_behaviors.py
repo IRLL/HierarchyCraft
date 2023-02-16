@@ -18,4 +18,4 @@ def test_doc_example():
         action = solving_behavior(observation)
         observation, _reward, done, _info = env.step(action)
 
-    check.is_true(get_diamond.is_terminated)  # DIAMOND has been obtained !
+    check.is_true(get_diamond.terminated)  # DIAMOND has been obtained !

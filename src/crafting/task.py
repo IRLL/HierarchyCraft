@@ -14,6 +14,7 @@ class Task:
 
     def __init__(self, name: str) -> None:
         self.name = name
+        self.terminated = False
         self._terminate_player_items = None
         self._terminate_position = None
         self._terminate_zones_items = None
@@ -26,17 +27,30 @@ class Task:
             (world.n_zones, world.n_zones_items), dtype=np.uint16
         )
 
-    @abstractmethod
     def is_terminal(self, state: "CraftingState") -> bool:
         """
         Returns whether the task is terminated.
         """
+        if self.terminated:
+            return True
+        self.terminated = self._is_terminal(state)
+        return self.terminated
+
+    @abstractmethod
+    def _is_terminal(self, state: "CraftingState") -> bool:
+        """"""
 
     @abstractmethod
     def reward(self, state: "CraftingState") -> float:
         """
         Returns the reward for the given state.
         """
+
+    def reset(self) -> None:
+        """
+        Reset the task termination.
+        """
+        self.terminated = False
 
     def __str__(self) -> str:
         return self.name
@@ -48,17 +62,15 @@ class AchievementTask(Task):
     def __init__(self, name: str, reward: float):
         super().__init__(name)
         self._reward = reward
-        self.is_terminated = False
 
     @abstractmethod
-    def is_terminal(self, state: "CraftingState") -> bool:
+    def _is_terminal(self, state: "CraftingState") -> bool:
         """
-        Returns whether the task is terminated.
+        Returns when the achievement is completed.
         """
 
     def reward(self, state: "CraftingState") -> float:
-        if not self.is_terminated and self.is_terminal(state):
-            self.is_terminated = True
+        if not self.terminated and self.is_terminal(state):
             return self._reward
         return 0.0
 
@@ -75,7 +87,7 @@ class GetItemTask(AchievementTask):
         item_slot = world.items.index(self.item_stack.item)
         self._terminate_player_items[item_slot] = self.item_stack.quantity
 
-    def is_terminal(self, state: "CraftingState") -> bool:
+    def _is_terminal(self, state: "CraftingState") -> bool:
         return np.all(state.player_inventory >= self._terminate_player_items)
 
     @staticmethod
@@ -97,7 +109,7 @@ class GoToZoneTask(AchievementTask):
         zone_slot = world.zones.index(self.zone)
         self._terminate_position[zone_slot] = 1
 
-    def is_terminal(self, state: "CraftingState") -> bool:
+    def _is_terminal(self, state: "CraftingState") -> bool:
         return np.all(state.position == self._terminate_position)
 
     @staticmethod
@@ -135,7 +147,11 @@ class PlaceItemTask(AchievementTask):
             zones_slots, zone_item_slot
         ] = self.item_stack.quantity
 
-    def is_terminal(self, state: "CraftingState") -> bool:
+    def _is_terminal(self, state: "CraftingState") -> bool:
+        if self.zones is None:
+            return np.any(
+                np.all(state.zones_inventories >= self._terminate_zones_items, axis=1)
+            )
         return np.all(state.zones_inventories >= self._terminate_zones_items)
 
     @staticmethod

@@ -45,7 +45,7 @@ def test_solving_behaviors():
     observation = mc_env.reset()
     while not done:
         for task in mc_env.purpose.tasks:
-            if not task.is_terminated:
+            if not task.terminated:
                 solving_behavior = mc_env.solving_behavior(task)
                 break
         action = solving_behavior(observation)

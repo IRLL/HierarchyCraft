@@ -45,13 +45,14 @@ class DummyPosEqualTask(Task):
         self.is_built = False
         self._reward = reward
         self.goal_position = goal_position
+        super().__init__(name=f"Go to {goal_position}")
 
     def reward(self, state: DummyState) -> float:
         if state.position == self.goal_position:
             return self._reward
         return 0.0
 
-    def is_terminal(self, state: DummyState) -> bool:
+    def _is_terminal(self, state: DummyState) -> bool:
         return state.position == self.goal_position
 
     def build(self, world: World) -> None:
@@ -255,7 +256,7 @@ class TestPurposeRewardShaping:
         purpose = Purpose()
         purpose.add_task(self.get_item_2, reward_shaping=RewardShaping.ALL_ACHIVEMENTS)
         purpose.build(self.env)
-        check.equal(list(purpose.terminal_groups.values()), [[self.get_item_2]])
+        check.equal(purpose.terminal_groups[0].tasks, [self.get_item_2])
 
     def test_inputs_achivements_shaping(self):
         purpose = Purpose()

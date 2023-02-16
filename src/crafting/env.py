@@ -12,7 +12,7 @@ from crafting.solving_behaviors import (
     build_all_solving_behaviors,
     task_to_behavior_name,
 )
-from crafting.purpose import Purpose
+from crafting.purpose import Purpose, TerminalGroup
 from crafting.task import Task
 from crafting.render.render import CraftingWindow
 from crafting.render.utils import surface_to_rgb_array
@@ -77,15 +77,17 @@ class CraftingEnv(Env):
 
         self.state = CraftingState(self.world)
         self.current_step = 0
-        self.reset()
+        self.current_score = 0
+        self.cumulated_score = 0
+        self.episodes = 0
+        self.task_successes = {}
+        self.terminal_successes = {}
 
         if purpose is None:
             purpose = Purpose(None)
         if not isinstance(purpose, Purpose):
             purpose = Purpose(tasks=purpose)
         self.purpose = purpose
-        self.purpose.build(self)
-
         self.metadata = {}
 
     @property
@@ -151,11 +153,28 @@ class CraftingEnv(Env):
 
         """
         self.current_step += 1
+
+        tasks_states = {task: task.terminated for task in self.purpose.tasks}
+        terminal_groups_states = {
+            group: group.terminated for group in self.purpose.terminal_groups
+        }
         success = self.state.apply(action)
         if success:
             reward = self.purpose.reward(self.state)
         else:
             reward = self.invalid_reward
+
+        for task in self.purpose.tasks:
+            # Just terminated
+            if task.terminated != tasks_states[task]:
+                self.task_successes[task] += 1
+        for terminal_group in self.purpose.terminal_groups:
+            # Just terminated
+            if terminal_group.terminated != terminal_groups_states[terminal_group]:
+                self.terminal_successes[terminal_group] += 1
+
+        self.current_score += reward
+        self.cumulated_score += reward
         return self._step_output(reward)
 
     def render(self, mode: Optional[str] = None, **_kwargs) -> Union[str, np.ndarray]:
@@ -180,8 +199,17 @@ class CraftingEnv(Env):
         Returns:
             (np.ndarray): The first observation.
         """
+        if not self.purpose.built:
+            self.purpose.build(self)
+            self.task_successes = {task: 0 for task in self.purpose.tasks}
+            self.terminal_successes = {
+                group: 0 for group in self.purpose.terminal_groups
+            }
         self.current_step = 0
+        self.current_score = 0
+        self.episodes += 1
         self.state.reset()
+        self.purpose.reset()
         return self.observation
 
     def close(self):
@@ -214,8 +242,47 @@ class CraftingEnv(Env):
         return self._requirements
 
     def _step_output(self, reward: float):
-        infos = {"action_is_legal": self.actions_mask}
+        infos = {
+            "action_is_legal": self.actions_mask,
+            "score": self.current_score,
+            "score_average": self.cumulated_score / self.episodes,
+        }
+        infos.update(self._tasks_infos())
         return (self.observation, reward, self.terminated or self.truncated, infos)
+
+    def _tasks_infos(self):
+        def _is_done_str(group: TerminalGroup):
+            if len(self.purpose.terminal_groups) == 1:
+                return "Purpose is done"
+            return f"Terminal group '{group.name}' is done"
+
+        def _rate_str(group: TerminalGroup):
+            if len(self.purpose.terminal_groups) == 1:
+                return "Purpose success rate"
+            return f"Terminal group '{group.name}' success rate"
+
+        tasks_are_done = {
+            f"{task.name} is done": task.terminated for task in self.purpose.tasks
+        }
+        tasks_rates = {
+            f"{task.name} success rate": self.task_successes[task] / self.episodes
+            for task in self.purpose.tasks
+        }
+        terminal_done = {
+            _is_done_str(group): group.terminated
+            for group in self.purpose.terminal_groups
+        }
+        terminal_rates = {
+            _rate_str(group): self.terminal_successes[group] / self.episodes
+            for group in self.purpose.terminal_groups
+        }
+
+        infos = {}
+        infos.update(tasks_are_done)
+        infos.update(tasks_rates)
+        infos.update(terminal_done)
+        infos.update(terminal_rates)
+        return infos
 
     def _render_rgb_array(self) -> np.ndarray:
         """Render an image of the game.

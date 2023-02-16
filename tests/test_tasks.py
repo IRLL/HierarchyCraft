@@ -135,7 +135,7 @@ class TestPlaceItem:
         expected_op = np.array([[0, 0, 2], [0, 0, 2]])
         check_np_equal(task._terminate_zones_items, expected_op)
 
-    def test_terminate(self):
+    def test_terminate_specific_zone(self):
         """should terminate only when the given zone has more than wanted items."""
         self.task.build(self.world)
 
@@ -143,8 +143,18 @@ class TestPlaceItem:
         check.is_false(self.task.is_terminal(state))
         state = DummyState(zones_inventories=np.array([[0, 0, 0], [0, 0, 2]]))
         check.is_true(self.task.is_terminal(state))
-        state = DummyState(zones_inventories=np.array([[0, 0, 0], [0, 0, 3]]))
-        check.is_true(self.task.is_terminal(state))
+
+    def test_terminate_any_zone(self):
+        """should terminate when any zone has more than wanted items."""
+        task = PlaceItemTask(ItemStack(Item("wood_house"), 2), reward=5)
+        task.build(self.world)
+
+        state = DummyState(zones_inventories=np.array([[10, 10, 0], [10, 10, 0]]))
+        check.is_false(task.is_terminal(state))
+        state = DummyState(zones_inventories=np.array([[0, 0, 0], [0, 0, 2]]))
+        check.is_true(task.is_terminal(state))
+        state = DummyState(zones_inventories=np.array([[0, 0, 2], [0, 0, 0]]))
+        check.is_true(task.is_terminal(state))
 
     def test_reward(self):
         """should reward only the first time the task terminates."""

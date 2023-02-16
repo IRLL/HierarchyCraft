@@ -94,6 +94,7 @@ Just like this last task, reward shaping subtasks are always optional.
 """
 
 from enum import Enum
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 
 import networkx as nx
@@ -121,6 +122,32 @@ class RewardShaping(Enum):
     will be associated with an achievement subtask."""
 
 
+@dataclass
+class TerminalGroup:
+    """Terminal groups are groups of tasks that can terminate the purpose.
+
+    The purpose will termitate if ANY of the terminal groups have ALL its tasks done.
+    """
+
+    name: str
+    tasks: List[Task] = field(default_factory=list)
+
+    @property
+    def terminated(self) -> bool:
+        """True if all tasks of the terminal group are terminated."""
+        return all(task.terminated for task in self.tasks)
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, str):
+            return self.name == other
+        if isinstance(other, TerminalGroup):
+            return self.name == other.name
+        return False
+
+    def __hash__(self) -> int:
+        return self.name.__hash__()
+
+
 class Purpose:
     """A purpose for a Crafting player based on a list of tasks."""
 
@@ -146,10 +173,10 @@ class Purpose:
         self.timestep_reward = timestep_reward
         self.shaping_value = shaping_value
         self.default_reward_shaping = default_reward_shaping
+        self.built = False
 
-        self.task_has_ended: Dict[Task, bool] = {}
         self.reward_shaping: Dict[Task, RewardShaping] = {}
-        self.terminal_groups: Dict[str, List[Task]] = {}
+        self.terminal_groups: List[TerminalGroup] = []
 
         if isinstance(tasks, Task):
             tasks = [tasks]
@@ -179,14 +206,16 @@ class Purpose:
         if reward_shaping is None:
             reward_shaping = self.default_reward_shaping
         reward_shaping = RewardShaping(reward_shaping)
-        self.task_has_ended[task] = False
         if terminal_groups:
             if isinstance(terminal_groups, str):
                 terminal_groups = [terminal_groups]
             for terminal_group in terminal_groups:
-                if terminal_group not in self.terminal_groups:
-                    self.terminal_groups[terminal_group] = []
-                self.terminal_groups[terminal_group].append(task)
+                existing_group = self._terminal_group_from_name(terminal_group)
+                if not existing_group:
+                    existing_group = TerminalGroup(terminal_group)
+                    self.terminal_groups.append(existing_group)
+                existing_group.tasks.append(task)
+
         self.reward_shaping[task] = reward_shaping
         self.tasks.append(task)
 
@@ -197,6 +226,9 @@ class Purpose:
         Args:
             env: The Crafting environment to build upon.
         """
+        if self.built:
+            return
+
         if not self.tasks:
             return
         # Add reward shaping subtasks
@@ -210,6 +242,8 @@ class Purpose:
         # Build all tasks
         for task in self.tasks:
             task.build(env.world)
+
+        self.built = True
 
     def reward(self, state: "CraftingState") -> float:
         """
@@ -229,21 +263,30 @@ class Purpose:
         if not self.tasks:
             return False
         for task in self.tasks:
-            if not self.task_has_ended[task] and task.is_terminal(state):
-                self.task_has_ended[task] = True
-        for _terminal_group, group_tasks in self.terminal_groups.items():
-            group_has_ended = all(self.task_has_ended[task] for task in group_tasks)
-            if group_has_ended:
+            task.is_terminal(state)
+        for terminal_group in self.terminal_groups:
+            if terminal_group.terminated:
                 return True
         return False
+
+    def reset(self) -> None:
+        """Reset the purpose."""
+        for task in self.tasks:
+            task.reset()
 
     @property
     def optional_tasks(self) -> List[Task]:
         """List of tasks in no terminal group hence being optinal."""
         terminal_tasks = []
-        for term_tasks in self.terminal_groups.values():
-            terminal_tasks += term_tasks
+        for group in self.terminal_groups:
+            terminal_tasks += group.tasks
         return [task for task in self.tasks if task not in terminal_tasks]
+
+    def _terminal_group_from_name(self, name: str) -> Optional[TerminalGroup]:
+        if name not in self.terminal_groups:
+            return None
+        group_id = self.terminal_groups.index(name)
+        return self.terminal_groups[group_id]
 
     def _add_reward_shaping_subtasks(
         self, task: Task, env: "CraftingEnv", reward_shaping: RewardShaping
@@ -260,9 +303,9 @@ class Purpose:
 
     def __str__(self) -> str:
         terminal_groups_str = []
-        for terminal_group, tasks in self.terminal_groups.items():
-            tasks_str_joined = self._tasks_str(tasks)
-            group_str = f"{terminal_group}:[{tasks_str_joined}]"
+        for terminal_group in self.terminal_groups:
+            tasks_str_joined = self._tasks_str(terminal_group.tasks)
+            group_str = f"{terminal_group.name}:[{tasks_str_joined}]"
             terminal_groups_str.append(group_str)
         optional_tasks_str = self._tasks_str(self.optional_tasks)
         if optional_tasks_str:
