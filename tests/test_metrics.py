@@ -8,16 +8,19 @@ from crafting.world import Item
 from tests.envs import classic_env
 
 
+def _actions_per_episodes():
+    return [
+        ["search_wood", "craft_plank", "craft_table"],
+        ["search_wood", "search_stone"],
+    ]
+
+
 class TestMetricsPurposeLess:
     @pytest.fixture(autouse=True)
     def setup_method(self):
         self.world, self.named_transformations = classic_env()[1:3]
         self.env = CraftingEnv(self.world)
-
-        self.actions_per_episodes = [
-            ["search_wood", "craft_plank", "craft_table"],
-            ["search_wood", "search_stone"],
-        ]
+        self.actions_per_episodes = _actions_per_episodes()
 
     def test_successes(self):
         for _, actions in enumerate(self.actions_per_episodes):
@@ -40,10 +43,7 @@ class TestMetricsSinglePurpose:
         self.place_table_task = PlaceItemTask(Item("table"), reward=15)
         self.purpose.add_task(self.place_table_task, terminal_groups="table")
         self.env = CraftingEnv(self.world, purpose=self.purpose, max_step=4)
-        self.actions_per_episodes = [
-            ["search_wood", "craft_plank", "craft_table"],
-            ["search_wood", "search_stone", "search_stone", "search_stone"],
-        ]
+        self.actions_per_episodes = _actions_per_episodes()
 
     def test_successes(self):
         for episode, actions in enumerate(self.actions_per_episodes):
@@ -84,11 +84,7 @@ class TestMetricsMultiPurpose:
         self.place_table_task = PlaceItemTask(Item("table"), reward=15)
         self.purpose.add_task(self.place_table_task, terminal_groups="table")
         self.env = CraftingEnv(self.world, purpose=self.purpose)
-
-        self.actions_per_episodes = [
-            ["search_wood", "craft_plank", "craft_table"],
-            ["search_wood", "search_stone"],
-        ]
+        self.actions_per_episodes = _actions_per_episodes()
 
     def test_successes(self):
         for episode, actions in enumerate(self.actions_per_episodes):
