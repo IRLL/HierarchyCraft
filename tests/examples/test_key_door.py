@@ -42,7 +42,7 @@ def test_build_env():
 
 
 def test_can_solve():
-    env = KeyDoorCrafting(max_step=20)
+    env = KeyDoorCraftingEnv(max_step=20)
     solving_behavior = env.solving_behavior(env.goal)
     done = False
     observation = env.reset()
@@ -79,7 +79,7 @@ def test_requirements_graph():
     expected_graph.add_edge("ball", "ball_in_zone")
     expected_graph.add_edge("ball_room", "ball_in_zone")
 
-    env = KeyDoorCrafting(max_step=20)
+    env = KeyDoorCraftingEnv(max_step=20)
     check_isomorphic(env.requirements.digraph, expected_graph)
 
     if draw:
