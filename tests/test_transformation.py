@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Union
 
 import numpy as np
 import pytest
@@ -33,10 +33,17 @@ class TestTransformationIsValid:
             removed_zone_items=[Item("0")],
             added_destination_items=[Item("0")],
             removed_destination_items=[Item("0")],
+            added_zones_items={Zone("0"): [Item("0")]},
+            removed_zones_items={Zone("0"): [Item("0")]},
         )
 
         for operation in transfo.OPERATIONS[2:]:
-            attribute: list = getattr(transfo, operation)
+            attribute: Union[list, dict] = getattr(transfo, operation)
+            if isinstance(attribute, dict):
+                _attribute = []
+                for sub_list in attribute.values():
+                    _attribute.extend(sub_list)
+                attribute = _attribute
             for item_stack in attribute:
                 check.is_instance(item_stack, ItemStack)
 
@@ -69,24 +76,27 @@ class TestTransformationIsValid:
         check.is_false(transfo.is_valid(state))
 
     def test_zone_items_is_valid(self):
-        transfo = Transformation(
-            removed_zone_items=[
-                ItemStack(self.zones_items[0], 3),
-            ],
-            added_zone_items=[
-                ItemStack(self.zones_items[1], 7),
-            ],
-        )
+        transfo = Transformation(removed_zone_items=[ItemStack(self.zones_items[0], 3)])
         transfo.build(self.world)
         position = np.array([0, 1, 0])
 
         state = DummyState(
             position=position, zones_inventories=np.array([[0, 0], [3, 0], [0, 0]])
         )
-        check.is_true(state)
+        check.is_true(transfo.is_valid(state))
         state = DummyState(
             position=position, zones_inventories=np.array([[10, 10], [0, 10], [10, 10]])
         )
+        check.is_false(transfo.is_valid(state))
+
+    def test_zones_items_is_valid(self):
+        transfo = Transformation(
+            removed_zones_items={self.zones[1]: [ItemStack(self.zones_items[0], 3)]},
+        )
+        transfo.build(self.world)
+        state = DummyState(zones_inventories=np.array([[0, 0], [3, 0], [0, 0]]))
+        check.is_true(transfo.is_valid(state))
+        state = DummyState(zones_inventories=np.array([[10, 10], [0, 10], [10, 10]]))
         check.is_false(transfo.is_valid(state))
 
     def test_destination_items_is_valid(self):
@@ -147,6 +157,22 @@ class TestTransformationIsValid:
         zones_inventories = np.array([[3, 1], [4, 2], [5, 3]])
         transfo.apply(None, position, zones_inventories)
         check_np_equal(zones_inventories, np.array([[3, 1], [1, 9], [5, 3]]))
+
+    def test_zones_items(self):
+        transfo = Transformation(
+            removed_zones_items={
+                self.zones[0]: [
+                    ItemStack(self.zones_items[0], 3),
+                    ItemStack(self.zones_items[1], 1),
+                ]
+            },
+            added_zones_items={self.zones[2]: [ItemStack(self.zones_items[1], 7)]},
+        )
+        transfo.build(self.world)
+        position = np.array([0, 1, 0])
+        zones_inventories = np.array([[3, 1], [4, 2], [5, 3]])
+        transfo.apply(None, position, zones_inventories)
+        check_np_equal(zones_inventories, np.array([[0, 0], [4, 2], [5, 10]]))
 
     def test_destination_items(self):
         transfo = Transformation(
@@ -273,6 +299,42 @@ class TestTransformationIsValid:
         tranfo.build(self.world)
         check.is_none(tranfo._added_zone_items)
 
+    def test_removed_zones_items(self):
+        tranfo = Transformation(
+            removed_zones_items={self.zones[0]: [ItemStack(self.zones_items[1], 2)]}
+        )
+        tranfo.build(self.world)
+
+        expected_op = np.zeros(
+            (len(self.zones), len(self.zones_items)), dtype=np.uint16
+        )
+        expected_op[0, 1] = 2
+        check_np_equal(tranfo._removed_zones_items, expected_op)
+
+    def test_no_removed_zones_items(self):
+        tranfo = Transformation(removed_zones_items=None)
+        tranfo.build(self.world)
+        check.is_none(tranfo._removed_zones_items)
+
+        check.is_none(tranfo._added_zone_items)
+
+    def test_added_zones_items(self):
+        tranfo = Transformation(
+            added_zones_items={self.zones[0]: [ItemStack(self.zones_items[1], 2)]}
+        )
+        tranfo.build(self.world)
+
+        expected_op = np.zeros(
+            (len(self.zones), len(self.zones_items)), dtype=np.uint16
+        )
+        expected_op[0, 1] = 2
+        check_np_equal(tranfo._added_zones_items, expected_op)
+
+    def test_no_added_zones_items(self):
+        tranfo = Transformation(added_zones_items=None)
+        tranfo.build(self.world)
+        check.is_none(tranfo._added_zones_items)
+
     def test_str(self):
         tranfo = Transformation(
             added_player_items=[
@@ -341,6 +403,16 @@ class TestTransformationIsValid:
                 ItemStack(Item("D1")),
                 ItemStack(Item("D2")),
             ],
+            removed_zones_items={
+                Zone("A"): [
+                    ItemStack(Item("A1")),
+                    ItemStack(Item("A2")),
+                ],
+                Zone("B"): [
+                    ItemStack(Item("B1")),
+                    ItemStack(Item("B2")),
+                ],
+            },
             added_player_items=[
                 ItemStack(Item("P3")),
                 ItemStack(Item("P4")),
@@ -353,11 +425,22 @@ class TestTransformationIsValid:
                 ItemStack(Item("D3")),
                 ItemStack(Item("D4")),
             ],
+            added_zones_items={
+                Zone("A"): [
+                    ItemStack(Item("A3")),
+                    ItemStack(Item("A4")),
+                ],
+                Zone("B"): [
+                    ItemStack(Item("B3")),
+                    ItemStack(Item("B4")),
+                ],
+            },
             destination=Zone("D"),
         )
         check_equal_str(
             str(tranfo),
-            "P1,P2 Zone(Z1,Z2) Dest(D1,D2) > P3,P4 Zone(Z3,Z4) Dest(D3,D4) | D",
+            "P1,P2 Zone(Z1,Z2) Dest(D1,D2) A(A1,A2) B(B1,B2) "
+            "> P3,P4 Zone(Z3,Z4) Dest(D3,D4) A(A3,A4) B(B3,B4) | D",
         )
 
 

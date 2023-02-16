@@ -121,9 +121,7 @@ class PlaceItemTask(AchievementTask):
     ):
         item_stack = _stack_item(item_stack)
         self.item_stack = item_stack
-        if isinstance(zones, Zone):
-            zones = [zones]
-        self.zones = zones
+        self.zones = _ensure_zone_list(zones)
         super().__init__(name=self.get_name(item_stack, zones), reward=reward)
 
     def build(self, world: World):
@@ -131,7 +129,7 @@ class PlaceItemTask(AchievementTask):
         if self.zones is None:
             zones_slots = np.arange(self._terminate_zones_items.shape[0])
         else:
-            zones_slots = np.array([world.zones.index(zone) for zone in self.zones])
+            zones_slots = np.array([world.slot_from_zone(zone) for zone in self.zones])
         zone_item_slot = world.zones_items.index(self.item_stack.item)
         self._terminate_zones_items[
             zones_slots, zone_item_slot
@@ -144,7 +142,7 @@ class PlaceItemTask(AchievementTask):
     def get_name(stack: ItemStack, zones: Optional[List[Zone]]):
         """Name of the task for a given ItemStack and list of Zone"""
         quantity_str = _quantity_str(stack.quantity)
-        zones_str = _zones_str(zones)
+        zones_str = _zones_str(_ensure_zone_list(zones))
         return f"Place{quantity_str}{stack.item.name}{zones_str}"
 
 
@@ -156,6 +154,12 @@ def _stack_item(item_or_stack: Union[Item, ItemStack]) -> ItemStack:
 
 def _quantity_str(quantity: int):
     return f" {quantity} " if quantity > 1 else " "
+
+
+def _ensure_zone_list(zones: Optional[Union[Zone, List[Zone]]]) -> Optional[List[Zone]]:
+    if isinstance(zones, Zone):
+        zones = [zones]
+    return zones
 
 
 def _zones_str(zones: Optional[List[Zone]]):

@@ -8,6 +8,7 @@ from crafting.examples import (
     TowerCraftingEnv,
     RecursiveCraftingEnv,
     LightRecursiveCraftingEnv,
+    KeyDoorCraftingEnv,
 )
 
 from crafting.cli import crafting_cli
@@ -52,3 +53,22 @@ def test_light_recursive_cli():
     )
     check.is_instance(env, LightRecursiveCraftingEnv)
     check.equal(env.n_items, 5)
+
+
+def test_random_cli():
+    env = crafting_cli(
+        [
+            "random",
+            *("--n-items-0", "2"),
+            *("--n-items-1", "3"),
+            *("--n-items-2", "4"),
+            *("--n-items-3", "5"),
+        ]
+    )
+    check.is_instance(env, RandomCraftingEnv)
+    check.equal(env.n_items, 14)
+
+
+def test_key_door_cli():
+    env = crafting_cli(["keydoor"])
+    check.is_instance(env, KeyDoorCraftingEnv)

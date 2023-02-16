@@ -70,7 +70,7 @@ plt.show()
 """
 
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Set, Optional, Union
 
 import matplotlib.patches as mpatches
 import networkx as nx
@@ -144,6 +144,7 @@ class Requirements:
         self.world = world
         self.graph = nx.MultiDiGraph()
         self._digraph: nx.DiGraph = None
+        self._acydigraph: nx.DiGraph = None
         self._build(resources_path)
 
     def draw(
@@ -162,13 +163,19 @@ class Requirements:
 
     @property
     def digraph(self) -> nx.DiGraph:
-        """Collapsed leveleld acyclic DiGraph of requirements."""
+        """Collapsed DiGraph of requirements."""
         if self._digraph is not None:
             return self._digraph
-        compute_levels(self.graph)
-        acyclic_graph = break_cycles_through_level(self.graph)
-        self._digraph = collapse_as_digraph(acyclic_graph)
+        self._digraph = collapse_as_digraph(self.graph)
         return self._digraph
+
+    @property
+    def acydigraph(self) -> nx.DiGraph:
+        """Collapsed leveled acyclic DiGraph of requirements."""
+        if self._acydigraph is not None:
+            return self._acydigraph
+        self._acydigraph = break_cycles_through_level(self.digraph)
+        return self._acydigraph
 
     def _build(self, resources_path: str) -> None:
         self._add_requirements_nodes(self.world, resources_path)
@@ -181,6 +188,7 @@ class Requirements:
             else:
                 self._add_transformation_edges(transfo, edge_index)
                 edge_index += 1
+        compute_levels(self.graph)
 
     def _add_requirements_nodes(
         self,
@@ -204,7 +212,9 @@ class Requirements:
                 req_node_name(obj, node_type),
                 obj=obj,
                 type=node_type,
-                image=np.array(load_or_create_image(obj, resources_path)),
+                image=np.array(
+                    load_or_create_image(obj, resources_path, bg_color=(0, 0, 0))
+                ),
                 label=obj.name.capitalize(),
             )
 
@@ -215,29 +225,55 @@ class Requirements:
         zone: Optional[Zone] = None,
     ) -> None:
         """Add edges induced by a Crafting recipe."""
-        zones = [] if zone is None else [zone]
+        zones = set() if zone is None else {zone}
 
         in_items = transfo.consumed_items
         out_items = [item for item in transfo.produced_items if item not in in_items]
 
-        in_zone_items = (
-            transfo.consumed_zones_items + transfo.consumed_destination_items
-        )
+        in_zone_items = transfo.total_consumed_zone_items
         out_zone_items = [
             item for item in transfo.produced_zones_items if item not in in_zone_items
         ]
 
-        destinations = []
+        other_zones_items = {}
         if transfo.destination is not None:
-            destinations = [transfo.destination]
-            # If we require items in destination that are not here from the start,
-            # it means that we have to be able to go there before we can use this transformation.
-            if not _available_from_start(
-                transfo.removed_destination_items,
-                transfo.destination,
+            other_zones_items[transfo.destination] = transfo.removed_destination_items
+
+        if transfo.removed_zones_items is not None:
+            for other_zone, consumed_stacks in transfo.removed_zones_items.items():
+                other_zones_items[other_zone] = consumed_stacks
+
+        for other_zone, other_zone_items in other_zones_items.items():
+            # If we require items in other zone that are not here from the start,
+            # it means that we have to be able to go there before we can use this transformation
+            # or that we can add the items in the other zone from elsewhere.
+            if not _available_in_zones_stacks(
+                other_zone_items,
+                other_zone,
                 self.world.start_zones_items,
             ):
-                zones.append(transfo.destination)
+                alternative_transformations = [
+                    alt_transfo
+                    for alt_transfo in self.world.transformations
+                    if alt_transfo.added_zones_items is not None
+                    and _available_in_zones_stacks(
+                        other_zone_items, other_zone, alt_transfo.added_zones_items
+                    )
+                ]
+                if len(alternative_transformations) == 1:
+                    alt_transfo = alternative_transformations[0]
+                    if alt_transfo.zones is None or not (
+                        len(alt_transfo.zones) == 1
+                        and alt_transfo.zones[0] == other_zone
+                    ):
+                        in_items |= alt_transfo.consumed_items
+                        in_zone_items |= alt_transfo.total_consumed_zone_items
+                    else:
+                        zones.add(other_zone)
+                elif not alternative_transformations:
+                    zones.add(other_zone)
+                else:
+                    raise NotImplementedError
 
         transfo_params = {
             "in_items": in_items,
@@ -254,15 +290,15 @@ class Requirements:
             node_name = req_node_name(out_zone_item, RequirementNode.ZONE_ITEM)
             self._add_crafts(out_node=node_name, **transfo_params)
 
-        for destination in destinations:
-            node_name = req_node_name(destination, RequirementNode.ZONE)
+        if transfo.destination is not None:
+            node_name = req_node_name(transfo.destination, RequirementNode.ZONE)
             self._add_crafts(out_node=node_name, **transfo_params)
 
     def _add_crafts(
         self,
-        in_items: List[Item],
-        in_zone_items: List[Item],
-        zones: List[Zone],
+        in_items: Set[Item],
+        in_zone_items: Set[Item],
+        zones: Set[Zone],
         out_node: str,
         index: int,
     ) -> None:
@@ -270,11 +306,11 @@ class Requirements:
             edge_type = RequirementEdge.ZONE_REQUIRED
             node_type = RequirementNode.ZONE
             self._add_obj_edge(out_node, edge_type, index, zone, node_type)
-        for item in set(in_items):
+        for item in in_items:
             node_type = RequirementNode.ITEM
             edge_type = RequirementEdge.ITEM_REQUIRED
             self._add_obj_edge(out_node, edge_type, index, item, node_type)
-        for item in set(in_zone_items):
+        for item in in_zone_items:
             node_type = RequirementNode.ZONE_ITEM
             edge_type = RequirementEdge.ITEM_REQUIRED_IN_ZONE
             self._add_obj_edge(out_node, edge_type, index, item, node_type)
@@ -390,14 +426,14 @@ def compute_levels(graph: Requirements):
     return get_nodes_by_level(graph)
 
 
-def break_cycles_through_level(multidigraph: nx.MultiDiGraph):
+def break_cycles_through_level(digraph: nx.DiGraph):
     """Break cycles in a leveled multidigraph by cutting edges from high to low levels."""
-    acyclical_multidigraph = multidigraph.copy()
-    nodes_level = acyclical_multidigraph.nodes(data="level", default=0)
-    for pred, node, key in multidigraph.edges(keys=True):
+    acygraph = digraph.copy()
+    nodes_level = acygraph.nodes(data="level", default=0)
+    for pred, node in digraph.edges():
         if nodes_level[pred] >= nodes_level[node]:
-            acyclical_multidigraph.remove_edge(pred, node, key)
-    return acyclical_multidigraph
+            acygraph.remove_edge(pred, node)
+    return acygraph
 
 
 def collapse_as_digraph(multidigraph: nx.MultiDiGraph) -> nx.DiGraph:
@@ -413,16 +449,16 @@ def collapse_as_digraph(multidigraph: nx.MultiDiGraph) -> nx.DiGraph:
     return digraph
 
 
-def _available_from_start(
+def _available_in_zones_stacks(
     stacks: Optional[List[ItemStack]],
     zone: Zone,
-    start_zones_stacks: Dict[Zone, List[ItemStack]],
+    zones_stacks: Dict[Zone, List[ItemStack]],
 ) -> bool:
     """
     Args:
         stacks: List of stacks that should be available.
         zone: Zone where the stacks should be available.
-        start_zones_stacks: Stacks present in each zone from the start.
+        zones_stacks: Stacks present in each zone.
 
     Returns:
         True if the given stacks are available from the start. False otherwise.
@@ -431,7 +467,7 @@ def _available_from_start(
         return True
     is_available: Dict[ItemStack, bool] = {}
     for consumed_stack in stacks:
-        start_stacks = start_zones_stacks.get(zone, [])
+        start_stacks = zones_stacks.get(zone, [])
         for start_stack in start_stacks:
             if start_stack.item != consumed_stack.item:
                 continue

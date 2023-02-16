@@ -297,7 +297,7 @@ class CraftingState:
             (self.world.n_zones, self.world.n_zones_items), dtype=np.uint16
         )
         for zone, zone_itemstacks in self.world.start_zones_items.items():
-            zone_slot = self.world.zones.index(zone)
+            zone_slot = self.world.slot_from_zone(zone)
             for itemstack in zone_itemstacks:
                 item_slot = self.world.zones_items.index(itemstack.item)
                 self.zones_inventories[zone_slot, item_slot] = itemstack.quantity
