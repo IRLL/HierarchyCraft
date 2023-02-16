@@ -1,5 +1,4 @@
 from crafting.env import CraftingEnv
-from crafting.world import world_from_transformations
 
 import pytest_check as check
 

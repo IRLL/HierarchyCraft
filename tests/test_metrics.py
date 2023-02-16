@@ -8,6 +8,70 @@ from crafting.world import Item
 from tests.envs import classic_env
 
 
+class TestMetricsPurposeLess:
+    @pytest.fixture(autouse=True)
+    def setup_method(self):
+        self.world, self.named_transformations = classic_env()[1:3]
+        self.env = CraftingEnv(self.world)
+
+        self.actions_per_episodes = [
+            ["search_wood", "craft_plank", "craft_table"],
+            ["search_wood", "search_stone"],
+        ]
+
+    def test_successes(self):
+        for _, actions in enumerate(self.actions_per_episodes):
+            self.env.reset()
+            for action in actions:
+                transfo = self.named_transformations.get(action)
+                action_id = self.env.world.transformations.index(transfo)
+                _, _, _, infos = self.env.step(action_id)
+                check.equal(len(infos), 3)
+
+
+class TestMetricsSinglePurpose:
+    @pytest.fixture(autouse=True)
+    def setup_method(self):
+        self.world, self.named_transformations = classic_env()[1:3]
+
+        self.purpose = Purpose()
+        self.get_wood_task = GetItemTask(Item("wood"), 1)
+        self.purpose.add_task(self.get_wood_task, terminal_groups=None)
+        self.place_table_task = PlaceItemTask(Item("table"), reward=15)
+        self.purpose.add_task(self.place_table_task, terminal_groups="table")
+        self.env = CraftingEnv(self.world, purpose=self.purpose, max_step=4)
+        self.actions_per_episodes = [
+            ["search_wood", "craft_plank", "craft_table"],
+            ["search_wood", "search_stone", "search_stone", "search_stone"],
+        ]
+
+    def test_successes(self):
+        for episode, actions in enumerate(self.actions_per_episodes):
+            self.env.reset()
+            for action in actions:
+                transfo = self.named_transformations.get(action)
+                action_id = self.env.world.transformations.index(transfo)
+                _, _, done, infos = self.env.step(action_id)
+                if episode == 0:
+                    check.equal(infos[f"{self.get_wood_task.name} is done"], True)
+                    check.equal(infos[f"{self.place_table_task.name} is done"], done)
+                    check.equal(infos[f"{self.get_wood_task.name} success rate"], 1.0)
+                    check.equal(
+                        infos[f"{self.place_table_task.name} success rate"], float(done)
+                    )
+                    check.equal(infos["Purpose is done"], done)
+                    check.equal(infos["Purpose success rate"], float(done))
+                if episode == 1:
+                    check.equal(infos[f"{self.get_wood_task.name} is done"], True)
+                    check.equal(infos[f"{self.place_table_task.name} is done"], False)
+                    check.equal(infos[f"{self.get_wood_task.name} success rate"], 1.0)
+                    check.equal(
+                        infos[f"{self.place_table_task.name} success rate"], 0.5
+                    )
+                    check.equal(infos["Purpose is done"], False)
+                    check.equal(infos["Purpose success rate"], 0.5)
+
+
 class TestMetricsMultiPurpose:
     @pytest.fixture(autouse=True)
     def setup_method(self):

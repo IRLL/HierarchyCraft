@@ -12,7 +12,7 @@ from crafting.solving_behaviors import (
     build_all_solving_behaviors,
     task_to_behavior_name,
 )
-from crafting.purpose import Purpose
+from crafting.purpose import Purpose, TerminalGroup
 from crafting.task import Task
 from crafting.render.render import CraftingWindow
 from crafting.render.utils import surface_to_rgb_array
@@ -251,6 +251,16 @@ class CraftingEnv(Env):
         return (self.observation, reward, self.terminated or self.truncated, infos)
 
     def _tasks_infos(self):
+        def _is_done_str(group: TerminalGroup):
+            if len(self.purpose.terminal_groups) == 1:
+                return "Purpose is done"
+            return f"Terminal group '{group.name}' is done"
+
+        def _rate_str(group: TerminalGroup):
+            if len(self.purpose.terminal_groups) == 1:
+                return "Purpose success rate"
+            return f"Terminal group '{group.name}' success rate"
+
         tasks_are_done = {
             f"{task.name} is done": task.terminated for task in self.purpose.tasks
         }
@@ -259,14 +269,11 @@ class CraftingEnv(Env):
             for task in self.purpose.tasks
         }
         terminal_done = {
-            f"Terminal group '{group.name}' is done": group.terminated
+            _is_done_str(group): group.terminated
             for group in self.purpose.terminal_groups
         }
         terminal_rates = {
-            f"Terminal group '{group.name}' success rate": self.terminal_successes[
-                group
-            ]
-            / self.episodes
+            _rate_str(group): self.terminal_successes[group] / self.episodes
             for group in self.purpose.terminal_groups
         }
 
