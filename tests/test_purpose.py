@@ -256,7 +256,7 @@ class TestPurposeRewardShaping:
         purpose = Purpose()
         purpose.add_task(self.get_item_2, reward_shaping=RewardShaping.ALL_ACHIVEMENTS)
         purpose.build(self.env)
-        check.equal(list(purpose.terminal_groups.values()), [[self.get_item_2]])
+        check.equal(purpose.terminal_groups[0].tasks, [self.get_item_2])
 
     def test_inputs_achivements_shaping(self):
         purpose = Purpose()

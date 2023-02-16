@@ -94,6 +94,7 @@ Just like this last task, reward shaping subtasks are always optional.
 """
 
 from enum import Enum
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 
 import networkx as nx
@@ -119,6 +120,32 @@ class RewardShaping(Enum):
     INPUTS_ACHIVEMENT = "inputs"
     """Items and zones consumed by any transformation solving the task
     will be associated with an achievement subtask."""
+
+
+@dataclass
+class TerminalGroup:
+    """Terminal groups are groups of tasks that can terminate the purpose.
+
+    The purpose will termitate if ANY of the terminal groups have ALL its tasks done.
+    """
+
+    name: str
+    tasks: List[Task] = field(default_factory=list)
+
+    @property
+    def terminated(self) -> bool:
+        """True if all tasks of the terminal group are terminated."""
+        return all(task.terminated for task in self.tasks)
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, str):
+            return self.name == other
+        if isinstance(other, TerminalGroup):
+            return self.name == other.name
+        return False
+
+    def __hash__(self) -> int:
+        return self.name.__hash__()
 
 
 class Purpose:
@@ -149,7 +176,7 @@ class Purpose:
         self.built = False
 
         self.reward_shaping: Dict[Task, RewardShaping] = {}
-        self.terminal_groups: Dict[str, List[Task]] = {}
+        self.terminal_groups: List[TerminalGroup] = []
 
         if isinstance(tasks, Task):
             tasks = [tasks]
@@ -183,9 +210,12 @@ class Purpose:
             if isinstance(terminal_groups, str):
                 terminal_groups = [terminal_groups]
             for terminal_group in terminal_groups:
-                if terminal_group not in self.terminal_groups:
-                    self.terminal_groups[terminal_group] = []
-                self.terminal_groups[terminal_group].append(task)
+                existing_group = self._terminal_group_from_name(terminal_group)
+                if not existing_group:
+                    existing_group = TerminalGroup(terminal_group)
+                    self.terminal_groups.append(existing_group)
+                existing_group.tasks.append(task)
+
         self.reward_shaping[task] = reward_shaping
         self.tasks.append(task)
 
@@ -234,9 +264,8 @@ class Purpose:
             return False
         for task in self.tasks:
             task.is_terminal(state)
-        for _terminal_group, group_tasks in self.terminal_groups.items():
-            group_has_ended = all(task.terminated for task in group_tasks)
-            if group_has_ended:
+        for terminal_group in self.terminal_groups:
+            if terminal_group.terminated:
                 return True
         return False
 
@@ -249,9 +278,15 @@ class Purpose:
     def optional_tasks(self) -> List[Task]:
         """List of tasks in no terminal group hence being optinal."""
         terminal_tasks = []
-        for term_tasks in self.terminal_groups.values():
-            terminal_tasks += term_tasks
+        for group in self.terminal_groups:
+            terminal_tasks += group.tasks
         return [task for task in self.tasks if task not in terminal_tasks]
+
+    def _terminal_group_from_name(self, name: str) -> Optional[TerminalGroup]:
+        if name not in self.terminal_groups:
+            return None
+        group_id = self.terminal_groups.index(name)
+        return self.terminal_groups[group_id]
 
     def _add_reward_shaping_subtasks(
         self, task: Task, env: "CraftingEnv", reward_shaping: RewardShaping
@@ -268,9 +303,9 @@ class Purpose:
 
     def __str__(self) -> str:
         terminal_groups_str = []
-        for terminal_group, tasks in self.terminal_groups.items():
-            tasks_str_joined = self._tasks_str(tasks)
-            group_str = f"{terminal_group}:[{tasks_str_joined}]"
+        for terminal_group in self.terminal_groups:
+            tasks_str_joined = self._tasks_str(terminal_group.tasks)
+            group_str = f"{terminal_group.name}:[{tasks_str_joined}]"
             terminal_groups_str.append(group_str)
         optional_tasks_str = self._tasks_str(self.optional_tasks)
         if optional_tasks_str:
