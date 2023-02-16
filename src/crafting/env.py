@@ -80,6 +80,8 @@ class CraftingEnv(Env):
         self.current_score = 0
         self.cumulated_score = 0
         self.episodes = 0
+        self.task_successes = {}
+        self.terminal_successes = {}
 
         if purpose is None:
             purpose = Purpose(None)
@@ -151,11 +153,26 @@ class CraftingEnv(Env):
 
         """
         self.current_step += 1
+
+        tasks_states = {task: task.terminated for task in self.purpose.tasks}
+        terminal_groups_states = {
+            group: group.terminated for group in self.purpose.terminal_groups
+        }
         success = self.state.apply(action)
         if success:
             reward = self.purpose.reward(self.state)
         else:
             reward = self.invalid_reward
+
+        for task in self.purpose.tasks:
+            # Just terminated
+            if task.terminated != tasks_states[task]:
+                self.task_successes[task] += 1
+        for terminal_group in self.purpose.terminal_groups:
+            # Just terminated
+            if terminal_group.terminated != terminal_groups_states[terminal_group]:
+                self.terminal_successes[terminal_group] += 1
+
         self.current_score += reward
         self.cumulated_score += reward
         return self._step_output(reward)
@@ -184,6 +201,10 @@ class CraftingEnv(Env):
         """
         if not self.purpose.built:
             self.purpose.build(self)
+            self.task_successes = {task: 0 for task in self.purpose.tasks}
+            self.terminal_successes = {
+                group: 0 for group in self.purpose.terminal_groups
+            }
         self.current_step = 0
         self.current_score = 0
         self.episodes += 1
@@ -226,7 +247,35 @@ class CraftingEnv(Env):
             "score": self.current_score,
             "score_average": self.cumulated_score / self.episodes,
         }
+        infos.update(self._tasks_infos())
         return (self.observation, reward, self.terminated or self.truncated, infos)
+
+    def _tasks_infos(self):
+        tasks_are_done = {
+            f"{task.name} is done": task.terminated for task in self.purpose.tasks
+        }
+        tasks_rates = {
+            f"{task.name} success rate": self.task_successes[task] / self.episodes
+            for task in self.purpose.tasks
+        }
+        terminal_done = {
+            f"Terminal group '{group.name}' is done": group.terminated
+            for group in self.purpose.terminal_groups
+        }
+        terminal_rates = {
+            f"Terminal group '{group.name}' success rate": self.terminal_successes[
+                group
+            ]
+            / self.episodes
+            for group in self.purpose.terminal_groups
+        }
+
+        infos = {}
+        infos.update(tasks_are_done)
+        infos.update(tasks_rates)
+        infos.update(terminal_done)
+        infos.update(terminal_rates)
+        return infos
 
     def _render_rgb_array(self) -> np.ndarray:
         """Render an image of the game.

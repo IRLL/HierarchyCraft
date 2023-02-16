@@ -8,24 +8,49 @@ from crafting.world import Item
 from tests.envs import classic_env
 
 
-class TestScore:
+class TestMetricsMultiPurpose:
     @pytest.fixture(autouse=True)
     def setup_method(self):
         self.world, self.named_transformations = classic_env()[1:3]
         self.purpose = Purpose()
-        self.purpose.add_task(GetItemTask(Item("wood"), 1), terminal_groups=None)
-        self.purpose.add_task(GetItemTask(Item("stone"), 10), terminal_groups="stone")
-        self.purpose.add_task(
-            PlaceItemTask(Item("table"), reward=15), terminal_groups="table"
-        )
+        self.get_wood_task = GetItemTask(Item("wood"), 1)
+        self.purpose.add_task(self.get_wood_task, terminal_groups=None)
+        self.get_stone_task = GetItemTask(Item("stone"), 10)
+        self.purpose.add_task(self.get_stone_task, terminal_groups="stone")
+        self.place_table_task = PlaceItemTask(Item("table"), reward=15)
+        self.purpose.add_task(self.place_table_task, terminal_groups="table")
         self.env = CraftingEnv(self.world, purpose=self.purpose)
 
-    def test_score_values(self):
-        actions_per_episodes = []
-        actions_per_episodes.append(["search_wood", "craft_plank", "craft_table"])
-        actions_per_episodes.append(["search_wood", "search_stone"])
+        self.actions_per_episodes = [
+            ["search_wood", "craft_plank", "craft_table"],
+            ["search_wood", "search_stone"],
+        ]
 
-        for episode, actions in enumerate(actions_per_episodes):
+    def test_successes(self):
+        for episode, actions in enumerate(self.actions_per_episodes):
+            self.env.reset()
+            for action in actions:
+                transfo = self.named_transformations.get(action)
+                action_id = self.env.world.transformations.index(transfo)
+                _, _, done, infos = self.env.step(action_id)
+                if episode == 0:
+                    check.equal(infos[f"{self.get_wood_task.name} is done"], True)
+                    check.equal(infos[f"{self.place_table_task.name} is done"], done)
+                    check.equal(
+                        infos[f"{self.get_wood_task.name} success rate"], float(True)
+                    )
+                    check.equal(
+                        infos[f"{self.place_table_task.name} success rate"], float(done)
+                    )
+                    check.equal(infos["Terminal group 'stone' is done"], False)
+                    check.equal(infos["Terminal group 'table' is done"], done)
+                    check.equal(infos["Terminal group 'stone' success rate"], 0.0)
+                    check.equal(
+                        infos[f"Terminal group 'table' success rate"], float(done)
+                    )
+
+    def test_score_values(self):
+        for episode, actions in enumerate(self.actions_per_episodes):
             self.env.reset()
             score = 0
             for action in actions:
@@ -33,7 +58,6 @@ class TestScore:
                 action_id = self.env.world.transformations.index(transfo)
                 _, reward, done, infos = self.env.step(action_id)
                 score += reward
-                print(episode, action, reward)
                 if episode == 0:
                     check.equal(infos["score"], score)
                     check.equal(infos["score_average"], score)
