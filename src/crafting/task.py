@@ -38,6 +38,12 @@ class Task:
         Returns the reward for the given state.
         """
 
+    @abstractmethod
+    def reset(self) -> None:
+        """
+        Reset the task.
+        """
+
     def __str__(self) -> str:
         return self.name
 
@@ -61,6 +67,9 @@ class AchievementTask(Task):
             self.is_terminated = True
             return self._reward
         return 0.0
+
+    def reset(self) -> None:
+        self.is_terminated = False
 
 
 class GetItemTask(AchievementTask):
@@ -136,6 +145,10 @@ class PlaceItemTask(AchievementTask):
         ] = self.item_stack.quantity
 
     def is_terminal(self, state: "CraftingState") -> bool:
+        if self.zones is None:
+            return np.any(
+                np.all(state.zones_inventories >= self._terminate_zones_items, axis=1)
+            )
         return np.all(state.zones_inventories >= self._terminate_zones_items)
 
     @staticmethod

@@ -243,6 +243,12 @@ class Purpose:
                 return True
         return False
 
+    def reset(self) -> None:
+        """Reset the purpose."""
+        for task in self.tasks:
+            self.task_has_ended[task] = False
+            task.reset()
+
     @property
     def optional_tasks(self) -> List[Task]:
         """List of tasks in no terminal group hence being optinal."""

@@ -188,6 +188,7 @@ class CraftingEnv(Env):
         self.current_score = 0
         self.episodes += 1
         self.state.reset()
+        self.purpose.reset()
         return self.observation
 
     def close(self):
