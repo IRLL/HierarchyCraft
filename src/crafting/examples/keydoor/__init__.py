@@ -1,3 +1,16 @@
+"""# KeyDoorBall example
+
+Example inspired from classic gridworld examples.
+
+
+Directly inspired from minigrid
+[DoorKey](https://minigrid.farama.org/environments/minigrid/DoorKeyEnv/)
+and [KeyCorridor](https://minigrid.farama.org/environments/minigrid/KeyCorridorEnv/).
+
+![](https://github.com/Farama-Foundation/Minigrid/blob/master/figures/door-key-curriculum.gif?raw=true)
+
+"""
+
 import os
 from typing import List
 
