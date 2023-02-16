@@ -25,7 +25,7 @@ jobs:
 
       - run: pip install -e .
       - run: pip install -r docs/requirements.txt
-      - run: pdoc -d google -t docs/template --logo https://irll.net/irll-logo.png --logo-link https://irll.github.io/Crafting/crafting.html -o docs/build --math crafting
+      - run: pdoc -d google -t docs/template --logo https://irll.net/irll-logo.png --logo-link https://irll.github.io/Crafting/crafting.html -o docs/build --math --no-search crafting
 
       - uses: actions/upload-pages-artifact@v1
         with:

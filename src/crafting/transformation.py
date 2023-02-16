@@ -1,3 +1,122 @@
+"""# Transformation
+
+The building blocks of every crafting environment.
+Each crafting environment is defined by a list of transformations.
+They becomes the available actions of the environment.
+
+Each transformation defines changes of:
+
+* the player inventory
+* the player position
+* the current zone inventory
+* the destination zone inventory (if the player postition changes).
+* any specific zones inventories
+
+Each inventory change is a list of removed and added ItemStack.
+They may be available only in a subset of zones, or in every zone.
+
+## Examples
+
+```python
+from crafting.world import Item, ItemStack, Zone
+from crafting.transformation import Transformation
+```
+
+### Add an item in player inventory
+```python
+DIRT = Item("dirt")
+Transformation(added_player_items=[DIRT])
+```
+
+### Modify the player position
+```python
+FOREST = Zone("forest")
+Transformation(destination=FOREST)
+```
+
+### Restrict a transformation to a set of zones
+```python
+WOOD = Item("wood")
+Transformation(
+    added_player_items=[WOOD],
+    zones=[FOREST]
+)
+```
+
+### Modify the player inventory
+```python
+PLANK = Item("plank")
+Transformation(
+    removed_player_items=[WOOD],
+    added_player_items=[ItemStack(PLANK, 4)],
+)
+```
+Note the use of ItemStack to give a quantity > 1.
+
+### Modify the current zone's inventory
+```python
+HOUSE = Item("house") # Need 12 WOOD and 64 PLANK
+Transformation(
+    removed_player_items=[ItemStack(WOOD, 12), ItemStack(PLANK, 64)],
+    added_zone_items=[HOUSE],
+)
+```
+
+### Move with a cost
+```python
+TREETOPS = Zone("treetops")
+LADDER = Item("ladder")
+Transformation(destination=TREETOPS, removed_player_items=[LADDER])
+```
+
+### Modify the destination's inventory
+```python
+# Jump from treetops
+CRATER = Item("crater")
+Transformation(
+    destination=FOREST,
+    added_destination_items=[CRATER],
+    zones=[TREETOPS]
+)
+```
+
+### Move with a required item and required item in zone
+```python
+INSIDE_HOUSE = Zone("house")
+DOOR = Item("door")
+KEY = Item("key")
+Transformation(
+    destination=INSIDE_HOUSE,
+    removed_player_items=[KEY],
+    added_player_items=[KEY],
+    removed_zone_items=[DOOR],
+    added_zone_items=[DOOR],
+)
+```
+By removing and adding the same item,
+we make sure that the item is required to be in the inventory but is not consumed.
+
+### Modifiy any specific zones inventories
+```python
+# What if there is a strange red button you can press ?
+STRANGE_RED_BUTTON = Item("don't press me")
+SPACE = Zone("space")
+INCOMING_MISSILES = Item("incoming_missiles")
+Transformation(
+    removed_zone_items=[STRANGE_RED_BUTTON], # Current zone
+    added_zone_items=[STRANGE_RED_BUTTON],
+    added_zones_items={
+        SPACE: [ItemStack(INCOMING_MISSILES, 64)] # A specific zone
+    }
+)
+```
+Note that the player may not see the effect of such a transformation,
+because the player only observe the current zone items.
+
+
+"""
+
+
 from typing import TYPE_CHECKING, List, Dict, Set, Optional, Tuple, Union
 
 import numpy as np
