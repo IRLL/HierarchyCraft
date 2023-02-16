@@ -1,3 +1,4 @@
+import os
 from typing import List
 
 from crafting.env import CraftingEnv
@@ -42,6 +43,7 @@ class KeyDoorCraftingEnv(CraftingEnv):
         Kwargs:
             See `crafting.env.CraftingEnv`
         """
+        resources_path = os.path.join(os.path.dirname(__file__), "resources")
         transformations = self._build_transformations()
         world = world_from_transformations(
             transformations=transformations,
@@ -52,7 +54,7 @@ class KeyDoorCraftingEnv(CraftingEnv):
         super().__init__(
             world,
             purpose=self.goal,
-            resources_path=None,
+            resources_path=resources_path,
             name="KeyDoorCrafting",
             **kwargs,
         )
