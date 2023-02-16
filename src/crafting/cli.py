@@ -5,7 +5,7 @@ from typing import Optional, List
 from crafting.env import CraftingEnv
 from crafting.world import Item
 from crafting.purpose import Purpose
-from crafting.task import GetItemTask, GoToZoneTask
+from crafting.task import GetItemTask
 from crafting.render.render import CraftingWindow
 
 from crafting.examples import (
@@ -14,8 +14,8 @@ from crafting.examples import (
     RecursiveCraftingEnv,
     LightRecursiveCraftingEnv,
     TowerCraftingEnv,
+    KeyDoorCraftingEnv,
 )
-from crafting.render.human import render_env_with_human
 
 from crafting.render.widgets import DisplayMode, ContentMode
 
@@ -34,6 +34,7 @@ def crafting_cli(args: Optional[List[str]] = None) -> CraftingEnv:
     _recursive_sub_parser(subparsers)
     _light_recursive_sub_parser(subparsers)
     _random_sub_parser(subparsers)
+    _key_door_sub_parser(subparsers)
 
     purpose = parser.add_argument_group("purpose")
     purpose.add_argument(
@@ -232,6 +233,19 @@ def _randomcrafting_from_cli(args: Namespace):
         n_items_per_n_inputs=n_items_per_n_inputs,
         render_window=window,
     )
+
+
+def _key_door_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
+    subparser = subparsers.add_parser(
+        "keydoor",
+        help="KeyDoorCrafting: Crafting version of the classic gridworld keydoor example.",
+    )
+    subparser.set_defaults(func=_keydoor_crafting_from_cli)
+
+
+def _keydoor_crafting_from_cli(args: Namespace):
+    window = _window_from_cli(args)
+    return KeyDoorCraftingEnv(render_window=window)
 
 
 if __name__ == "__main__":
