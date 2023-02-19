@@ -195,7 +195,6 @@ class Requirements:
         compute_levels(self.graph)
 
     def _add_requirements_nodes(self, world: "World") -> None:
-        self._add_nodes([None], RequirementNode.START)
         self._add_nodes(world.items, RequirementNode.ITEM)
         self._add_nodes(world.zones_items, RequirementNode.ZONE_ITEM)
         if len(world.zones) >= 1:
@@ -326,12 +325,16 @@ class Requirements:
         if world.start_zone is not None:
             edge_type = RequirementEdge.START_ZONE
             end_node = req_node_name(world.start_zone, RequirementNode.ZONE)
-            self._add_obj_edge(end_node, edge_type, start_index)
+            self._add_obj_edge(
+                end_node, edge_type, start_index, start_type=RequirementNode.START
+            )
             start_index += 1
         for start_stack in world.start_items:
             edge_type = RequirementEdge.START_ITEM
             end_node = req_node_name(start_stack.item, RequirementNode.ZONE_ITEM)
-            self._add_obj_edge(end_node, edge_type, start_index)
+            self._add_obj_edge(
+                end_node, edge_type, start_index, start_type=RequirementNode.START
+            )
             start_index += 1
         for zone, start_zone_items in world.start_zones_items.items():
             edge_type = RequirementEdge.START_ITEM_IN_ZONE
@@ -347,7 +350,7 @@ class Requirements:
 
 def req_node_name(obj: Optional[Union[Item, Zone]], node_type: RequirementNode):
     """Get a unique node name for the requirements graph"""
-    if obj is None:
+    if node_type == RequirementNode.START:
         return "START#"
     name = obj.name
     if node_type == RequirementNode.ZONE_ITEM:
