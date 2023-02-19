@@ -354,6 +354,8 @@ def test_observation_one_zone_no_player_items():
 
 def test_treasure_env(mocker: MockerFixture):
     """Ensure that the example environment from the documenation is working properly."""
+    pytest.importorskip("pygame")
+    pytest.importorskip("pygame_menu")
 
     HUMAN_ACTIONS = [0]
 
@@ -455,6 +457,9 @@ def test_treasure_env(mocker: MockerFixture):
 
 
 def test_class_tresure_env(mocker: MockerFixture):
+    pytest.importorskip("pygame")
+    pytest.importorskip("pygame_menu")
+
     def fake_human_action(*args, **kwargs):
         return 0
 
