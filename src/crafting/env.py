@@ -217,8 +217,8 @@ To simplify our case, we can use the already built folder under the treasure exa
 import os
 import crafting
 
-treasure_path = os.path.dirname(crafting.__file__)
-resources_path = os.path.join(treasure_path, "examples", "treasure", "resources")
+crafting_path = os.path.dirname(crafting.__file__)
+resources_path = os.path.join(crafting_path, "examples", "treasure", "resources")
 env = CraftingEnv(
     WORLD_2, purpose=get_gold_task, resources_path=resources_path, max_step=7
 )
