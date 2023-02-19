@@ -1,3 +1,40 @@
+"""# World
+
+The World is what is given to the general CraftingEnv class
+to instanciate each individual Crafting environment.
+
+It represents the mapping between items, zones and zone items to their state indexes.
+
+A world can always be built from a list of transformations using 
+`crafting.world.world_from_transformations`.
+
+
+
+## Example
+
+Build a World from a list of transformations,
+starting in zone "Start zone",
+with items "Head" and 2 "Hand",
+with a zone "Secret zone" containing items "Secret item" and 3 "Gold tresure".
+
+
+```python
+from crafting.world import Item, ItemStack, Zone, world_from_transformations
+
+transformations: List["Transformation"] = ...
+world = world_from_transformations(
+    transformations=transformations,
+    start_zone=Zone("Start zone"),
+    start_items=[Item("Head"), ItemStack(Item("Hand"), 2)],
+    start_zones_items={
+        Zone("Secret zone"): [Item("Secret item"), ItemStack(Item("Gold tresure"), 3)]
+    }
+)
+```
+
+"""
+
+
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List, Set, Dict, Tuple, Optional, Union
 
