@@ -61,12 +61,12 @@ pip install irll-crafting[gym]
 git clone https://github.com/IRLL/Crafting.git
 ```
 
-Install 
+Install crafting as an editable package
 ```bash
 pip install -e .[all]
 ```
 
-Developer requirements
+Install dev requirements
 ```bash
 pip install -r requirements-dev.txt
 ```
