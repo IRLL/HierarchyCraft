@@ -133,14 +133,22 @@ random_env = RandomCrafting(n_items_per_n_inputs={0:2, 1:5, 2:10}, seed=42)
 # or random_env = gym.make("RandomCrafting-v1", n_items_per_n_inputs={0:2, 1:5, 2:10}, seed=42)
 ```
 
-# Online documentation
+## More about Crafting
 
-There is much more to discover in crafting:
+### Add a Purpose to the player
+See [`crafting.purpose`](https://irll.github.io/Crafting/crafting/purpose.html).
 
-- Add a Purpose to the player: [`crafting.purpose`](https://irll.github.io/Crafting/crafting/purpose.html)
-- Get a solving behavior for any given task: [`crafting.solving_behaviors`](https://irll.github.io/Crafting/crafting/solving_behaviors.html)
-- Plot the underlying requirements graph: [`crafting.requirements`](https://irll.github.io/Crafting/crafting/requirements.html)
-- Create your own customize environment: [`crafting.env`](https://irll.github.io/Crafting/crafting/env.html)
+###  Get a solving behavior for any given task
+See [`crafting.solving_behaviors`](https://irll.github.io/Crafting/crafting/solving_behaviors.html).
+
+### Details of the environment state
+See [`crafting.state`](https://irll.github.io/Crafting/crafting/state.html).
+
+### Plot the underlying requirements graph
+See [`crafting.requirements`](https://irll.github.io/Crafting/crafting/requirements.html).
+
+### Create your own customized Crafting environment
+See [`crafting.env`](https://irll.github.io/Crafting/crafting/env.html).
 
 Find everything in the [documentation](https://irll.github.io/Crafting/crafting.html):
 
