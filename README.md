@@ -22,7 +22,7 @@ that mimics the (complex) hierarchies of the popular game Minecraft.
 You can use Crafting to create your own customized environments.
 For more examples, see [examples](https://irll.github.io/Crafting/crafting/examples.html).
 
-![A player knowing Minecraft will find MineCrafting easy.](docs/images/MineCrafting_human_demo.gif)
+![A player knowing Minecraft will find MineCrafting easy.](docs/images/minecrafting_human_demo.gif)
 
 # Installation
 
