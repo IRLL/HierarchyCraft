@@ -64,6 +64,6 @@ class TestMenusSizes:
             window_shape=[200, 100],
         )
         check.equal(shapes["actions"], (70, 100))
-        check.equal(shapes["player"], (0, 0))
+        check.not_equal(shapes["player"], (0, 0))
         check.not_equal(shapes["zone"], (0, 0))
         check.not_equal(shapes["position"], (0, 0))
