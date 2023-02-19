@@ -18,6 +18,7 @@ except ImportError:
 
 from crafting.transformation import Transformation
 from crafting.world import Item, ItemStack, Zone
+from crafting.render import _default_resources_path
 
 if TYPE_CHECKING:
     from pygame.surface import Surface
@@ -49,9 +50,25 @@ def load_image(resources_path: Path, obj: Union[Item, Zone]) -> Optional[Image.I
         raise TypeError(f"Unsupported type for loading images: {type(obj)}")
 
     try:
-        return Image.open(image_path).convert("RGBA")
+        image = Image.open(image_path).convert("RGBA")
     except FileNotFoundError:
         return None
+
+    if isinstance(obj, Item):
+        wanted_size = (120, 120)
+    elif isinstance(obj, Zone):
+        wanted_size = (699, 394)
+
+    scale_ratio = _get_scale_ratio(image.size, wanted_size)
+    image = image.resize(
+        (
+            int(scale_ratio * image.size[0]),
+            int(scale_ratio * image.size[1]),
+        ),
+        resample=Image.Resampling.NEAREST,
+    )
+
+    return image
 
 
 def draw_text_on_image(
@@ -72,7 +89,7 @@ def draw_text_on_image(
         A BaseImage corresponding with the given text.
 
     """
-    font_path = os.path.join(resources_path, "font.ttf")
+    font_path = _font_path(resources_path)
     image = image.copy()
     image_draw = ImageDraw.Draw(image)
     image_shape = np.array(image).shape
@@ -112,7 +129,7 @@ def create_text_image(
     draw = ImageDraw.Draw(image)
 
     center_x, center_y = image_size[0] // 2, image_size[1] // 2
-    font_path = os.path.join(resources_path, "font.ttf")
+    font_path = _font_path(resources_path)
     text_pt_size = min(
         int(0.60 * image_size[1]), int(4 * 0.60 * image_size[0] / len(text))
     )
@@ -217,10 +234,11 @@ def load_or_create_image(
         if isinstance(obj, Zone):
             image_size = (699, 394)
         image = create_text_image(obj_name, resources_path, image_size=image_size)
-    elif quantity > 0:
+    elif quantity > 1:
         image = draw_text_on_image(image, str(quantity), resources_path)
     if bg_color is not None:
         image = _add_background_elipsis(image, bg_color)
+
     return image
 
 
@@ -252,3 +270,28 @@ def surface_to_rgb_array(surface: "Surface") -> np.ndarray:
 
     """
     return pygame.surfarray.array3d(surface).swapaxes(0, 1)
+
+
+def _font_path(resources_path: str):
+    font_path = os.path.join(resources_path, "font.ttf")
+    if not os.path.exists(font_path):
+        font_path = os.path.join(_default_resources_path(), "font.ttf")
+    return font_path
+
+
+def _get_scale_ratio(initial_shape, wanted_shape) -> float:
+    if wanted_shape[0] == initial_shape[0] or wanted_shape[1] == initial_shape[1]:
+        return 1
+    if wanted_shape[0] > initial_shape[0]:
+        if wanted_shape[1] > initial_shape[1]:
+            return min(
+                1 + (wanted_shape[0] - initial_shape[0]) / initial_shape[0],
+                1 + (wanted_shape[1] - initial_shape[1]) / initial_shape[1],
+            )
+    if wanted_shape[0] < initial_shape[0]:
+        if wanted_shape[1] < initial_shape[1]:
+            return max(
+                1 - (wanted_shape[0] - initial_shape[0]) / initial_shape[0],
+                1 - (wanted_shape[1] - initial_shape[1]) / initial_shape[1],
+            )
+    raise NotImplementedError(f"Scaling {initial_shape} -> {wanted_shape}")

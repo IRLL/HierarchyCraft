@@ -25,6 +25,8 @@ from crafting.render.utils import (
     create_text_image,
     draw_text_on_image,
     load_image,
+    _font_path,
+    _get_scale_ratio,
 )
 from crafting.transformation import Transformation
 from crafting.world import Item, ItemStack, Zone
@@ -369,7 +371,7 @@ class PostitionWidget(Menu):
 
     def _build_button(self, zone: Zone) -> None:
         image = self.base_images[zone]
-        font = os.path.join(self.resources_path, "font.ttf")
+        font = _font_path(self.resources_path)
         button: "Button" = self.add.button("", border_width=0)
         if image is not None:
             decorator = button.get_decorator()
@@ -413,13 +415,3 @@ def show_content(content_mode: ContentMode, discovered: bool) -> bool:
     elif content_mode is ContentMode.DISCOVERED:
         display_content = discovered
     return display_content
-
-
-def _get_scale_ratio(initial_shape, wanted_shape) -> float:
-    if wanted_shape[0] > initial_shape[0]:
-        if wanted_shape[1] > initial_shape[1]:
-            return min(
-                1 + (wanted_shape[0] - initial_shape[0]) / initial_shape[0],
-                1 + (wanted_shape[1] - initial_shape[1]) / initial_shape[1],
-            )
-    raise NotImplementedError(f"Scaling {initial_shape} -> {wanted_shape}")
