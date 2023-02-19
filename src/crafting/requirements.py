@@ -518,7 +518,7 @@ def draw_requirements_graph(
     )
 
     for node, node_data in digraph.nodes(data=True):
-        node_obj = node_data["obj"]
+        node_obj = node_data.get("obj", None)
         if node_obj is not None:
             digraph.nodes[node]["color"] = theme.color(node_data["type"])
             image = load_or_create_image(node_obj, resources_path, bg_color=(0, 0, 0))
