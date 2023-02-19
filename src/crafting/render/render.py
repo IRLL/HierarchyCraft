@@ -40,7 +40,7 @@ class CraftingWindow:
         zone_inventory_display: DisplayMode = DisplayMode.CURRENT,
         position_display: DisplayMode = DisplayMode.CURRENT,
         transformation_display: DisplayMode = DisplayMode.DISCOVERED,
-        transformation_content: ContentMode = ContentMode.DISCOVERED,
+        transformation_content: ContentMode = ContentMode.ALWAYS,
     ) -> None:
         """Initialize a Crafting window without building it on a specific environment (yet).
 
