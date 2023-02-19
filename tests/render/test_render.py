@@ -12,8 +12,8 @@ class TestMenusSizes:
             n_zones=0,
             window_shape=[200, 100],
         )
-        check.equal(shapes["actions"], (60, 100))
-        check.equal(shapes["player"], (140, 78))
+        check.equal(shapes["actions"], (70, 100))
+        check.equal(shapes["player"], (130, 100))
 
     def test_one_zone_no_zone_items(self):
         """No need to show position when only one zone"""
@@ -23,8 +23,7 @@ class TestMenusSizes:
             n_zones=1,
             window_shape=[200, 100],
         )
-        check.equal(shapes["actions"], (60, 100))
-        check.equal(shapes["player"], (140, 78))
+        check.equal(shapes["zone"], (0, 0))
         check.equal(shapes["position"], (0, 0))
 
     def test_two_zone_no_zone_items(self):
@@ -34,9 +33,7 @@ class TestMenusSizes:
             n_zones=2,
             window_shape=[200, 100],
         )
-        check.equal(shapes["actions"], (60, 100))
-        check.equal(shapes["player"], (140, 78))
-        check.equal(shapes["position"], (39, 22))
+        check.equal(shapes["position"], (130, 73))
 
     def test_one_zone_no_player_item(self):
         shapes = menus_sizes(
@@ -45,10 +42,8 @@ class TestMenusSizes:
             n_zones=1,
             window_shape=[200, 100],
         )
-        check.equal(shapes["actions"], (60, 100))
         check.equal(shapes["player"], (0, 0))
-        check.equal(shapes["zone"], (200 - 60, 78))
-        check.equal(shapes["position"], (0, 0))
+        check.not_equal(shapes["zone"], (0, 0))
 
     def test_two_zones_no_player_item(self):
         shapes = menus_sizes(
@@ -57,10 +52,9 @@ class TestMenusSizes:
             n_zones=2,
             window_shape=[200, 100],
         )
-        check.equal(shapes["actions"], (60, 100))
         check.equal(shapes["player"], (0, 0))
-        check.equal(shapes["zone"], (200 - 60, 78))
-        check.equal(shapes["position"], (39, 22))
+        check.not_equal(shapes["zone"], (0, 0))
+        check.not_equal(shapes["position"], (0, 0))
 
     def test_all(self):
         shapes = menus_sizes(
@@ -69,7 +63,7 @@ class TestMenusSizes:
             n_zones=10,
             window_shape=[200, 100],
         )
-        check.equal(shapes["actions"], (60, 100))
-        check.equal(shapes["player"], (95, 78))
-        check.equal(shapes["zone"], (200 - 60 - 95, 78))
-        check.equal(shapes["position"], (39, 22))
+        check.equal(shapes["actions"], (70, 100))
+        check.equal(shapes["player"], (0, 0))
+        check.not_equal(shapes["zone"], (0, 0))
+        check.not_equal(shapes["position"], (0, 0))

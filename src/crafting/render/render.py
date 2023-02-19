@@ -319,15 +319,16 @@ def menus_sizes(
 ) -> Dict[str, Tuple[int, int]]:
     actions_size = (int(0.35 * window_shape[0]), window_shape[1])
 
+    zone_width = window_shape[0] - actions_size[0]
+    zone_height = min(int(0.8 * window_shape[1]), int(9 * zone_width / 16))
+
     zone_size = (0, 0)
     if n_zones_items > 0:
-        zone_width = window_shape[0] - actions_size[0]
-        zone_height = min(int(0.8 * window_shape[1]), int(9 * zone_width / 16))
         zone_size = (zone_width, zone_height)
 
     position_size = (0, 0)
     if n_zones > 1:
-        position_size = zone_size
+        position_size = (zone_width, zone_height)
 
     player_size = (0, 0)
     if n_items > 0:

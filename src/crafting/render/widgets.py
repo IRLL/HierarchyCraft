@@ -383,7 +383,16 @@ class PostitionWidget(Menu):
             button.set_padding((0, width_padding, height_padding, 0))
         else:
             button.set_title(zone.name.capitalize())
-            button.set_font(font, font_size=48, color="white")
+            button.set_font(
+                font,
+                font_size=48,
+                color="white",
+                selected_color="white",
+                readonly_color="white",
+                readonly_selected_color="white",
+                background_color=None,
+                antialias=False,
+            )
         button.is_selectable = False
         self.button_id_to_zone[button.get_id()] = zone
 
