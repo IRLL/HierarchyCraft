@@ -16,6 +16,9 @@ from crafting.cli import crafting_cli
 pygame = pytest.importorskip("pygame")
 
 
+ENV_NAMES = ("minecraft", "tower", "recursive", "light-recursive", "random", "keydoor")
+
+
 def test_purposeless_minecrafting_cli():
     env = crafting_cli(["minecraft"])
     check.is_instance(env, MineCraftingEnv)
@@ -32,6 +35,12 @@ def test_purposed_minecrafting_cli():
 
     for task in env.purpose.tasks:
         check.equal(task._reward, 100)
+
+
+@pytest.mark.parametrize("env_name", ENV_NAMES)
+def test_maxstep_cli(env_name:str):
+    env = crafting_cli(["--max-step", "100", env_name])
+    check.equal(env.max_step, 100)
 
 
 def test_tower_cli():

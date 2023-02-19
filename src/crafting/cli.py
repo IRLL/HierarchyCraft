@@ -36,6 +36,14 @@ def crafting_cli(args: Optional[List[str]] = None) -> CraftingEnv:
     _random_sub_parser(subparsers)
     _key_door_sub_parser(subparsers)
 
+    parser.add_argument(
+        "--max-step",
+        "-m",
+        type=int,
+        default=None,
+        help="Max number of steps, no limit if None. Default to None.",
+    )
+
     purpose = parser.add_argument_group("purpose")
     purpose.add_argument(
         "--goal-reward",
@@ -138,7 +146,11 @@ def _minecraft_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
 def _minecrafting_from_cli(args: Namespace):
     window = _window_from_cli(args)
     purpose = _purpose_from_cli(args)
-    env = MineCraftingEnv(purpose=purpose, render_window=window)
+    env = MineCraftingEnv(
+        purpose=purpose,
+        render_window=window,
+        max_step=args.max_step,
+    )
     return env
 
 
@@ -154,16 +166,21 @@ def _tower_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
     )
     subparser.set_defaults(func=_towercrafting_from_cli)
     subparser.add_argument(
-        "--height", "-t", type=int, required=True, help="Height of the tower."
+        "--height", "-t", type=int, default=3, help="Height of the tower."
     )
     subparser.add_argument(
-        "--width", "-w", type=int, required=True, help="Width of the tower."
+        "--width", "-w", type=int, default=2, help="Width of the tower."
     )
 
 
 def _towercrafting_from_cli(args: Namespace):
     window = _window_from_cli(args)
-    env = TowerCraftingEnv(height=args.height, width=args.width, render_window=window)
+    env = TowerCraftingEnv(
+        height=args.height,
+        width=args.width,
+        render_window=window,
+        max_step=args.max_step,
+    )
     return env
 
 
@@ -173,12 +190,16 @@ def _recursive_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
         help="RecursiveCrafting: naive worst case if not using reusability.",
     )
     subparser.set_defaults(func=_recursivecrafting_from_cli)
-    subparser.add_argument("--n-items", "-n", type=int, required=True)
+    subparser.add_argument("--n-items", "-n", type=int, default=6)
 
 
 def _recursivecrafting_from_cli(args: Namespace):
     window = _window_from_cli(args)
-    env = RecursiveCraftingEnv(n_items=args.n_items, render_window=window)
+    env = RecursiveCraftingEnv(
+        n_items=args.n_items,
+        render_window=window,
+        max_step=args.max_step,
+    )
     return env
 
 
@@ -188,8 +209,8 @@ def _light_recursive_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]")
         help="LightRecursiveCrafting: Lighter naive worst case if not using reusability.",
     )
     subparser.set_defaults(func=_light_recursivecrafting_from_cli)
-    subparser.add_argument("--n-items", "-n", type=int, required=True)
-    subparser.add_argument("--n-required-previous", "-p", type=int, required=True)
+    subparser.add_argument("--n-items", "-n", type=int, default=10)
+    subparser.add_argument("--n-required-previous", "-p", type=int, default=2)
 
 
 def _light_recursivecrafting_from_cli(args: Namespace):
@@ -198,6 +219,7 @@ def _light_recursivecrafting_from_cli(args: Namespace):
         n_items=args.n_items,
         n_required_previous=args.n_required_previous,
         render_window=window,
+        max_step=args.max_step,
     )
 
 
@@ -232,6 +254,7 @@ def _randomcrafting_from_cli(args: Namespace):
     return RandomCraftingEnv(
         n_items_per_n_inputs=n_items_per_n_inputs,
         render_window=window,
+        max_step=args.max_step,
     )
 
 
@@ -245,7 +268,10 @@ def _key_door_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
 
 def _keydoor_crafting_from_cli(args: Namespace):
     window = _window_from_cli(args)
-    return KeyDoorCraftingEnv(render_window=window)
+    return KeyDoorCraftingEnv(
+        render_window=window,
+        max_step=args.max_step,
+    )
 
 
 if __name__ == "__main__":
