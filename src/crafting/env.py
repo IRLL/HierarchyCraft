@@ -1,4 +1,22 @@
-"""Here lies CraftingEnv, the main interface of the crafting package."""
+"""# Crafting Environment builder
+
+
+## State of Crafting environments.
+
+The state of every crafting environment is composed of three parts:
+The player's inventory, the player's position, and all zones inventories.
+The mapping of items, zones, and zones items to their respective indexes is done through
+the given World. (See `crafting.world`)
+
+![crafting state](../../docs/images/crafting_state.png)
+
+The player observation is a subset of the state, only the inventory of the current zone is shown. 
+
+![crafting state](../../docs/images/crafting_observation.png)
+
+See `crafting.env.CraftingState` for more details.
+
+"""
 
 import collections
 import os
@@ -89,17 +107,6 @@ class CraftingEnv(Env):
             purpose = Purpose(tasks=purpose)
         self.purpose = purpose
         self.metadata = {}
-
-    @property
-    def observation(self) -> np.ndarray:
-        """Observation given to the player."""
-        return np.concatenate(
-            (
-                self.state.player_inventory,
-                self.state.position,
-                self.state.current_zone_inventory,
-            )
-        )
 
     @property
     def truncated(self) -> bool:
@@ -210,7 +217,7 @@ class CraftingEnv(Env):
         self.episodes += 1
         self.state.reset()
         self.purpose.reset()
-        return self.observation
+        return self.state.observation
 
     def close(self):
         """Closes the environment."""
@@ -248,7 +255,12 @@ class CraftingEnv(Env):
             "score_average": self.cumulated_score / self.episodes,
         }
         infos.update(self._tasks_infos())
-        return (self.observation, reward, self.terminated or self.truncated, infos)
+        return (
+            self.state.observation,
+            reward,
+            self.terminated or self.truncated,
+            infos,
+        )
 
     def _tasks_infos(self):
         def _is_done_str(group: TerminalGroup):
@@ -320,11 +332,22 @@ class CraftingState:
 
     @property
     def current_zone_inventory(self) -> np.ndarray:
-        """Current zone inventory."""
+        """Inventory of the zone where the player is."""
         if self.position.shape[0] == 0:
             return np.array([])  # No Zone
         current_zone_slot = self.position.nonzero()[0]
         return self.zones_inventories[current_zone_slot, :][0]
+
+    @property
+    def observation(self) -> np.ndarray:
+        """Observation given to the player."""
+        return np.concatenate(
+            (
+                self.player_inventory,
+                self.position,
+                self.current_zone_inventory,
+            )
+        )
 
     def apply(self, action: int) -> bool:
         """Apply the given action to update the state.

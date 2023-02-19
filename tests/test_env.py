@@ -106,7 +106,7 @@ class TestCratingEnv:
         self.env.state.zones_inventories[start_zone_index, 1] = 1
         expected_observation = np.array([0, 2, 0, 0, 0, 3, 1])
         expected_observation[3 + start_zone_index] = 1
-        check_np_equal(self.env.observation, expected_observation)
+        check_np_equal(self.env.state.observation, expected_observation)
 
     def test_step_move(self):
         """move transformation should work correctly."""
@@ -339,11 +339,13 @@ def test_observation_no_zone_no_zone_items():
     """observation should only show player items if no zone and no zone_items."""
     env = player_only_env()[0]
     env.reset()
-    check.equal(env.observation.shape, (env.world.n_items,))
+    check.equal(env.state.observation.shape, (env.world.n_items,))
 
 
 def test_observation_one_zone_no_player_items():
     """observation should only show zone items if one zone and no player items."""
     env = zone_only_env()[0]
     env.reset()
-    check.equal(env.observation.shape, (env.world.n_zones + env.world.n_zones_items,))
+    check.equal(
+        env.state.observation.shape, (env.world.n_zones + env.world.n_zones_items,)
+    )
