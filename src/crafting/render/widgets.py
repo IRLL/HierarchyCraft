@@ -13,8 +13,6 @@ try:
     from pygame_menu.themes import THEME_DEFAULT, Theme
     from pygame_menu.widgets import Button
     from pygame_menu.widgets import Image as PyImage
-    from pygame.font import Font
-    from pygame.surface import Surface
 except ImportError:
     Menu = object
     THEME_DEFAULT = None
@@ -255,7 +253,7 @@ class TransformationsWidget(Menu):
         return f"Actions ({actions_remaining} remaining)"
 
     def _update_button(
-        self, button: Button, env: "CraftingEnv", action_is_legal: np.ndarray
+        self, button: "Button", env: "CraftingEnv", action_is_legal: np.ndarray
     ):
         transfo = self.button_id_to_transfo[button.get_id()]
         action = env.world.transformations.index(transfo)
@@ -372,7 +370,7 @@ class PostitionWidget(Menu):
     def _build_button(self, zone: Zone) -> None:
         image = self.base_images[zone]
         font = os.path.join(self.resources_path, "font.ttf")
-        button: Button = self.add.button("", border_width=0)
+        button: "Button" = self.add.button("", border_width=0)
         if image is not None:
             decorator = button.get_decorator()
             menu_image = _to_menu_image(image, _get_scale_ratio(image.size, self.shape))
