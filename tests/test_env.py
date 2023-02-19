@@ -3,6 +3,7 @@ from typing import List
 import numpy as np
 import pytest
 import pytest_check as check
+from pytest_mock import MockerFixture
 
 from crafting.env import CraftingEnv
 from crafting.task import GetItemTask
@@ -349,3 +350,118 @@ def test_observation_one_zone_no_player_items():
     check.equal(
         env.state.observation.shape, (env.world.n_zones + env.world.n_zones_items,)
     )
+
+
+def test_treasure_env(mocker: MockerFixture):
+    """Ensure that the example environment from the documenation is working properly."""
+
+    HUMAN_ACTIONS = [0]
+
+    def fake_human_action(*args, **kwargs):
+        return HUMAN_ACTIONS.pop(0)
+
+    mocker.patch("crafting.render.human.get_human_action", fake_human_action)
+
+    from crafting.world import Item
+
+    CHEST = Item("treasure_chest")
+    GOLD = Item("gold")
+
+    from crafting.transformation import Transformation
+
+    TAKE_GOLD_FROM_CHEST = Transformation(
+        removed_zone_items=[CHEST], added_player_items=[GOLD]
+    )
+
+    from crafting.world import Zone
+
+    TREASURE_ROOM = Zone("treasure_room")
+
+    from crafting.world import world_from_transformations
+
+    WORLD = world_from_transformations(
+        transformations=[TAKE_GOLD_FROM_CHEST],
+        start_zone=TREASURE_ROOM,
+        start_zones_items={TREASURE_ROOM: [CHEST]},
+    )
+
+    from crafting.env import CraftingEnv
+    from crafting.purpose import GetItemTask
+
+    get_gold_task = GetItemTask(GOLD)
+    env = CraftingEnv(WORLD, purpose=get_gold_task)
+
+    from crafting.render.human import render_env_with_human
+
+    render_env_with_human(env)
+
+    KEY = Item("key")
+    KEY_ROOM = Zone("key_room")
+    START_ROOM = Zone("start_room")
+
+    SEARCH_KEY = Transformation(
+        added_player_items=[KEY],
+        zones=[KEY_ROOM],
+    )
+
+    LOCKED_CHEST = Item("locked_chest")
+    UNLOCK_CHEST = Transformation(
+        removed_zone_items=[LOCKED_CHEST],
+        removed_player_items=[ItemStack(KEY, 2)],
+        added_zone_items=[CHEST],
+    )
+
+    MOVE_TO_KEY_ROOM = Transformation(
+        destination=KEY_ROOM,
+        zones=[START_ROOM],
+    )
+    MOVE_TO_TREASURE_ROOM = Transformation(
+        destination=TREASURE_ROOM,
+        zones=[START_ROOM],
+    )
+    MOVE_TO_START_ROOM = Transformation(
+        destination=START_ROOM,
+    )
+
+    WORLD_2 = world_from_transformations(
+        transformations=[
+            TAKE_GOLD_FROM_CHEST,
+            SEARCH_KEY,
+            UNLOCK_CHEST,
+            MOVE_TO_KEY_ROOM,
+            MOVE_TO_TREASURE_ROOM,
+            MOVE_TO_START_ROOM,
+        ],
+        start_zone=START_ROOM,
+        start_zones_items={TREASURE_ROOM: [LOCKED_CHEST]},
+    )
+    env = CraftingEnv(WORLD_2, purpose=get_gold_task, max_step=7)
+
+    HUMAN_ACTIONS = [3, 1, 1, 5, 4, 2, 0]
+    render_env_with_human(env)
+    check.is_true(env.purpose.terminal_groups[0].terminated)
+
+    import os
+    import crafting
+
+    treasure_path = os.path.dirname(crafting.__file__)
+    resources_path = os.path.join(treasure_path, "examples", "treasure", "resources")
+    env = CraftingEnv(
+        WORLD_2, purpose=get_gold_task, resources_path=resources_path, max_step=7
+    )
+    HUMAN_ACTIONS = [3, 1, 1, 5, 4, 2, 0]
+    render_env_with_human(env)
+    check.is_true(env.purpose.terminal_groups[0].terminated)
+
+
+def test_class_tresure_env(mocker: MockerFixture):
+    def fake_human_action(*args, **kwargs):
+        return 0
+
+    mocker.patch("crafting.render.human.get_human_action", fake_human_action)
+
+    from crafting.examples.treasure import TreasureEnv
+    from crafting.render.human import render_env_with_human
+
+    env = TreasureEnv(max_step=10)
+    render_env_with_human(env)

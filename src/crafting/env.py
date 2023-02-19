@@ -1,15 +1,254 @@
 """# Crafting Environment builder
 
+You can easily create your own customized Crafting environment with the all the benefits 
+(graphical user interface, tasks, reward shaping, solving behavior, requirements graph).
+
+For this, you just need to understand how to design transformations
+and how to build a world from those.
+
+You can see `crafting.transformation` for more details or the full example bellow.
+
+You can also check more complex examples in `crafting.examples`.
+
+# Example: Simple customed environment
+
+Let's make a simple environment, where the goal is to open a the treasure chest and take it's gold.
+
+## Create items
+
+First, we need to represent the items we want to be able to manipulate.
+
+For now, we only have two items we can simply build using the Item class from `crafting.world`:
+
+```python
+from crafting.world import Item
+
+CHEST = Item("treasure_chest")
+GOLD = Item("gold")
+```
+
+## Link items with transformations
+
+We want to remove the chest from the zone where our player is, and add it to his inventory.
+
+We can then link those two items with a Tranformation from `crafting.transformation`:
+
+```python
+from crafting.transformation import Transformation
+
+TAKE_GOLD_FROM_CHEST = Transformation(
+    removed_zone_items=[CHEST],
+    added_player_items=[GOLD],
+)
+```
+
+Of course, `TAKE_GOLD_FROM_CHEST` will not be valid unless there is a `CHEST` in the zone.
+
+Let's create a zone where we want our `CHEST` to be.
+
+## Create a zone
+
+Like items, zones are created with a Zone object from `crafting.world`:
+
+```python
+from crafting.world import Zone
+
+TREASURE_ROOM = Zone("treasure_room")
+```
+
+To place our `CHEST` in the `TREASURE_ROOM`, we need to build a World
+from `crafting.world` that will define our environment.
+
+## Build a World from transformations
+
+Items and zones in transformations will automaticaly be indexed by the World
+to be stored in the environment state. (See `crafting.state` for more details)
+We can simply build a world from a list of transformations:
+
+```python
+from crafting.world import world_from_transformations
+
+WORLD = world_from_transformations(
+    transformations=[TAKE_GOLD_FROM_CHEST],
+    start_zone=TREASURE_ROOM,
+    start_zones_items={TREASURE_ROOM: [CHEST]}
+)
+```
+
+Note that the world also stores the initial state of the world.
+So we can add our `CHEST` in the `TREASURE_ROOM` here !
+
+## Complete your first Crafting environment
+
+To build a complete crafting environment, 
+we simply need to pass our `WORLD` to CraftingEnv from `crafting.env`:
+
+```python
+from crafting.env import CraftingEnv
+
+env = CraftingEnv(WORLD)
+```
+
+We can already render it in the GUI:
+
+```python
+from crafting.render.human import render_env_with_human
+
+render_env_with_human(env)
+```
+![](../../docs/images/TreasureEnvV1.png)
+
+## Add a goal
+
+For now, our environment is a sandbox that never ends and has no goal.
+We can simply add a Purpose from `crafting.purpose` like so:
+
+```python
+from crafting.purpose import GetItemTask
+
+get_gold_task = GetItemTask(GOLD)
+env = CraftingEnv(WORLD, purpose=get_gold_task)
+render_env_with_human(env)
+```
+
+## Turn up the challenge
+
+Now that we have the basics done, let's have a bit more fun with our environment!
+Let's lock the chest with keys, and add two room, a start room and a keys room. 
+
+First let's build the `KEY` item and the `KEY_ROOM`.
+
+```python
+KEY = Item("key")
+KEY_ROOM = Zone("key_room")
+```
+
+Now let's make the `KEY_ROOM` a source of infinite `KEY` with a transformation:
+
+```python
+SEARCH_KEY = Transformation(
+    added_player_items=[KEY],
+    zones=[KEY_ROOM],
+)
+```
+
+Then add the new 'state' for the `CHEST`, for this we simply build a new item `LOCKED_CHEST`,
+and we add a transformation that will unlock the `LOCKED_CHEST` into a `CHEST` using two `KEYS`.
+
+```python
+LOCKED_CHEST = Item("locked_chest")
+UNLOCK_CHEST = Transformation(
+    removed_zone_items=[LOCKED_CHEST],
+    removed_player_items=[ItemStack(KEY, 2)],
+    added_zone_items=[CHEST],
+)
+```
+
+Now we need to be able to move between zones, for this we use (again) transformations:
+
+Let's make the `START_ROOM` the link between the two other rooms.
+
+```python
+START_ROOM = Zone("start_room")
+MOVE_TO_KEY_ROOM = Transformation(
+    destination=KEY_ROOM,
+    zones=[START_ROOM],
+)
+MOVE_TO_TREASURE_ROOM = Transformation(
+    destination=TREASURE_ROOM,
+    zones=[START_ROOM],
+)
+MOVE_TO_START_ROOM = Transformation(
+    destination=START_ROOM,
+)
+```
+
+We are ready for our V2 !
+Again, we build the world from all our transformations and the env from the world.
+
+But now the chest inside the `TREASURE_ROOM` is the `LOCKED_CHEST` 
+and our player start in `START_ROOM`.
+
+Also, let's add a time limit to spice things up.
+
+```python
+from crafting.world import world_from_transformations
+
+WORLD_2 = world_from_transformations(
+    transformations=[
+        TAKE_GOLD_FROM_CHEST,
+        SEARCH_KEY,
+        UNLOCK_CHEST,
+        MOVE_TO_KEY_ROOM,
+        MOVE_TO_TREASURE_ROOM,
+        MOVE_TO_START_ROOM,
+    ],
+    start_zone=START_ROOM,
+    start_zones_items={TREASURE_ROOM: [LOCKED_CHEST]},
+)
+env = CraftingEnv(WORLD_2, purpose=get_gold_task, max_step=10)
+render_env_with_human(env)
+```
+
+## Add graphics
+
+For now, our environment is a bit ... ugly.
+Text is cool, but images are better !
+
+For example, we can use cool
+[2D assets from Pixel_Poem on itch.io](https://pixel-poem.itch.io/dungeon-assetpuck)
+
+We simply have to put them into a folder like so:
+```bash
+├───myscript.py
+├───resources
+│   ├───items
+│   │   ├───gold.png
+│   │   ├───key.png
+│   │   ├───locked_chest.png
+│   │   └───treasure_chest.png
+│   ├───zones
+│   └───font.ttf
+```
+
+To simplify our case, we can use the already built folder under the treasure example:
+
+```python
+import os
+import crafting
+
+treasure_path = os.path.dirname(crafting.__file__)
+resources_path = os.path.join(treasure_path, "examples", "treasure", "resources")
+env = CraftingEnv(
+    WORLD_2, purpose=get_gold_task, resources_path=resources_path, max_step=7
+)
+render_env_with_human(env)
+```
+And we now have cool images for items !
+Try to do the same with zones and change the font aswell!
+
+![](../../docs/images/TreasureEnvV2.png)
+
+## Package into a class
+
+If you wish to have someone else use your enviroment,
+you should pack it up into a class and inherit CraftingEnv directly like so:
+
+```python
+.. include:: examples/treasure/__init__.py
+```
+
+That's it for this small customized env if you want more, be sure to check Transformation
+ form `crafting.transformation`, there is plenty we didn't cover here.
+
 
 """
 
 import collections
-import os
 from typing import List, Dict, Optional, Union
 
 import numpy as np
 
-import crafting
 from crafting.solving_behaviors import (
     Behavior,
     build_all_solving_behaviors,
@@ -17,6 +256,7 @@ from crafting.solving_behaviors import (
 )
 from crafting.purpose import Purpose, TerminalGroup
 from crafting.task import Task
+from crafting.render import _default_resources_path
 from crafting.render.render import CraftingWindow
 from crafting.render.utils import surface_to_rgb_array
 from crafting.requirements import Requirements
@@ -293,8 +533,3 @@ class CraftingEnv(Env):
         fps = self.metadata.get("video.frames_per_second")
         self.render_window.update_rendering(fps=fps)
         return surface_to_rgb_array(self.render_window.screen)
-
-
-def _default_resources_path() -> str:
-    render_dir = os.path.dirname(crafting.render.__file__)
-    return os.path.join(render_dir, "default_resources")
