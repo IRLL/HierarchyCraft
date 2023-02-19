@@ -26,7 +26,7 @@ For more examples, see [examples](https://irll.github.io/Crafting/crafting/examp
 
 # Installation
 
-Installation can simply be done using pip.
+## Using pip.
 
 Without optional dependencies:
 
@@ -53,6 +53,27 @@ With gym requirements:
 
 ```bash
 pip install irll-crafting[gym]
+```
+
+## Build from source (for contributions)
+
+```bash
+git clone https://github.com/IRLL/Crafting.git
+```
+
+Install 
+```bash
+pip install -e .[all]
+```
+
+Developer requirements
+```bash
+pip install -r requirements-dev.txt
+```
+
+Check installation by running tests
+```bash
+pytest
 ```
 
 # Quickstart
