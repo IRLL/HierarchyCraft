@@ -88,6 +88,7 @@ from crafting.world import Item, ItemStack, Zone, World
 class RequirementNode(Enum):
     """Node types in the requirements graph."""
 
+    START = "start"
     ZONE = "zone"
     ITEM = "item"
     ZONE_ITEM = "zone_item"
@@ -142,10 +143,11 @@ class RequirementTheme:
 class Requirements:
     def __init__(self, world: World, resources_path: str):
         self.world = world
+        self.resources_path = resources_path
         self.graph = nx.MultiDiGraph()
         self._digraph: nx.DiGraph = None
         self._acydigraph: nx.DiGraph = None
-        self._build(resources_path)
+        self._build()
 
     def draw(
         self,
@@ -159,7 +161,9 @@ class Requirements:
             ax: Matplotlib Axes to draw on.
             layout: Drawing layout. Defaults to "level".
         """
-        draw_requirements_graph(ax, self, theme, layout=layout)
+        draw_requirements_graph(
+            ax, self, theme, resources_path=self.resources_path, layout=layout
+        )
 
     @property
     def digraph(self) -> nx.DiGraph:
@@ -177,8 +181,8 @@ class Requirements:
         self._acydigraph = break_cycles_through_level(self.digraph)
         return self._acydigraph
 
-    def _build(self, resources_path: str) -> None:
-        self._add_requirements_nodes(self.world, resources_path)
+    def _build(self) -> None:
+        self._add_requirements_nodes(self.world)
         edge_index = self._add_start_edges(self.world)
         for transfo in self.world.transformations:
             if transfo.zones is not None:
@@ -190,33 +194,19 @@ class Requirements:
                 edge_index += 1
         compute_levels(self.graph)
 
-    def _add_requirements_nodes(
-        self,
-        world: "World",
-        resources_path: str,
-    ) -> None:
-        self._add_nodes(world.items, RequirementNode.ITEM, resources_path)
-        self._add_nodes(world.zones_items, RequirementNode.ZONE_ITEM, resources_path)
+    def _add_requirements_nodes(self, world: "World") -> None:
+        self._add_nodes([None], RequirementNode.START)
+        self._add_nodes(world.items, RequirementNode.ITEM)
+        self._add_nodes(world.zones_items, RequirementNode.ZONE_ITEM)
         if len(world.zones) >= 1:
-            self._add_nodes(world.zones, RequirementNode.ZONE, resources_path)
+            self._add_nodes(world.zones, RequirementNode.ZONE)
 
     def _add_nodes(
-        self,
-        objs: List[Union[Item, Zone]],
-        node_type: RequirementNode,
-        resources_path: str,
+        self, objs: List[Union[Item, Zone]], node_type: RequirementNode
     ) -> None:
         """Add colored nodes to the graph"""
         for obj in objs:
-            self.graph.add_node(
-                req_node_name(obj, node_type),
-                obj=obj,
-                type=node_type,
-                image=np.array(
-                    load_or_create_image(obj, resources_path, bg_color=(0, 0, 0))
-                ),
-                label=obj.name.capitalize(),
-            )
+            self.graph.add_node(req_node_name(obj, node_type), obj=obj, type=node_type)
 
     def _add_transformation_edges(
         self,
@@ -489,6 +479,7 @@ def draw_requirements_graph(
     ax: Axes,
     requirements: Requirements,
     theme: RequirementTheme,
+    resources_path: str,
     layout: RequirementsGraphLayout = "level",
 ):
     """Draw the requirement graph on a given Axes.
@@ -523,8 +514,12 @@ def draw_requirements_graph(
         alpha=edges_alphas,
     )
 
-    for node, node_type in digraph.nodes(data="type"):
-        digraph.nodes[node]["color"] = theme.color(node_type)
+    for node, node_data in digraph.nodes(data=True):
+        node_obj = node_data["obj"]
+        if node_obj is not None:
+            digraph.nodes[node]["color"] = theme.color(node_data["type"])
+            image = load_or_create_image(node_obj, resources_path, bg_color=(0, 0, 0))
+            digraph.nodes[node]["image"] = np.array(image)
     draw_networkx_nodes_images(digraph, pos, ax=ax, img_zoom=0.3)
 
     # Add legend for edges (if any for each type)
