@@ -48,12 +48,12 @@ class TestTransformationIsValid:
                 check.is_instance(item_stack, ItemStack)
 
     def test_position_is_valid(self):
-        transfo = Transformation(zones=[self.zones[0], self.zones[2]])
+        transfo = Transformation(destination=self.zones[0], zones=[self.zones[0], self.zones[2]])
         transfo.build(self.world)
 
-        check.is_true(transfo.is_valid(DummyState(position=np.array([1, 0, 0]))))
-        check.is_true(transfo.is_valid(DummyState(position=np.array([0, 0, 1]))))
+        check.is_false(transfo.is_valid(DummyState(position=np.array([1, 0, 0]))))
         check.is_false(transfo.is_valid(DummyState(position=np.array([0, 1, 0]))))
+        check.is_true(transfo.is_valid(DummyState(position=np.array([0, 0, 1]))))
 
     def test_player_items_is_valid(self):
         transfo = Transformation(

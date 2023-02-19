@@ -298,6 +298,8 @@ class Transformation:
     def _is_valid_position(self, position: np.ndarray):
         if self._zones is not None and not np.any(np.multiply(self._zones, position)):
             return False
+        if self._destination is not None and np.all(self._destination == position):
+            return False
         return True
 
     def _is_valid_inventory(self, player_inventory: np.ndarray):
