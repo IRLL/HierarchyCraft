@@ -75,8 +75,7 @@ class CraftingEnv(Env):
         self.render_window = render_window
         self.render_mode = "rgb_array"
         if resources_path is None:
-            render_dir = os.path.dirname(crafting.render.__file__)
-            resources_path = os.path.join(render_dir, "default_resources")
+            resources_path = _default_resources_path()
         self.resources_path = resources_path
 
         self.state = CraftingState(self.world)
@@ -294,3 +293,8 @@ class CraftingEnv(Env):
         fps = self.metadata.get("video.frames_per_second")
         self.render_window.update_rendering(fps=fps)
         return surface_to_rgb_array(self.render_window.screen)
+
+
+def _default_resources_path() -> str:
+    render_dir = os.path.dirname(crafting.render.__file__)
+    return os.path.join(render_dir, "default_resources")
