@@ -2,7 +2,7 @@
 
 import os
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import TYPE_CHECKING, Dict, List, Union, Optional
 
 import numpy as np
 
@@ -13,6 +13,8 @@ try:
     from pygame_menu.themes import THEME_DEFAULT, Theme
     from pygame_menu.widgets import Button
     from pygame_menu.widgets import Image as PyImage
+    from pygame.font import Font
+    from pygame.surface import Surface
 except ImportError:
     Menu = object
     THEME_DEFAULT = None
@@ -68,7 +70,9 @@ class InventoryWidget(Menu):
         display_mode: DisplayMode,
         rows: int = 7,
         theme: "Theme" = THEME_DEFAULT,
+        **kwargs,
     ):
+        theme.title_font_size = 24
         super().__init__(
             title=title,
             center_content=True,
@@ -79,6 +83,7 @@ class InventoryWidget(Menu):
             position=position,
             overflow=(False, True),
             theme=theme,
+            **kwargs,
         )
 
         self.items = items
@@ -92,7 +97,11 @@ class InventoryWidget(Menu):
             self._build_button(item)
 
     def update_inventory(
-        self, inventory: np.ndarray, discovered: np.ndarray, events
+        self,
+        inventory: np.ndarray,
+        discovered: np.ndarray,
+        events,
+        title: Optional[str] = None,
     ) -> bool:
         items_buttons = [
             widget
@@ -100,26 +109,9 @@ class InventoryWidget(Menu):
             if isinstance(widget, (Button, PyImage))
         ]
         for button in items_buttons:
-            item = self.button_id_to_item[button.get_id()]
-            item_slot = self.items.index(item)
-            quantity = inventory[item_slot]
-            old_quantity = self.old_quantity.get(item, None)
-
-            if old_quantity is not None and quantity == old_quantity:
-                continue
-
-            if isinstance(button, PyImage):
-                self._update_button_image(
-                    button, self.base_images[item], quantity, self.resources_path
-                )
-
-            button.set_title(str(ItemStack(item, quantity)))
-            self.old_quantity[item] = quantity
-
-            if show_button(self.display_mode, quantity > 0, discovered[item_slot]):
-                button.show()
-            else:
-                button.hide()
+            self._update_button(button, inventory, discovered)
+        if title is not None:
+            self.set_title(title)
         return super().update(events)
 
     def _build_button(self, item: Item) -> None:
@@ -131,6 +123,33 @@ class InventoryWidget(Menu):
             button: "Button" = self.add.button(str(item))
         button.is_selectable = False
         self.button_id_to_item[button.get_id()] = item
+
+    def _update_button(
+        self,
+        button: Union["Button", "PyImage"],
+        inventory: np.ndarray,
+        discovered: np.ndarray,
+    ):
+        item = self.button_id_to_item[button.get_id()]
+        item_slot = self.items.index(item)
+        quantity = inventory[item_slot]
+        old_quantity = self.old_quantity.get(item, None)
+
+        if old_quantity is not None and quantity == old_quantity:
+            return
+
+        if isinstance(button, PyImage):
+            self._update_button_image(
+                button, self.base_images[item], quantity, self.resources_path
+            )
+
+        button.set_title(str(ItemStack(item, quantity)))
+        self.old_quantity[item] = quantity
+
+        if show_button(self.display_mode, quantity > 0, discovered[item_slot]):
+            button.show()
+        else:
+            button.hide()
 
     @staticmethod
     def _update_button_image(
@@ -170,7 +189,9 @@ class TransformationsWidget(Menu):
         display_mode: DisplayMode,
         content_display_mode: ContentMode,
         theme: "Theme" = THEME_DEFAULT,
+        **kwargs,
     ):
+        theme.title_font_size = 24
         super().__init__(
             title=title,
             center_content=False,
@@ -181,6 +202,7 @@ class TransformationsWidget(Menu):
             position=position,
             overflow=(False, True),
             theme=theme,
+            **kwargs,
         )
 
         self.transformations = transformations
@@ -220,41 +242,52 @@ class TransformationsWidget(Menu):
     def update_transformations(self, env: "CraftingEnv", events) -> bool:
         action_is_legal = env.actions_mask
         action_buttons = [
-            widget for widget in self.get_widgets() if isinstance(widget, (Button))
+            widget for widget in self.get_widgets() if isinstance(widget, Button)
         ]
         for button in action_buttons:
-            transfo = self.button_id_to_transfo[button.get_id()]
-            action = env.world.transformations.index(transfo)
-            discovered = env.state.discovered_transformations[action]
-            legal = action_is_legal[action]
-            old_display = self.old_display.get(button.get_id(), None)
-            old_legal = self.old_legal.get(button.get_id(), None)
-
-            button_image = self.buttons_base_image.get(button.get_id(), None)
-            display_content = show_content(self.content_display_mode, discovered)
-            self.old_display[button.get_id()] = display_content
-            self.old_legal[button.get_id()] = legal
-
-            if old_display != display_content or legal != old_legal:
-                if display_content:
-                    if button_image:
-                        if not legal:
-                            button_image = button_image.convert("LA").convert("RGBA")
-                        self._update_button_image(button, button_image)
-                    else:
-                        button.set_title(str(transfo))
-                else:
-                    if button_image:
-                        hidden_image = self.buttons_hidden_image[button.get_id()]
-                        self._update_button_image(button, hidden_image)
-                    else:
-                        button.set_title(str(action))
-
-            if show_button(self.display_mode, legal, discovered):
-                button.show()
-            else:
-                button.hide()
+            self._update_button(button, env, action_is_legal)
+        if env.max_step is not None:
+            self.set_title(self._remaining_text(env.max_step - env.current_step))
         return super().update(events)
+
+    @staticmethod
+    def _remaining_text(actions_remaining: int):
+        return f"Actions ({actions_remaining} remaining)"
+
+    def _update_button(
+        self, button: Button, env: "CraftingEnv", action_is_legal: np.ndarray
+    ):
+        transfo = self.button_id_to_transfo[button.get_id()]
+        action = env.world.transformations.index(transfo)
+        discovered = env.state.discovered_transformations[action]
+        legal = action_is_legal[action]
+        old_display = self.old_display.get(button.get_id(), None)
+        old_legal = self.old_legal.get(button.get_id(), None)
+
+        button_image = self.buttons_base_image.get(button.get_id(), None)
+        display_content = show_content(self.content_display_mode, discovered)
+        self.old_display[button.get_id()] = display_content
+        self.old_legal[button.get_id()] = legal
+
+        if old_display != display_content or legal != old_legal:
+            if display_content:
+                if button_image:
+                    if not legal:
+                        button_image = button_image.convert("LA").convert("RGBA")
+                    self._update_button_image(button, button_image)
+                else:
+                    button.set_title(str(transfo))
+            else:
+                if button_image:
+                    hidden_image = self.buttons_hidden_image[button.get_id()]
+                    self._update_button_image(button, hidden_image)
+                else:
+                    button.set_title(str(action))
+
+        if show_button(self.display_mode, legal, discovered):
+            button.show()
+        else:
+            button.hide()
 
     @staticmethod
     def _add_button_image(button: "Button", image: "Image") -> str:
@@ -265,7 +298,7 @@ class TransformationsWidget(Menu):
         width_padding = (img_width - button.get_width(apply_padding=False)) // 2
         height_padding = (img_height - button.get_height(apply_padding=False)) // 2
         button.set_padding((height_padding, width_padding))
-        button.set_margin(8, 16)
+        button.set_margin(16, 16)
         return baseimage_id
 
     @staticmethod
@@ -297,7 +330,7 @@ class PostitionWidget(Menu):
             position=position,
             overflow=(False, True),
             theme=Theme(
-                background_color=(186, 214, 177),
+                background_color=(255, 255, 255, 0),
                 selection_color=(255, 255, 255, 0),
                 widget_font_color=(255, 255, 255),
                 title=False,
@@ -306,10 +339,10 @@ class PostitionWidget(Menu):
                 scrollbar_slider_pad=0,
                 scrollarea_outer_margin=(0, 0),
                 scrollbar_thick=8,
-                widget_alignment=ALIGN_LEFT,
             ),
         )
 
+        self.shape = (width, height)
         self.zones = zones
         self.base_images = _load_base_images(zones, resources_path)
         self.resources_path = resources_path
@@ -339,21 +372,18 @@ class PostitionWidget(Menu):
     def _build_button(self, zone: Zone) -> None:
         image = self.base_images[zone]
         font = os.path.join(self.resources_path, "font.ttf")
-        button: Button = self.add.button(
-            zone.name.capitalize(),
-            font_name=font,
-            font_color="white",
-            font_size=48,
-            border_width=0,
-        )
+        button: Button = self.add.button("", border_width=0)
         if image is not None:
             decorator = button.get_decorator()
-            menu_image = _to_menu_image(image, 0.4)
+            menu_image = _to_menu_image(image, _get_scale_ratio(image.size, self.shape))
             decorator.add_baseimage(0, 0, menu_image, centered=True)
             img_width, img_height = menu_image.get_size()
-            width_padding = (img_width - button.get_width(apply_padding=False)) // 2
-            height_padding = (img_height - button.get_height(apply_padding=False)) // 2
-            button.set_padding((height_padding, width_padding))
+            width_padding = img_width - button.get_width(apply_padding=False)
+            height_padding = img_height - button.get_height(apply_padding=False)
+            button.set_padding((0, width_padding, height_padding, 0))
+        else:
+            button.set_title(zone.name.capitalize())
+            button.set_font(font, font_size=48, color="white")
         button.is_selectable = False
         self.button_id_to_zone[button.get_id()] = zone
 
@@ -376,6 +406,16 @@ def show_content(content_mode: ContentMode, discovered: bool) -> bool:
     elif content_mode is ContentMode.DISCOVERED:
         display_content = discovered
     return display_content
+
+
+def _get_scale_ratio(initial_shape, wanted_shape) -> float:
+    if wanted_shape[0] > initial_shape[0]:
+        if wanted_shape[1] > initial_shape[1]:
+            return min(
+                1 + (wanted_shape[0] - initial_shape[0]) / initial_shape[0],
+                1 + (wanted_shape[1] - initial_shape[1]) / initial_shape[1],
+            )
+    raise NotImplementedError(f"Scaling {initial_shape} -> {wanted_shape}")
 
 
 # class ScoreWidget:

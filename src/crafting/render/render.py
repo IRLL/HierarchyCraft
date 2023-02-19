@@ -10,6 +10,7 @@ try:
     import pygame
     from pygame.time import Clock
     from pygame_menu.themes import THEME_DARK, Theme
+    from pygame_menu.locals import ALIGN_LEFT
 except ImportError:
     pass
 
@@ -142,23 +143,16 @@ class CraftingWindow:
             if event.type == pygame.QUIT:
                 sys.exit()
 
-        # for widget in widgets:
-        #     widget.update(env)
-        #     widget.draw(screen)
-
         # Update inventories
         state = self.env.state
         if self.menus["player_inventory"]:
+            title = "Inventory"
+            if self.env.purpose.tasks:
+                title = f"Inventory | SCORE: {self.env.current_score}"
             self.menus["player_inventory"].update_inventory(
-                state.player_inventory, state.discovered_items, events
+                state.player_inventory, state.discovered_items, events, title=title
             )
             self.menus["player_inventory"].draw(self.screen)
-
-        if self.menus["zone_inventory"]:
-            self.menus["zone_inventory"].update_inventory(
-                state.current_zone_inventory, state.discovered_zones_items, events
-            )
-            self.menus["zone_inventory"].draw(self.screen)
 
         # Update position
         if self.menus["position"]:
@@ -166,6 +160,13 @@ class CraftingWindow:
                 state.position, state.discovered_zones, events
             )
             self.menus["position"].draw(self.screen)
+
+        # Update zone inventory
+        if self.menus["zone_inventory"]:
+            self.menus["zone_inventory"].update_inventory(
+                state.current_zone_inventory, state.discovered_zones_items, events
+            )
+            self.menus["zone_inventory"].draw(self.screen)
 
         # Update actions menu
         self.menus["actions"].update_transformations(self.env, events)
@@ -224,13 +225,10 @@ class CraftingWindow:
                 title="Inventory",
                 height=menus_shapes["player"][1],
                 width=menus_shapes["player"][0],
-                position=(
-                    menus_shapes["actions"][0],
-                    self.window_shape[1] - menus_shapes["player"][1],
-                    False,
-                ),
+                position=(menus_shapes["actions"][0], 0, False),
                 items=self.env.world.items,
                 resources_path=self.env.resources_path,
+                rows=3,
                 display_mode=player_inventory_display,
                 theme=Theme(
                     background_color=(60, 60, 60),
@@ -241,30 +239,7 @@ class CraftingWindow:
                 ),
             )
 
-        # Current zone inventory
-        zone_inventory = None
-        if menus_shapes["zone"] != (0, 0):
-            zone_inventory = InventoryWidget(
-                title="Zone",
-                height=menus_shapes["zone"][1],
-                width=menus_shapes["zone"][0],
-                position=(
-                    menus_shapes["actions"][0] + menus_shapes["player"][0],
-                    self.window_shape[1] - menus_shapes["zone"][1],
-                    False,
-                ),
-                items=self.env.world.zones_items,
-                resources_path=self.env.resources_path,
-                display_mode=zone_inventory_display,
-                theme=Theme(
-                    title=False,
-                    background_color=(186, 214, 177),
-                    title_background_color=(47, 48, 51),
-                    title_font_color=(215, 215, 215),
-                    selection_color=(255, 255, 255, 0),
-                    widget_font_color=(255, 255, 255),
-                ),
-            )
+        zone_position = (menus_shapes["actions"][0], menus_shapes["player"][1], False)
 
         # Position
         position = None
@@ -273,14 +248,33 @@ class CraftingWindow:
                 title="Position",
                 height=menus_shapes["position"][1],
                 width=menus_shapes["position"][0],
-                position=(
-                    self.window_shape[0] - menus_shapes["position"][0],
-                    0,
-                    False,
-                ),
+                position=zone_position,
                 zones=self.env.world.zones,
                 resources_path=self.env.resources_path,
                 display_mode=position_display,
+            )
+
+        # Current zone inventory
+        zone_inventory = None
+        if menus_shapes["zone"] != (0, 0):
+            zone_inventory = InventoryWidget(
+                title="Zone",
+                height=menus_shapes["zone"][1],
+                width=menus_shapes["zone"][0],
+                position=zone_position,
+                items=self.env.world.zones_items,
+                resources_path=self.env.resources_path,
+                display_mode=zone_inventory_display,
+                rows=5,
+                theme=Theme(
+                    title=False,
+                    background_color=(0, 0, 0, 0),
+                    title_background_color=(47, 48, 51),
+                    title_font_color=(215, 215, 215),
+                    selection_color=(255, 255, 255, 0),
+                    widget_font_color=(255, 255, 255),
+                    widget_alignment=ALIGN_LEFT,
+                ),
             )
 
         return {
@@ -323,26 +317,24 @@ class CraftingWindow:
 def menus_sizes(
     n_items: int, n_zones_items: int, n_zones: int, window_shape: Tuple[int, int]
 ) -> Dict[str, Tuple[int, int]]:
-    actions_size = (int(0.3 * window_shape[0]), window_shape[1])
-    header_height = int(0.22 * window_shape[1])
-
-    player_size = (0, 0)
-    if n_items > 0:
-        player_width = window_shape[0] - actions_size[0]
-        if n_zones_items > 0:
-            player_width = int(0.475 * window_shape[0])
-        player_size = (player_width, window_shape[1] - header_height)
+    actions_size = (int(0.35 * window_shape[0]), window_shape[1])
 
     zone_size = (0, 0)
     if n_zones_items > 0:
-        zone_size = (
-            window_shape[0] - actions_size[0] - player_size[0],
-            window_shape[1] - header_height,
-        )
+        zone_width = window_shape[0] - actions_size[0]
+        zone_height = min(int(0.8 * window_shape[1]), int(9 * zone_width / 16))
+        zone_size = (zone_width, zone_height)
 
     position_size = (0, 0)
     if n_zones > 1:
-        position_size = (int(16 * header_height / 9), header_height)
+        position_size = zone_size
+
+    player_size = (0, 0)
+    if n_items > 0:
+        player_size = (
+            window_shape[0] - actions_size[0],
+            window_shape[1] - zone_size[1],
+        )
 
     return {
         "actions": actions_size,
