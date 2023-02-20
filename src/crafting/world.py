@@ -19,7 +19,7 @@ with a zone "Secret zone" containing items "Secret item" and 3 "Gold tresure".
 
 
 ```python
-from crafting.world import Item, ItemStack, Zone, world_from_transformations
+from crafting.elements import Item, ItemStack, Zone, world_from_transformations
 
 transformations: List["Transformation"] = ...
 world = world_from_transformations(
@@ -38,36 +38,10 @@ world = world_from_transformations(
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List, Set, Dict, Tuple, Optional, Union
 
+from crafting.elements import Item, ItemStack, Zone
+
 if TYPE_CHECKING:
     from crafting.transformation import Transformation
-
-
-@dataclass(frozen=True)
-class Item:
-    """Represent an item for any crafting environement."""
-
-    name: str
-
-
-@dataclass(frozen=True)
-class ItemStack:
-    """Represent a stack of an item for any crafting environement"""
-
-    item: Item
-    quantity: int = 1
-
-    def __str__(self) -> str:
-        name = self.item.name
-        if self.quantity > 1:
-            name += f"[{self.quantity}]"
-        return name
-
-
-@dataclass(frozen=True)
-class Zone:
-    """Represent a zone for any crafting environement."""
-
-    name: str
 
 
 @dataclass(frozen=True)

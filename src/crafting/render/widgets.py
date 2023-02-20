@@ -29,7 +29,7 @@ from crafting.render.utils import (
     _get_scale_ratio,
 )
 from crafting.transformation import Transformation
-from crafting.world import Item, ItemStack, Zone
+from crafting.elements import Item, ItemStack, Zone
 
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv

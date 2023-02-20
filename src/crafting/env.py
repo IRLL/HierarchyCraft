@@ -21,7 +21,7 @@ First, we need to represent the items we want to be able to manipulate.
 For now, we only have two items we can simply build using the Item class from `crafting.world`:
 
 ```python
-from crafting.world import Item
+from crafting.elements import Item
 
 CHEST = Item("treasure_chest")
 GOLD = Item("gold")
@@ -51,7 +51,7 @@ Let's create a zone where we want our `CHEST` to be.
 Like items, zones are created with a Zone object from `crafting.world`:
 
 ```python
-from crafting.world import Zone
+from crafting.elements import Zone
 
 TREASURE_ROOM = Zone("treasure_room")
 ```
@@ -66,7 +66,7 @@ to be stored in the environment state. (See `crafting.state` for more details)
 We can simply build a world from a list of transformations:
 
 ```python
-from crafting.world import world_from_transformations
+from crafting.elements import world_from_transformations
 
 WORLD = world_from_transformations(
     transformations=[TAKE_GOLD_FROM_CHEST],
@@ -172,7 +172,7 @@ and our player start in `START_ROOM`.
 Also, let's add a time limit to spice things up.
 
 ```python
-from crafting.world import world_from_transformations
+from crafting.elements import world_from_transformations
 
 WORLD_2 = world_from_transformations(
     transformations=[
@@ -245,7 +245,7 @@ That's it for this small customized env if you want more, be sure to check Trans
 """
 
 import collections
-from typing import List, Dict, Optional, Union
+from typing import TYPE_CHECKING, List, Dict, Optional, Union
 
 import numpy as np
 
@@ -255,13 +255,15 @@ from crafting.solving_behaviors import (
     task_to_behavior_name,
 )
 from crafting.purpose import Purpose, TerminalGroup
-from crafting.task import Task
 from crafting.render import _default_resources_path
 from crafting.render.render import CraftingWindow
 from crafting.render.utils import surface_to_rgb_array
 from crafting.requirements import Requirements
-from crafting.world import World
 from crafting.state import CraftingState
+
+if TYPE_CHECKING:
+    from crafting.task import Task
+    from crafting.world import World
 
 # Gym is an optional dependency.
 try:
@@ -285,8 +287,8 @@ class CraftingEnv(Env):
 
     def __init__(
         self,
-        world: World,
-        purpose: Optional[Union[Purpose, List[Task], Task]] = None,
+        world: "World",
+        purpose: Optional[Union[Purpose, List["Task"], "Task"]] = None,
         invalid_reward: float = -10.0,
         render_window: Optional[CraftingWindow] = None,
         resources_path: Optional[str] = None,

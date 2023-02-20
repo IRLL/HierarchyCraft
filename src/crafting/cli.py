@@ -3,7 +3,7 @@ from argparse import _SubParsersAction, ArgumentParser, Namespace
 from typing import Optional, List
 
 from crafting.env import CraftingEnv
-from crafting.world import Item
+from crafting.elements import Item
 from crafting.purpose import Purpose
 from crafting.task import GetItemTask
 from crafting.render.render import CraftingWindow

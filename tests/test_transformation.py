@@ -6,7 +6,8 @@ import pytest
 import pytest_check as check
 
 from crafting.transformation import Transformation
-from crafting.world import Item, ItemStack, World, Zone
+from crafting.elements import Item, ItemStack, Zone
+from crafting.world import World
 from tests.custom_checks import check_np_equal
 
 
@@ -48,7 +49,9 @@ class TestTransformationIsValid:
                 check.is_instance(item_stack, ItemStack)
 
     def test_position_is_valid(self):
-        transfo = Transformation(destination=self.zones[0], zones=[self.zones[0], self.zones[2]])
+        transfo = Transformation(
+            destination=self.zones[0], zones=[self.zones[0], self.zones[2]]
+        )
         transfo.build(self.world)
 
         check.is_false(transfo.is_valid(DummyState(position=np.array([1, 0, 0]))))

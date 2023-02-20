@@ -7,7 +7,7 @@ All used minecraft tools
 from enum import Enum
 from typing import Dict, List
 
-from crafting.world import Item
+from crafting.elements import Item
 
 
 class Material(Enum):

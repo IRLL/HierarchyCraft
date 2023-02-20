@@ -4,7 +4,7 @@ Abstract zones to simulate simply a Minecraft environment.
 
 """
 
-from crafting.world import Zone
+from crafting.elements import Zone
 
 #: Zones
 FOREST = Zone("forest")  #: FOREST

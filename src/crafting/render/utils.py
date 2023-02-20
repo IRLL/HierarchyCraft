@@ -17,7 +17,7 @@ except ImportError:
     pass
 
 from crafting.transformation import Transformation
-from crafting.world import Item, ItemStack, Zone
+from crafting.elements import Item, ItemStack, Zone
 from crafting.render import _default_resources_path
 
 if TYPE_CHECKING:

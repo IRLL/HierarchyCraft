@@ -14,7 +14,8 @@ from crafting.examples.minecraft.transformations import (
     build_minecrafting_transformations,
 )
 from crafting.examples.minecraft.zones import FOREST, NETHER, STRONGHOLD
-from crafting.world import ItemStack, world_from_transformations
+from crafting.elements import ItemStack
+from crafting.world import world_from_transformations
 
 
 class MineCraftingEnv(CraftingEnv):

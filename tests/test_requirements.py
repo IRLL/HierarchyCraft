@@ -1,7 +1,7 @@
 from crafting.requirements import _available_in_zones_stacks
 import pytest_check as check
 
-from crafting.world import Zone, ItemStack, Item
+from crafting.elements import Zone, ItemStack, Item
 
 
 class TestAvailableFromStart:

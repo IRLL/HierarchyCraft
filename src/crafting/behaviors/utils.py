@@ -9,7 +9,7 @@ from crafting.behaviors.behaviors import (
     GetItem,
     ReachZone,
 )
-from crafting.world import Item
+from crafting.elements import Item
 
 
 def get_items_in_graph(

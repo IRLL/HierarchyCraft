@@ -1,6 +1,7 @@
 from crafting.env import CraftingEnv
 from crafting.transformation import Transformation
-from crafting.world import Item, ItemStack, Zone, world_from_transformations
+from crafting.elements import Item, ItemStack, Zone
+from crafting.world import world_from_transformations
 
 
 def classic_env():

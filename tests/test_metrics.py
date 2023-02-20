@@ -3,7 +3,7 @@ import pytest_check as check
 
 from crafting.env import CraftingEnv
 from crafting.purpose import Purpose, GetItemTask, PlaceItemTask
-from crafting.world import Item
+from crafting.elements import Item
 
 from tests.envs import classic_env
 

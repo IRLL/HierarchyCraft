@@ -8,7 +8,8 @@ from pytest_mock import MockerFixture
 from crafting.env import CraftingEnv
 from crafting.task import GetItemTask
 from crafting.transformation import Transformation
-from crafting.world import Item, ItemStack, Zone, world_from_transformations
+from crafting.elements import Item, ItemStack, Zone
+from crafting.world import world_from_transformations
 from tests.custom_checks import check_np_equal
 from tests.envs import classic_env, zone_only_env, player_only_env
 
@@ -364,7 +365,7 @@ def test_treasure_env(mocker: MockerFixture):
 
     mocker.patch("crafting.render.human.get_human_action", fake_human_action)
 
-    from crafting.world import Item
+    from crafting.elements import Item
 
     CHEST = Item("treasure_chest")
     GOLD = Item("gold")
@@ -375,7 +376,7 @@ def test_treasure_env(mocker: MockerFixture):
         removed_zone_items=[CHEST], added_player_items=[GOLD]
     )
 
-    from crafting.world import Zone
+    from crafting.elements import Zone
 
     TREASURE_ROOM = Zone("treasure_room")
 

@@ -2,7 +2,8 @@ from typing import List
 import os
 
 from crafting.env import CraftingEnv
-from crafting.world import Item, ItemStack, Zone, world_from_transformations
+from crafting.elements import Item, ItemStack, Zone
+from crafting.world import world_from_transformations
 from crafting.transformation import Transformation
 from crafting.purpose import GetItemTask
 

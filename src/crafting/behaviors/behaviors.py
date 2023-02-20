@@ -9,7 +9,7 @@ from crafting.behaviors.actions import DoTransformation
 from crafting.behaviors.feature_conditions import HasItemStack, HasZoneItem, IsInZone
 from crafting.render.utils import load_or_create_image
 from crafting.task import _zones_str, _ensure_zone_list
-from crafting.world import Item, ItemStack, Zone
+from crafting.elements import Item, ItemStack, Zone
 
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv

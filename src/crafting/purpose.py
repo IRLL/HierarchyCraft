@@ -101,9 +101,11 @@ import networkx as nx
 
 from crafting.requirements import RequirementNode, req_node_name
 from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
-from crafting.world import Item, Zone, World
+
 
 if TYPE_CHECKING:
+    from crafting.elements import Item, Zone
+    from crafting.world import World
     from crafting.env import CraftingEnv, CraftingState
 
 
@@ -360,7 +362,7 @@ def _required_subtasks(
             if ancestor == "START#":
                 continue
             ancestor_node = requirements_acydigraph.nodes[ancestor]
-            item_or_zone: Union[Item, Zone] = ancestor_node["obj"]
+            item_or_zone: Union["Item", "Zone"] = ancestor_node["obj"]
             ancestor_type = RequirementNode(ancestor_node["type"])
             if ancestor_type is RequirementNode.ITEM:
                 relevant_items.add(item_or_zone)
@@ -438,9 +440,9 @@ def _inputs_subtasks(task: Task, world: "World", shaping_reward: float) -> List[
 
 
 def _build_reward_shaping_subtasks(
-    items: Optional[Union[List[Item], Set[Item]]] = None,
-    zones: Optional[Union[List[Zone], Set[Zone]]] = None,
-    zone_items: Optional[Union[List[Item], Set[Item]]] = None,
+    items: Optional[Union[List["Item"], Set["Item"]]] = None,
+    zones: Optional[Union[List["Zone"], Set["Zone"]]] = None,
+    zone_items: Optional[Union[List["Item"], Set["Item"]]] = None,
     shaping_reward: float = 1.0,
 ) -> List[Task]:
     subtasks = []

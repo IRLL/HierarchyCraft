@@ -44,7 +44,9 @@ from typing import List
 
 from crafting.env import CraftingEnv
 from crafting.transformation import Transformation
-from crafting.world import Item, ItemStack, world_from_transformations
+
+from crafting.elements import Item, ItemStack
+from crafting.world import world_from_transformations
 
 # gym is an optional dependency
 try:

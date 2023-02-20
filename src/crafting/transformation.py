@@ -18,7 +18,7 @@ They may be available only in a subset of zones, or in every zone.
 ## Examples
 
 ```python
-from crafting.world import Item, ItemStack, Zone
+from crafting.elements import Item, ItemStack, Zone
 from crafting.transformation import Transformation
 ```
 
@@ -120,10 +120,10 @@ because the player only observe the current zone items.
 from typing import TYPE_CHECKING, List, Dict, Set, Optional, Tuple, Union
 
 import numpy as np
-
-from crafting.world import Item, ItemStack, World, Zone
+from crafting.elements import Item, ItemStack, Zone
 
 if TYPE_CHECKING:
+    from crafting.world import World
     from crafting.env import CraftingState
 
 
@@ -145,14 +145,18 @@ class Transformation:
         self,
         destination: Optional[Zone] = None,
         zones: Optional[List[Zone]] = None,
-        removed_player_items: Optional[List[Union[ItemStack, Item]]] = None,
-        added_player_items: Optional[List[Union[ItemStack, Item]]] = None,
-        removed_destination_items: Optional[List[Union[ItemStack, Item]]] = None,
-        added_destination_items: Optional[List[Union[ItemStack, Item]]] = None,
-        removed_zone_items: Optional[List[Union[ItemStack, Item]]] = None,
-        added_zone_items: Optional[List[Union[ItemStack, Item]]] = None,
-        removed_zones_items: Optional[Dict[Zone, List[Union[ItemStack, Item]]]] = None,
-        added_zones_items: Optional[Dict[Zone, List[Union[ItemStack, Item]]]] = None,
+        removed_player_items: Optional[List[Union["ItemStack", "Item"]]] = None,
+        added_player_items: Optional[List[Union["ItemStack", "Item"]]] = None,
+        removed_destination_items: Optional[List[Union["ItemStack", "Item"]]] = None,
+        added_destination_items: Optional[List[Union["ItemStack", "Item"]]] = None,
+        removed_zone_items: Optional[List[Union["ItemStack", "Item"]]] = None,
+        added_zone_items: Optional[List[Union["ItemStack", "Item"]]] = None,
+        removed_zones_items: Optional[
+            Dict[Zone, List[Union["ItemStack", "Item"]]]
+        ] = None,
+        added_zones_items: Optional[
+            Dict[Zone, List[Union["ItemStack", "Item"]]]
+        ] = None,
     ) -> None:
         self.destination = destination
         self._destination = None
@@ -227,7 +231,7 @@ class Transformation:
             return False
         return True
 
-    def build(self, world: World) -> None:
+    def build(self, world: "World") -> None:
         """Build the transformation array operations on the given world."""
         for op_name in self.OPERATIONS:
             if getattr(self, op_name) is not None:
@@ -235,7 +239,7 @@ class Transformation:
                 builder(world)
 
     @property
-    def produced_items(self) -> List[Item]:
+    def produced_items(self) -> List["Item"]:
         """List of produced items by this transformation."""
         items = set()
         if self.added_player_items:
@@ -243,7 +247,7 @@ class Transformation:
         return items
 
     @property
-    def produced_zones_items(self) -> Set[Item]:
+    def produced_zones_items(self) -> Set["Item"]:
         """List of produced zones items by this transformation."""
         items = set()
         if self.added_zone_items:
@@ -256,7 +260,7 @@ class Transformation:
         return items
 
     @property
-    def consumed_items(self) -> Set[Item]:
+    def consumed_items(self) -> Set["Item"]:
         """Set of consumed items by this transformation."""
         items = set()
         if self.removed_player_items:
@@ -264,7 +268,7 @@ class Transformation:
         return items
 
     @property
-    def consumed_zone_items(self) -> Set[Item]:
+    def consumed_zone_items(self) -> Set["Item"]:
         """Set of consumed zones items by this transformation."""
         items = set()
         if self.removed_zone_items:
@@ -272,7 +276,7 @@ class Transformation:
         return items
 
     @property
-    def consumed_destination_items(self) -> Set[Item]:
+    def consumed_destination_items(self) -> Set["Item"]:
         """Set of consumed zones items at destination by this transformation."""
         items = set()
         if self.removed_destination_items:
@@ -280,7 +284,7 @@ class Transformation:
         return items
 
     @property
-    def consumed_zones_items(self) -> Dict[Zone, Set[Item]]:
+    def consumed_zones_items(self) -> Dict[Zone, Set["Item"]]:
         """List of consumed zones items in specific zones by this transformation."""
         items_per_zone = {}
         if self.removed_zones_items:
@@ -289,7 +293,7 @@ class Transformation:
         return items_per_zone
 
     @property
-    def total_consumed_zone_items(self) -> Set[Item]:
+    def total_consumed_zone_items(self) -> Set["Item"]:
         items = self.consumed_zone_items | self.consumed_destination_items
         for consumed_zones_items in self.consumed_zones_items.values():
             items |= consumed_zones_items
@@ -336,54 +340,54 @@ class Transformation:
                 return False
         return True
 
-    def _build_destination_op(self, world: World) -> None:
+    def _build_destination_op(self, world: "World") -> None:
         self._destination = np.zeros(world.n_zones, dtype=np.uint16)
         self._destination[world.slot_from_zone(self.destination)] = 1
 
-    def _build_zones_op(self, world: World) -> None:
+    def _build_zones_op(self, world: "World") -> None:
         self._zones = np.zeros(world.n_zones, dtype=np.uint16)
         for zone in self.zones:
             self._zones[world.slot_from_zone(zone)] = 1
 
-    def _build_removed_player_items_op(self, world: World) -> None:
+    def _build_removed_player_items_op(self, world: "World") -> None:
         self._build_items_op("removed_player_items", world.items)
 
-    def _build_added_player_items_op(self, world: World) -> None:
+    def _build_added_player_items_op(self, world: "World") -> None:
         self._build_items_op("added_player_items", world.items)
 
-    def _build_removed_destination_items_op(self, world: World) -> None:
+    def _build_removed_destination_items_op(self, world: "World") -> None:
         self._build_items_op("removed_destination_items", world.zones_items)
 
-    def _build_added_destination_items_op(self, world: World) -> None:
+    def _build_added_destination_items_op(self, world: "World") -> None:
         self._build_items_op("added_destination_items", world.zones_items)
 
-    def _build_removed_zone_items_op(self, world: World) -> None:
+    def _build_removed_zone_items_op(self, world: "World") -> None:
         self._build_items_op("removed_zone_items", world.zones_items)
 
-    def _build_added_zone_items_op(self, world: World) -> None:
+    def _build_added_zone_items_op(self, world: "World") -> None:
         self._build_items_op("added_zone_items", world.zones_items)
 
-    def _build_items_op(self, op_name: str, world_item_list: List[Item]):
+    def _build_items_op(self, op_name: str, world_item_list: List["Item"]):
         operation = np.zeros(len(world_item_list), dtype=np.uint16)
-        itemstacks: List[ItemStack] = getattr(self, op_name)
+        itemstacks: List["ItemStack"] = getattr(self, op_name)
         for itemstack in itemstacks:
             item_slot = world_item_list.index(itemstack.item)
             operation[item_slot] = itemstack.quantity
         setattr(self, f"_{op_name}", operation)
 
-    def _build_removed_zones_items_op(self, world: World) -> None:
+    def _build_removed_zones_items_op(self, world: "World") -> None:
         self._build_zones_items_op(
             "removed_zones_items", world.zones, world.zones_items
         )
 
-    def _build_added_zones_items_op(self, world: World) -> None:
+    def _build_added_zones_items_op(self, world: "World") -> None:
         self._build_zones_items_op("added_zones_items", world.zones, world.zones_items)
 
     def _build_zones_items_op(
-        self, op_name: str, zones: List[Zone], zones_items: List[Item]
+        self, op_name: str, zones: List[Zone], zones_items: List["Item"]
     ):
         operation = np.zeros((len(zones), len(zones_items)), dtype=np.uint16)
-        stacks_per_zone: Dict[Zone, List[ItemStack]] = getattr(self, op_name)
+        stacks_per_zone: Dict[Zone, List["ItemStack"]] = getattr(self, op_name)
         for zone, stacks in stacks_per_zone.items():
             zone_slot = zones.index(zone)
             for stack in stacks:
@@ -422,7 +426,7 @@ class Transformation:
         return transfo_text
 
 
-def _dict_stacks_str(dict_of_stacks: Optional[Dict[Zone, List[ItemStack]]]):
+def _dict_stacks_str(dict_of_stacks: Optional[Dict[Zone, List["ItemStack"]]]):
     strings = []
     if dict_of_stacks is None:
         return strings
@@ -432,7 +436,7 @@ def _dict_stacks_str(dict_of_stacks: Optional[Dict[Zone, List[ItemStack]]]):
 
 
 def _stacks_str(
-    stacks: Optional[List[ItemStack]],
+    stacks: Optional[List["ItemStack"]],
     prefix: str = "",
     suffix: str = "",
 ) -> List[str]:
@@ -443,14 +447,14 @@ def _stacks_str(
     return strings
 
 
-def _unstacked_str(itemstacks: List[ItemStack], prefix: str = "", suffix: str = ""):
+def _unstacked_str(itemstacks: List["ItemStack"], prefix: str = "", suffix: str = ""):
     items_text = ",".join([str(itemstack) for itemstack in itemstacks])
     return f"{prefix}{items_text}{suffix}"
 
 
 def _stack_items_list(
-    items_or_stacks: Optional[List[Union[Item, ItemStack]]]
-) -> Optional[List[ItemStack]]:
+    items_or_stacks: Optional[List[Union["Item", "ItemStack"]]]
+) -> Optional[List["ItemStack"]]:
     if items_or_stacks is None:
         return None
     for i, item_or_stack in enumerate(items_or_stacks):
@@ -460,7 +464,7 @@ def _stack_items_list(
 
 
 def _stack_dict_items_list(
-    dict_of_stacks: Optional[Dict[Zone, List[Union[ItemStack, Item]]]]
+    dict_of_stacks: Optional[Dict[Zone, List[Union["ItemStack", "Item"]]]]
 ):
     if dict_of_stacks is None:
         return None
@@ -470,5 +474,5 @@ def _stack_dict_items_list(
     }
 
 
-def _items_from_stack_list(stacks: List[ItemStack]) -> Set[Item]:
+def _items_from_stack_list(stacks: List["ItemStack"]) -> Set["Item"]:
     return set(stack.item for stack in stacks)

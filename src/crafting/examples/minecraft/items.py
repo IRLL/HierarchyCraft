@@ -10,7 +10,7 @@ from typing import List, Optional, Union
 
 from crafting.examples.minecraft.tools import *
 from crafting.examples.minecraft.zones import *
-from crafting.world import Item, Zone
+from crafting.elements import Item, Zone
 
 #: Items obtainable only with crafts
 IRON_INGOT = Item("iron_ingot")

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional
 import numpy as np
 from hebg import FeatureCondition
 
-from crafting.world import ItemStack, Zone
+from crafting.elements import ItemStack, Zone
 from crafting.render.utils import load_or_create_image
 from crafting.task import _quantity_str
 

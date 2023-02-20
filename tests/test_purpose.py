@@ -8,7 +8,8 @@ from crafting.env import CraftingEnv
 from crafting.purpose import Purpose, RewardShaping
 from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
 from crafting.transformation import Transformation
-from crafting.world import Item, ItemStack, World, Zone, world_from_transformations
+from crafting.elements import Item, ItemStack, Zone
+from crafting.world import World, world_from_transformations
 
 
 @dataclass

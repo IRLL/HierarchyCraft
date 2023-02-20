@@ -1,6 +1,6 @@
 import networkx as nx
 
-from crafting.world import Item, Zone
+from crafting.elements import Item, Zone
 from crafting.examples.keydoor import KeyDoorCraftingEnv
 
 import pytest

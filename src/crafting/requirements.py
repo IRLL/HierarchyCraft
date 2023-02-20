@@ -70,7 +70,7 @@ plt.show()
 """
 
 from enum import Enum
-from typing import Any, Dict, List, Set, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Set, Optional, Union
 
 import matplotlib.patches as mpatches
 import networkx as nx
@@ -81,8 +81,12 @@ from matplotlib.axes import Axes
 from matplotlib.legend_handler import HandlerPatch
 
 from crafting.render.utils import load_or_create_image
-from crafting.transformation import Transformation
-from crafting.world import Item, ItemStack, Zone, World
+
+
+if TYPE_CHECKING:
+    from crafting.transformation import Transformation
+    from crafting.elements import Item, ItemStack, Zone
+    from crafting.world import World
 
 
 class RequirementNode(Enum):
@@ -141,7 +145,7 @@ class RequirementTheme:
 
 
 class Requirements:
-    def __init__(self, world: World, resources_path: str):
+    def __init__(self, world: "World", resources_path: str):
         self.world = world
         self.resources_path = resources_path
         self.graph = nx.MultiDiGraph()
@@ -201,7 +205,7 @@ class Requirements:
             self._add_nodes(world.zones, RequirementNode.ZONE)
 
     def _add_nodes(
-        self, objs: List[Union[Item, Zone]], node_type: RequirementNode
+        self, objs: List[Union["Item", "Zone"]], node_type: RequirementNode
     ) -> None:
         """Add colored nodes to the graph"""
         for obj in objs:
@@ -211,7 +215,7 @@ class Requirements:
         self,
         transfo: "Transformation",
         transfo_index: int,
-        zone: Optional[Zone] = None,
+        zone: Optional["Zone"] = None,
     ) -> None:
         """Add edges induced by a Crafting recipe."""
         zones = set() if zone is None else {zone}
@@ -285,9 +289,9 @@ class Requirements:
 
     def _add_crafts(
         self,
-        in_items: Set[Item],
-        in_zone_items: Set[Item],
-        zones: Set[Zone],
+        in_items: Set["Item"],
+        in_zone_items: Set["Item"],
+        zones: Set["Zone"],
         out_node: str,
         index: int,
     ) -> None:
@@ -309,7 +313,7 @@ class Requirements:
         end_node: str,
         edge_type: RequirementEdge,
         index: int,
-        start_obj: Optional[Union[Zone, Item]] = None,
+        start_obj: Optional[Union["Zone", "Item"]] = None,
         start_type: Optional[RequirementNode] = None,
     ):
         start_name = req_node_name(start_obj, start_type)
@@ -348,7 +352,7 @@ class Requirements:
         return start_index
 
 
-def req_node_name(obj: Optional[Union[Item, Zone]], node_type: RequirementNode):
+def req_node_name(obj: Optional[Union["Item", "Zone"]], node_type: RequirementNode):
     """Get a unique node name for the requirements graph"""
     if node_type == RequirementNode.START:
         return "START#"
@@ -443,9 +447,9 @@ def collapse_as_digraph(multidigraph: nx.MultiDiGraph) -> nx.DiGraph:
 
 
 def _available_in_zones_stacks(
-    stacks: Optional[List[ItemStack]],
-    zone: Zone,
-    zones_stacks: Dict[Zone, List[ItemStack]],
+    stacks: Optional[List["ItemStack"]],
+    zone: "Zone",
+    zones_stacks: Dict["Zone", List["ItemStack"]],
 ) -> bool:
     """
     Args:
@@ -458,7 +462,7 @@ def _available_in_zones_stacks(
     """
     if stacks is None:
         return True
-    is_available: Dict[ItemStack, bool] = {}
+    is_available: Dict["ItemStack", bool] = {}
     for consumed_stack in stacks:
         start_stacks = zones_stacks.get(zone, [])
         for start_stack in start_stacks:

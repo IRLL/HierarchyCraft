@@ -3,9 +3,10 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 import numpy as np
 
-from crafting.world import Item, ItemStack, World, Zone
+from crafting.elements import Item, ItemStack, Zone
 
 if TYPE_CHECKING:
+    from crafting.world import World
     from crafting.env import CraftingState
 
 
@@ -19,7 +20,7 @@ class Task:
         self._terminate_position = None
         self._terminate_zones_items = None
 
-    def build(self, world: World) -> None:
+    def build(self, world: "World") -> None:
         """Build the task operation arrays based on the given world."""
         self._terminate_position = np.zeros(world.n_zones, dtype=np.uint16)
         self._terminate_player_items = np.zeros(world.n_items, dtype=np.uint16)
@@ -82,7 +83,7 @@ class GetItemTask(AchievementTask):
         self.item_stack = _stack_item(item_stack)
         super().__init__(name=self.get_name(self.item_stack), reward=reward)
 
-    def build(self, world: World) -> None:
+    def build(self, world: "World") -> None:
         super().build(world)
         item_slot = world.items.index(self.item_stack.item)
         self._terminate_player_items[item_slot] = self.item_stack.quantity
@@ -104,7 +105,7 @@ class GoToZoneTask(AchievementTask):
         super().__init__(name=self.get_name(zone), reward=reward)
         self.zone = zone
 
-    def build(self, world: World):
+    def build(self, world: "World"):
         super().build(world)
         zone_slot = world.zones.index(self.zone)
         self._terminate_position[zone_slot] = 1
@@ -136,7 +137,7 @@ class PlaceItemTask(AchievementTask):
         self.zones = _ensure_zone_list(zones)
         super().__init__(name=self.get_name(item_stack, zones), reward=reward)
 
-    def build(self, world: World):
+    def build(self, world: "World"):
         super().build(world)
         if self.zones is None:
             zones_slots = np.arange(self._terminate_zones_items.shape[0])
