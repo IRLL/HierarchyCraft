@@ -356,7 +356,7 @@ def _required_subtasks(
             f"for given task type: {type(task)} of {task}"
         )
 
-    requirements_acydigraph = env.requirements.acydigraph
+    requirements_acydigraph = env.world.requirements.acydigraph
     for requirement_node in goal_requirement_nodes:
         for ancestor in nx.ancestors(requirements_acydigraph, requirement_node):
             if ancestor == "START#":

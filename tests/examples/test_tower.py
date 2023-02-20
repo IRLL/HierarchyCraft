@@ -27,7 +27,7 @@ def test_tower_requirements_graph_1_1():
     env = TowerCraftingEnv(height=height, width=width)
     expected_graph = nx.DiGraph()
     expected_graph.add_edge(0, 1)
-    check_isomorphic(env.requirements.graph, expected_graph)
+    check_isomorphic(env.world.requirements.graph, expected_graph)
 
 
 def test_tower_requirements_graph_1_2():
@@ -44,7 +44,7 @@ def test_tower_requirements_graph_1_2():
     expected_graph.add_edge(0, 2)
     expected_graph.add_edge(1, 2)
 
-    check_isomorphic(env.requirements.graph, expected_graph)
+    check_isomorphic(env.world.requirements.graph, expected_graph)
 
 
 def test_tower_requirements_graph_3_2():
@@ -71,7 +71,7 @@ def test_tower_requirements_graph_3_2():
     expected_graph.add_edge(0, 2)
     expected_graph.add_edge(1, 2)
 
-    check_isomorphic(env.requirements.graph, expected_graph)
+    check_isomorphic(env.world.requirements.graph, expected_graph)
 
 
 def test_tower_accessible_items():

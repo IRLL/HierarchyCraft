@@ -56,12 +56,12 @@ from crafting.examples import MineCraftingEnv
 env = MineCraftingEnv()
 
 # Obtain the raw Networkx MultiDiGraph
-graph = env.requirements.graph 
+graph = env.world.requirements.graph 
 
 # Plot the collapsed acyclic requirements graph
 import matplotlib.pyplot as plt
 _, ax = plt.subplots()
-env.requirements.draw(ax)
+env.world.requirements.draw(ax)
 plt.show()
 ```
 
@@ -75,10 +75,12 @@ from typing import TYPE_CHECKING, Any, Dict, List, Set, Optional, Union
 import matplotlib.patches as mpatches
 import networkx as nx
 import numpy as np
-from hebg.graph import draw_networkx_nodes_images, get_nodes_by_level
-from hebg.layouts.metabased import leveled_layout_energy
+
 from matplotlib.axes import Axes
 from matplotlib.legend_handler import HandlerPatch
+
+from hebg.graph import draw_networkx_nodes_images, get_nodes_by_level
+from hebg.layouts.metabased import leveled_layout_energy
 
 from crafting.render.utils import load_or_create_image
 
@@ -145,9 +147,9 @@ class RequirementTheme:
 
 
 class Requirements:
-    def __init__(self, world: "World", resources_path: str):
+    def __init__(self, world: "World"):
         self.world = world
-        self.resources_path = resources_path
+        self.resources_path = world.resources_path
         self.graph = nx.MultiDiGraph()
         self._digraph: nx.DiGraph = None
         self._acydigraph: nx.DiGraph = None

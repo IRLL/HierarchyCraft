@@ -81,13 +81,13 @@ def test_requirements_graph():
     expected_graph.add_edge("ball_room", "ball_in_zone")
 
     env = KeyDoorCraftingEnv(max_step=20)
-    check_isomorphic(env.requirements.digraph, expected_graph)
+    check_isomorphic(env.world.requirements.digraph, expected_graph)
 
     if draw:
         import matplotlib.pyplot as plt
 
         fig, ax = plt.subplots()
-        env.requirements.draw(ax, layout="spring")
+        env.world.requirements.draw(ax, layout="spring")
         plt.show()
         plt.close()
 

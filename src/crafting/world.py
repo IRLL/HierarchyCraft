@@ -39,6 +39,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List, Set, Dict, Tuple, Optional, Union
 
 from crafting.elements import Item, ItemStack, Zone
+from crafting.requirements import Requirements
 
 if TYPE_CHECKING:
     from crafting.transformation import Transformation
@@ -69,6 +70,7 @@ class World:
     resources_path: str = field(default_factory=_default_resources_path)
 
     def __post_init__(self):
+        self._requirements = None
         for transfo in self.transformations:
             transfo.build(self)
 
@@ -86,6 +88,12 @@ class World:
     def n_zones_items(self) -> int:
         """Number of different items the zones can have."""
         return len(self.zones_items)
+
+    @property
+    def requirements(self) -> Requirements:
+        if self._requirements is None:
+            self._requirements = Requirements(self)
+        return self._requirements
 
     def slot_from_item(self, item: Item) -> int:
         """Item's slot in the world"""

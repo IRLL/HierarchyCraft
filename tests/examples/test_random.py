@@ -30,8 +30,8 @@ class TestRandomCrafting:
         env2 = RandomCraftingEnv(self.n_items_per_n_inputs, seed=42)
         check.equal(env.seed, env2.seed)
         check_isomorphic(
-            env.requirements.graph,
-            env2.requirements.graph,
+            env.world.requirements.graph,
+            env2.world.requirements.graph,
         )
 
     def test_different_seed_different_requirements_graph(self):
@@ -39,6 +39,6 @@ class TestRandomCrafting:
         env2 = RandomCraftingEnv(self.n_items_per_n_inputs, seed=43)
         check.not_equal(env.seed, env2.seed)
         check_not_isomorphic(
-            env.requirements.graph,
-            env2.requirements.graph,
+            env.world.requirements.graph,
+            env2.world.requirements.graph,
         )

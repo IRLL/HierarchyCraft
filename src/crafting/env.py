@@ -464,12 +464,6 @@ class CraftingEnv(Env):
         """
         return self.all_behaviors[task_to_behavior_name(task)]
 
-    @property
-    def requirements(self) -> Requirements:
-        if self._requirements is None:
-            self._requirements = Requirements(self.world, self.world.resources_path)
-        return self._requirements
-
     def _step_output(self, reward: float):
         infos = {
             "action_is_legal": self.actions_mask,

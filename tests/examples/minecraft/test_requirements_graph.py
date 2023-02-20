@@ -19,7 +19,7 @@ class TestMineCraftingReqGraph:
     @pytest.fixture(autouse=True)
     def setup_method(self):
         self.env = MineCraftingEnv()
-        self.graph = self.env.requirements.graph
+        self.graph = self.env.world.requirements.graph
 
     def test_wood_require_forest(self):
         forest_node = req_node_name(FOREST, RequirementNode.ZONE)
@@ -80,7 +80,7 @@ def test_draw_requirements_graph():
     fig, ax = plt.subplots()
     env = MineCraftingEnv()
     layout = "level" if save else "spring"
-    env.requirements.draw(ax, layout=layout)
+    env.world.requirements.draw(ax, layout=layout)
     plt.subplots_adjust(right=1, left=0, hspace=0, wspace=0)
     fig.set_size_inches((24, 12), forward=False)
     if save:

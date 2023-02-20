@@ -16,11 +16,11 @@ try:
 except ImportError:
     pass
 
-from crafting.transformation import Transformation
+
 from crafting.elements import Item, ItemStack, Zone
-from crafting.world import _default_resources_path
 
 if TYPE_CHECKING:
+    from crafting.transformation import Transformation
     from pygame.surface import Surface
 
 
@@ -139,7 +139,7 @@ def create_text_image(
 
 
 def build_transformation_image(
-    transformation: Transformation,
+    transformation: "Transformation",
     resources_path: str,
     zone_bg_color=(185, 215, 115),
     dest_bg_color=(220, 200, 175),
@@ -273,6 +273,8 @@ def surface_to_rgb_array(surface: "Surface") -> np.ndarray:
 
 
 def _font_path(resources_path: str):
+    from crafting.world import _default_resources_path
+
     font_path = os.path.join(resources_path, "font.ttf")
     if not os.path.exists(font_path):
         font_path = os.path.join(_default_resources_path(), "font.ttf")
