@@ -91,6 +91,11 @@ class World:
 
     @property
     def requirements(self) -> Requirements:
+        """Requirements object to draw an manipulate requirements graph.
+
+        See `crafting.requirements` for more details.
+
+        """
         if self._requirements is None:
             self._requirements = Requirements(self)
         return self._requirements
