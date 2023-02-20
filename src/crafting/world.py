@@ -36,10 +36,11 @@ world = world_from_transformations(
 
 import os
 from dataclasses import dataclass, field
+from functools import partial
 from typing import TYPE_CHECKING, List, Set, Dict, Tuple, Optional, Union
 
 from crafting.elements import Item, ItemStack, Zone
-from crafting.requirements import Requirements
+from crafting.requirements import Requirements, RequirementNode, req_node_name
 
 if TYPE_CHECKING:
     from crafting.transformation import Transformation
@@ -68,9 +69,27 @@ class World:
     start_zones_items: Dict[Zone, List[ItemStack]] = field(default_factory=dict)
 
     resources_path: str = field(default_factory=_default_resources_path)
+    order_world: bool = False
 
     def __post_init__(self):
         self._requirements = None
+
+        if self.order_world:
+            item_rank = partial(
+                _get_node_level, self.requirements, node_type=RequirementNode.ITEM
+            )
+            self.items.sort(key=item_rank)
+
+            zone_item_rank = partial(
+                _get_node_level, self.requirements, node_type=RequirementNode.ZONE_ITEM
+            )
+            self.zones_items.sort(key=zone_item_rank)
+
+            zone_rank = partial(
+                _get_node_level, self.requirements, node_type=RequirementNode.ZONE
+            )
+            self.zones.sort(key=zone_rank)
+
         for transfo in self.transformations:
             transfo.build(self)
 
@@ -118,6 +137,7 @@ def world_from_transformations(
     start_zone: Optional[Zone] = None,
     start_items: Optional[List[Union[ItemStack, Item]]] = None,
     start_zones_items: Optional[Dict[Zone, List[Union[ItemStack, Item]]]] = None,
+    order_world: bool = True,
 ) -> World:
     """Reads the transformation to build the list of items, zones and zones_items
     composing the world."""
@@ -148,6 +168,7 @@ def world_from_transformations(
         start_zone=start_zone,
         start_items=start_items,
         start_zones_items=start_zones_items,
+        order_world=order_world,
     )
 
 
@@ -191,6 +212,13 @@ def _transformations_elements(
         transfo.added_zones_items, zones_items, zones
     )
     return zones, items, zones_items
+
+
+def _get_node_level(
+    requirements: Requirements, obj: Union[Item, Zone], node_type: RequirementNode
+):
+    node_name = req_node_name(obj, node_type=node_type)
+    return (requirements.graph.nodes[node_name].get("level", 1000), node_name)
 
 
 def _add_items_to(stacks: Optional[List[ItemStack]], items_set: Set[Item]):

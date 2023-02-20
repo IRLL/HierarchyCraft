@@ -405,6 +405,7 @@ def compute_levels(graph: Requirements):
         graph.nodes[node]["level"] = level
         return True
 
+    all_nodes_have_level = True
     for _ in range(len(graph.nodes())):
         all_nodes_have_level = True
         incomplete_nodes = []
