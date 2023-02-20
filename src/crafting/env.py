@@ -255,7 +255,6 @@ from crafting.solving_behaviors import (
     task_to_behavior_name,
 )
 from crafting.purpose import Purpose, TerminalGroup
-from crafting.render import _default_resources_path
 from crafting.render.render import CraftingWindow
 from crafting.render.utils import surface_to_rgb_array
 from crafting.requirements import Requirements
@@ -291,7 +290,6 @@ class CraftingEnv(Env):
         purpose: Optional[Union[Purpose, List["Task"], "Task"]] = None,
         invalid_reward: float = -10.0,
         render_window: Optional[CraftingWindow] = None,
-        resources_path: Optional[str] = None,
         name: str = "Crafting",
         max_step: Optional[int] = None,
     ) -> None:
@@ -316,9 +314,6 @@ class CraftingEnv(Env):
 
         self.render_window = render_window
         self.render_mode = "rgb_array"
-        if resources_path is None:
-            resources_path = _default_resources_path()
-        self.resources_path = resources_path
 
         self.state = CraftingState(self.world)
         self.current_step = 0
@@ -472,7 +467,7 @@ class CraftingEnv(Env):
     @property
     def requirements(self) -> Requirements:
         if self._requirements is None:
-            self._requirements = Requirements(self.world, self.resources_path)
+            self._requirements = Requirements(self.world, self.world.resources_path)
         return self._requirements
 
     def _step_output(self, reward: float):

@@ -34,7 +34,7 @@ world = world_from_transformations(
 
 """
 
-
+import os
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List, Set, Dict, Tuple, Optional, Union
 
@@ -44,7 +44,12 @@ if TYPE_CHECKING:
     from crafting.transformation import Transformation
 
 
-@dataclass(frozen=True)
+def _default_resources_path() -> str:
+    current_dir = os.path.dirname(__file__)
+    return os.path.join(current_dir, "render", "default_resources")
+
+
+@dataclass()
 class World:
     """Contain all elements a crafting environment will have
 
@@ -60,6 +65,8 @@ class World:
     start_zone: Optional[Zone] = None
     start_items: List[ItemStack] = field(default_factory=list)
     start_zones_items: Dict[Zone, List[ItemStack]] = field(default_factory=dict)
+
+    resources_path: str = field(default_factory=_default_resources_path)
 
     def __post_init__(self):
         for transfo in self.transformations:

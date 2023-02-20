@@ -18,7 +18,7 @@ class HasItemStack(FeatureCondition):
     """FeatureCondition to check if player has an Item in a given quantity."""
 
     def __init__(self, env: "CraftingEnv", stack: ItemStack) -> None:
-        image = load_or_create_image(stack, env.resources_path)
+        image = load_or_create_image(stack, env.world.resources_path)
         super().__init__(name=self.get_name(stack), image=np.array(image), complexity=1)
 
         self.itemstack = stack
@@ -41,7 +41,7 @@ class IsInZone(FeatureCondition):
     """FeatureCondition to check if player is in a Zone."""
 
     def __init__(self, env: "CraftingEnv", zone: Zone) -> None:
-        image = load_or_create_image(zone, env.resources_path)
+        image = load_or_create_image(zone, env.world.resources_path)
         super().__init__(name=self.get_name(zone), image=image, complexity=1)
 
         self.n_items = env.world.n_items
@@ -66,7 +66,7 @@ class HasZoneItem(FeatureCondition):
     def __init__(
         self, env: "CraftingEnv", stack: ItemStack, zone: Optional[Zone] = None
     ) -> None:
-        image = np.array(load_or_create_image(stack, env.resources_path))
+        image = np.array(load_or_create_image(stack, env.world.resources_path))
         super().__init__(name=self.get_name(stack, zone), image=image, complexity=1)
 
         self.stack = stack

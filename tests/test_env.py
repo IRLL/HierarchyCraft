@@ -449,9 +449,8 @@ def test_treasure_env(mocker: MockerFixture):
 
     treasure_path = os.path.dirname(crafting.__file__)
     resources_path = os.path.join(treasure_path, "examples", "treasure", "resources")
-    env = CraftingEnv(
-        WORLD_2, purpose=get_gold_task, resources_path=resources_path, max_step=7
-    )
+    WORLD_2.resources_path = resources_path
+    env = CraftingEnv(WORLD_2, purpose=get_gold_task, max_step=7)
     HUMAN_ACTIONS = [3, 1, 1, 5, 4, 2, 0]
     render_env_with_human(env)
     check.is_true(env.purpose.terminal_groups[0].terminated)

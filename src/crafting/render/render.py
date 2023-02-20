@@ -212,7 +212,7 @@ class CraftingWindow:
             width=menus_shapes["actions"][0],
             transformations=self.env.world.transformations,
             position=(0, 0),
-            resources_path=self.env.resources_path,
+            resources_path=self.env.world.resources_path,
             display_mode=transformation_display_mode,
             content_display_mode=transformation_content_mode,
             theme=THEME_DARK,
@@ -227,7 +227,7 @@ class CraftingWindow:
                 width=menus_shapes["player"][0],
                 position=(menus_shapes["actions"][0], 0, False),
                 items=self.env.world.items,
-                resources_path=self.env.resources_path,
+                resources_path=self.env.world.resources_path,
                 rows=3,
                 display_mode=player_inventory_display,
                 theme=Theme(
@@ -250,7 +250,7 @@ class CraftingWindow:
                 width=menus_shapes["position"][0],
                 position=zone_position,
                 zones=self.env.world.zones,
-                resources_path=self.env.resources_path,
+                resources_path=self.env.world.resources_path,
                 display_mode=position_display,
             )
 
@@ -263,7 +263,7 @@ class CraftingWindow:
                 width=menus_shapes["zone"][0],
                 position=zone_position,
                 items=self.env.world.zones_items,
-                resources_path=self.env.resources_path,
+                resources_path=self.env.world.resources_path,
                 display_mode=zone_inventory_display,
                 rows=5,
                 theme=Theme(
@@ -300,7 +300,7 @@ class CraftingWindow:
             border_radius=8,
         )
         font = pygame.font.SysFont(
-            os.path.join(self.env.resources_path, "font.ttf"), 30
+            os.path.join(self.env.world.resources_path, "font.ttf"), 30
         )
         font_surface = font.render("Loading ...", True, bg_color)
         text_size = font_surface.get_size()

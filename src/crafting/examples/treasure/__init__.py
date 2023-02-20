@@ -36,12 +36,9 @@ class TreasureEnv(CraftingEnv):
             start_zone=self.START_ROOM,
             start_zones_items={self.TREASURE_ROOM: [self.LOCKED_CHEST]},
         )
+        world.resources_path = resources_path
         super().__init__(
-            world,
-            purpose=GetItemTask(self.GOLD),
-            resources_path=resources_path,
-            name="TreasureCrafting",
-            **kwargs,
+            world, purpose=GetItemTask(self.GOLD), name="TreasureCrafting", **kwargs
         )
 
     def _build_transformations(self) -> List[Transformation]:

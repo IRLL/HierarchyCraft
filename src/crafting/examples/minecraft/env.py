@@ -35,10 +35,6 @@ class MineCraftingEnv(CraftingEnv):
                 STRONGHOLD: [ItemStack(CLOSE_ENDER_PORTAL)],
             },
         )
-        super().__init__(
-            world=mc_world,
-            name="MineCrafting",
-            resources_path=resources_path,
-            **kwargs,
-        )
+        mc_world.resources_path = resources_path
+        super().__init__(world=mc_world, name="MineCrafting", **kwargs)
         self.metadata["video.frames_per_second"] = kwargs.pop("fps", 10)

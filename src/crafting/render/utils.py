@@ -18,7 +18,7 @@ except ImportError:
 
 from crafting.transformation import Transformation
 from crafting.elements import Item, ItemStack, Zone
-from crafting.render import _default_resources_path
+from crafting.world import _default_resources_path
 
 if TYPE_CHECKING:
     from pygame.surface import Surface

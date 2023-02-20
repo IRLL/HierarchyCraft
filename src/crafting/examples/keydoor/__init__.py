@@ -65,13 +65,8 @@ class KeyDoorCraftingEnv(CraftingEnv):
             start_zones_items={self.BALL_ROOM: [self.BALL]},
         )
         self.goal = GetItemTask(self.BALL)
-        super().__init__(
-            world,
-            purpose=self.goal,
-            resources_path=resources_path,
-            name="KeyDoorCrafting",
-            **kwargs,
-        )
+        world.resources_path = resources_path
+        super().__init__(world, purpose=self.goal, name="KeyDoorCrafting", **kwargs)
 
     def _build_transformations(self) -> List[Transformation]:
         transformations = []

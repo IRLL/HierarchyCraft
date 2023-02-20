@@ -267,7 +267,7 @@ def _add_get_item(
     stack: ItemStack, graph: HEBGraph, env: "CraftingEnv"
 ) -> HasItemStack:
     has_item = HasItemStack(env, stack)
-    image = np.array(load_or_create_image(stack, env.resources_path))
+    image = np.array(load_or_create_image(stack, env.world.resources_path))
     get_item = Behavior(GetItem.get_name(stack.item), image=image)
     graph.add_edge(has_item, get_item, index=int(False))
     return has_item
@@ -275,7 +275,7 @@ def _add_get_item(
 
 def _add_zone_behavior(zone: Zone, graph: HEBGraph, env: "CraftingEnv") -> IsInZone:
     is_in_zone = IsInZone(env, zone)
-    image = np.array(load_or_create_image(zone, env.resources_path))
+    image = np.array(load_or_create_image(zone, env.world.resources_path))
     reach_zone = Behavior(ReachZone.get_name(zone), image=image)
     graph.add_edge(is_in_zone, reach_zone, index=int(False))
     return is_in_zone
@@ -288,7 +288,7 @@ def _add_place_item(
     zone: Optional[Zone] = None,
 ) -> HasZoneItem:
     has_item_in_zone = HasZoneItem(env, stack, zone)
-    image = np.array(load_or_create_image(stack, env.resources_path))
+    image = np.array(load_or_create_image(stack, env.world.resources_path))
     place_item = Behavior(PlaceItem.get_name(stack.item, zone), image=image)
     graph.add_edge(has_item_in_zone, place_item, index=int(False))
     return has_item_in_zone
