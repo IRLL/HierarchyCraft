@@ -81,7 +81,7 @@ class InventoryWidget(Menu):
             rows=rows,
             columns=len(items) // rows + 1,
             position=position,
-            overflow=(False, True),
+            overflow=(True, False),
             theme=theme,
             **kwargs,
         )
@@ -158,7 +158,7 @@ class InventoryWidget(Menu):
         if quantity == 0:
             # Grayscale
             image = image.convert("LA").convert("RGBA")
-        if quantity != 1:
+        if quantity > 1:
             image = draw_text_on_image(
                 image,
                 text=str(quantity),

@@ -92,12 +92,10 @@ def draw_text_on_image(
     font_path = _font_path(resources_path)
     image = image.copy()
     image_draw = ImageDraw.Draw(image)
-    image_shape = np.array(image).shape
-
-    text_px_size = int(3 * text_relative_size * min(image_shape[:1]))
+    text_px_size = int(3 * text_relative_size * min(image.size))
     text_pt_size = int(0.75 * text_px_size)
     font = ImageFont.truetype(font_path, size=text_pt_size)
-    font_offset = (int(0.05 * image_shape[0]), int(0.95 * image_shape[1]))
+    font_offset = (int(0.05 * image.size[0]), int(0.95 * image.size[1]))
     image_draw.text(font_offset, text, font=font, anchor="lb")
     return image
 
