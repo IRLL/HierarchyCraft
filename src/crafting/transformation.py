@@ -239,8 +239,8 @@ class Transformation:
                 builder(world)
 
     @property
-    def produced_items(self) -> List["Item"]:
-        """List of produced items by this transformation."""
+    def produced_items(self) -> Set["Item"]:
+        """Set of produced items by this transformation."""
         items = set()
         if self.added_player_items:
             items |= _items_from_stack_list(self.added_player_items)
@@ -248,7 +248,7 @@ class Transformation:
 
     @property
     def produced_zones_items(self) -> Set["Item"]:
-        """List of produced zones items by this transformation."""
+        """Set of produced zones items by this transformation."""
         items = set()
         if self.added_zone_items:
             items |= _items_from_stack_list(self.added_zone_items)
@@ -285,7 +285,7 @@ class Transformation:
 
     @property
     def consumed_zones_items(self) -> Dict[Zone, Set["Item"]]:
-        """List of consumed zones items in specific zones by this transformation."""
+        """Set of consumed items in specific zones by this transformation."""
         items_per_zone = {}
         if self.removed_zones_items:
             for zone, stacks in self.removed_zones_items.items():
@@ -294,6 +294,7 @@ class Transformation:
 
     @property
     def total_consumed_zone_items(self) -> Set["Item"]:
+        """Set of consumed items in any zones by this transformation."""
         items = self.consumed_zone_items | self.consumed_destination_items
         for consumed_zones_items in self.consumed_zones_items.values():
             items |= consumed_zones_items
