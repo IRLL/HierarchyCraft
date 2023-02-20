@@ -37,7 +37,7 @@ license-files = ['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']
 crafting = "crafting.__main__:main"
 
 [tool.setuptools.dynamic]
-readme = { file = ["README.rst"] }
+readme = { file = ["README.md"] }
 dependencies = { file = ["requirements.txt"] }
 
 [tool.setuptools_scm]
