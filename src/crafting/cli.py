@@ -96,14 +96,14 @@ def crafting_cli(args: Optional[List[str]] = None) -> CraftingEnv:
         "--transformation-display",
         "-td",
         type=str,
-        default=DisplayMode.DISCOVERED,
+        default=DisplayMode.CURRENT,
         choices=[mode.value for mode in DisplayMode],
         help="Which transformations to display.",
     )
     rendering.add_argument(
         "--transformation-content",
         "-tc",
-        default=ContentMode.DISCOVERED,
+        default=ContentMode.ALWAYS,
         choices=[mode.value for mode in ContentMode],
         help="When to display transformation's content.",
     )
