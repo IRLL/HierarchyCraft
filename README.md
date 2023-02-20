@@ -178,19 +178,3 @@ Find everything in the [documentation](https://irll.github.io/Crafting/crafting.
 
 [![DOCUMENTATION](docs/images/doc_index.png)](https://irll.github.io/Crafting/crafting.html)
 
-
-<!-- Rendering options -->
-
-<!-- Requirements graphs -->
-
-<!-- Solving behavior
-Install HEBG [bash] -->
-
-<!-- Solve MineCrafting [code]
-Plot rolled / unrolled [wooden pickaxe]
-Generated code -->
-
-<!-- Solve RandomCrafting [code]
-Plot rolled / unrolled
-Generated code -->
-

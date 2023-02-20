@@ -65,7 +65,7 @@ class CraftingWindow:
         except NameError as error:
             raise ImportError(
                 "Missing import for rendering user interface. "
-                "Install using 'pip install crafting-gym[gui]'."
+                "Install using 'pip install irll-crafting[gui]'."
             ) from error
 
         self.env = None
