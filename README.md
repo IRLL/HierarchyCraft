@@ -12,9 +12,9 @@
 
 Crafting is NOT an environment, it's an environment builder.
 
-Crafting allows to generate arbitrarely hierarchical environments for machine learning research purposes.
+Crafting allows to generate arbitrarily hierarchical environments for machine learning research purposes.
 
-It uses the classic reinforcement learning framework, player is in a state and can take actions to update the state.
+It uses the classic reinforcement learning framework, the player is in a state and can take actions to update the state.
 
 A Crafting environment is a sandbox environment composed of
 items, zones, and transformations.
