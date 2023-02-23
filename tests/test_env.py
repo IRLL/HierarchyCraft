@@ -213,14 +213,14 @@ class TestCratingEnv:
         check.is_true(done)
 
     def test_actions_mask(self):
-        check_np_equal(self.env.actions_mask, np.array([1, 1, 1, 0, 0, 0]))
+        check_np_equal(self.env.action_masks(), np.array([1, 1, 1, 0, 0, 0]))
 
         _, _, _, infos = self.env.step(
             self.env.world.transformations.index(
                 self.named_transformations.get("search_wood")
             )
         )
-        check_np_equal(self.env.actions_mask, np.array([1, 1, 1, 1, 0, 0]))
+        check_np_equal(self.env.action_masks(), np.array([1, 1, 1, 1, 0, 0]))
         check_np_equal(infos["action_is_legal"], np.array([1, 1, 1, 1, 0, 0]))
 
     def test_max_step(self):

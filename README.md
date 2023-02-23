@@ -136,7 +136,7 @@ env = MineCraftingEnv(max_step=10)
 done = False
 observation = env.reset()
 while not done:
-    action_is_legal = env.actions_mask
+    action_is_legal = env.action_masks()
     action = random_legal_agent(observation, action_is_legal)
     _observation, _reward, done, _info = env.step(action)
 ```

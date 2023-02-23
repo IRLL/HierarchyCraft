@@ -18,7 +18,7 @@ def test_random_legal_agent():
     observation = env.reset()
     total_reward = 0
     while not done:
-        action_is_legal = env.actions_mask
+        action_is_legal = env.action_masks()
         action = random_legal_agent(observation, action_is_legal)
         _observation, reward, done, _info = env.step(action)
         total_reward += reward

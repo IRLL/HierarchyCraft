@@ -240,7 +240,7 @@ class TransformationsWidget(Menu):
         return button
 
     def update_transformations(self, env: "CraftingEnv", events) -> bool:
-        action_is_legal = env.actions_mask
+        action_is_legal = env.action_masks()
         action_buttons = [
             widget for widget in self.get_widgets() if isinstance(widget, Button)
         ]

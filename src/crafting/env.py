@@ -368,9 +368,8 @@ class CraftingEnv(Env):
         """
         return DiscreteSpace(len(self.world.transformations))
 
-    @property
-    def actions_mask(self) -> np.ndarray:
-        """Boolean mask of valid actions."""
+    def action_masks(self) -> np.ndarray:
+        """Return boolean mask of valid actions."""
         return np.array([t.is_valid(self.state) for t in self.world.transformations])
 
     def step(self, action: int):
@@ -466,7 +465,7 @@ class CraftingEnv(Env):
 
     def _step_output(self, reward: float):
         infos = {
-            "action_is_legal": self.actions_mask,
+            "action_is_legal": self.action_masks(),
             "score": self.current_score,
             "score_average": self.cumulated_score / self.episodes,
         }
