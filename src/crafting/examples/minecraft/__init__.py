@@ -9,7 +9,7 @@
 from crafting.examples.minecraft.env import MineCraftingEnv
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.zones import *
-from crafting.task import GetItemTask, GoToZoneTask
+from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask
 from crafting.purpose import Purpose
 
 # gym is an optional dependency
@@ -81,6 +81,24 @@ try:
             "purpose": purpose,
         },
     )
+
+    # Obtain all items
+    env = MineCraftingEnv()
+    purpose = Purpose(timestep_reward=-1)
+    for item in env.world.items:
+        purpose.add_task(GetItemTask(item, reward=10))
+    for zone in env.world.zones:
+        purpose.add_task(GoToZoneTask(zone, reward=10))
+    for item in env.world.zones_items:
+        purpose.add_task(PlaceItemTask(item, reward=10))
+    gym.register(
+        id="MineCrafting-Platinium-v1",
+        entry_point=ENV_PATH,
+        kwargs={
+            "purpose": purpose,
+        },
+    )
+
 
 except ImportError:
     pass

@@ -47,6 +47,14 @@ def test_the_end_gym_make():
     check.equal(task.name, "Go to end")
 
 
+def test_all_items_gym_make():
+    env: MineCraftingEnv = gym.make("MineCrafting-Platinium-v1")
+    check.equal(
+        len(env.purpose.tasks),
+        env.world.n_items + env.world.n_zones + env.world.n_zones_items,
+    )
+
+
 def test_the_end_gym_make():
     env: MineCraftingEnv = gym.make("MineCrafting-Dragon-v1")
     env.reset()
