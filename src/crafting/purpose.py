@@ -55,13 +55,12 @@ IRON_INGOT is used to craft the IRON_PICKAXE that is itself used to get a DIAMON
 
 In a sandbox environment, why limit ourselves to only one task ?
 In crafting, a purpose can be composed on multiple tasks.
-But then the question arises: "When does the purpose terminates ?".
-When any task is done ? When all tasks are done ?
+But when does the purpose terminates ? When any task is done ? When all tasks are done ?
 
 To solve this, we need to introduce terminal groups.
 Terminal groups are represented with strings.
 
-The purpose will termitate if ANY of the terminal groups have ALL its tasks done.
+The purpose will terminate if ANY of the terminal groups have ALL its tasks done.
 
 When adding a task to a purpose, one can choose one or multiple terminal groups like so:
 
