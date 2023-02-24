@@ -395,15 +395,19 @@ class CraftingEnv(Env):
         for task in self.purpose.tasks:
             # Just terminated
             if task.terminated != tasks_states[task]:
-                self.task_successes[task] += 1
+                self.task_successes[task][self.episodes] = True
+
         for terminal_group in self.purpose.terminal_groups:
             # Just terminated
             if terminal_group.terminated != terminal_groups_states[terminal_group]:
-                self.terminal_successes[terminal_group] += 1
+                self.terminal_successes[terminal_group][self.episodes] = True
+
+        terminated = self.terminated
+        truncated = self.truncated
 
         self.current_score += reward
         self.cumulated_score += reward
-        return self._step_output(reward)
+        return self._step_output(reward, terminated, truncated)
 
     def render(self, mode: Optional[str] = None, **_kwargs) -> Union[str, np.ndarray]:
         """Render the observation of the agent in a format depending on `render_mode`."""
@@ -429,13 +433,26 @@ class CraftingEnv(Env):
         """
         if not self.purpose.built:
             self.purpose.build(self)
-            self.task_successes = {task: 0 for task in self.purpose.tasks}
+            self.task_successes = {task: {} for task in self.purpose.tasks}
             self.terminal_successes = {
-                group: 0 for group in self.purpose.terminal_groups
+                group: {} for group in self.purpose.terminal_groups
             }
+
         self.current_step = 0
         self.current_score = 0
         self.episodes += 1
+
+        episode = self.episodes
+        for task in self.purpose.tasks:
+            self.task_successes[task][episode] = False
+            if len(self.task_successes[task]) > 10:
+                self.task_successes[task].pop(episode - 10)
+
+        for terminal_group in self.purpose.terminal_groups:
+            self.terminal_successes[terminal_group][episode] = False
+            if len(self.terminal_successes[terminal_group]) > 10:
+                self.terminal_successes[terminal_group].pop(episode - 10)
+
         self.state.reset()
         self.purpose.reset()
         return self.state.observation
@@ -463,7 +480,7 @@ class CraftingEnv(Env):
         """
         return self.all_behaviors[task_to_behavior_name(task)]
 
-    def _step_output(self, reward: float):
+    def _step_output(self, reward: float, terminated: bool, truncated: bool):
         infos = {
             "action_is_legal": self.action_masks(),
             "score": self.current_score,
@@ -473,7 +490,7 @@ class CraftingEnv(Env):
         return (
             self.state.observation,
             reward,
-            self.terminated or self.truncated,
+            terminated or truncated,
             infos,
         )
 
@@ -492,7 +509,8 @@ class CraftingEnv(Env):
             f"{task.name} is done": task.terminated for task in self.purpose.tasks
         }
         tasks_rates = {
-            f"{task.name} success rate": self.task_successes[task] / self.episodes
+            f"{task.name} success rate": sum(self.task_successes[task].values())
+            / max(1, len(self.task_successes[task]))
             for task in self.purpose.tasks
         }
         terminal_done = {
@@ -500,7 +518,8 @@ class CraftingEnv(Env):
             for group in self.purpose.terminal_groups
         }
         terminal_rates = {
-            _rate_str(group): self.terminal_successes[group] / self.episodes
+            _rate_str(group): sum(self.terminal_successes[group].values())
+            / max(1, len(self.terminal_successes[group]))
             for group in self.purpose.terminal_groups
         }
 
