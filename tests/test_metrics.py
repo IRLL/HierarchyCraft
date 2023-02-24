@@ -125,23 +125,31 @@ class TestMetricsMultiPurpose:
         actions_per_stone_10_episodes = [["search_stone"]] * 10
         wood_info = f"{self.get_wood_task.name} success rate"
         stone_info = f"{self.get_stone_task.name} success rate"
-        for _, actions in enumerate(actions_per_wood_10_episodes):
+        for episode, actions in enumerate(actions_per_wood_10_episodes):
             self.env.reset()
             for action in actions:
                 transfo = self.named_transformations.get(action)
                 action_id = self.env.world.transformations.index(transfo)
                 _, _, _, infos = self.env.step(action_id)
-                check.equal(infos[wood_info], 1.0)
-                check.equal(infos[stone_info], 0.0)
-        for episode, actions in enumerate(actions_per_stone_10_episodes):
+                check.equal(infos[wood_info], 1.0, msg=f"{episode=}")
+                check.equal(infos[stone_info], 0.0, msg=f"{episode=}")
+        for episode, actions in enumerate(actions_per_stone_10_episodes, start=1):
             self.env.reset()
             for action in actions:
                 transfo = self.named_transformations.get(action)
                 action_id = self.env.world.transformations.index(transfo)
                 _, _, _, infos = self.env.step(action_id)
-                check.equal(infos[wood_info], 1 - episode / 10)
-                check.equal(infos[stone_info], episode / 10)
-                check.equal(infos["Terminal group 'stone' success rate"], episode / 10)
+                check.almost_equal(
+                    infos[wood_info], 1 - episode / 10, msg=f"{episode=}|{wood_info}"
+                )
+                check.almost_equal(
+                    infos[stone_info], episode / 10, msg=f"{episode=}|{stone_info}"
+                )
+                check.almost_equal(
+                    infos["Terminal group 'stone' success rate"],
+                    episode / 10,
+                    msg=f"{episode=}|Terminal group 'stone'",
+                )
 
     def test_score_values(self):
         for episode, actions in enumerate(_actions_per_episodes()):
