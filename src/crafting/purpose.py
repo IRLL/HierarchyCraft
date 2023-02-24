@@ -84,9 +84,11 @@ purpose.add_task(get_egg, terminal_groups=None)
 env = MineCraftingEnv(purpose=purpose)
 ```
 
-Here the environment will terminate if the player gets both diamond and gold_ingot items ("get rich!" group) 
-or if the player gets a gold_ingot and reaches the end zone ("golden end" group).
-The task get_egg is optional and cannot terminate the purpose anyhow, but it will still reward the player if completed.
+Here the environment will terminate if the player gets both diamond
+and gold_ingot items ("get rich!" group) or if the player gets a gold_ingot
+and reaches the end zone ("golden end" group).
+The task get_egg is optional and cannot terminate the purpose anyhow,
+but it will still reward the player if completed.
 
 Just like this last task, reward shaping subtasks are always optional.
 
