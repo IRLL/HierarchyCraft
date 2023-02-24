@@ -24,7 +24,15 @@ def test_purposeless_minecrafting_cli():
 
 def test_purposed_minecrafting_cli():
     env = crafting_cli(
-        ["--get-items", "diamond", "wood", "--goal-reward", "100", "minecraft"]
+        [
+            "--goal-reward",
+            "100",
+            "--get-item",
+            "diamond",
+            "--get-item",
+            "wood",
+            "minecraft",
+        ]
     )
     check.is_instance(env, MineCraftingEnv)
 

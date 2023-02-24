@@ -49,9 +49,8 @@ def crafting_cli(args: Optional[List[str]] = None) -> CraftingEnv:
         help="Reward for completed tasks. Default to 10.",
     )
     purpose.add_argument(
-        "--get-items",
-        action="extend",
-        nargs="+",
+        "--get-item",
+        action="append",
         type=str,
         default=[],
         help="Items to get as task given to the player.",
@@ -126,7 +125,7 @@ def _window_from_cli(args: Namespace):
 
 def _purpose_from_cli(args: Namespace):
     purpose = Purpose()
-    for item_name in args.get_items:
+    for item_name in args.get_item:
         task = GetItemTask(Item(item_name), reward=args.goal_reward)
         purpose.add_task(task)
     return purpose
