@@ -141,6 +141,7 @@ class TestMetricsMultiPurpose:
                 _, _, _, infos = self.env.step(action_id)
                 check.equal(infos[wood_info], 1 - episode / 10)
                 check.equal(infos[stone_info], episode / 10)
+                check.equal(infos["Terminal group 'stone' success rate"], episode / 10)
 
     def test_score_values(self):
         for episode, actions in enumerate(_actions_per_episodes()):
