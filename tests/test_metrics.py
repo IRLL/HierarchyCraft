@@ -20,10 +20,9 @@ class TestMetricsPurposeLess:
     def setup_method(self):
         self.world, self.named_transformations = classic_env()[1:3]
         self.env = CraftingEnv(self.world)
-        self.actions_per_episodes = _actions_per_episodes()
 
     def test_successes(self):
-        for _, actions in enumerate(self.actions_per_episodes):
+        for _, actions in enumerate(_actions_per_episodes()):
             self.env.reset()
             for action in actions:
                 transfo = self.named_transformations.get(action)
@@ -43,10 +42,9 @@ class TestMetricsSinglePurpose:
         self.place_table_task = PlaceItemTask(Item("table"), reward=15)
         self.purpose.add_task(self.place_table_task, terminal_groups="table")
         self.env = CraftingEnv(self.world, purpose=self.purpose, max_step=4)
-        self.actions_per_episodes = _actions_per_episodes()
 
     def test_successes(self):
-        for episode, actions in enumerate(self.actions_per_episodes):
+        for episode, actions in enumerate(_actions_per_episodes()):
             self.env.reset()
             for action in actions:
                 transfo = self.named_transformations.get(action)
@@ -84,10 +82,9 @@ class TestMetricsMultiPurpose:
         self.place_table_task = PlaceItemTask(Item("table"), reward=15)
         self.purpose.add_task(self.place_table_task, terminal_groups="table")
         self.env = CraftingEnv(self.world, purpose=self.purpose)
-        self.actions_per_episodes = _actions_per_episodes()
 
     def test_successes(self):
-        for episode, actions in enumerate(self.actions_per_episodes):
+        for episode, actions in enumerate(_actions_per_episodes()):
             self.env.reset()
             for action in actions:
                 transfo = self.named_transformations.get(action)
@@ -123,8 +120,30 @@ class TestMetricsMultiPurpose:
                         check.equal(infos["Terminal group 'stone' is done"], True)
                         check.equal(infos["Terminal group 'stone' success rate"], 0.5)
 
+    def test_successes_window(self):
+        actions_per_wood_10_episodes = [["search_wood"]] * 10
+        actions_per_stone_10_episodes = [["search_stone"]] * 10
+        wood_info = f"{self.get_wood_task.name} success rate"
+        stone_info = f"{self.get_stone_task.name} success rate"
+        for _, actions in enumerate(actions_per_wood_10_episodes):
+            self.env.reset()
+            for action in actions:
+                transfo = self.named_transformations.get(action)
+                action_id = self.env.world.transformations.index(transfo)
+                _, _, _, infos = self.env.step(action_id)
+                check.equal(infos[wood_info], 1.0)
+                check.equal(infos[stone_info], 0.0)
+        for episode, actions in enumerate(actions_per_stone_10_episodes):
+            self.env.reset()
+            for action in actions:
+                transfo = self.named_transformations.get(action)
+                action_id = self.env.world.transformations.index(transfo)
+                _, _, _, infos = self.env.step(action_id)
+                check.equal(infos[wood_info], 1 - episode / 10)
+                check.equal(infos[stone_info], episode / 10)
+
     def test_score_values(self):
-        for episode, actions in enumerate(self.actions_per_episodes):
+        for episode, actions in enumerate(_actions_per_episodes()):
             self.env.reset()
             score = 0
             for action in actions:
