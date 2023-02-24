@@ -130,8 +130,8 @@ class TestMetricsMultiPurpose:
                 transfo = self.named_transformations.get(action)
                 action_id = self.env.world.transformations.index(transfo)
                 _, _, _, infos = self.env.step(action_id)
-                check.equal(infos[wood_info], 1.0, msg=f"{episode=}")
-                check.equal(infos[stone_info], 0.0, msg=f"{episode=}")
+                check.equal(infos[wood_info], 1.0, msg=f"episode={episode}")
+                check.equal(infos[stone_info], 0.0, msg=f"episode={episode}")
         for episode, actions in enumerate(actions_per_stone_10_episodes, start=1):
             self.env.reset()
             for action in actions:
@@ -139,15 +139,19 @@ class TestMetricsMultiPurpose:
                 action_id = self.env.world.transformations.index(transfo)
                 _, _, _, infos = self.env.step(action_id)
                 check.almost_equal(
-                    infos[wood_info], 1 - episode / 10, msg=f"{episode=}|{wood_info}"
+                    infos[wood_info],
+                    1 - episode / 10,
+                    msg=f"episode={episode}|{wood_info}",
                 )
                 check.almost_equal(
-                    infos[stone_info], episode / 10, msg=f"{episode=}|{stone_info}"
+                    infos[stone_info],
+                    episode / 10,
+                    msg=f"episode={episode}|{stone_info}",
                 )
                 check.almost_equal(
                     infos["Terminal group 'stone' success rate"],
                     episode / 10,
-                    msg=f"{episode=}|Terminal group 'stone'",
+                    msg=f"episode={episode}|Terminal group 'stone'",
                 )
 
     def test_score_values(self):
@@ -171,5 +175,6 @@ class TestMetricsMultiPurpose:
                     check.equal(
                         infos["score_average"],
                         (16 + score) / 2,
-                        msg=f"{self.env.cumulated_score=},{self.env.episodes=}",
+                        msg=f"cumulated_score={self.env.cumulated_score}"
+                        f"episode={self.env.episodes}",
                     )
