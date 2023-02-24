@@ -15,8 +15,8 @@ If you built one of your own, send us a pull request so we can add it to the lis
 
 """
 
+from crafting.examples.keydoor import KeyDoorCraftingEnv
 from crafting.examples.minecraft.env import MineCraftingEnv
 from crafting.examples.random_simple import RandomCraftingEnv
-from crafting.examples.recursive import RecursiveCraftingEnv, LightRecursiveCraftingEnv
+from crafting.examples.recursive import LightRecursiveCraftingEnv, RecursiveCraftingEnv
 from crafting.examples.tower import TowerCraftingEnv
-from crafting.examples.keydoor import KeyDoorCraftingEnv

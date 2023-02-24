@@ -20,8 +20,9 @@ except ImportError:
 from crafting.elements import Item, ItemStack, Zone
 
 if TYPE_CHECKING:
-    from crafting.transformation import Transformation
     from pygame.surface import Surface
+
+    from crafting.transformation import Transformation
 
 
 # Disable PIL logging to avoid spam (see https://github.com/camptocamp/pytest-odoo/issues/15)

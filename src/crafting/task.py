@@ -6,8 +6,8 @@ import numpy as np
 from crafting.elements import Item, ItemStack, Zone
 
 if TYPE_CHECKING:
-    from crafting.world import World
     from crafting.env import CraftingState
+    from crafting.world import World
 
 
 class Task:

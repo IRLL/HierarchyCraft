@@ -2,7 +2,7 @@
 
 import os
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, List, Union, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import numpy as np
 
@@ -19,21 +19,22 @@ except ImportError:
 
 from PIL.Image import Image
 
+from crafting.elements import Item, ItemStack, Zone
 from crafting.render.utils import (
+    _font_path,
+    _get_scale_ratio,
     _to_menu_image,
     build_transformation_image,
     create_text_image,
     draw_text_on_image,
     load_image,
-    _font_path,
-    _get_scale_ratio,
 )
 from crafting.transformation import Transformation
-from crafting.elements import Item, ItemStack, Zone
 
 if TYPE_CHECKING:
-    from crafting.env import CraftingEnv
     from pygame_menu.menu import Menu
+
+    from crafting.env import CraftingEnv
 
 
 class DisplayMode(Enum):

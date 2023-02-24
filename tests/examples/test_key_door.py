@@ -1,10 +1,9 @@
 import networkx as nx
+import pytest
+import pytest_check as check
 
 from crafting.elements import Item, Zone
 from crafting.examples.keydoor import KeyDoorCraftingEnv
-
-import pytest
-import pytest_check as check
 from tests.custom_checks import check_isomorphic
 
 

@@ -1,4 +1,4 @@
-from typing import List, Dict, Union
+from typing import Dict, List, Union
 
 from crafting.purpose import Task, TerminalGroup
 

@@ -1,11 +1,11 @@
-from typing import List
 import os
+from typing import List
 
-from crafting.env import CraftingEnv
 from crafting.elements import Item, ItemStack, Zone
-from crafting.world import world_from_transformations
-from crafting.transformation import Transformation
+from crafting.env import CraftingEnv
 from crafting.purpose import GetItemTask
+from crafting.transformation import Transformation
+from crafting.world import world_from_transformations
 
 
 class TreasureEnv(CraftingEnv):

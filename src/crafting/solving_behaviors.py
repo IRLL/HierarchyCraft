@@ -45,13 +45,13 @@ from typing import TYPE_CHECKING, Dict
 
 from hebg import Behavior
 
-from crafting.task import Task, GetItemTask, GoToZoneTask, PlaceItemTask
 from crafting.behaviors.behaviors import (
     AbleAndPerformTransformation,
     GetItem,
     PlaceItem,
     ReachZone,
 )
+from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
 
 if TYPE_CHECKING:
     from crafting.env import CraftingEnv

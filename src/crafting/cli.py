@@ -1,23 +1,20 @@
-from argparse import _SubParsersAction, ArgumentParser, Namespace
+from argparse import ArgumentParser, Namespace, _SubParsersAction
+from typing import List, Optional
 
-from typing import Optional, List
-
-from crafting.env import CraftingEnv
 from crafting.elements import Item
-from crafting.purpose import Purpose
-from crafting.task import GetItemTask
-from crafting.render.render import CraftingWindow
-
+from crafting.env import CraftingEnv
 from crafting.examples import (
+    KeyDoorCraftingEnv,
+    LightRecursiveCraftingEnv,
     MineCraftingEnv,
     RandomCraftingEnv,
     RecursiveCraftingEnv,
-    LightRecursiveCraftingEnv,
     TowerCraftingEnv,
-    KeyDoorCraftingEnv,
 )
-
-from crafting.render.widgets import DisplayMode, ContentMode
+from crafting.purpose import Purpose
+from crafting.render.render import CraftingWindow
+from crafting.render.widgets import ContentMode, DisplayMode
+from crafting.task import GetItemTask
 
 
 def crafting_cli(args: Optional[List[str]] = None) -> CraftingEnv:

@@ -30,9 +30,9 @@ Each of the items 0, 1 and 2 requires nothing and can be crafted from the start.
 
 from typing import List
 
+from crafting.elements import Item, ItemStack
 from crafting.env import CraftingEnv
 from crafting.transformation import Transformation
-from crafting.elements import Item, ItemStack
 from crafting.world import world_from_transformations
 
 try:

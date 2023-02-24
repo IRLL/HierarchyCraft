@@ -1,14 +1,14 @@
-from typing import List, Tuple, Any
 from dataclasses import dataclass
+from typing import Any, List, Tuple
 
 import pytest
 import pytest_check as check
 
+from crafting.elements import Item, ItemStack, Zone
 from crafting.env import CraftingEnv
 from crafting.purpose import Purpose, RewardShaping
 from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
 from crafting.transformation import Transformation
-from crafting.elements import Item, ItemStack, Zone
 from crafting.world import World, world_from_transformations
 
 

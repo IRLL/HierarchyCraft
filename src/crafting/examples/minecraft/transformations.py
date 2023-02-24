@@ -4,11 +4,11 @@ All used Minecraft recipies.
 
 """
 
+from crafting.elements import ItemStack
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.tools import *
 from crafting.examples.minecraft.zones import *
 from crafting.transformation import Transformation
-from crafting.elements import ItemStack
 
 
 def build_minecrafting_transformations() -> List[Transformation]:

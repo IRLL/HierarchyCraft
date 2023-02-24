@@ -92,8 +92,8 @@ Just like this last task, reward shaping subtasks are always optional.
 
 """
 
-from enum import Enum
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 
 import networkx as nx
@@ -101,11 +101,10 @@ import networkx as nx
 from crafting.requirements import RequirementNode, req_node_name
 from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
 
-
 if TYPE_CHECKING:
     from crafting.elements import Item, Zone
-    from crafting.world import World
     from crafting.env import CraftingEnv, CraftingState
+    from crafting.world import World
 
 
 class RewardShaping(Enum):

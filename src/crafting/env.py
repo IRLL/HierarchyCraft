@@ -245,20 +245,20 @@ That's it for this small customized env if you want more, be sure to check Trans
 """
 
 import collections
-from typing import TYPE_CHECKING, List, Dict, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import numpy as np
 
+from crafting.metrics import SuccessCounter
+from crafting.purpose import Purpose
+from crafting.render.render import CraftingWindow
+from crafting.render.utils import surface_to_rgb_array
 from crafting.solving_behaviors import (
     Behavior,
     build_all_solving_behaviors,
     task_to_behavior_name,
 )
-from crafting.purpose import Purpose
-from crafting.render.render import CraftingWindow
-from crafting.render.utils import surface_to_rgb_array
 from crafting.state import CraftingState
-from crafting.metrics import SuccessCounter
 
 if TYPE_CHECKING:
     from crafting.task import Task
