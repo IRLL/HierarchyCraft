@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     from pygame.event import Event
+
     from crafting.env import CraftingEnv
 
 

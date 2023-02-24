@@ -8,13 +8,13 @@ Crafting environment adapted to the Minecraft inventory
 
 import os
 
+from crafting.elements import ItemStack
 from crafting.env import CraftingEnv
 from crafting.examples.minecraft.items import CLOSE_ENDER_PORTAL, OPEN_NETHER_PORTAL
 from crafting.examples.minecraft.transformations import (
     build_minecrafting_transformations,
 )
 from crafting.examples.minecraft.zones import FOREST, NETHER, STRONGHOLD
-from crafting.elements import ItemStack
 from crafting.world import world_from_transformations
 
 

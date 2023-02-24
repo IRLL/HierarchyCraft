@@ -42,10 +42,9 @@ Thus the number of actions required is $1 + 2 + 4 + 1 = 8 = 2^4$.
 
 from typing import List
 
+from crafting.elements import Item, ItemStack
 from crafting.env import CraftingEnv
 from crafting.transformation import Transformation
-
-from crafting.elements import Item, ItemStack
 from crafting.world import world_from_transformations
 
 # gym is an optional dependency

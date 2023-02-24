@@ -5,13 +5,13 @@ import pytest
 import pytest_check as check
 from pytest_mock import MockerFixture
 
+from crafting.elements import Item, ItemStack, Zone
 from crafting.env import CraftingEnv
 from crafting.task import GetItemTask
 from crafting.transformation import Transformation
-from crafting.elements import Item, ItemStack, Zone
 from crafting.world import world_from_transformations
 from tests.custom_checks import check_np_equal
-from tests.envs import classic_env, zone_only_env, player_only_env
+from tests.envs import classic_env, player_only_env, zone_only_env
 
 
 class TestCratingEnv:
@@ -445,6 +445,7 @@ def test_treasure_env(mocker: MockerFixture):
     check.is_true(env.purpose.terminal_groups[0].terminated)
 
     import os
+
     import crafting
 
     treasure_path = os.path.dirname(crafting.__file__)

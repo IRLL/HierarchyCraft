@@ -14,10 +14,10 @@ and [KeyCorridor](https://minigrid.farama.org/environments/minigrid/KeyCorridorE
 import os
 from typing import List
 
-from crafting.env import CraftingEnv
 from crafting.elements import Item, Zone
-from crafting.transformation import Transformation
+from crafting.env import CraftingEnv
 from crafting.task import GetItemTask
+from crafting.transformation import Transformation
 from crafting.world import world_from_transformations
 
 # gym is an optional dependency

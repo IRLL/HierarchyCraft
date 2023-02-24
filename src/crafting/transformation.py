@@ -117,14 +117,15 @@ because the player only observe the current zone items.
 """
 
 
-from typing import TYPE_CHECKING, List, Dict, Set, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union
 
 import numpy as np
+
 from crafting.elements import Item, ItemStack, Zone
 
 if TYPE_CHECKING:
-    from crafting.world import World
     from crafting.env import CraftingState
+    from crafting.world import World
 
 
 class Transformation:

@@ -2,10 +2,8 @@ from typing import List, Optional
 
 import pytest
 
-
 from crafting.env import CraftingEnv
 from crafting.render.human import render_env_with_human
-
 from tests.envs import classic_env, player_only_env, zone_only_env
 
 

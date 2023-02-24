@@ -70,24 +70,21 @@ plt.show()
 """
 
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Dict, List, Set, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
 import matplotlib.patches as mpatches
 import networkx as nx
 import numpy as np
-
+from hebg.graph import draw_networkx_nodes_images, get_nodes_by_level
+from hebg.layouts.metabased import leveled_layout_energy
 from matplotlib.axes import Axes
 from matplotlib.legend_handler import HandlerPatch
 
-from hebg.graph import draw_networkx_nodes_images, get_nodes_by_level
-from hebg.layouts.metabased import leveled_layout_energy
-
 from crafting.render.utils import load_or_create_image
 
-
 if TYPE_CHECKING:
-    from crafting.transformation import Transformation
     from crafting.elements import Item, ItemStack, Zone
+    from crafting.transformation import Transformation
     from crafting.world import World
 
 

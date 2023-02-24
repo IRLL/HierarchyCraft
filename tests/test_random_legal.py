@@ -1,9 +1,8 @@
-from crafting.env import CraftingEnv
-
+import numpy as np
 import pytest_check as check
 
+from crafting.env import CraftingEnv
 from tests.envs import classic_env
-import numpy as np
 
 
 def random_legal_agent(observation, action_is_legal):

@@ -9,8 +9,8 @@
 from crafting.examples.minecraft.env import MineCraftingEnv
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.zones import *
-from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask
 from crafting.purpose import Purpose
+from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask
 
 # gym is an optional dependency
 try:

@@ -71,7 +71,7 @@ class TestMineCraftingReqGraph:
                 self_indexes.append(key)
         check.is_true(
             any(key in self_indexes for key in from_nether_indexes),
-            msg=f"{self_indexes=},{from_nether_indexes=}",
+            msg=f"self_indexes={self_indexes},from_nether_indexes={from_nether_indexes}",
         )
 
 

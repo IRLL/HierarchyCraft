@@ -37,10 +37,10 @@ world = world_from_transformations(
 import os
 from dataclasses import dataclass, field
 from functools import partial
-from typing import TYPE_CHECKING, List, Set, Dict, Tuple, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union
 
 from crafting.elements import Item, ItemStack, Zone
-from crafting.requirements import Requirements, RequirementNode, req_node_name
+from crafting.requirements import RequirementNode, Requirements, req_node_name
 
 if TYPE_CHECKING:
     from crafting.transformation import Transformation

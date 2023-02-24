@@ -245,19 +245,19 @@ That's it for this small customized env if you want more, be sure to check Trans
 """
 
 import collections
-from typing import TYPE_CHECKING, List, Dict, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import numpy as np
 
+from crafting.metrics import SuccessCounter
+from crafting.purpose import Purpose
+from crafting.render.render import CraftingWindow
+from crafting.render.utils import surface_to_rgb_array
 from crafting.solving_behaviors import (
     Behavior,
     build_all_solving_behaviors,
     task_to_behavior_name,
 )
-from crafting.purpose import Purpose, TerminalGroup
-from crafting.render.render import CraftingWindow
-from crafting.render.utils import surface_to_rgb_array
-from crafting.requirements import Requirements
 from crafting.state import CraftingState
 
 if TYPE_CHECKING:
@@ -320,8 +320,8 @@ class CraftingEnv(Env):
         self.current_score = 0
         self.cumulated_score = 0
         self.episodes = 0
-        self.task_successes = {}
-        self.terminal_successes = {}
+        self.task_successes: Optional[SuccessCounter] = None
+        self.terminal_successes: Optional[SuccessCounter] = None
 
         if purpose is None:
             purpose = Purpose(None)
@@ -382,28 +382,24 @@ class CraftingEnv(Env):
         """
         self.current_step += 1
 
-        tasks_states = {task: task.terminated for task in self.purpose.tasks}
-        terminal_groups_states = {
-            group: group.terminated for group in self.purpose.terminal_groups
-        }
+        self.task_successes.step_reset()
+        self.terminal_successes.step_reset()
+
         success = self.state.apply(action)
         if success:
             reward = self.purpose.reward(self.state)
         else:
             reward = self.invalid_reward
 
-        for task in self.purpose.tasks:
-            # Just terminated
-            if task.terminated != tasks_states[task]:
-                self.task_successes[task] += 1
-        for terminal_group in self.purpose.terminal_groups:
-            # Just terminated
-            if terminal_group.terminated != terminal_groups_states[terminal_group]:
-                self.terminal_successes[terminal_group] += 1
+        self.task_successes.update(self.episodes)
+        self.terminal_successes.update(self.episodes)
+
+        terminated = self.terminated
+        truncated = self.truncated
 
         self.current_score += reward
         self.cumulated_score += reward
-        return self._step_output(reward)
+        return self._step_output(reward, terminated, truncated)
 
     def render(self, mode: Optional[str] = None, **_kwargs) -> Union[str, np.ndarray]:
         """Render the observation of the agent in a format depending on `render_mode`."""
@@ -427,15 +423,19 @@ class CraftingEnv(Env):
         Returns:
             (np.ndarray): The first observation.
         """
+
         if not self.purpose.built:
             self.purpose.build(self)
-            self.task_successes = {task: 0 for task in self.purpose.tasks}
-            self.terminal_successes = {
-                group: 0 for group in self.purpose.terminal_groups
-            }
+            self.task_successes = SuccessCounter(self.purpose.tasks)
+            self.terminal_successes = SuccessCounter(self.purpose.terminal_groups)
+
         self.current_step = 0
         self.current_score = 0
         self.episodes += 1
+
+        self.task_successes.new_episode(self.episodes)
+        self.terminal_successes.new_episode(self.episodes)
+
         self.state.reset()
         self.purpose.reset()
         return self.state.observation
@@ -463,7 +463,7 @@ class CraftingEnv(Env):
         """
         return self.all_behaviors[task_to_behavior_name(task)]
 
-    def _step_output(self, reward: float):
+    def _step_output(self, reward: float, terminated: bool, truncated: bool):
         infos = {
             "action_is_legal": self.action_masks(),
             "score": self.current_score,
@@ -473,42 +473,16 @@ class CraftingEnv(Env):
         return (
             self.state.observation,
             reward,
-            self.terminated or self.truncated,
+            terminated or truncated,
             infos,
         )
 
     def _tasks_infos(self):
-        def _is_done_str(group: TerminalGroup):
-            if len(self.purpose.terminal_groups) == 1:
-                return "Purpose is done"
-            return f"Terminal group '{group.name}' is done"
-
-        def _rate_str(group: TerminalGroup):
-            if len(self.purpose.terminal_groups) == 1:
-                return "Purpose success rate"
-            return f"Terminal group '{group.name}' success rate"
-
-        tasks_are_done = {
-            f"{task.name} is done": task.terminated for task in self.purpose.tasks
-        }
-        tasks_rates = {
-            f"{task.name} success rate": self.task_successes[task] / self.episodes
-            for task in self.purpose.tasks
-        }
-        terminal_done = {
-            _is_done_str(group): group.terminated
-            for group in self.purpose.terminal_groups
-        }
-        terminal_rates = {
-            _rate_str(group): self.terminal_successes[group] / self.episodes
-            for group in self.purpose.terminal_groups
-        }
-
         infos = {}
-        infos.update(tasks_are_done)
-        infos.update(tasks_rates)
-        infos.update(terminal_done)
-        infos.update(terminal_rates)
+        infos.update(self.task_successes.done_infos)
+        infos.update(self.task_successes.rates_infos)
+        infos.update(self.terminal_successes.done_infos)
+        infos.update(self.terminal_successes.rates_infos)
         return infos
 
     def _render_rgb_array(self) -> np.ndarray:

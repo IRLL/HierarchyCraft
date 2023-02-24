@@ -7,7 +7,7 @@ description = "Lightweight environments to study hierarchical reasoning"
 
 dynamic = ["version", "readme", "dependencies"]
 license = { text = "GNU General Public License v3 or later (GPLv3+)" }
-requires-python = ">=3.8"
+requires-python = ">=3.7"
 authors = [
     { name = "Mathïs Fédérico" },
     { name = "Mathïs Fédérico", email = "mathfederico@gmail.com" },
@@ -24,8 +24,8 @@ keywords = [
 
 [project.optional-dependencies]
 gym = ["gym >= 0.17.3"]
-gui = ["pygame >= 2.1.0", "pygame-menu >= 4.2.8"]
-all = ["gym >= 0.17.3", "pygame >= 2.1.0", "pygame-menu >= 4.2.8"]
+gui = ["pygame >= 2.1.0", "pygame-menu >= 4.3.8"]
+all = ["gym >= 0.17.3", "pygame >= 2.1.0", "pygame-menu >= 4.3.8"]
 
 [project.urls]
 Source = "https://github.com/IRLL/Crafting"

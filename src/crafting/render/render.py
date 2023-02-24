@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 try:
     import pygame
     from pygame.time import Clock
-    from pygame_menu.themes import THEME_DARK, Theme
     from pygame_menu.locals import ALIGN_LEFT
+    from pygame_menu.themes import THEME_DARK, Theme
 except ImportError:
     pass
 

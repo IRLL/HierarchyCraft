@@ -1,6 +1,6 @@
+from crafting.elements import Item, ItemStack, Zone
 from crafting.env import CraftingEnv
 from crafting.transformation import Transformation
-from crafting.elements import Item, ItemStack, Zone
 from crafting.world import world_from_transformations
 
 

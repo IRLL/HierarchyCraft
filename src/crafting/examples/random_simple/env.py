@@ -10,9 +10,9 @@ from typing import Dict, List
 
 import numpy as np
 
+from crafting.elements import Item, ItemStack
 from crafting.env import CraftingEnv
 from crafting.transformation import Transformation
-from crafting.elements import Item, ItemStack
 from crafting.world import world_from_transformations
 
 

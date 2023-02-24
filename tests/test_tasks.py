@@ -5,8 +5,8 @@ import numpy as np
 import pytest
 import pytest_check as check
 
-from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask
 from crafting.elements import Item, ItemStack, Zone
+from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask
 from crafting.world import World
 from tests.custom_checks import check_np_equal
 
