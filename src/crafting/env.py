@@ -288,7 +288,7 @@ class CraftingEnv(Env):
         self,
         world: "World",
         purpose: Optional[Union[Purpose, List["Task"], "Task"]] = None,
-        invalid_reward: float = -10.0,
+        invalid_reward: float = -1.0,
         render_window: Optional[CraftingWindow] = None,
         name: str = "Crafting",
         max_step: Optional[int] = None,
@@ -299,7 +299,7 @@ class CraftingEnv(Env):
             purpose: Purpose of the player, defining rewards and termination.
                 Defaults to None, hence a sandbox environment.
             invalid_reward: Reward given to the agent for invalid actions.
-                Defaults to -10.0.
+                Defaults to -1.0.
             render_window: Window using to render the environment with pygame.
             name: Name of the environement. Defaults to 'Crafting'.
             max_step: (Optional[int], optional): Maximum number of steps before episode truncation.
