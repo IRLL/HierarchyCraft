@@ -56,7 +56,7 @@ from crafting.examples import MineCraftingEnv
 env = MineCraftingEnv()
 
 # Obtain the raw Networkx MultiDiGraph
-graph = env.world.requirements.graph 
+graph = env.world.requirements.graph
 
 # Plot the collapsed acyclic requirements graph
 import matplotlib.pyplot as plt

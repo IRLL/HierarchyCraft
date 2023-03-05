@@ -29,8 +29,8 @@ env = MineCraftingEnv(purpose=get_diamond)
 
 ## Reward shaping
 
-Achievement tasks only rewards the player when completed. But this long term feedback is known 
-to be challenging. To ease learning such tasks, Crafting Purpose can generate substasks to give 
+Achievement tasks only rewards the player when completed. But this long term feedback is known
+to be challenging. To ease learning such tasks, Crafting Purpose can generate substasks to give
 intermediate feedback, this process is also known as reward shaping.
 See `crafting.purpose.RewardShaping` for more details.
 

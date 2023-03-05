@@ -1,6 +1,6 @@
 """# Crafting Environment builder
 
-You can easily create your own customized Crafting environment with the all the benefits 
+You can easily create your own customized Crafting environment with the all the benefits
 (graphical user interface, tasks, reward shaping, solving behavior, requirements graph).
 
 For this, you just need to understand how to design transformations
@@ -80,7 +80,7 @@ So we can add our `CHEST` in the `TREASURE_ROOM` here !
 
 ## Complete your first Crafting environment
 
-To build a complete crafting environment, 
+To build a complete crafting environment,
 we simply need to pass our `WORLD` to CraftingEnv from `crafting.env`:
 
 ```python
@@ -114,7 +114,7 @@ render_env_with_human(env)
 ## Turn up the challenge
 
 Now that we have the basics done, let's have a bit more fun with our environment!
-Let's lock the chest with keys, and add two room, a start room and a keys room. 
+Let's lock the chest with keys, and add two room, a start room and a keys room.
 
 First let's build the `KEY` item and the `KEY_ROOM`.
 
@@ -166,7 +166,7 @@ MOVE_TO_START_ROOM = Transformation(
 We are ready for our V2 !
 Again, we build the world from all our transformations and the env from the world.
 
-But now the chest inside the `TREASURE_ROOM` is the `LOCKED_CHEST` 
+But now the chest inside the `TREASURE_ROOM` is the `LOCKED_CHEST`
 and our player start in `START_ROOM`.
 
 Also, let's add a time limit to spice things up.

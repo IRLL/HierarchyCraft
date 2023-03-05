@@ -22,7 +22,7 @@ For customization, the most important files are:
 ## Extending templates
 
 pdoc will first check for `$template.jinja2` before checking `default/$template.jinja2`. This allows you to reuse the
-macros from the main templates in `default/`. For example, you can create a `module.html.jinja2` file in your custom 
+macros from the main templates in `default/`. For example, you can create a `module.html.jinja2` file in your custom
 template directory that extends the default template as follows:
 
 ```html

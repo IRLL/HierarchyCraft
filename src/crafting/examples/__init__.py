@@ -4,7 +4,7 @@ Here is the table of available Crafting environments examples.
 
 If you built one of your own, send us a pull request so we can add it to the list!
 
-| Gym name                    | CLI name          |Interest                                              | Reference                               | 
+| Gym name                    | CLI name          |Interest                                              | Reference                               |
 |:----------------------------|:------------------|:-----------------------------------------------------|:----------------------------------------|
 | "MineCrafting-Dragon-v1"    | `minecraft`       | Complex real-case hierarchies.                       |`crafting.examples.minecraft`            |
 | "TowerCrafting-v1"          | `tower`           | Polynomial growth with reuse hierarchies.            |`crafting.examples.tower`                |

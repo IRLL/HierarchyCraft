@@ -5,7 +5,7 @@ to instanciate each individual Crafting environment.
 
 It represents the mapping between items, zones and zone items to their state indexes.
 
-A world can always be built from a list of transformations using 
+A world can always be built from a list of transformations using
 `crafting.world.world_from_transformations`.
 
 

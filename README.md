@@ -19,7 +19,7 @@ It uses the classic reinforcement learning framework, the player is in a state a
 A Crafting environment is a sandbox environment composed of
 items, zones, and transformations.
 
-The main example of Crafting environment is the MineCrafting environment 
+The main example of Crafting environment is the MineCrafting environment
 that mimics the (complex) hierarchies of the popular game Minecraft.
 
 You can use Crafting to create your own customized environments.
