@@ -177,4 +177,3 @@ See [`crafting.env`](https://irll.github.io/Crafting/crafting/env.html).
 Find everything in the [documentation](https://irll.github.io/Crafting/crafting.html):
 
 [![DOCUMENTATION](docs/images/doc_index.png)](https://irll.github.io/Crafting/crafting.html)
-
