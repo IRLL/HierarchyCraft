@@ -1,20 +1,5 @@
 """# Transformation
 
-The building blocks of every crafting environment.
-Each crafting environment is defined by a list of transformations.
-They becomes the available actions of the environment.
-
-Each transformation defines changes of:
-
-* the player inventory
-* the player position
-* the current zone inventory
-* the destination zone inventory (if the player postition changes).
-* any specific zones inventories
-
-Each inventory change is a list of removed and added ItemStack.
-They may be available only in a subset of zones, or in every zone.
-
 ## Examples
 
 ```python
@@ -129,6 +114,55 @@ if TYPE_CHECKING:
 
 
 class Transformation:
+    """The building blocks of every crafting environment.
+
+    A list of transformations is what defines each crafting environement.
+    Transformation becomes the available actions and all available transitions of the environment.
+
+    Each transformation defines changes of:
+
+    * the player inventory
+    * the player position to a given destination
+    * the current zone inventory
+    * the destination zone inventory (if a destination is specified).
+    * all specific zones inventories
+
+    Each inventory change is a list of removed (-) and added (+) ItemStack.
+
+    If specified, they may be restricted to only a subset of valid zones,
+    all zones are valid by default.
+
+    A Transformation can only be applied if valid in the given state.
+    A transformation is only valid if the player in a valid zone
+    and all relevant inventories have enough items to be removed *before* adding new items.
+
+    The picture bellow illustrates the impact of
+    an example transformation on a given `crafting.CraftingState`:
+    ![crafting transformation](../../docs/images/crafting_transformation.png)
+
+    In this example, when applied, the transformation will:
+
+    * <span style="color:red">(-)</span>
+        Remove 1 item "0", then <span style="color:red">(+)</span>
+        Add 4 item "3" in the <span style="color:red">player inventory</span>.
+    * Update the <span style="color:gray">player position</span>
+        from the <span style="color:green">current zone</span> "1".
+        to the <span style="color:orange">destination zone</span> "3".
+    * <span style="color:green">(-)</span>
+        Remove 2 zone item "0" and 1 zone item "1", then <span style="color:green">(+)</span>
+        Add 1 item "1" in the <span style="color:green">current zone</span> inventory.
+    * <span style="color:orange">(-)</span>
+        Remove 1 zone item "2", then <span style="color:orange">(+)</span>
+        Add 1 item "0" in the <span style="color:orange">destination zone</span> inventory.
+    * <span style="color:blue">(-)</span>
+        Remove 1 zone item "0" in the zone "1" inventory
+        and 2 zone item "2" in the zone "2" inventory,
+        then <span style="color:blue">(+)</span>
+        Add 1 zone item "1" in the zone "0" inventory
+        and 1 zone item "2" in the zone "1" inventory.
+
+    """
+
     OPERATIONS = [
         "destination",
         "zones",
@@ -159,6 +193,30 @@ class Transformation:
             Dict[Zone, List[Union["ItemStack", "Item"]]]
         ] = None,
     ) -> None:
+        """The building blocks of every crafting environment.
+
+        Args:
+            destination: Destination zone.
+                Defaults to None.
+            zones: List of valid zones, if None all zones are valid.
+                Defaults to None.
+            removed_player_items: List of removed ItemStacks from the player inventory.
+                Defaults to None.
+            added_player_items: List of added ItemStacks to the player inventory.
+                Defaults to None.
+            removed_destination_items: List of removed ItemStacks from the destination inventory.
+                Defaults to None.
+            added_destination_items : List of added ItemStacks to the destination inventory.
+                Defaults to None.
+            removed_zone_items: List of removed ItemStacks from the current zone inventory.
+                Defaults to None.
+            added_zone_items: List of added ItemStacks to the current zone inventory.
+                Defaults to None.
+            removed_zones_items: Dictionary of Lists of removed ItemStacks for each zone.
+                Defaults to None.
+            added_zones_items: Dictionary of Lists of added ItemStacks for each zone.
+                Defaults to None.
+        """
         self.destination = destination
         self._destination = None
 
