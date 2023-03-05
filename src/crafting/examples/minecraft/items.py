@@ -9,8 +9,16 @@ from dataclasses import dataclass
 from typing import List, Optional, Union
 
 from crafting.elements import Item, Zone
-from crafting.examples.minecraft.tools import *
-from crafting.examples.minecraft.zones import *
+from crafting.examples.minecraft.tools import Material, ToolType
+from crafting.examples.minecraft.zones import (
+    FOREST,
+    SWAMP,
+    MEADOW,
+    UNDERGROUND,
+    BEDROCK,
+    NETHER,
+    END,
+)
 
 #: Items obtainable only with crafts
 IRON_INGOT = Item("iron_ingot")

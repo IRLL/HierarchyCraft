@@ -3,6 +3,6 @@ pytest-cov
 pytest-mock
 pytest-check
 pytest-xdist
-pylint
+pre-commit
+ruff
 black
-hypothesis
