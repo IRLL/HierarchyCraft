@@ -1,4 +1,3 @@
-import pytest
 import pytest_check as check
 
 from crafting.render.render import menus_sizes

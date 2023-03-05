@@ -100,7 +100,7 @@ class TestMetricsMultiPurpose:
                     check.equal(infos["Terminal group 'table' is done"], done)
                     check.equal(infos["Terminal group 'stone' success rate"], 0.0)
                     check.equal(
-                        infos[f"Terminal group 'table' success rate"], float(done)
+                        infos["Terminal group 'table' success rate"], float(done)
                     )
                 if episode == 1:
                     check.equal(infos[f"{self.get_wood_task.name} is done"], True)
@@ -110,7 +110,7 @@ class TestMetricsMultiPurpose:
                         infos[f"{self.place_table_task.name} success rate"], 0.5
                     )
                     check.equal(infos["Terminal group 'table' is done"], False)
-                    check.equal(infos[f"Terminal group 'table' success rate"], 0.5)
+                    check.equal(infos["Terminal group 'table' success rate"], 0.5)
                     if done:
                         check.equal(infos[f"{self.get_stone_task.name} is done"], True)
                         check.equal(

@@ -1,6 +1,4 @@
-from typing import Union
 
-import pytest
 import pytest_check as check
 
 from crafting.render.widgets import ContentMode, DisplayMode, show_button, show_content

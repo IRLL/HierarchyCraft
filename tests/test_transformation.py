@@ -123,6 +123,14 @@ class TestTransformationIsValid:
         )
         check.is_false(transfo.is_valid(state))
 
+    def test_destination_op(self):
+        transfo = Transformation(destination=self.zones[1])
+        transfo.build(self.world)
+
+        expected_op = np.zeros(len(self.zones), dtype=np.uint16)
+        expected_op[1] = 1
+        check_np_equal(transfo._destination, expected_op)
+
     def test_destination(self):
         transfo = Transformation(destination=self.zones[1])
         transfo.build(self.world)
@@ -192,14 +200,6 @@ class TestTransformationIsValid:
         zones_inventories = np.array([[3, 1], [4, 2], [5, 3]])
         transfo.apply(None, position, zones_inventories)
         check_np_equal(zones_inventories, np.array([[3, 1], [1, 9], [5, 3]]))
-
-    def test_destination(self):
-        transfo = Transformation(destination=self.zones[1])
-        transfo.build(self.world)
-
-        expected_op = np.zeros(len(self.zones), dtype=np.uint16)
-        expected_op[1] = 1
-        check_np_equal(transfo._destination, expected_op)
 
     def test_no_destination(self):
         transfo = Transformation(destination=None)

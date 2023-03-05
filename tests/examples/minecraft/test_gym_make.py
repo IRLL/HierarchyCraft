@@ -1,9 +1,10 @@
 import pytest
 import pytest_check as check
 
-gym = pytest.importorskip("gym")
 
 from crafting.examples.minecraft.env import MineCraftingEnv
+
+gym = pytest.importorskip("gym")
 
 
 def test_no_reward_gym_make():
