@@ -32,7 +32,7 @@ try:
         item: Item,
         name: Optional[str] = None,
         success_reward: float = 10.0,
-        timestep_reward: float = -0.01,
+        timestep_reward: float = -0.1,
         reward_shaping: RewardShaping = RewardShaping.REQUIREMENTS_ACHIVEMENTS,
         version: int = 1,
     ):
@@ -49,14 +49,20 @@ try:
             kwargs={"purpose": purpose},
         )
 
-    def _register_platinium(env: "CraftingEnv", env_path: str, version: int = 1):
-        purpose = Purpose(timestep_reward=-1)
+    def _register_platinium(
+        env: "CraftingEnv",
+        env_path: str,
+        success_reward: float = 10.0,
+        timestep_reward: float = -0.1,
+        version: int = 1,
+    ):
+        purpose = Purpose(timestep_reward=timestep_reward)
         for item in env.world.items:
-            purpose.add_task(GetItemTask(item, reward=10))
+            purpose.add_task(GetItemTask(item, reward=success_reward))
         for zone in env.world.zones:
-            purpose.add_task(GoToZoneTask(zone, reward=10))
+            purpose.add_task(GoToZoneTask(zone, reward=success_reward))
         for item in env.world.zones_items:
-            purpose.add_task(PlaceItemTask(item, reward=10))
+            purpose.add_task(PlaceItemTask(item, reward=success_reward))
         gym.register(
             id=f"{env.name}-Platinium-v{version}",
             entry_point=env_path,
