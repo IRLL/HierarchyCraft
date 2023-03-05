@@ -1,5 +1,7 @@
 from crafting.examples.random_simple.env import RandomCraftingEnv
 
+__all__ = ["RandomCraftingEnv"]
+
 # gym is an optional dependency
 try:
     import gym

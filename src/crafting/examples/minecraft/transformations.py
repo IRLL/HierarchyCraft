@@ -4,10 +4,16 @@ All used Minecraft recipies.
 
 """
 
+from typing import List
+
 from crafting.elements import ItemStack
-from crafting.examples.minecraft.items import *
-from crafting.examples.minecraft.tools import *
-from crafting.examples.minecraft.zones import *
+import crafting.examples.minecraft.items as items
+from crafting.examples.minecraft.tools import (
+    ToolType,
+    Material,
+    MC_TOOLS_BY_TYPE_AND_MATERIAL,
+)
+import crafting.examples.minecraft.zones as zones
 from crafting.transformation import Transformation
 
 
@@ -25,30 +31,35 @@ def _move_to_zones() -> List[Transformation]:
     walk = [
         #: Move to FOREST
         Transformation(
-            destination=FOREST,
-            zones=[zone for zone in OVERWORLD if zone != FOREST] + [END],
+            destination=items.FOREST,
+            zones=[zone for zone in zones.OVERWORLD if zone != zones.FOREST]
+            + [zones.END],
         ),
         #: Move to SWAMP
         Transformation(
-            destination=SWAMP, zones=[zone for zone in OVERWORLD if zone != SWAMP]
+            destination=zones.SWAMP,
+            zones=[zone for zone in zones.OVERWORLD if zone != zones.SWAMP],
         ),
-        #: Move to MEADOW
+        #: Move to zones.MEADOW
         Transformation(
-            destination=MEADOW, zones=[zone for zone in OVERWORLD if zone != MEADOW]
+            destination=zones.MEADOW,
+            zones=[zone for zone in zones.OVERWORLD if zone != zones.MEADOW],
         ),
     ]
 
     required_pickaxe_materials = {
-        UNDERGROUND: [Material.STONE, Material.IRON, Material.DIAMOND],
-        BEDROCK: [Material.IRON, Material.DIAMOND],
+        zones.UNDERGROUND: [Material.STONE, Material.IRON, Material.DIAMOND],
+        zones.BEDROCK: [Material.IRON, Material.DIAMOND],
     }
 
-    #: Dig to UNDERGROUND or BEDROCK
+    #: Dig to zones.UNDERGROUND or zones.BEDROCK
     dig = []
     for zone, materials in required_pickaxe_materials.items():
         for material in materials:
             pickaxe = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][material]
-            other_zones = [other_zone for other_zone in OVERWORLD if other_zone != zone]
+            other_zones = [
+                other_zone for other_zone in zones.OVERWORLD if other_zone != zone
+            ]
             dig.append(
                 Transformation(
                     destination=zone,
@@ -58,38 +69,38 @@ def _move_to_zones() -> List[Transformation]:
             )
 
     nether = [
-        #: Move to NETHER
+        #: Move to zones.NETHER
         Transformation(
-            destination=NETHER,
-            removed_zone_items=[ItemStack(OPEN_NETHER_PORTAL)],
-            added_zone_items=[ItemStack(OPEN_NETHER_PORTAL)],
+            destination=zones.NETHER,
+            removed_zone_items=[ItemStack(items.OPEN_NETHER_PORTAL)],
+            added_zone_items=[ItemStack(items.OPEN_NETHER_PORTAL)],
         )
     ]
     #: Move back to OVERWORLD
-    for zone in OVERWORLD:
+    for zone in zones.OVERWORLD:
         nether.append(
             Transformation(
                 destination=zone,
-                zones=[NETHER],
-                removed_zone_items=[ItemStack(OPEN_NETHER_PORTAL)],
-                added_zone_items=[ItemStack(OPEN_NETHER_PORTAL)],
-                removed_destination_items=[ItemStack(OPEN_NETHER_PORTAL)],
-                added_destination_items=[ItemStack(OPEN_NETHER_PORTAL)],
+                zones=[zones.NETHER],
+                removed_zone_items=[ItemStack(items.OPEN_NETHER_PORTAL)],
+                added_zone_items=[ItemStack(items.OPEN_NETHER_PORTAL)],
+                removed_destination_items=[ItemStack(items.OPEN_NETHER_PORTAL)],
+                added_destination_items=[ItemStack(items.OPEN_NETHER_PORTAL)],
             )
         )
 
     end = [
-        #: Move to STRONGHOLD
+        #: Move to zones.STRONGHOLD
         Transformation(
-            destination=STRONGHOLD,
-            zones=OVERWORLD,
-            removed_player_items=[ItemStack(ENDER_EYE, 2)],
+            destination=zones.STRONGHOLD,
+            zones=zones.OVERWORLD,
+            removed_player_items=[ItemStack(items.ENDER_EYE, 2)],
         ),
-        #: Move to END
+        #: Move to zones.END
         Transformation(
-            destination=END,
-            removed_zone_items=[ItemStack(OPEN_ENDER_PORTAL)],
-            added_zone_items=[ItemStack(OPEN_ENDER_PORTAL)],
+            destination=zones.END,
+            removed_zone_items=[ItemStack(items.OPEN_ENDER_PORTAL)],
+            added_zone_items=[ItemStack(items.OPEN_ENDER_PORTAL)],
         ),
     ]
 
@@ -108,7 +119,7 @@ def _zones_search() -> List[Transformation]:
     }
 
     search_item = []
-    for mc_item in MC_ITEMS:
+    for mc_item in items.MC_ITEMS:
         item = mc_item.item
 
         if mc_item.required_tool_types is None:
@@ -160,80 +171,83 @@ def _crafting_recipes() -> List[Transformation]:
     return [
         #: Recipe of WOOD_PLANK
         Transformation(
-            removed_player_items=[ItemStack(WOOD)],
-            added_player_items=[ItemStack(WOOD_PLANK, 4)],
+            removed_player_items=[ItemStack(items.WOOD)],
+            added_player_items=[ItemStack(items.WOOD_PLANK, 4)],
         ),
         #: Recipe of STICK
         Transformation(
-            removed_player_items=[ItemStack(WOOD_PLANK, 2)],
-            added_player_items=[ItemStack(STICK, 4)],
+            removed_player_items=[ItemStack(items.WOOD_PLANK, 2)],
+            added_player_items=[ItemStack(items.STICK, 4)],
         ),
         #: Recipe of CRAFTING_TABLE
         Transformation(
-            removed_player_items=[ItemStack(WOOD_PLANK, 4)],
-            added_player_items=[ItemStack(CRAFTING_TABLE)],
+            removed_player_items=[ItemStack(items.WOOD_PLANK, 4)],
+            added_player_items=[ItemStack(items.CRAFTING_TABLE)],
         ),
         #: Recipe of FURNACE
         Transformation(
-            removed_player_items=[ItemStack(COBBLESTONE, 8)],
-            added_player_items=[ItemStack(FURNACE)],
-            removed_zone_items=[ItemStack(CRAFTING_TABLE)],
-            added_zone_items=[ItemStack(CRAFTING_TABLE)],
+            removed_player_items=[ItemStack(items.COBBLESTONE, 8)],
+            added_player_items=[ItemStack(items.FURNACE)],
+            removed_zone_items=[ItemStack(items.CRAFTING_TABLE)],
+            added_zone_items=[ItemStack(items.CRAFTING_TABLE)],
         ),
         #: Recipe of PAPER
         Transformation(
-            removed_player_items=[ItemStack(REEDS, 3)],
-            added_player_items=[ItemStack(PAPER, 3)],
-            removed_zone_items=[ItemStack(CRAFTING_TABLE)],
-            added_zone_items=[ItemStack(CRAFTING_TABLE)],
+            removed_player_items=[ItemStack(items.REEDS, 3)],
+            added_player_items=[ItemStack(items.PAPER, 3)],
+            removed_zone_items=[ItemStack(items.CRAFTING_TABLE)],
+            added_zone_items=[ItemStack(items.CRAFTING_TABLE)],
         ),
         #: Recipe of BOOK
         Transformation(
-            removed_player_items=[ItemStack(PAPER, 3), ItemStack(LEATHER)],
-            added_player_items=[ItemStack(BOOK)],
-            removed_zone_items=[ItemStack(CRAFTING_TABLE)],
-            added_zone_items=[ItemStack(CRAFTING_TABLE)],
+            removed_player_items=[ItemStack(items.PAPER, 3), ItemStack(items.LEATHER)],
+            added_player_items=[ItemStack(items.BOOK)],
+            removed_zone_items=[ItemStack(items.CRAFTING_TABLE)],
+            added_zone_items=[ItemStack(items.CRAFTING_TABLE)],
         ),
         #: Recipe of ENCHANTING_TABLE
         Transformation(
             removed_player_items=[
-                ItemStack(BOOK),
-                ItemStack(OBSIDIAN, 4),
-                ItemStack(DIAMOND, 2),
+                ItemStack(items.BOOK),
+                ItemStack(items.OBSIDIAN, 4),
+                ItemStack(items.DIAMOND, 2),
             ],
-            added_player_items=[ItemStack(ENCHANTING_TABLE)],
-            removed_zone_items=[ItemStack(CRAFTING_TABLE)],
-            added_zone_items=[ItemStack(CRAFTING_TABLE)],
+            added_player_items=[ItemStack(items.ENCHANTING_TABLE)],
+            removed_zone_items=[ItemStack(items.CRAFTING_TABLE)],
+            added_zone_items=[ItemStack(items.CRAFTING_TABLE)],
         ),
         #: Recipe of CLOCK
         Transformation(
-            removed_player_items=[ItemStack(GOLD_INGOT, 4), ItemStack(REDSTONE)],
-            added_player_items=[ItemStack(CLOCK)],
-            removed_zone_items=[ItemStack(CRAFTING_TABLE)],
-            added_zone_items=[ItemStack(CRAFTING_TABLE)],
+            removed_player_items=[
+                ItemStack(items.GOLD_INGOT, 4),
+                ItemStack(items.REDSTONE),
+            ],
+            added_player_items=[ItemStack(items.CLOCK)],
+            removed_zone_items=[ItemStack(items.CRAFTING_TABLE)],
+            added_zone_items=[ItemStack(items.CRAFTING_TABLE)],
         ),
         #: Recipe of FLINT
         Transformation(
-            removed_player_items=[ItemStack(GRAVEL, 10)],
-            added_player_items=[ItemStack(FLINT)],
+            removed_player_items=[ItemStack(items.GRAVEL, 10)],
+            added_player_items=[ItemStack(items.FLINT)],
         ),
         #: Recipe of FLINT_AND_STEEL
         Transformation(
-            removed_player_items=[ItemStack(IRON_INGOT), ItemStack(FLINT)],
-            added_player_items=[ItemStack(FLINT_AND_STEEL, 4)],
+            removed_player_items=[ItemStack(items.IRON_INGOT), ItemStack(items.FLINT)],
+            added_player_items=[ItemStack(items.FLINT_AND_STEEL, 4)],
         ),
         #: Recipe of BLAZE_POWDER
         Transformation(
-            removed_player_items=[ItemStack(BLAZE_ROD)],
-            added_player_items=[ItemStack(BLAZE_POWDER, 2)],
+            removed_player_items=[ItemStack(items.BLAZE_ROD)],
+            added_player_items=[ItemStack(items.BLAZE_POWDER, 2)],
         ),
         #: Recipe of BLAZE_POWDER
         Transformation(
             removed_player_items=[
-                ItemStack(BLAZE_POWDER),
-                ItemStack(ENDER_PEARL),
+                ItemStack(items.BLAZE_POWDER),
+                ItemStack(items.ENDER_PEARL),
             ],
-            added_player_items=[ItemStack(ENDER_EYE)],
+            added_player_items=[ItemStack(items.ENDER_EYE)],
         ),
     ]
 
@@ -243,81 +257,93 @@ def _building() -> List[Transformation]:
     building_creation = [
         #: Build a CRAFTING_TABLE
         Transformation(
-            removed_player_items=[ItemStack(CRAFTING_TABLE)],
-            added_zone_items=[ItemStack(CRAFTING_TABLE)],
+            removed_player_items=[ItemStack(items.CRAFTING_TABLE)],
+            added_zone_items=[ItemStack(items.CRAFTING_TABLE)],
         ),
         #: Collect a CRAFTING_TABLE
         Transformation(
-            added_player_items=[ItemStack(CRAFTING_TABLE)],
-            removed_zone_items=[ItemStack(CRAFTING_TABLE)],
+            added_player_items=[ItemStack(items.CRAFTING_TABLE)],
+            removed_zone_items=[ItemStack(items.CRAFTING_TABLE)],
         ),
         #: Build a FURNACE
         Transformation(
-            removed_player_items=[ItemStack(FURNACE)],
-            added_zone_items=[ItemStack(FURNACE)],
+            removed_player_items=[ItemStack(items.FURNACE)],
+            added_zone_items=[ItemStack(items.FURNACE)],
         ),
         #: Collect a FURNACE
         Transformation(
-            added_player_items=[ItemStack(FURNACE)],
-            removed_zone_items=[ItemStack(FURNACE)],
+            added_player_items=[ItemStack(items.FURNACE)],
+            removed_zone_items=[ItemStack(items.FURNACE)],
         ),
         #: Build an ENCHANTING_TABLE
         Transformation(
-            removed_player_items=[ItemStack(ENCHANTING_TABLE)],
-            added_zone_items=[ItemStack(ENCHANTING_TABLE)],
+            removed_player_items=[ItemStack(items.ENCHANTING_TABLE)],
+            added_zone_items=[ItemStack(items.ENCHANTING_TABLE)],
         ),
         #: Collect a ENCHANTING_TABLE
         Transformation(
-            added_player_items=[ItemStack(ENCHANTING_TABLE)],
-            removed_zone_items=[ItemStack(ENCHANTING_TABLE)],
+            added_player_items=[ItemStack(items.ENCHANTING_TABLE)],
+            removed_zone_items=[ItemStack(items.ENCHANTING_TABLE)],
         ),
         #: Build NETHER_PORTAL
         Transformation(
-            removed_player_items=[ItemStack(OBSIDIAN, 10)],
-            added_zone_items=[ItemStack(CLOSE_NETHER_PORTAL)],
+            removed_player_items=[ItemStack(items.OBSIDIAN, 10)],
+            added_zone_items=[ItemStack(items.CLOSE_NETHER_PORTAL)],
         ),
         #: Open NETHER_PORTAL
         Transformation(
-            removed_player_items=[ItemStack(FLINT_AND_STEEL)],
-            removed_zone_items=[ItemStack(CLOSE_NETHER_PORTAL)],
-            added_zone_items=[ItemStack(OPEN_NETHER_PORTAL)],
+            removed_player_items=[ItemStack(items.FLINT_AND_STEEL)],
+            removed_zone_items=[ItemStack(items.CLOSE_NETHER_PORTAL)],
+            added_zone_items=[ItemStack(items.OPEN_NETHER_PORTAL)],
         ),
         #: Open END_PORTAL
         Transformation(
-            removed_player_items=[ItemStack(ENDER_EYE, 9)],
-            removed_zone_items=[ItemStack(CLOSE_ENDER_PORTAL)],
-            added_zone_items=[ItemStack(OPEN_ENDER_PORTAL)],
+            removed_player_items=[ItemStack(items.ENDER_EYE, 9)],
+            removed_zone_items=[ItemStack(items.CLOSE_ENDER_PORTAL)],
+            added_zone_items=[ItemStack(items.OPEN_ENDER_PORTAL)],
         ),
     ]
 
     smelting = [
         #: Recipe of IRON_INGOT using PLANK at FURNACE
         Transformation(
-            removed_player_items=[ItemStack(IRON_ORE, 3), ItemStack(WOOD_PLANK, 2)],
-            added_player_items=[ItemStack(IRON_INGOT, 3)],
-            removed_zone_items=[ItemStack(FURNACE)],
-            added_zone_items=[ItemStack(FURNACE)],
+            removed_player_items=[
+                ItemStack(items.IRON_ORE, 3),
+                ItemStack(items.WOOD_PLANK, 2),
+            ],
+            added_player_items=[ItemStack(items.IRON_INGOT, 3)],
+            removed_zone_items=[ItemStack(items.FURNACE)],
+            added_zone_items=[ItemStack(items.FURNACE)],
         ),
         #: Recipe of GOLD_INGOT using PLANK at FURNACE
         Transformation(
-            removed_player_items=[ItemStack(GOLD_ORE, 3), ItemStack(WOOD_PLANK, 2)],
-            added_player_items=[ItemStack(GOLD_INGOT, 3)],
-            removed_zone_items=[ItemStack(FURNACE)],
-            added_zone_items=[ItemStack(FURNACE)],
+            removed_player_items=[
+                ItemStack(items.GOLD_ORE, 3),
+                ItemStack(items.WOOD_PLANK, 2),
+            ],
+            added_player_items=[ItemStack(items.GOLD_INGOT, 3)],
+            removed_zone_items=[ItemStack(items.FURNACE)],
+            added_zone_items=[ItemStack(items.FURNACE)],
         ),
         #: Recipe of IRON_INGOT using COAL at FURNACE
         Transformation(
-            removed_player_items=[ItemStack(IRON_ORE, 8), ItemStack(COAL, 1)],
-            added_player_items=[ItemStack(IRON_INGOT, 8)],
-            removed_zone_items=[ItemStack(FURNACE)],
-            added_zone_items=[ItemStack(FURNACE)],
+            removed_player_items=[
+                ItemStack(items.IRON_ORE, 8),
+                ItemStack(items.COAL, 1),
+            ],
+            added_player_items=[ItemStack(items.IRON_INGOT, 8)],
+            removed_zone_items=[ItemStack(items.FURNACE)],
+            added_zone_items=[ItemStack(items.FURNACE)],
         ),
         #: Recipe of GOLD_INGOT using COAL at FURNACE
         Transformation(
-            removed_player_items=[ItemStack(GOLD_ORE, 8), ItemStack(COAL, 1)],
-            added_player_items=[ItemStack(GOLD_INGOT, 8)],
-            removed_zone_items=[ItemStack(FURNACE)],
-            added_zone_items=[ItemStack(FURNACE)],
+            removed_player_items=[
+                ItemStack(items.GOLD_ORE, 8),
+                ItemStack(items.COAL, 1),
+            ],
+            added_player_items=[ItemStack(items.GOLD_INGOT, 8)],
+            removed_zone_items=[ItemStack(items.FURNACE)],
+            added_zone_items=[ItemStack(items.FURNACE)],
         ),
     ]
 
@@ -343,11 +369,11 @@ def _tools_recipes() -> List[Transformation]:
     }
 
     material_item = {
-        Material.WOOD: WOOD_PLANK,
-        Material.STONE: COBBLESTONE,
-        Material.IRON: IRON_INGOT,
-        Material.GOLD: GOLD_INGOT,
-        Material.DIAMOND: DIAMOND,
+        Material.WOOD: items.WOOD_PLANK,
+        Material.STONE: items.COBBLESTONE,
+        Material.IRON: items.IRON_INGOT,
+        Material.GOLD: items.GOLD_INGOT,
+        Material.DIAMOND: items.DIAMOND,
     }
 
     durability_by_material = {
@@ -365,7 +391,7 @@ def _tools_recipes() -> List[Transformation]:
                     ItemStack(
                         material_item[material], material_items_per_type[tool_type]
                     ),
-                    ItemStack(STICK, sticks_per_type[tool_type]),
+                    ItemStack(items.STICK, sticks_per_type[tool_type]),
                 ],
                 added_player_items=[
                     ItemStack(
@@ -373,8 +399,8 @@ def _tools_recipes() -> List[Transformation]:
                         durability_by_material[material],
                     )
                 ],
-                removed_zone_items=[ItemStack(CRAFTING_TABLE)],
-                added_zone_items=[ItemStack(CRAFTING_TABLE)],
+                removed_zone_items=[ItemStack(items.CRAFTING_TABLE)],
+                added_zone_items=[ItemStack(items.CRAFTING_TABLE)],
             )
             tools_recipes.append(tool_recipe)
 

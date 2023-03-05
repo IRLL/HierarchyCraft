@@ -5,11 +5,11 @@
 ![MineCrafting hierarchy](../../../../docs/images/minecrafting_crafts_hierarchy.png)
 
 """
+from typing import Optional
 
 from crafting.env import CraftingEnv
 from crafting.examples.minecraft.env import MineCraftingEnv
-from crafting.examples.minecraft.items import *
-from crafting.examples.minecraft.zones import *
+import crafting.examples.minecraft.items as items
 from crafting.purpose import Purpose, RewardShaping
 from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask
 
@@ -29,7 +29,7 @@ try:
         return "".join([subname.capitalize() for subname in name.split("_")])
 
     def _register_minecrafting_single_item(
-        item: Item,
+        item: items.Item,
         name: Optional[str] = None,
         success_reward: float = 10.0,
         timestep_reward: float = -0.1,
@@ -69,12 +69,12 @@ try:
             kwargs={"purpose": purpose},
         )
 
-    _register_minecrafting_single_item(DIRT)
-    _register_minecrafting_single_item(COBBLESTONE, name="Stone")
-    _register_minecrafting_single_item(IRON_INGOT, name="Iron")
-    _register_minecrafting_single_item(DIAMOND)
-    _register_minecrafting_single_item(ENCHANTING_TABLE)
-    _register_minecrafting_single_item(ENDER_DRAGON_HEAD, name="Dragon")
+    _register_minecrafting_single_item(items.DIRT)
+    _register_minecrafting_single_item(items.COBBLESTONE, name="Stone")
+    _register_minecrafting_single_item(items.IRON_INGOT, name="Iron")
+    _register_minecrafting_single_item(items.DIAMOND)
+    _register_minecrafting_single_item(items.ENCHANTING_TABLE)
+    _register_minecrafting_single_item(items.ENDER_DRAGON_HEAD, name="Dragon")
     _register_platinium(env=MineCraftingEnv(), env_path=ENV_PATH)
 
 
