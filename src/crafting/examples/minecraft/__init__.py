@@ -49,7 +49,7 @@ try:
             kwargs={"purpose": purpose},
         )
 
-    def _register_platinium(env: "CraftingEnv"):
+    def _register_platinium(env: "CraftingEnv", env_path: str, version: int = 1):
         purpose = Purpose(timestep_reward=-1)
         for item in env.world.items:
             purpose.add_task(GetItemTask(item, reward=10))
@@ -58,8 +58,8 @@ try:
         for item in env.world.zones_items:
             purpose.add_task(PlaceItemTask(item, reward=10))
         gym.register(
-            id=f"{env.name}-Platinium-v1",
-            entry_point=ENV_PATH,
+            id=f"{env.name}-Platinium-v{version}",
+            entry_point=env_path,
             kwargs={"purpose": purpose},
         )
 
@@ -69,7 +69,7 @@ try:
     _register_minecrafting_single_item(DIAMOND)
     _register_minecrafting_single_item(ENCHANTING_TABLE)
     _register_minecrafting_single_item(ENDER_DRAGON_HEAD, name="Dragon")
-    _register_platinium(env=MineCraftingEnv())
+    _register_platinium(env=MineCraftingEnv(), env_path=ENV_PATH)
 
 
 except ImportError:
