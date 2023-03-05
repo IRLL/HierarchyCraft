@@ -13,13 +13,25 @@ import crafting.world as world
 
 from crafting.elements import Item, ItemStack, Zone
 from crafting.transformation import Transformation
-from crafting.env import CraftingEnv
+from crafting.env import CraftingEnv, CraftingState
 from crafting.purpose import Purpose
 from crafting.render.human import get_human_action, render_env_with_human
 from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask
 
 
 __all__ = [
+    "Item",
+    "ItemStack",
+    "Zone",
+    "CraftingState",
+    "Transformation",
+    "CraftingEnv",
+    "get_human_action",
+    "render_env_with_human",
+    "Purpose",
+    "GetItemTask",
+    "GoToZoneTask",
+    "PlaceItemTask",
     "state",
     "transformation",
     "purpose",
@@ -28,15 +40,4 @@ __all__ = [
     "env",
     "examples",
     "world",
-    "Item",
-    "ItemStack",
-    "Zone",
-    "Transformation",
-    "CraftingEnv",
-    "Purpose",
-    "get_human_action",
-    "render_env_with_human",
-    "GetItemTask",
-    "GoToZoneTask",
-    "PlaceItemTask",
 ]
