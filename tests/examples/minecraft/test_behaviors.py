@@ -3,15 +3,12 @@
 import matplotlib.pyplot as plt
 import pytest
 import pytest_check as check
-from hebg.unrolling import unroll_graph
 
 from crafting.behaviors.utils import get_items_in_graph, get_zones_items_in_graph
 from crafting.examples.minecraft.env import MineCraftingEnv
 from crafting.examples.minecraft.items import (
-    CRAFTING_TABLE,
     OPEN_NETHER_PORTAL,
     STICK,
-    WOOD,
     WOOD_PLANK,
 )
 from crafting.examples.minecraft.tools import (
@@ -72,27 +69,6 @@ class TestItemsInWoodenPickaxeGraph:
             expected_items,
             msg=f"\nAll nodes in graph:\n{list(graph.nodes())}",
         )
-
-    # def test_graph_unrolled(self):
-    #     """should give all needed items in unrolled wooden_pickaxe graph."""
-    #     expected_items = {WOOD, WOOD_PLANK, STICK, WOODEN_PICKAXE}
-    #     expected_zone_items = {CRAFTING_TABLE}
-
-    #     unrolled_graph = unroll_graph(
-    #         self.pickaxe_behavior.graph, cut_looping_alternatives=True
-    #     )
-    #     items = get_items_in_graph(unrolled_graph)
-    #     zone_items = get_zones_items_in_graph(unrolled_graph)
-    #     check.equal(
-    #         items,
-    #         expected_items,
-    #         msg=f"\nItems in graph:\n{items}",
-    #     )
-    #     check.equal(
-    #         zone_items,
-    #         expected_zone_items,
-    #         msg=f"\nZone items in graph:\n{zone_items}",
-    #     )
 
     def test_graph_draw(self):
         fig, ax = plt.subplots()
