@@ -4,7 +4,6 @@ import pytest_check as check
 gym = pytest.importorskip("gym")
 
 from crafting.examples.minecraft.env import MineCraftingEnv
-from crafting.task import Task
 
 
 def test_no_reward_gym_make():
@@ -40,13 +39,6 @@ def test_enchanting_table_gym_make():
     check.equal(task.name, "Get enchanting_table")
 
 
-def test_the_end_gym_make():
-    env: MineCraftingEnv = gym.make("MineCrafting-End-v1")
-    check.equal(len(env.purpose.tasks), 1)
-    task = env.purpose.tasks[0]
-    check.equal(task.name, "Go to end")
-
-
 def test_all_items_gym_make():
     env: MineCraftingEnv = gym.make("MineCrafting-Platinium-v1")
     check.equal(
@@ -55,7 +47,7 @@ def test_all_items_gym_make():
     )
 
 
-def test_the_end_gym_make():
+def test_dragon_gym_make():
     env: MineCraftingEnv = gym.make("MineCrafting-Dragon-v1")
     env.reset()
     expected_tasknames = {
