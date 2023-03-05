@@ -6,10 +6,11 @@
 
 """
 
+from crafting.env import CraftingEnv
 from crafting.examples.minecraft.env import MineCraftingEnv
 from crafting.examples.minecraft.items import *
 from crafting.examples.minecraft.zones import *
-from crafting.purpose import Purpose
+from crafting.purpose import Purpose, RewardShaping
 from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask
 
 # gym is an optional dependency
@@ -24,80 +25,51 @@ try:
         entry_point=ENV_PATH,
     )
 
-    # Get COBBLESTONE
-    gym.register(
-        id="MineCrafting-Stone-v1",
-        entry_point=ENV_PATH,
-        kwargs={
-            "purpose": GetItemTask(COBBLESTONE, reward=10),
-        },
-    )
+    def _to_camel_case(name: str):
+        return "".join([subname.capitalize() for subname in name.split("_")])
 
-    # Get IRON_INGOT
-    gym.register(
-        id="MineCrafting-Iron-v1",
-        entry_point=ENV_PATH,
-        kwargs={
-            "purpose": GetItemTask(IRON_INGOT, reward=10),
-        },
-    )
+    def _register_minecrafting_single_item(
+        item: Item,
+        name: Optional[str] = None,
+        success_reward: float = 10.0,
+        timestep_reward: float = -0.01,
+        reward_shaping: RewardShaping = RewardShaping.REQUIREMENTS_ACHIVEMENTS,
+        version: int = 1,
+    ):
+        purpose = Purpose(timestep_reward=timestep_reward)
+        purpose.add_task(
+            GetItemTask(item, reward=success_reward),
+            reward_shaping=reward_shaping,
+        )
+        if name is None:
+            name = _to_camel_case(item.name)
+        gym.register(
+            id=f"MineCrafting-{name}-v{version}",
+            entry_point=ENV_PATH,
+            kwargs={"purpose": purpose},
+        )
 
-    # Get DIAMOND
-    gym.register(
-        id="MineCrafting-Diamond-v1",
-        entry_point=ENV_PATH,
-        kwargs={
-            "purpose": GetItemTask(DIAMOND, reward=10),
-        },
-    )
+    def _register_platinium(env: "CraftingEnv"):
+        purpose = Purpose(timestep_reward=-1)
+        for item in env.world.items:
+            purpose.add_task(GetItemTask(item, reward=10))
+        for zone in env.world.zones:
+            purpose.add_task(GoToZoneTask(zone, reward=10))
+        for item in env.world.zones_items:
+            purpose.add_task(PlaceItemTask(item, reward=10))
+        gym.register(
+            id=f"{env.name}-Platinium-v1",
+            entry_point=ENV_PATH,
+            kwargs={"purpose": purpose},
+        )
 
-    # Get ENCHANTING_TABLE
-    gym.register(
-        id="MineCrafting-EnchantingTable-v1",
-        entry_point=ENV_PATH,
-        kwargs={
-            "purpose": GetItemTask(ENCHANTING_TABLE, reward=10),
-        },
-    )
-
-    # Go to the END
-    gym.register(
-        id="MineCrafting-End-v1",
-        entry_point=ENV_PATH,
-        kwargs={
-            "purpose": GoToZoneTask(END, reward=10),
-        },
-    )
-
-    # Kill the ender dragon
-    purpose = Purpose()
-    purpose.add_task(
-        GetItemTask(ENDER_DRAGON_HEAD, reward=100), reward_shaping="required"
-    )
-    gym.register(
-        id="MineCrafting-Dragon-v1",
-        entry_point=ENV_PATH,
-        kwargs={
-            "purpose": purpose,
-        },
-    )
-
-    # Obtain all items
-    env = MineCraftingEnv()
-    purpose = Purpose(timestep_reward=-1)
-    for item in env.world.items:
-        purpose.add_task(GetItemTask(item, reward=10))
-    for zone in env.world.zones:
-        purpose.add_task(GoToZoneTask(zone, reward=10))
-    for item in env.world.zones_items:
-        purpose.add_task(PlaceItemTask(item, reward=10))
-    gym.register(
-        id="MineCrafting-Platinium-v1",
-        entry_point=ENV_PATH,
-        kwargs={
-            "purpose": purpose,
-        },
-    )
+    _register_minecrafting_single_item(DIRT)
+    _register_minecrafting_single_item(COBBLESTONE, name="Stone")
+    _register_minecrafting_single_item(IRON_INGOT, name="Iron")
+    _register_minecrafting_single_item(DIAMOND)
+    _register_minecrafting_single_item(ENCHANTING_TABLE)
+    _register_minecrafting_single_item(ENDER_DRAGON_HEAD, name="Dragon")
+    _register_platinium(env=MineCraftingEnv())
 
 
 except ImportError:
