@@ -24,7 +24,6 @@ from crafting.render.widgets import (
 )
 
 if TYPE_CHECKING:
-    from PIL.Image import Image
     from pygame.event import Event
 
     from crafting.env import CraftingEnv

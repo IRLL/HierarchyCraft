@@ -1,6 +1,5 @@
 """ Widgets for rendering of the Crafting environments """
 
-import os
 from enum import Enum
 from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
