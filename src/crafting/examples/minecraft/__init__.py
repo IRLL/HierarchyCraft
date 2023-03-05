@@ -64,7 +64,7 @@ try:
         for item in env.world.zones_items:
             purpose.add_task(PlaceItemTask(item, reward=success_reward))
         gym.register(
-            id=f"{env.name}-Platinium-v{version}",
+            id=f"{env.name}-v{version}",
             entry_point=env_path,
             kwargs={"purpose": purpose},
         )

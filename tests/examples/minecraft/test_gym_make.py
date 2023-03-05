@@ -40,7 +40,7 @@ def test_enchanting_table_gym_make():
 
 
 def test_all_items_gym_make():
-    env: MineCraftingEnv = gym.make("MineCrafting-Platinium-v1")
+    env: MineCraftingEnv = gym.make("MineCrafting-v1")
     check.equal(
         len(env.purpose.tasks),
         env.world.n_items + env.world.n_zones + env.world.n_zones_items,
