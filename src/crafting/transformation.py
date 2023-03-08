@@ -444,6 +444,15 @@ class Transformation:
     def get_changes(
         self, owner: InventoryOwner, operation: InventoryOperation
     ) -> Optional[Union[List[ItemStack], Dict[Zone, List[ItemStack]]]]:
+        """Get individual changes for a given owner and a given operation.
+
+        Args:
+            owner: Owner of the inventory changes to get.
+            operation: Operation on the inventory to get.
+
+        Returns:
+            Changes of the inventory of the given owner with the given operation.
+        """
         owner = InventoryOwner(owner)
         operation = InventoryOperation(operation)
         operations = self.inventory_changes.get(owner, {})
