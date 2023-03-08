@@ -226,7 +226,7 @@ class Transformation:
         self.zones = zones
         self._zones = None
 
-        self.inventory_changes = _stack_inventory_changes(inventory_changes)
+        self.inventory_changes = _format_inventory_changes(inventory_changes)
         self._inventory_operations: Optional[
             Dict[InventoryOwner, InventoryOperations]
         ] = None
@@ -589,43 +589,49 @@ def _stack_items_list(
     return items_or_stacks
 
 
-def _stack_inventory_changes(
+def _group_zones_operations(
+    inventory_changes: Dict[InventoryOwner, InventoryChanges]
+) -> Dict[InventoryOwner, InventoryChanges]:
+    zones = InventoryOwner.ZONES
+    for owner in list(inventory_changes.keys()):
+        if not isinstance(owner, Zone):
+            continue
+        if zones not in inventory_changes:
+            inventory_changes[zones] = {}
+
+        changes = inventory_changes.pop(owner)
+        for operation, stacks in changes.items():
+            if operation not in inventory_changes[zones]:
+                inventory_changes[zones][operation] = {}
+            inventory_changes[zones][operation][owner] = stacks
+    return inventory_changes
+
+
+def _format_inventory_changes(
     dict_of_items_or_stacks: Optional[Dict[InventoryOwner, InventoryChanges]]
 ) -> Dict[InventoryOwner, InventoryChanges]:
     dict_of_stacks = {}
     if dict_of_items_or_stacks is None:
         return dict_of_stacks
 
-    # Group specific zones
-    zones = InventoryOwner.ZONES
-    for owner in list(dict_of_items_or_stacks.keys()):
-        if not isinstance(owner, Zone):
-            continue
-        if zones not in dict_of_items_or_stacks:
-            dict_of_items_or_stacks[zones] = {}
-
-        changes = dict_of_items_or_stacks.pop(owner)
-        for operation, stacks in changes.items():
-            if operation not in dict_of_items_or_stacks[zones]:
-                dict_of_items_or_stacks[zones][operation] = {}
-            dict_of_items_or_stacks[zones][operation][owner] = stacks
+    dict_of_items_or_stacks = _group_zones_operations(dict_of_items_or_stacks)
 
     for owner, sub_dict in dict_of_items_or_stacks.items():
         owner = InventoryOwner(owner)
-        if owner is InventoryOwner.ZONES:
-            if owner not in dict_of_stacks:
-                dict_of_stacks[owner] = {}
-            for op, zones_items_or_stacks in sub_dict.items():
-                zones_stacks = {
-                    zone: _stack_items_list(items_or_stacks)
-                    for zone, items_or_stacks in zones_items_or_stacks.items()
-                }
-                dict_of_stacks[owner][InventoryOperation(op)] = zones_stacks
+        if owner is not InventoryOwner.ZONES:
+            dict_of_stacks[owner] = {
+                InventoryOperation(op): _stack_items_list(items_or_stacks)
+                for op, items_or_stacks in sub_dict.items()
+            }
             continue
-        dict_of_stacks[owner] = {
-            InventoryOperation(op): _stack_items_list(items_or_stacks)
-            for op, items_or_stacks in sub_dict.items()
-        }
+        if owner not in dict_of_stacks:
+            dict_of_stacks[owner] = {}
+        for op, zones_items_or_stacks in sub_dict.items():
+            zones_stacks = {
+                zone: _stack_items_list(items_or_stacks)
+                for zone, items_or_stacks in zones_items_or_stacks.items()
+            }
+            dict_of_stacks[owner][InventoryOperation(op)] = zones_stacks
 
     return dict_of_stacks
 
