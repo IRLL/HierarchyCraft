@@ -43,19 +43,24 @@ class TreasureEnv(CraftingEnv):
 
     def _build_transformations(self) -> List[Transformation]:
         TAKE_GOLD_FROM_CHEST = Transformation(
-            removed_zone_items=[self.CHEST],
-            added_player_items=[self.GOLD],
+            inventory_changes={
+                "player": {"add": [self.GOLD]},
+                "current_zone": {"remove": [self.CHEST]},
+            }
         )
 
         SEARCH_KEY = Transformation(
-            added_player_items=[self.KEY],
+            inventory_changes={
+                "player": {"add": [self.KEY]},
+            },
             zones=[self.KEY_ROOM],
         )
 
         UNLOCK_CHEST = Transformation(
-            removed_zone_items=[self.LOCKED_CHEST],
-            removed_player_items=[ItemStack(self.KEY, 2)],
-            added_zone_items=[self.CHEST],
+            inventory_changes={
+                "player": {"remove": [ItemStack(self.KEY, 2)]},
+                "current_zone": {"remove": [self.LOCKED_CHEST], "add": [self.CHEST]},
+            }
         )
 
         MOVE_TO_KEY_ROOM = Transformation(

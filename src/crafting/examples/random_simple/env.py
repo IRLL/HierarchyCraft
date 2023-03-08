@@ -71,7 +71,9 @@ class RandomCraftingEnv(CraftingEnv):
         accessible_items = []
         for item in items:
             if item.name.startswith("0"):
-                search_item = Transformation(added_player_items=[ItemStack(item)])
+                search_item = Transformation(
+                    inventory_changes={"player": {"add": [ItemStack(item)]}}
+                )
                 transformations.append(search_item)
                 accessible_items.append(item)
 
@@ -94,8 +96,7 @@ class RandomCraftingEnv(CraftingEnv):
 
             # Build recipe
             new_recipe = Transformation(
-                removed_player_items=inputs,
-                added_player_items=outputs,
+                inventory_changes={"player": {"remove": inputs, "add": outputs}}
             )
             transformations.append(new_recipe)
             accessible_items.append(new_accessible_item)

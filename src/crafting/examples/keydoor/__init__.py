@@ -71,49 +71,64 @@ class KeyDoorCraftingEnv(CraftingEnv):
     def _build_transformations(self) -> List[Transformation]:
         transformations = []
 
-        search_for_key = Transformation(added_zone_items=[self.KEY], zones=[self.START])
+        search_for_key = Transformation(
+            inventory_changes={"current_zone": {"add": [self.KEY]}},
+            zones=[self.START],
+        )
         transformations.append(search_for_key)
         for carriable_item in (self.KEY, self.BALL):
             pickup = Transformation(
-                removed_zone_items=[carriable_item], added_player_items=[carriable_item]
+                inventory_changes={
+                    "player": {"add": [carriable_item]},
+                    "current_zone": {"remove": [carriable_item]},
+                },
             )
             put_down = Transformation(
-                removed_player_items=[carriable_item], added_zone_items=[carriable_item]
+                inventory_changes={
+                    "player": {"remove": [carriable_item]},
+                    "current_zone": {"add": [carriable_item]},
+                },
             )
             transformations += [pickup, put_down]
 
         search_for_door = Transformation(
-            added_zones_items={
-                self.START: [self.LOCKED_DOOR],
-                self.BALL_ROOM: [self.LOCKED_DOOR],
+            inventory_changes={
+                self.START: {"add": [self.LOCKED_DOOR]},
+                self.BALL_ROOM: {"add": [self.LOCKED_DOOR]},
             },
             zones=[self.START, self.BALL_ROOM],
         )
         transformations.append(search_for_door)
 
         unlock_door = Transformation(
-            removed_player_items=[self.KEY],
-            added_player_items=[self.KEY],
-            removed_zones_items={
-                self.START: [self.LOCKED_DOOR],
-                self.BALL_ROOM: [self.LOCKED_DOOR],
-            },
-            added_zones_items={
-                self.START: [self.CLOSED_DOOR],
-                self.BALL_ROOM: [self.CLOSED_DOOR],
+            inventory_changes={
+                "player": {
+                    "remove": [self.KEY],
+                    "add": [self.KEY],
+                },
+                self.START: {
+                    "remove": [self.LOCKED_DOOR],
+                    "add": [self.CLOSED_DOOR],
+                },
+                self.BALL_ROOM: {
+                    "remove": [self.LOCKED_DOOR],
+                    "add": [self.CLOSED_DOOR],
+                },
             },
             zones=[self.START, self.BALL_ROOM],
         )
         transformations.append(unlock_door)
 
         open_door = Transformation(
-            removed_zones_items={
-                self.START: [self.CLOSED_DOOR],
-                self.BALL_ROOM: [self.CLOSED_DOOR],
-            },
-            added_zones_items={
-                self.START: [self.OPEN_DOOR],
-                self.BALL_ROOM: [self.OPEN_DOOR],
+            inventory_changes={
+                self.START: {
+                    "remove": [self.CLOSED_DOOR],
+                    "add": [self.OPEN_DOOR],
+                },
+                self.BALL_ROOM: {
+                    "remove": [self.CLOSED_DOOR],
+                    "add": [self.OPEN_DOOR],
+                },
             },
             zones=[self.START, self.BALL_ROOM],
         )
@@ -121,16 +136,24 @@ class KeyDoorCraftingEnv(CraftingEnv):
 
         move_to_ball_room = Transformation(
             destination=self.BALL_ROOM,
-            removed_zone_items=[self.OPEN_DOOR],
-            added_zone_items=[self.OPEN_DOOR],
+            inventory_changes={
+                "current_zone": {
+                    "remove": [self.OPEN_DOOR],
+                    "add": [self.OPEN_DOOR],
+                },
+            },
             zones=[self.START],
         )
         transformations.append(move_to_ball_room)
 
         move_to_start_room = Transformation(
             destination=self.START,
-            removed_zone_items=[self.OPEN_DOOR],
-            added_zone_items=[self.OPEN_DOOR],
+            inventory_changes={
+                "current_zone": {
+                    "remove": [self.OPEN_DOOR],
+                    "add": [self.OPEN_DOOR],
+                },
+            },
             zones=[self.BALL_ROOM],
         )
         transformations.append(move_to_start_room)

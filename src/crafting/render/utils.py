@@ -146,24 +146,22 @@ def build_transformation_image(
     """Build a transformation image from items and zones images."""
     added_images: List[Image.Image] = []
 
-    if transformation.added_player_items is not None:
+    added_player_items = transformation.get_changes("player", "add")
+    if added_player_items is not None:
+        added_images += load_or_create_images(added_player_items, resources_path)
+    added_zone_items = transformation.get_changes("current_zone", "add")
+    if added_zone_items is not None:
         added_images += load_or_create_images(
-            transformation.added_player_items, resources_path
+            added_zone_items, resources_path, bg_color=zone_bg_color
         )
-    if transformation.added_zone_items is not None:
+    added_destination_items = transformation.get_changes("destination", "add")
+    if added_destination_items is not None:
         added_images += load_or_create_images(
-            transformation.added_zone_items,
-            resources_path,
-            bg_color=zone_bg_color,
+            added_destination_items, resources_path, bg_color=dest_bg_color
         )
-    if transformation.added_destination_items is not None:
-        added_images += load_or_create_images(
-            transformation.added_destination_items,
-            resources_path,
-            bg_color=dest_bg_color,
-        )
-    if transformation.added_zones_items is not None:
-        for _zone, zones_items in transformation.added_zones_items.items():
+    added_zones_items = transformation.get_changes("zones", "add")
+    if added_zones_items is not None:
+        for _zone, zones_items in added_zones_items.items():
             added_images += load_or_create_images(
                 zones_items, resources_path, bg_color=dest_bg_color
             )
@@ -171,25 +169,25 @@ def build_transformation_image(
     arrow_image = create_text_image("->", resources_path)
 
     removed_images: List["Image.Image"] = []
-    if transformation.removed_player_items is not None:
+    removed_player_items = transformation.get_changes("player", "remove")
+    if removed_player_items is not None:
+        removed_images += load_or_create_images(removed_player_items, resources_path)
+    removed_zone_items = transformation.get_changes("current_zone", "remove")
+    if removed_zone_items is not None:
         removed_images += load_or_create_images(
-            transformation.removed_player_items, resources_path
+            removed_zone_items, resources_path, bg_color=zone_bg_color
         )
-    if transformation.removed_zone_items is not None:
+    removed_destination_items = transformation.get_changes("destination", "remove")
+    if removed_destination_items is not None:
         removed_images += load_or_create_images(
-            transformation.removed_zone_items,
-            resources_path,
-            bg_color=zone_bg_color,
-        )
-    if transformation.removed_destination_items is not None:
-        removed_images += load_or_create_images(
-            transformation.removed_destination_items,
+            removed_destination_items,
             resources_path,
             bg_color=dest_bg_color,
         )
 
-    if transformation.removed_zones_items is not None:
-        for _zone, zones_items in transformation.removed_zones_items.items():
+    removed_zones_items = transformation.get_changes("zones", "remove")
+    if removed_zones_items is not None:
+        for _zone, zones_items in removed_zones_items.items():
             added_images += load_or_create_images(
                 zones_items, resources_path, bg_color=dest_bg_color
             )

@@ -16,30 +16,39 @@ def classic_env():
 
     wood = Item("wood")
     search_wood = Transformation(
-        added_player_items=[ItemStack(wood)],
+        inventory_changes={
+            "player": {"add": [wood]},
+        }
     )
 
     stone = Item("stone")
     search_stone = Transformation(
-        added_player_items=[ItemStack(stone, 1)],
+        inventory_changes={
+            "player": {"add": [ItemStack(stone, 1)]},
+        }
     )
 
     plank = Item("plank")
     craft_plank = Transformation(
-        removed_player_items=[ItemStack(wood, 1)],
-        added_player_items=[ItemStack(plank, 4)],
+        inventory_changes={
+            "player": {"remove": [wood], "add": [ItemStack(plank, 4)]},
+        }
     )
 
     table = Item("table")
     craft_table = Transformation(
-        removed_player_items=[ItemStack(plank, 4)],
-        added_zone_items=[ItemStack(table)],
+        inventory_changes={
+            "player": {"remove": [ItemStack(plank, 4)]},
+            "current_zone": {"add": [ItemStack(table)]},
+        }
     )
 
     wood_house = Item("wood house")
     build_house = Transformation(
-        removed_player_items=[ItemStack(plank, 32), ItemStack(wood, 8)],
-        added_zone_items=[ItemStack(wood_house)],
+        inventory_changes={
+            "player": {"remove": [ItemStack(plank, 32), ItemStack(wood, 8)]},
+            "current_zone": {"add": [ItemStack(wood_house)]},
+        }
     )
 
     items = [wood, stone, plank]
@@ -64,18 +73,23 @@ def classic_env():
 def player_only_env():
     wood = Item("wood")
     search_wood = Transformation(
-        added_player_items=[ItemStack(wood)],
+        inventory_changes={
+            "player": {"add": [wood]},
+        }
     )
 
     stone = Item("stone")
     search_stone = Transformation(
-        added_player_items=[ItemStack(stone, 1)],
+        inventory_changes={
+            "player": {"add": [ItemStack(stone, 1)]},
+        }
     )
 
     plank = Item("plank")
     craft_plank = Transformation(
-        removed_player_items=[ItemStack(wood, 1)],
-        added_player_items=[ItemStack(plank, 4)],
+        inventory_changes={
+            "player": {"remove": [wood], "add": [ItemStack(plank, 4)]},
+        }
     )
 
     items = [wood, stone, plank]
@@ -95,19 +109,25 @@ def player_only_env():
 def zone_only_env():
     start_zone = Zone("start")
     wood = Item("wood")
+    wood = Item("wood")
     search_wood = Transformation(
-        added_zone_items=[ItemStack(wood)],
+        inventory_changes={
+            "current_zone": {"add": [wood]},
+        }
     )
 
     stone = Item("stone")
     search_stone = Transformation(
-        added_zone_items=[ItemStack(stone, 1)],
+        inventory_changes={
+            "current_zone": {"add": [ItemStack(stone, 1)]},
+        }
     )
 
     plank = Item("plank")
     craft_plank = Transformation(
-        removed_zone_items=[ItemStack(wood, 1)],
-        added_zone_items=[ItemStack(plank, 4)],
+        inventory_changes={
+            "current_zone": {"remove": [wood], "add": [ItemStack(plank, 4)]},
+        }
     )
 
     zones_items = [wood, stone, plank]

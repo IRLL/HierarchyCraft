@@ -22,10 +22,10 @@ class Task:
 
     def build(self, world: "World") -> None:
         """Build the task operation arrays based on the given world."""
-        self._terminate_position = np.zeros(world.n_zones, dtype=np.uint16)
-        self._terminate_player_items = np.zeros(world.n_items, dtype=np.uint16)
+        self._terminate_position = np.zeros(world.n_zones, dtype=np.int32)
+        self._terminate_player_items = np.zeros(world.n_items, dtype=np.int32)
         self._terminate_zones_items = np.zeros(
-            (world.n_zones, world.n_zones_items), dtype=np.uint16
+            (world.n_zones, world.n_zones_items), dtype=np.int32
         )
 
     def is_terminal(self, state: "CraftingState") -> bool:

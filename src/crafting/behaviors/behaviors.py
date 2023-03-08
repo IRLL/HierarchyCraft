@@ -41,14 +41,10 @@ class GetItem(Behavior):
 
         # Any of the Tranformation that gives the item
         for transfo in self.env.world.transformations:
-            item_is_added = transfo.added_player_items is not None and self.item in [
-                itemstack.item for itemstack in transfo.added_player_items
-            ]
-            item_is_not_removed = (
-                transfo.removed_player_items is None
-                or self.item
-                not in [itemstack.item for itemstack in transfo.removed_player_items]
-            )
+            produced_items = transfo.production("player")
+            item_is_added = produced_items and self.item in produced_items
+            consumed_items = transfo.consumption("player")
+            item_is_not_removed = not consumed_items or self.item not in consumed_items
             if item_is_added and item_is_not_removed:
                 sub_behavior = Behavior(AbleAndPerformTransformation.get_name(transfo))
                 graph.add_node(sub_behavior)
@@ -102,18 +98,18 @@ class PlaceItem(Behavior):
 
     def _zone_item_is_added(self, transformation: "Transformation") -> bool:
         return self._zone_item_is_in(
-            transformation.added_zone_items,
-            transformation.added_destination_items,
-            transformation.added_zones_items,
+            transformation.get_changes("current_zone", "add"),
+            transformation.get_changes("destination", "add"),
+            transformation.get_changes("zones", "add"),
             transformation.zones,
             transformation.destination,
         )
 
     def _zone_item_is_removed(self, transformation: "Transformation") -> bool:
         return self._zone_item_is_in(
-            transformation.removed_zone_items,
-            transformation.removed_destination_items,
-            transformation.removed_zones_items,
+            transformation.get_changes("current_zone", "remove"),
+            transformation.get_changes("destination", "remove"),
+            transformation.get_changes("zones", "remove"),
             transformation.zones,
             transformation.destination,
         )
@@ -214,16 +210,18 @@ class AbleAndPerformTransformation(Behavior):
         last_node = None
 
         # Require all items to be removed from player env
-        if self.transformation.removed_player_items is not None:
-            for stack in self.transformation.removed_player_items:
+        removed_player_items = self.transformation.get_changes("player", "remove")
+        if removed_player_items is not None:
+            for stack in removed_player_items:
                 has_item = _add_get_item(stack, graph, self.env)
                 if last_node is not None:
                     graph.add_edge(last_node, has_item, index=int(True))
                 last_node = has_item
 
         # Require all items to be removed from specific zones
-        if self.transformation.removed_zones_items is not None:
-            for zone, stacks in self.transformation.removed_zones_items.items():
+        removed_zones_items = self.transformation.get_changes("zones", "remove")
+        if removed_zones_items is not None:
+            for zone, stacks in removed_zones_items.items():
                 for stack in stacks:
                     has_item_in_zone = _add_place_item(graph, self.env, stack, zone)
                     if last_node is not None:
@@ -247,8 +245,9 @@ class AbleAndPerformTransformation(Behavior):
             last_nodes = []
 
         # Require all items to be removed from current zone
-        if self.transformation.removed_zone_items is not None:
-            for stack in self.transformation.removed_zone_items:
+        removed_zone_items = self.transformation.get_changes("current_zone", "remove")
+        if removed_zone_items is not None:
+            for stack in removed_zone_items:
                 has_item_in_zone = _add_place_item(graph, self.env, stack)
                 for prev in last_nodes:
                     graph.add_edge(prev, has_item_in_zone, index=int(True))

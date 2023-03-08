@@ -37,8 +37,10 @@ We can then link those two items with a Tranformation from `crafting.transformat
 from crafting.transformation import Transformation
 
 TAKE_GOLD_FROM_CHEST = Transformation(
-    removed_zone_items=[CHEST],
-    added_player_items=[GOLD],
+    inventory_changes={
+        "current_zone": {"remove": [CHEST]},
+        "player": {"add": [GOLD]},
+    }
 )
 ```
 
@@ -127,7 +129,7 @@ Now let's make the `KEY_ROOM` a source of infinite `KEY` with a transformation:
 
 ```python
 SEARCH_KEY = Transformation(
-    added_player_items=[KEY],
+    inventory_changes={"player": {"add": [KEY]}},
     zones=[KEY_ROOM],
 )
 ```
@@ -138,9 +140,10 @@ and we add a transformation that will unlock the `LOCKED_CHEST` into a `CHEST` u
 ```python
 LOCKED_CHEST = Item("locked_chest")
 UNLOCK_CHEST = Transformation(
-    removed_zone_items=[LOCKED_CHEST],
-    removed_player_items=[ItemStack(KEY, 2)],
-    added_zone_items=[CHEST],
+    inventory_changes={
+        "player": {"remove": [ItemStack(KEY, 2)]},
+        "current_zone": {"remove": [LOCKED_CHEST], "add": [CHEST]},
+    },
 )
 ```
 

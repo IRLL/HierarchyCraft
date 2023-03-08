@@ -37,13 +37,11 @@ world = world_from_transformations(
 import os
 from dataclasses import dataclass, field
 from functools import partial
-from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 from crafting.elements import Item, ItemStack, Zone
 from crafting.requirements import RequirementNode, Requirements, req_node_name
-
-if TYPE_CHECKING:
-    from crafting.transformation import Transformation
+from crafting.transformation import Transformation, InventoryOwner
 
 
 def _default_resources_path() -> str:
@@ -199,18 +197,19 @@ def _transformations_elements(
         zones.add(transfo.destination)
     if transfo.zones is not None:
         zones |= set(transfo.zones)
-    items = _add_items_to(transfo.removed_player_items, items)
-    items = _add_items_to(transfo.added_player_items, items)
-    zones_items = _add_items_to(transfo.removed_destination_items, zones_items)
-    zones_items = _add_items_to(transfo.added_destination_items, zones_items)
-    zones_items = _add_items_to(transfo.removed_zone_items, zones_items)
-    zones_items = _add_items_to(transfo.added_zone_items, zones_items)
-    zones_items, zones = _add_dict_items_to(
-        transfo.removed_zones_items, zones_items, zones
-    )
-    zones_items, zones = _add_dict_items_to(
-        transfo.added_zones_items, zones_items, zones
-    )
+    for owner, changes in transfo.inventory_changes.items():
+        if owner is InventoryOwner.ZONES:
+            for _op, zones_stacks in changes.items():
+                for zone, stacks in zones_stacks.items():
+                    zones.add(zone)
+                    zones_items = _add_items_to(stacks, zones_items)
+            continue
+        for _op, stacks in changes.items():
+            if owner is InventoryOwner.PLAYER:
+                items = _add_items_to(stacks, items)
+                continue
+            zones_items = _add_items_to(stacks, zones_items)
+
     return zones, items, zones_items
 
 

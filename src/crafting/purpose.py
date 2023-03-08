@@ -403,14 +403,14 @@ def _inputs_subtasks(task: Task, world: "World", shaping_reward: float) -> List[
     transfo_giving_item = [
         transfo
         for transfo in world.transformations
-        if goal_item in transfo.produced_items
-        and goal_item not in transfo.consumed_items
+        if goal_item in transfo.production("player")
+        and goal_item not in transfo.consumption("player")
     ]
     transfo_placing_zone_item = [
         transfo
         for transfo in world.transformations
         if goal_zone_item in transfo.produced_zones_items
-        and goal_zone_item not in transfo.total_consumed_zone_items
+        and goal_zone_item not in transfo.consumed_zones_items
     ]
     transfo_going_to_any_zones = [
         transfo
@@ -422,12 +422,10 @@ def _inputs_subtasks(task: Task, world: "World", shaping_reward: float) -> List[
     )
 
     for transfo in relevant_transformations:
-        relevant_items |= transfo.consumed_items
-        relevant_zone_items |= transfo.consumed_zone_items
-        relevant_zone_items |= transfo.consumed_destination_items
-        for _zone, zone_items in transfo.consumed_zones_items.items():
-            relevant_zone_items |= zone_items
-
+        relevant_items |= transfo.consumption("player")
+        relevant_zone_items |= transfo.consumption("current_zone")
+        relevant_zone_items |= transfo.consumption("destination")
+        relevant_zone_items |= transfo.consumption("zones")
         if transfo.zones:
             relevant_zones |= set(transfo.zones)
 

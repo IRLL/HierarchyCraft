@@ -79,5 +79,7 @@ def test_tower_accessible_items():
     env = TowerCraftingEnv(height=2, width=3)
     searchable_items = env.world.items[: env.width]
     for transfo in env.world.transformations:
-        if any(item in searchable_items for item in transfo.added_player_items):
-            check.equal(len(transfo.removed_player_items), 0)
+        added_player_items = transfo.get_changes("player", "add")
+        if any(item in searchable_items for item in added_player_items):
+            removed_player_items = transfo.get_changes("player", "remove")
+            check.equal(len(removed_player_items), 0)

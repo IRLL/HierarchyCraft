@@ -219,20 +219,24 @@ class Requirements:
         """Add edges induced by a Crafting recipe."""
         zones = set() if zone is None else {zone}
 
-        in_items = transfo.consumed_items
-        out_items = [item for item in transfo.produced_items if item not in in_items]
+        in_items = transfo.consumption("player")
+        out_items = [
+            item for item in transfo.production("player") if item not in in_items
+        ]
 
-        in_zone_items = transfo.total_consumed_zone_items
+        in_zone_items = transfo.consumed_zones_items
         out_zone_items = [
             item for item in transfo.produced_zones_items if item not in in_zone_items
         ]
 
         other_zones_items = {}
         if transfo.destination is not None:
-            other_zones_items[transfo.destination] = transfo.removed_destination_items
+            removed_dest_items = transfo.get_changes("destination", "remove")
+            other_zones_items[transfo.destination] = removed_dest_items
 
-        if transfo.removed_zones_items is not None:
-            for other_zone, consumed_stacks in transfo.removed_zones_items.items():
+        removed_zones_items = transfo.get_changes("zones", "remove")
+        if removed_zones_items is not None:
+            for other_zone, consumed_stacks in removed_zones_items.items():
                 other_zones_items[other_zone] = consumed_stacks
 
         for other_zone, other_zone_items in other_zones_items.items():
@@ -247,9 +251,11 @@ class Requirements:
                 alternative_transformations = [
                     alt_transfo
                     for alt_transfo in self.world.transformations
-                    if alt_transfo.added_zones_items is not None
+                    if alt_transfo.get_changes("zones", "add") is not None
                     and _available_in_zones_stacks(
-                        other_zone_items, other_zone, alt_transfo.added_zones_items
+                        other_zone_items,
+                        other_zone,
+                        alt_transfo.get_changes("zones", "add"),
                     )
                 ]
                 if len(alternative_transformations) == 1:
@@ -258,8 +264,8 @@ class Requirements:
                         len(alt_transfo.zones) == 1
                         and alt_transfo.zones[0] == other_zone
                     ):
-                        in_items |= alt_transfo.consumed_items
-                        in_zone_items |= alt_transfo.total_consumed_zone_items
+                        in_items |= alt_transfo.consumption("player")
+                        in_zone_items |= alt_transfo.consumed_zones_items
                     else:
                         zones.add(other_zone)
                 elif not alternative_transformations:

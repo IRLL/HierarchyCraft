@@ -39,16 +39,16 @@ class TestCratingEnv:
 
     def test_state_initialisation(self):
         """should initialize the state as expected."""
-        expected_player_inventory = np.zeros(len(self.items), np.uint16)
+        expected_player_inventory = np.zeros(len(self.items), np.int32)
         check_np_equal(self.env.state.player_inventory, expected_player_inventory)
 
-        expected_position = np.zeros(len(self.zones), np.uint16)
+        expected_position = np.zeros(len(self.zones), np.int32)
         start_zone_slot = self.env.world.zones.index(self.start_zone)
         expected_position[start_zone_slot] = 1
         check_np_equal(self.env.state.position, expected_position)
 
         expected_zones_inventories = np.zeros(
-            (len(self.zones), len(self.zones_items)), np.uint16
+            (len(self.zones), len(self.zones_items)), np.int32
         )
         check_np_equal(self.env.state.zones_inventories, expected_zones_inventories)
 
@@ -60,7 +60,7 @@ class TestCratingEnv:
             self.transformations, start_zone=new_start_zone
         )
         env = CraftingEnv(world)
-        expected_position = np.zeros(len(env.world.zones), np.uint16)
+        expected_position = np.zeros(len(env.world.zones), np.int32)
         expected_position[env.world.zones.index(new_start_zone)] = 1
         check_np_equal(env.state.position, expected_position)
 
@@ -74,7 +74,7 @@ class TestCratingEnv:
             start_items=[ItemStack(start_item, 2), ItemStack(Item("wood"), 3)],
         )
         env = CraftingEnv(world)
-        expected_items = np.zeros(env.world.n_items, np.uint16)
+        expected_items = np.zeros(env.world.n_items, np.int32)
         expected_items[env.world.items.index(start_item)] = 2
         expected_items[env.world.items.index(Item("wood"))] = 3
         check_np_equal(env.state.player_inventory, expected_items)
@@ -166,15 +166,15 @@ class TestCratingEnv:
 
         observation = self.env.reset()
         check.greater(observation.shape[0], 0)
-        expected_player_inventory = np.zeros(len(self.env.world.items), np.uint16)
+        expected_player_inventory = np.zeros(len(self.env.world.items), np.int32)
         check_np_equal(self.env.state.player_inventory, expected_player_inventory)
 
-        expected_position = np.zeros(len(self.env.world.zones), np.uint16)
+        expected_position = np.zeros(len(self.env.world.zones), np.int32)
         expected_position[start_zone_index] = 1
         check_np_equal(self.env.state.position, expected_position)
 
         expected_zones_inventories = np.zeros(
-            (len(self.env.world.zones), len(self.env.world.zones_items)), np.uint16
+            (len(self.env.world.zones), len(self.env.world.zones_items)), np.int32
         )
         check_np_equal(self.env.state.zones_inventories, expected_zones_inventories)
 
@@ -373,7 +373,10 @@ def test_treasure_env(mocker: MockerFixture):
     from crafting.transformation import Transformation
 
     TAKE_GOLD_FROM_CHEST = Transformation(
-        removed_zone_items=[CHEST], added_player_items=[GOLD]
+        inventory_changes={
+            "current_zone": {"remove": [CHEST]},
+            "player": {"add": [GOLD]},
+        }
     )
 
     from crafting.elements import Zone
@@ -403,15 +406,16 @@ def test_treasure_env(mocker: MockerFixture):
     START_ROOM = Zone("start_room")
 
     SEARCH_KEY = Transformation(
-        added_player_items=[KEY],
+        inventory_changes={"player": {"add": [KEY]}},
         zones=[KEY_ROOM],
     )
 
     LOCKED_CHEST = Item("locked_chest")
     UNLOCK_CHEST = Transformation(
-        removed_zone_items=[LOCKED_CHEST],
-        removed_player_items=[ItemStack(KEY, 2)],
-        added_zone_items=[CHEST],
+        inventory_changes={
+            "player": {"remove": [ItemStack(KEY, 2)]},
+            "current_zone": {"remove": [LOCKED_CHEST], "add": [CHEST]},
+        },
     )
 
     MOVE_TO_KEY_ROOM = Transformation(

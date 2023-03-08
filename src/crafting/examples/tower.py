@@ -105,8 +105,7 @@ class TowerCraftingEnv(CraftingEnv):
                     inputs.append(ItemStack(required_item))
 
                 new_recipe = Transformation(
-                    removed_player_items=inputs,
-                    added_player_items=outputs,
+                    inventory_changes={"player": {"remove": inputs, "add": outputs}}
                 )
                 transformations.append(new_recipe)
 
@@ -120,8 +119,7 @@ class TowerCraftingEnv(CraftingEnv):
             inputs.append(ItemStack(required_item))
 
         new_recipe = Transformation(
-            removed_player_items=inputs,
-            added_player_items=outputs,
+            inventory_changes={"player": {"remove": inputs, "add": outputs}}
         )
         transformations.append(new_recipe)
 

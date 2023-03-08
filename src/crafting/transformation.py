@@ -10,7 +10,7 @@ from crafting.transformation import Transformation
 ### Add an item in player inventory
 ```python
 DIRT = Item("dirt")
-Transformation(added_player_items=[DIRT])
+Transformation(inventory_changes={"player": {"add":[DIRT]}})
 ```
 
 ### Modify the player position
@@ -23,7 +23,7 @@ Transformation(destination=FOREST)
 ```python
 WOOD = Item("wood")
 Transformation(
-    added_player_items=[WOOD],
+    inventory_changes={"player": {"add":[WOOD]}},
     zones=[FOREST]
 )
 ```
@@ -32,8 +32,12 @@ Transformation(
 ```python
 PLANK = Item("plank")
 Transformation(
-    removed_player_items=[WOOD],
-    added_player_items=[ItemStack(PLANK, 4)],
+    inventory_changes={
+        "player": {
+            "add":[ItemStack(PLANK, 4)]
+            "remove": [WOOD]
+        },
+    },
 )
 ```
 Note the use of ItemStack to give a quantity > 1.
@@ -42,8 +46,10 @@ Note the use of ItemStack to give a quantity > 1.
 ```python
 HOUSE = Item("house") # Need 12 WOOD and 64 PLANK
 Transformation(
-    removed_player_items=[ItemStack(WOOD, 12), ItemStack(PLANK, 64)],
-    added_zone_items=[HOUSE],
+    inventory_changes={
+        "player": {"remove": [ItemStack(WOOD, 12), ItemStack(PLANK, 64)]},
+        "current_zone": {"add": [HOUSE]}
+    },
 )
 ```
 
@@ -51,7 +57,10 @@ Transformation(
 ```python
 TREETOPS = Zone("treetops")
 LADDER = Item("ladder")
-Transformation(destination=TREETOPS, removed_player_items=[LADDER])
+Transformation(
+    destination=TREETOPS,
+    inventory_changes={"player": {"remove":[LADDER]}},
+)
 ```
 
 ### Modify the destination's inventory
@@ -60,7 +69,7 @@ Transformation(destination=TREETOPS, removed_player_items=[LADDER])
 CRATER = Item("crater")
 Transformation(
     destination=FOREST,
-    added_destination_items=[CRATER],
+    inventory_changes={"destination": {"add":[CRATER]}},
     zones=[TREETOPS]
 )
 ```
@@ -72,10 +81,16 @@ DOOR = Item("door")
 KEY = Item("key")
 Transformation(
     destination=INSIDE_HOUSE,
-    removed_player_items=[KEY],
-    added_player_items=[KEY],
-    removed_zone_items=[DOOR],
-    added_zone_items=[DOOR],
+    inventory_changes={
+        "player": {
+            "remove": [KEY],  # Ensure has key
+            "add":[KEY],      # Then give it back
+        },
+        "current_zone": {
+            "remove": [DOOR],  # Ensure has door
+            "add":[DOOR],      # Then give it door
+        }
+    },
 )
 ```
 By removing and adding the same item,
@@ -88,11 +103,15 @@ STRANGE_RED_BUTTON = Item("don't press me")
 SPACE = Zone("space")
 INCOMING_MISSILES = Item("incoming_missiles")
 Transformation(
-    removed_zone_items=[STRANGE_RED_BUTTON], # Current zone
-    added_zone_items=[STRANGE_RED_BUTTON],
-    added_zones_items={
-        SPACE: [ItemStack(INCOMING_MISSILES, 64)] # A specific zone
-    }
+    inventory_changes={
+        "current_zone": {  # Current zone
+            "remove": [STRANGE_RED_BUTTON],
+            "add":[STRANGE_RED_BUTTON],
+        },
+        SPACE: {  # An 'absolute' specific zone
+            "add": [ItemStack(INCOMING_MISSILES, 64)]
+        },
+    },
 )
 ```
 Note that the player may not see the effect of such a transformation,
@@ -103,6 +122,7 @@ because the player only observe the current zone items.
 
 
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union
+from enum import Enum
 
 import numpy as np
 
@@ -111,6 +131,26 @@ from crafting.elements import Item, ItemStack, Zone
 if TYPE_CHECKING:
     from crafting.env import CraftingState
     from crafting.world import World
+
+
+class InventoryOwner(Enum):
+    PLAYER = "player"
+    CURRENT = "current_zone"
+    DESTINATION = "destination"
+    ZONES = "zones"
+
+
+class InventoryOperation(Enum):
+    REMOVE = "remove"
+    ADD = "add"
+    APPLY = "apply"
+
+
+InventoryChanges = Dict[
+    InventoryOperation,
+    Union[List[Union[Item, ItemStack]], Dict[Zone, List[Union[Item, ItemStack]]]],
+]
+InventoryOperations = Dict[InventoryOperation, np.ndarray]
 
 
 class Transformation:
@@ -163,58 +203,21 @@ class Transformation:
 
     """
 
-    OPERATIONS = [
-        "destination",
-        "zones",
-        "removed_player_items",
-        "added_player_items",
-        "removed_destination_items",
-        "added_destination_items",
-        "removed_zone_items",
-        "added_zone_items",
-        "removed_zones_items",
-        "added_zones_items",
-    ]
-
     def __init__(
         self,
         destination: Optional[Zone] = None,
+        inventory_changes: Optional[Dict[InventoryOwner, InventoryChanges]] = None,
         zones: Optional[List[Zone]] = None,
-        removed_player_items: Optional[List[Union["ItemStack", "Item"]]] = None,
-        added_player_items: Optional[List[Union["ItemStack", "Item"]]] = None,
-        removed_destination_items: Optional[List[Union["ItemStack", "Item"]]] = None,
-        added_destination_items: Optional[List[Union["ItemStack", "Item"]]] = None,
-        removed_zone_items: Optional[List[Union["ItemStack", "Item"]]] = None,
-        added_zone_items: Optional[List[Union["ItemStack", "Item"]]] = None,
-        removed_zones_items: Optional[
-            Dict[Zone, List[Union["ItemStack", "Item"]]]
-        ] = None,
-        added_zones_items: Optional[
-            Dict[Zone, List[Union["ItemStack", "Item"]]]
-        ] = None,
     ) -> None:
         """The building blocks of every crafting environment.
 
         Args:
             destination: Destination zone.
                 Defaults to None.
+            inventory_changes: Dictionary inventory changes for
+                the player, the current zone, the destination zone and each zone.
+                Defaults to None.
             zones: List of valid zones, if None all zones are valid.
-                Defaults to None.
-            removed_player_items: List of removed ItemStacks from the player inventory.
-                Defaults to None.
-            added_player_items: List of added ItemStacks to the player inventory.
-                Defaults to None.
-            removed_destination_items: List of removed ItemStacks from the destination inventory.
-                Defaults to None.
-            added_destination_items : List of added ItemStacks to the destination inventory.
-                Defaults to None.
-            removed_zone_items: List of removed ItemStacks from the current zone inventory.
-                Defaults to None.
-            added_zone_items: List of added ItemStacks to the current zone inventory.
-                Defaults to None.
-            removed_zones_items: Dictionary of Lists of removed ItemStacks for each zone.
-                Defaults to None.
-            added_zones_items: Dictionary of Lists of added ItemStacks for each zone.
                 Defaults to None.
         """
         self.destination = destination
@@ -223,25 +226,10 @@ class Transformation:
         self.zones = zones
         self._zones = None
 
-        self.removed_player_items = _stack_items_list(removed_player_items)
-        self._removed_player_items = None
-        self.added_player_items = _stack_items_list(added_player_items)
-        self._added_player_items = None
-
-        self.removed_destination_items = _stack_items_list(removed_destination_items)
-        self._removed_destination_items = None
-        self.added_destination_items = _stack_items_list(added_destination_items)
-        self._added_destination_items = None
-
-        self.removed_zone_items = _stack_items_list(removed_zone_items)
-        self._removed_zone_items = None
-        self.added_zone_items = _stack_items_list(added_zone_items)
-        self._added_zone_items = None
-
-        self.removed_zones_items = _stack_dict_items_list(removed_zones_items)
-        self._removed_zones_items = None
-        self.added_zones_items = _stack_dict_items_list(added_zones_items)
-        self._added_zones_items = None
+        self.inventory_changes = _stack_inventory_changes(inventory_changes)
+        self._inventory_operations: Optional[
+            Dict[InventoryOwner, InventoryOperations]
+        ] = None
 
     def apply(
         self,
@@ -250,29 +238,19 @@ class Transformation:
         zones_inventories: np.ndarray,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Apply the transformation in place on the given state."""
-        position_slot: int = position.nonzero()[0]
-        if self._added_player_items is not None:
-            player_inventory += self._added_player_items
-        if self._removed_player_items is not None:
-            player_inventory -= self._removed_player_items
-        if self._added_zone_items is not None:
-            zones_inventories[position_slot, :] += self._added_zone_items
-        if self._removed_zone_items is not None:
-            zones_inventories[position_slot, :] -= self._removed_zone_items
-        if self._added_zones_items is not None:
-            zones_inventories += self._added_zones_items
-        if self._removed_zones_items is not None:
-            zones_inventories -= self._removed_zones_items
+
+        for owner, operations in self._inventory_operations.items():
+            operation_arr = operations[InventoryOperation.APPLY]
+            _update_inventory(
+                owner,
+                player_inventory,
+                position,
+                zones_inventories,
+                self._destination,
+                operation_arr,
+            )
         if self._destination is not None:
-            destination_slot: int = self._destination.nonzero()[0]
-            if self._added_destination_items is not None:
-                zones_inventories[destination_slot, :] += self._added_destination_items
-            if self._removed_destination_items is not None:
-                zones_inventories[
-                    destination_slot, :
-                ] -= self._removed_destination_items
             position[...] = self._destination
-        return player_inventory, position, zones_inventories
 
     def is_valid(self, state: "CraftingState") -> bool:
         """Is the transformation valid in the given state?"""
@@ -292,72 +270,50 @@ class Transformation:
 
     def build(self, world: "World") -> None:
         """Build the transformation array operations on the given world."""
-        for op_name in self.OPERATIONS:
-            if getattr(self, op_name) is not None:
-                builder = getattr(self, f"_build_{op_name}_op")
-                builder(world)
+        self._build_destination_op(world)
+        self._build_inventory_ops(world)
+        self._build_zones_op(world)
 
-    @property
-    def produced_items(self) -> Set["Item"]:
-        """Set of produced items by this transformation."""
+    def _relevant_items_changed(
+        self, owner: InventoryOwner, operation: InventoryOperation
+    ):
+        added_stacks = self.get_changes(owner, operation)
         items = set()
-        if self.added_player_items:
-            items |= _items_from_stack_list(self.added_player_items)
+
+        if added_stacks:
+            if owner is not InventoryOwner.ZONES:
+                return _items_from_stack_list(added_stacks)
+
+            for _zone, stacks in added_stacks.items():
+                items |= _items_from_stack_list(stacks)
+
         return items
+
+    def production(self, owner: InventoryOwner) -> Set["Item"]:
+        """Set of produced items for the given owner by this transformation."""
+        return self._relevant_items_changed(owner, InventoryOperation.ADD)
+
+    def consumption(self, owner: InventoryOwner) -> Set["Item"]:
+        """Set of consumed items for the given owner by this transformation."""
+        return self._relevant_items_changed(owner, InventoryOperation.REMOVE)
 
     @property
     def produced_zones_items(self) -> Set["Item"]:
         """Set of produced zones items by this transformation."""
-        items = set()
-        if self.added_zone_items:
-            items |= _items_from_stack_list(self.added_zone_items)
-        if self.added_destination_items:
-            items |= _items_from_stack_list(self.added_destination_items)
-        if self.added_zones_items:
-            for _zone, stacks in self.added_zones_items.items():
-                items |= _items_from_stack_list(stacks)
-        return items
+        return (
+            self.production(InventoryOwner.CURRENT)
+            | self.production(InventoryOwner.DESTINATION)
+            | self.production(InventoryOwner.ZONES)
+        )
 
     @property
-    def consumed_items(self) -> Set["Item"]:
-        """Set of consumed items by this transformation."""
-        items = set()
-        if self.removed_player_items:
-            items |= _items_from_stack_list(self.removed_player_items)
-        return items
-
-    @property
-    def consumed_zone_items(self) -> Set["Item"]:
+    def consumed_zones_items(self) -> Set["Item"]:
         """Set of consumed zones items by this transformation."""
-        items = set()
-        if self.removed_zone_items:
-            items |= _items_from_stack_list(self.removed_zone_items)
-        return items
-
-    @property
-    def consumed_destination_items(self) -> Set["Item"]:
-        """Set of consumed zones items at destination by this transformation."""
-        items = set()
-        if self.removed_destination_items:
-            items |= _items_from_stack_list(self.removed_destination_items)
-        return items
-
-    @property
-    def consumed_zones_items(self) -> Dict[Zone, Set["Item"]]:
-        """Set of consumed items in specific zones by this transformation."""
-        items_per_zone = {}
-        if self.removed_zones_items:
-            for zone, stacks in self.removed_zones_items.items():
-                items_per_zone[zone] = _items_from_stack_list(stacks)
-        return items_per_zone
-
-    @property
-    def total_consumed_zone_items(self) -> Set["Item"]:
-        """Set of consumed items in any zones by this transformation."""
-        items = self.consumed_zone_items | self.consumed_destination_items
-        for consumed_zones_items in self.consumed_zones_items.values():
-            items |= consumed_zones_items
-        return items
+        return (
+            self.consumption(InventoryOwner.CURRENT)
+            | self.consumption(InventoryOwner.DESTINATION)
+            | self.consumption(InventoryOwner.ZONES)
+        )
 
     def _is_valid_position(self, position: np.ndarray):
         if self._zones is not None and not np.any(np.multiply(self._zones, position)):
@@ -367,8 +323,10 @@ class Transformation:
         return True
 
     def _is_valid_inventory(self, player_inventory: np.ndarray):
-        if self._removed_player_items is not None and not np.all(
-            player_inventory >= self._removed_player_items
+        player_items_changes = self._inventory_operations.get(InventoryOwner.PLAYER, {})
+        removed_player_items = player_items_changes.get(InventoryOperation.REMOVE)
+        if removed_player_items is not None and not np.all(
+            player_inventory >= removed_player_items
         ):
             return False
         return True
@@ -376,93 +334,132 @@ class Transformation:
     def _is_valid_current_zone_inventory(
         self, position: np.ndarray, zones_inventories: np.ndarray
     ):
-        if self._removed_zone_items is not None:
+        zone_items_changes = self._inventory_operations.get(InventoryOwner.CURRENT, {})
+        removed_zone_items = zone_items_changes.get(InventoryOperation.REMOVE)
+        if removed_zone_items is not None:
             current_zone_slot = position.nonzero()[0]
             current_zone_inventory = zones_inventories[current_zone_slot, :]
-            if not np.all(current_zone_inventory >= self._removed_zone_items):
+            if not np.all(current_zone_inventory >= removed_zone_items):
                 return False
         return True
 
     def _is_valid_zones_inventory(self, zones_inventories: np.ndarray):
-        if self._removed_zones_items is not None:
-            if not np.all(zones_inventories >= self._removed_zones_items):
+        zones_items_changes = self._inventory_operations.get(InventoryOwner.ZONES, {})
+        removed_zones_items = zones_items_changes.get(InventoryOperation.REMOVE)
+        if removed_zones_items is not None:
+            if not np.all(zones_inventories >= removed_zones_items):
                 return False
         return True
 
     def _is_valid_destination_inventory(self, zones_inventories: np.ndarray):
-        if (
-            self._destination is not None
-            and self._removed_destination_items is not None
-        ):
+        dest_items_changes = self._inventory_operations.get(
+            InventoryOwner.DESTINATION, {}
+        )
+        removed_destination_items = dest_items_changes.get(InventoryOperation.REMOVE)
+        if self._destination is not None and removed_destination_items is not None:
             destination_zone_slot = self._destination.nonzero()[0]
             destination_inventory = zones_inventories[destination_zone_slot, :]
-            if not np.all(destination_inventory >= self._removed_destination_items):
+            if not np.all(destination_inventory >= removed_destination_items):
                 return False
         return True
 
     def _build_destination_op(self, world: "World") -> None:
-        self._destination = np.zeros(world.n_zones, dtype=np.uint16)
+        if self.destination is None:
+            return
+        self._destination = np.zeros(world.n_zones, dtype=np.int32)
         self._destination[world.slot_from_zone(self.destination)] = 1
 
     def _build_zones_op(self, world: "World") -> None:
-        self._zones = np.zeros(world.n_zones, dtype=np.uint16)
+        if self.zones is None:
+            return
+        self._zones = np.zeros(world.n_zones, dtype=np.int32)
         for zone in self.zones:
             self._zones[world.slot_from_zone(zone)] = 1
 
-    def _build_removed_player_items_op(self, world: "World") -> None:
-        self._build_items_op("removed_player_items", world.items)
+    def _build_inventory_ops(self, world: "World"):
+        self._inventory_operations = {}
 
-    def _build_added_player_items_op(self, world: "World") -> None:
-        self._build_items_op("added_player_items", world.items)
+        for owner, operations in self.inventory_changes.items():
+            owner = InventoryOwner(owner)
+            if owner is InventoryOwner.ZONES:
+                for operation, zones_stacks in operations.items():
+                    operation = InventoryOperation(operation)
+                    operation_arr = self._build_zones_items_op(
+                        zones_stacks, world.zones, world.zones_items
+                    )
+                    if owner not in self._inventory_operations:
+                        self._inventory_operations[owner] = {}
+                    self._inventory_operations[owner][operation] = operation_arr
+                continue
+            if owner is InventoryOwner.PLAYER:
+                world_items_list = world.items
+            else:
+                world_items_list = world.zones_items
+            for operation, itemstacks in operations.items():
+                operation = InventoryOperation(operation)
+                operation_arr = self._build_operation_array(
+                    itemstacks, world_items_list
+                )
+                if owner not in self._inventory_operations:
+                    self._inventory_operations[owner] = {}
+                self._inventory_operations[owner][operation] = operation_arr
 
-    def _build_removed_destination_items_op(self, world: "World") -> None:
-        self._build_items_op("removed_destination_items", world.zones_items)
+        for owner, operations in self._inventory_operations.items():
+            apply_op = InventoryOperation.APPLY
+            apply_arr = _build_apply_operation_array(operations)
+            self._inventory_operations[owner][apply_op] = apply_arr
 
-    def _build_added_destination_items_op(self, world: "World") -> None:
-        self._build_items_op("added_destination_items", world.zones_items)
-
-    def _build_removed_zone_items_op(self, world: "World") -> None:
-        self._build_items_op("removed_zone_items", world.zones_items)
-
-    def _build_added_zone_items_op(self, world: "World") -> None:
-        self._build_items_op("added_zone_items", world.zones_items)
-
-    def _build_items_op(self, op_name: str, world_item_list: List["Item"]):
-        operation = np.zeros(len(world_item_list), dtype=np.uint16)
-        itemstacks: List["ItemStack"] = getattr(self, op_name)
+    def _build_operation_array(
+        self, itemstacks: List[ItemStack], world_items_list: List["Item"]
+    ) -> np.ndarray:
+        operation = np.zeros(len(world_items_list), dtype=np.int32)
         for itemstack in itemstacks:
-            item_slot = world_item_list.index(itemstack.item)
+            item_slot = world_items_list.index(itemstack.item)
             operation[item_slot] = itemstack.quantity
-        setattr(self, f"_{op_name}", operation)
-
-    def _build_removed_zones_items_op(self, world: "World") -> None:
-        self._build_zones_items_op(
-            "removed_zones_items", world.zones, world.zones_items
-        )
-
-    def _build_added_zones_items_op(self, world: "World") -> None:
-        self._build_zones_items_op("added_zones_items", world.zones, world.zones_items)
+        return operation
 
     def _build_zones_items_op(
-        self, op_name: str, zones: List[Zone], zones_items: List["Item"]
-    ):
-        operation = np.zeros((len(zones), len(zones_items)), dtype=np.uint16)
-        stacks_per_zone: Dict[Zone, List["ItemStack"]] = getattr(self, op_name)
+        self,
+        stacks_per_zone: Dict[Zone, List["ItemStack"]],
+        zones: List[Zone],
+        zones_items: List["Item"],
+    ) -> np.ndarray:
+        operation = np.zeros((len(zones), len(zones_items)), dtype=np.int32)
         for zone, stacks in stacks_per_zone.items():
             zone_slot = zones.index(zone)
             for stack in stacks:
                 item_slot = zones_items.index(stack.item)
                 operation[zone_slot, item_slot] = stack.quantity
-        setattr(self, f"_{op_name}", operation)
+        return operation
+
+    def get_changes(
+        self, owner: InventoryOwner, operation: InventoryOperation
+    ) -> Optional[Union[List[ItemStack], Dict[Zone, List[ItemStack]]]]:
+        owner = InventoryOwner(owner)
+        operation = InventoryOperation(operation)
+        operations = self.inventory_changes.get(owner, {})
+        return operations.get(operation, None)
 
     def __str__(self) -> str:
         transfo_text = ""
 
         remove_texts = []
-        remove_texts += _stacks_str(self.removed_player_items)
-        remove_texts += _stacks_str(self.removed_zone_items, "Zone(", ")")
-        remove_texts += _stacks_str(self.removed_destination_items, "Dest(", ")")
-        remove_texts += _dict_stacks_str(self.removed_zones_items)
+        remove_texts += _stacks_str(
+            self.get_changes(InventoryOwner.PLAYER, InventoryOperation.REMOVE)
+        )
+        remove_texts += _stacks_str(
+            self.get_changes(InventoryOwner.CURRENT, InventoryOperation.REMOVE),
+            "Zone(",
+            ")",
+        )
+        remove_texts += _stacks_str(
+            self.get_changes(InventoryOwner.DESTINATION, InventoryOperation.REMOVE),
+            "Dest(",
+            ")",
+        )
+        remove_texts += _dict_stacks_str(
+            self.get_changes(InventoryOwner.ZONES, InventoryOperation.REMOVE),
+        )
 
         if remove_texts:
             transfo_text = " ".join(remove_texts)
@@ -471,10 +468,22 @@ class Transformation:
         transfo_text += "> "
 
         add_texts = []
-        add_texts += _stacks_str(self.added_player_items)
-        add_texts += _stacks_str(self.added_zone_items, "Zone(", ")")
-        add_texts += _stacks_str(self.added_destination_items, "Dest(", ")")
-        add_texts += _dict_stacks_str(self.added_zones_items)
+        add_texts += _stacks_str(
+            self.get_changes(InventoryOwner.PLAYER, InventoryOperation.ADD)
+        )
+        add_texts += _stacks_str(
+            self.get_changes(InventoryOwner.CURRENT, InventoryOperation.ADD),
+            "Zone(",
+            ")",
+        )
+        add_texts += _stacks_str(
+            self.get_changes(InventoryOwner.DESTINATION, InventoryOperation.ADD),
+            "Dest(",
+            ")",
+        )
+        add_texts += _dict_stacks_str(
+            self.get_changes(InventoryOwner.ZONES, InventoryOperation.ADD)
+        )
         if add_texts:
             transfo_text += " ".join(add_texts)
             if self.destination is not None:
@@ -484,6 +493,45 @@ class Transformation:
             transfo_text += f"| {self.destination.name}"
 
         return transfo_text
+
+
+def _update_inventory(
+    owner: InventoryOwner,
+    player_inventory: np.ndarray,
+    position: np.ndarray,
+    zones_inventories: np.ndarray,
+    destination: np.ndarray,
+    operation_arr: np.ndarray,
+):
+    position_slot: int = position.nonzero()[0]
+    if owner is InventoryOwner.PLAYER:
+        player_inventory[...] += operation_arr
+    elif owner is InventoryOwner.CURRENT:
+        zones_inventories[position_slot, :] += operation_arr
+    elif owner is InventoryOwner.DESTINATION:
+        destination_slot: int = destination.nonzero()[0]
+        zones_inventories[destination_slot, :] += operation_arr
+    elif owner is InventoryOwner.ZONES:
+        zones_inventories[...] += operation_arr
+    else:
+        raise NotImplementedError
+
+
+def _build_apply_operation_array(
+    operations: InventoryOperations,
+) -> Optional[np.ndarray]:
+    apply_operation = None
+    if InventoryOperation.ADD in operations:
+        add_op = operations[InventoryOperation.ADD]
+        if apply_operation is None:
+            apply_operation = np.zeros_like(add_op)
+        apply_operation += add_op
+    if InventoryOperation.REMOVE in operations:
+        rem_op = operations[InventoryOperation.REMOVE]
+        if apply_operation is None:
+            apply_operation = np.zeros_like(rem_op)
+        apply_operation -= rem_op
+    return apply_operation
 
 
 def _dict_stacks_str(dict_of_stacks: Optional[Dict[Zone, List["ItemStack"]]]):
@@ -523,15 +571,45 @@ def _stack_items_list(
     return items_or_stacks
 
 
-def _stack_dict_items_list(
-    dict_of_stacks: Optional[Dict[Zone, List[Union["ItemStack", "Item"]]]]
-):
-    if dict_of_stacks is None:
-        return None
-    return {
-        zone: _stack_items_list(items_or_stacks)
-        for zone, items_or_stacks in dict_of_stacks.items()
-    }
+def _stack_inventory_changes(
+    dict_of_items_or_stacks: Optional[Dict[InventoryOwner, InventoryChanges]]
+) -> Dict[InventoryOwner, InventoryChanges]:
+    dict_of_stacks = {}
+    if dict_of_items_or_stacks is None:
+        return dict_of_stacks
+
+    # Group specific zones
+    zones = InventoryOwner.ZONES
+    for owner in list(dict_of_items_or_stacks.keys()):
+        if not isinstance(owner, Zone):
+            continue
+        if zones not in dict_of_items_or_stacks:
+            dict_of_items_or_stacks[zones] = {}
+
+        changes = dict_of_items_or_stacks.pop(owner)
+        for operation, stacks in changes.items():
+            if operation not in dict_of_items_or_stacks[zones]:
+                dict_of_items_or_stacks[zones][operation] = {}
+            dict_of_items_or_stacks[zones][operation][owner] = stacks
+
+    for owner, sub_dict in dict_of_items_or_stacks.items():
+        owner = InventoryOwner(owner)
+        if owner is InventoryOwner.ZONES:
+            if owner not in dict_of_stacks:
+                dict_of_stacks[owner] = {}
+            for op, zones_items_or_stacks in sub_dict.items():
+                zones_stacks = {
+                    zone: _stack_items_list(items_or_stacks)
+                    for zone, items_or_stacks in zones_items_or_stacks.items()
+                }
+                dict_of_stacks[owner][InventoryOperation(op)] = zones_stacks
+            continue
+        dict_of_stacks[owner] = {
+            InventoryOperation(op): _stack_items_list(items_or_stacks)
+            for op, items_or_stacks in sub_dict.items()
+        }
+
+    return dict_of_stacks
 
 
 def _items_from_stack_list(stacks: List["ItemStack"]) -> Set["Item"]:

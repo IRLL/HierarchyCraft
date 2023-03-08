@@ -105,8 +105,7 @@ class RecursiveCraftingEnv(CraftingEnv):
             outputs = [ItemStack(item)]
 
             new_recipe = Transformation(
-                removed_player_items=inputs,
-                added_player_items=outputs,
+                inventory_changes={"player": {"remove": inputs, "add": outputs}}
             )
             transformation.append(new_recipe)
 
@@ -153,10 +152,8 @@ class LightRecursiveCraftingEnv(CraftingEnv):
                 inputs = [ItemStack(items[item_id]) for item_id in range(low_id, index)]
             outputs = [ItemStack(item)]
 
-            # Build recipe
             new_recipe = Transformation(
-                removed_player_items=inputs,
-                added_player_items=outputs,
+                inventory_changes={"player": {"remove": inputs, "add": outputs}}
             )
             transformation.append(new_recipe)
 

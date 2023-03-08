@@ -166,51 +166,68 @@ class TestPurposeRewardShaping:
         go_to_zones.append(
             Transformation(
                 destination=self.zones[4],
-                removed_player_items=[self.items[0]],
-                removed_zone_items=[self.items[0]],
-                removed_destination_items=[self.items[2]],
+                inventory_changes={
+                    "player": {"remove": [self.items[0]]},
+                    "current_zone": {"remove": [self.items[0]]},
+                    "destination": {"remove": [self.items[2]]},
+                },
                 zones=self.zones[:2],
             )
         )
 
         # Item 0
         search_0 = Transformation(
-            added_player_items=[self.items[0]],
+            inventory_changes={"player": {"add": [self.items[0]]}},
             zones=[self.zones[0]],
         )
         # Item 0 > Item 1
         craft_1 = Transformation(
-            removed_player_items=[self.items[0]],
-            added_player_items=[self.items[1]],
+            inventory_changes={
+                "player": {
+                    "remove": [self.items[0]],
+                    "add": [self.items[1]],
+                },
+            },
         )
         # Item 1 > Item 2
         craft_2 = Transformation(
-            removed_player_items=[self.items[1]],
-            added_player_items=[self.items[2]],
+            inventory_changes={
+                "player": {
+                    "remove": [self.items[1]],
+                    "add": [self.items[2]],
+                },
+            },
             zones=[self.zones[1]],
         )
         # Item 2 > 2 * Item 2
         craft_2_with_2 = Transformation(
-            removed_player_items=[self.items[2]],
-            added_player_items=[ItemStack(self.items[2], 2)],
+            inventory_changes={
+                "player": {
+                    "remove": [self.items[2]],
+                    "add": [ItemStack(self.items[2], 2)],
+                },
+            },
         )
         # Item 3
         search_3 = Transformation(
-            added_player_items=[self.items[3]],
+            inventory_changes={"player": {"add": [self.items[3]]}},
             zones=[self.zones[2]],
         )
 
         # Zone Item 0
         place_0 = Transformation(
-            removed_player_items=[self.items[0]],
-            added_zone_items=[self.items[0]],
+            inventory_changes={
+                "player": {"remove": [self.items[0]]},
+                "current_zone": {"add": [self.items[0]]},
+            },
         )
 
         # Zone Item 2
         place_2 = Transformation(
-            removed_player_items=[self.items[2]],
-            removed_zone_items=[self.items[0]],
-            added_zone_items=[self.items[2]],
+            inventory_changes={
+                "player": {"remove": [self.items[2]]},
+                "current_zone": {"remove": [self.items[0]], "add": [self.items[2]]},
+            },
         )
 
         self.get_item_2 = GetItemTask(self.items[2], reward=10.0)
