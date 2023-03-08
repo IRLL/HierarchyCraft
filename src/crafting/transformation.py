@@ -274,20 +274,22 @@ class Transformation:
         self._build_inventory_ops(world)
         self._build_zones_op(world)
 
-    def _relevant_items_changed(
+    def get_changes(
         self, owner: InventoryOwner, operation: InventoryOperation
-    ):
-        added_stacks = self.get_changes(owner, operation)
-        items = set()
+    ) -> Optional[Union[List[ItemStack], Dict[Zone, List[ItemStack]]]]:
+        """Get individual changes for a given owner and a given operation.
 
-        if added_stacks:
-            if owner is not InventoryOwner.ZONES:
-                return _items_from_stack_list(added_stacks)
+        Args:
+            owner: Owner of the inventory changes to get.
+            operation: Operation on the inventory to get.
 
-            for _zone, stacks in added_stacks.items():
-                items |= _items_from_stack_list(stacks)
-
-        return items
+        Returns:
+            Changes of the inventory of the given owner with the given operation.
+        """
+        owner = InventoryOwner(owner)
+        operation = InventoryOperation(operation)
+        operations = self.inventory_changes.get(owner, {})
+        return operations.get(operation, None)
 
     def production(self, owner: InventoryOwner) -> Set["Item"]:
         """Set of produced items for the given owner by this transformation."""
@@ -314,6 +316,21 @@ class Transformation:
             | self.consumption(InventoryOwner.DESTINATION)
             | self.consumption(InventoryOwner.ZONES)
         )
+
+    def _relevant_items_changed(
+        self, owner: InventoryOwner, operation: InventoryOperation
+    ):
+        added_stacks = self.get_changes(owner, operation)
+        items = set()
+
+        if added_stacks:
+            if owner is not InventoryOwner.ZONES:
+                return _items_from_stack_list(added_stacks)
+
+            for _zone, stacks in added_stacks.items():
+                items |= _items_from_stack_list(stacks)
+
+        return items
 
     def _is_valid_position(self, position: np.ndarray):
         if self._zones is not None and not np.any(np.multiply(self._zones, position)):
@@ -440,23 +457,6 @@ class Transformation:
                 item_slot = zones_items.index(stack.item)
                 operation[zone_slot, item_slot] = stack.quantity
         return operation
-
-    def get_changes(
-        self, owner: InventoryOwner, operation: InventoryOperation
-    ) -> Optional[Union[List[ItemStack], Dict[Zone, List[ItemStack]]]]:
-        """Get individual changes for a given owner and a given operation.
-
-        Args:
-            owner: Owner of the inventory changes to get.
-            operation: Operation on the inventory to get.
-
-        Returns:
-            Changes of the inventory of the given owner with the given operation.
-        """
-        owner = InventoryOwner(owner)
-        operation = InventoryOperation(operation)
-        operations = self.inventory_changes.get(owner, {})
-        return operations.get(operation, None)
 
     def __str__(self) -> str:
         transfo_text = ""
