@@ -36,6 +36,28 @@ class HasItemStack(FeatureCondition):
         return inventory_content[self.slot] >= self.itemstack.quantity
 
 
+class HasLessItemStack(FeatureCondition):
+
+    """FeatureCondition to check if player has an Item in less than a given quantity."""
+
+    def __init__(self, env: "CraftingEnv", stack: ItemStack) -> None:
+        image = load_or_create_image(stack, env.world.resources_path)
+        super().__init__(name=self.get_name(stack), image=np.array(image), complexity=1)
+
+        self.itemstack = stack
+        self.n_items = env.world.n_items
+        self.slot = env.world.items.index(stack.item)
+
+    @staticmethod
+    def get_name(stack: ItemStack):
+        """Name of the HasItemStack feature condition given the stack."""
+        return f"Has less than {stack.quantity} {stack.item.name}?"
+
+    def __call__(self, observation) -> int:
+        inventory_content = observation[: self.n_items]
+        return inventory_content[self.slot] <= self.itemstack.quantity
+
+
 class IsInZone(FeatureCondition):
 
     """FeatureCondition to check if player is in a Zone."""

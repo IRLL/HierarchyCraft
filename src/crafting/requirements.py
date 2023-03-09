@@ -589,13 +589,14 @@ def draw_requirements_graph(
     ax.margins(0, 0)
 
     # Add Hierarchies numbers
-    nodes_by_level: Dict[int, Any] = digraph.graph["nodes_by_level"]
-    for level, level_nodes in nodes_by_level.items():
-        level_poses = np.array([pos[node] for node in level_nodes])
-        mean_x = np.mean(level_poses[:, 0])
-        if level == 0:
-            ax.text(mean_x - 1, -0.07, "Depth", ha="left", va="center")
-        ax.text(mean_x, -0.07, str(level), ha="center", va="center")
+    if layout == "level":
+        nodes_by_level: Dict[int, Any] = digraph.graph["nodes_by_level"]
+        for level, level_nodes in nodes_by_level.items():
+            level_poses = np.array([pos[node] for node in level_nodes])
+            mean_x = np.mean(level_poses[:, 0])
+            if level == 0:
+                ax.text(mean_x - 1, -0.07, "Depth", ha="left", va="center")
+            ax.text(mean_x, -0.07, str(level), ha="center", va="center")
     return ax
 
 

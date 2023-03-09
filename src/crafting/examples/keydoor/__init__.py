@@ -45,10 +45,11 @@ class KeyDoorCraftingEnv(CraftingEnv):
     BALL = Item("ball")
     """Ball to pickup in the ball room."""
 
+    WEIGHT = Item("weight")
+    """Weight of carried items."""
+
     OPEN_DOOR = Item("open_door")
     """Open door between the two rooms."""
-    CLOSED_DOOR = Item("closed_door")
-    """Close door between the two rooms, can be opened without a key."""
     LOCKED_DOOR = Item("locked_door")
     """Locked door between the two rooms, can be unlocked with a key."""
 
@@ -72,20 +73,30 @@ class KeyDoorCraftingEnv(CraftingEnv):
         transformations = []
 
         search_for_key = Transformation(
-            inventory_changes={"current_zone": {"add": [self.KEY]}},
+            inventory_changes={
+                "current_zone": {"add": [self.KEY]},
+                "player": {"max": [self.KEY]},
+                self.START: {"max": [self.KEY]},
+                self.BALL_ROOM: {"max": [self.KEY]},
+            },
             zones=[self.START],
         )
         transformations.append(search_for_key)
-        for carriable_item in (self.KEY, self.BALL):
+
+        carriable_items = (self.KEY, self.BALL)
+        for carriable_item in carriable_items:
             pickup = Transformation(
                 inventory_changes={
-                    "player": {"add": [carriable_item]},
+                    "player": {
+                        "add": [carriable_item, self.WEIGHT],
+                        "max": [self.WEIGHT],
+                    },
                     "current_zone": {"remove": [carriable_item]},
                 },
             )
             put_down = Transformation(
                 inventory_changes={
-                    "player": {"remove": [carriable_item]},
+                    "player": {"remove": [carriable_item, self.WEIGHT]},
                     "current_zone": {"add": [carriable_item]},
                 },
             )
@@ -93,8 +104,8 @@ class KeyDoorCraftingEnv(CraftingEnv):
 
         search_for_door = Transformation(
             inventory_changes={
-                self.START: {"add": [self.LOCKED_DOOR]},
-                self.BALL_ROOM: {"add": [self.LOCKED_DOOR]},
+                self.START: {"add": [self.LOCKED_DOOR], "max": [self.LOCKED_DOOR]},
+                self.BALL_ROOM: {"add": [self.LOCKED_DOOR], "max": [self.LOCKED_DOOR]},
             },
             zones=[self.START, self.BALL_ROOM],
         )
@@ -108,31 +119,16 @@ class KeyDoorCraftingEnv(CraftingEnv):
                 },
                 self.START: {
                     "remove": [self.LOCKED_DOOR],
-                    "add": [self.CLOSED_DOOR],
+                    "add": [self.OPEN_DOOR],
                 },
                 self.BALL_ROOM: {
                     "remove": [self.LOCKED_DOOR],
-                    "add": [self.CLOSED_DOOR],
+                    "add": [self.OPEN_DOOR],
                 },
             },
             zones=[self.START, self.BALL_ROOM],
         )
         transformations.append(unlock_door)
-
-        open_door = Transformation(
-            inventory_changes={
-                self.START: {
-                    "remove": [self.CLOSED_DOOR],
-                    "add": [self.OPEN_DOOR],
-                },
-                self.BALL_ROOM: {
-                    "remove": [self.CLOSED_DOOR],
-                    "add": [self.OPEN_DOOR],
-                },
-            },
-            zones=[self.START, self.BALL_ROOM],
-        )
-        transformations.append(open_door)
 
         move_to_ball_room = Transformation(
             destination=self.BALL_ROOM,

@@ -6,7 +6,12 @@ import numpy as np
 from hebg import Behavior, HEBGraph
 
 from crafting.behaviors.actions import DoTransformation
-from crafting.behaviors.feature_conditions import HasItemStack, HasZoneItem, IsInZone
+from crafting.behaviors.feature_conditions import (
+    HasItemStack,
+    HasLessItemStack,
+    HasZoneItem,
+    IsInZone,
+)
 from crafting.elements import Item, ItemStack, Zone
 from crafting.render.utils import load_or_create_image
 from crafting.task import _ensure_zone_list, _zones_str
@@ -33,7 +38,7 @@ class GetItem(Behavior):
 
     @staticmethod
     def get_name(item: Item):
-        """Get the name of the behavior to reach a zone."""
+        """Get the name of the behavior."""
         return f"Get {item.name}"
 
     def build_graph(self) -> HEBGraph:
@@ -46,6 +51,43 @@ class GetItem(Behavior):
             consumed_items = transfo.consumption("player")
             item_is_not_removed = not consumed_items or self.item not in consumed_items
             if item_is_added and item_is_not_removed:
+                sub_behavior = Behavior(AbleAndPerformTransformation.get_name(transfo))
+                graph.add_node(sub_behavior)
+
+        _ensure_has_node(graph, self)
+        return graph
+
+
+class DropItem(Behavior):
+
+    """Behavior for dropping an item"""
+
+    def __init__(
+        self,
+        item: Item,
+        env: "CraftingEnv",
+        all_behaviors: Dict[Union[int, str], Behavior],
+    ):
+        super().__init__(name=self.get_name(item))
+        self.env = env
+        self.item = item
+        self.all_behaviors = all_behaviors
+
+    @staticmethod
+    def get_name(item: Item):
+        """Get the name of the behavior."""
+        return f"Drop {item.name}"
+
+    def build_graph(self) -> HEBGraph:
+        graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
+
+        # Any of the Tranformation that gives the item
+        for transfo in self.env.world.transformations:
+            produced_items = transfo.production("player")
+            consumed_items = transfo.consumption("player")
+            item_is_not_added = not produced_items and self.item not in produced_items
+            item_is_removed = consumed_items or self.item in consumed_items
+            if item_is_removed and item_is_not_added:
                 sub_behavior = Behavior(AbleAndPerformTransformation.get_name(transfo))
                 graph.add_node(sub_behavior)
 
@@ -209,7 +251,7 @@ class AbleAndPerformTransformation(Behavior):
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
         last_node = None
 
-        # Require all items to be removed from player env
+        # Require all items to be removed from player inventory
         removed_player_items = self.transformation.get_changes("player", "remove")
         if removed_player_items is not None:
             for stack in removed_player_items:
@@ -253,6 +295,24 @@ class AbleAndPerformTransformation(Behavior):
                     graph.add_edge(prev, has_item_in_zone, index=int(True))
                 last_nodes = [has_item_in_zone]
 
+        # Drop all items that would go be over maximum in player inventory
+        max_player_items = self.transformation.get_changes("player", "max")
+        if max_player_items is not None:
+            for stack in max_player_items:
+                max_quantity = stack.quantity
+                if stack.item in self.transformation.production("player"):
+                    added_player_items = self.transformation.get_changes(
+                        "player", "add"
+                    )
+                    for added_stack in added_player_items:
+                        if added_stack.item == stack.item:
+                            max_quantity -= added_stack.quantity
+                max_stack = ItemStack(stack.item, max_quantity)
+                has_not_item = _add_drop_item(max_stack, graph, self.env)
+                for prev in last_nodes:
+                    graph.add_edge(prev, has_not_item, index=int(True))
+                last_nodes = [has_not_item]
+
         # Add last action
         action = DoTransformation(self.transformation, self.env)
 
@@ -270,6 +330,16 @@ def _add_get_item(
     get_item = Behavior(GetItem.get_name(stack.item), image=image)
     graph.add_edge(has_item, get_item, index=int(False))
     return has_item
+
+
+def _add_drop_item(
+    stack: ItemStack, graph: HEBGraph, env: "CraftingEnv"
+) -> HasLessItemStack:
+    has_not_item = HasLessItemStack(env, stack)
+    image = np.array(load_or_create_image(stack, env.world.resources_path))
+    drop_item = Behavior(DropItem.get_name(stack.item), image=image)
+    graph.add_edge(has_not_item, drop_item, index=int(False))
+    return has_not_item
 
 
 def _add_zone_behavior(zone: Zone, graph: HEBGraph, env: "CraftingEnv") -> IsInZone:
