@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Any
 
 import numpy as np
 import pytest
@@ -13,9 +12,15 @@ from tests.custom_checks import check_np_equal
 
 @dataclass
 class DummyState:
-    player_inventory: Any = None
-    position: Any = None
-    zones_inventories: Any = None
+    player_inventory: np.ndarray = None
+    position: np.ndarray = None
+    zones_inventories: np.ndarray = None
+
+    @property
+    def current_zone_inventory(self):
+        if self.zones_inventories is None or self.position is None:
+            return None
+        return self.zones_inventories[self.position.nonzero()[0], :]
 
 
 class TestTransformationIsValid:

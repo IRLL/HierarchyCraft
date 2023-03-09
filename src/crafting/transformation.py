@@ -254,18 +254,24 @@ class Transformation:
 
     def is_valid(self, state: "CraftingState") -> bool:
         """Is the transformation valid in the given state?"""
+
+        destination_inventory = None
+        if self._destination is not None and state.zones_inventories is not None:
+            destination_zone_slot = self._destination.nonzero()[0]
+            destination_inventory = state.zones_inventories[destination_zone_slot, :]
+
+        owner_inventories = [
+            (InventoryOwner.PLAYER, state.player_inventory),
+            (InventoryOwner.CURRENT, state.current_zone_inventory),
+            (InventoryOwner.DESTINATION, destination_inventory),
+            (InventoryOwner.ZONES, state.zones_inventories),
+        ]
+
         if not self._is_valid_position(state.position):
             return False
-        if not self._is_valid_inventory(state.player_inventory):
-            return False
-        if not self._is_valid_current_zone_inventory(
-            state.position, state.zones_inventories
-        ):
-            return False
-        if not self._is_valid_zones_inventory(state.zones_inventories):
-            return False
-        if not self._is_valid_destination_inventory(state.zones_inventories):
-            return False
+        for owner, inventory in owner_inventories:
+            if not self._is_valid_inventory(owner, inventory):
+                return False
         return True
 
     def build(self, world: "World") -> None:
@@ -339,45 +345,15 @@ class Transformation:
             return False
         return True
 
-    def _is_valid_inventory(self, player_inventory: np.ndarray):
-        player_items_changes = self._inventory_operations.get(InventoryOwner.PLAYER, {})
-        removed_player_items = player_items_changes.get(InventoryOperation.REMOVE)
-        if removed_player_items is not None and not np.all(
-            player_inventory >= removed_player_items
-        ):
-            return False
-        return True
-
-    def _is_valid_current_zone_inventory(
-        self, position: np.ndarray, zones_inventories: np.ndarray
+    def _is_valid_inventory(
+        self, owner: InventoryOwner, inventory: Optional[np.ndarray]
     ):
-        zone_items_changes = self._inventory_operations.get(InventoryOwner.CURRENT, {})
-        removed_zone_items = zone_items_changes.get(InventoryOperation.REMOVE)
-        if removed_zone_items is not None:
-            current_zone_slot = position.nonzero()[0]
-            current_zone_inventory = zones_inventories[current_zone_slot, :]
-            if not np.all(current_zone_inventory >= removed_zone_items):
-                return False
-        return True
-
-    def _is_valid_zones_inventory(self, zones_inventories: np.ndarray):
-        zones_items_changes = self._inventory_operations.get(InventoryOwner.ZONES, {})
-        removed_zones_items = zones_items_changes.get(InventoryOperation.REMOVE)
-        if removed_zones_items is not None:
-            if not np.all(zones_inventories >= removed_zones_items):
-                return False
-        return True
-
-    def _is_valid_destination_inventory(self, zones_inventories: np.ndarray):
-        dest_items_changes = self._inventory_operations.get(
-            InventoryOwner.DESTINATION, {}
-        )
-        removed_destination_items = dest_items_changes.get(InventoryOperation.REMOVE)
-        if self._destination is not None and removed_destination_items is not None:
-            destination_zone_slot = self._destination.nonzero()[0]
-            destination_inventory = zones_inventories[destination_zone_slot, :]
-            if not np.all(destination_inventory >= removed_destination_items):
-                return False
+        if inventory is None:
+            return True
+        items_changes = self._inventory_operations.get(owner, {})
+        removed_items = items_changes.get(InventoryOperation.REMOVE)
+        if removed_items is not None and not np.all(inventory >= removed_items):
+            return False
         return True
 
     def _build_destination_op(self, world: "World") -> None:
