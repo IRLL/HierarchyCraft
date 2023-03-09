@@ -143,6 +143,7 @@ class InventoryOwner(Enum):
 class InventoryOperation(Enum):
     REMOVE = "remove"
     ADD = "add"
+    MAX = "max"
     APPLY = "apply"
 
 
@@ -351,8 +352,16 @@ class Transformation:
         if inventory is None:
             return True
         items_changes = self._inventory_operations.get(owner, {})
+        added_items = items_changes.get(InventoryOperation.ADD)
         removed_items = items_changes.get(InventoryOperation.REMOVE)
+        max_items = items_changes.get(InventoryOperation.MAX)
         if removed_items is not None and not np.all(inventory >= removed_items):
+            return False
+        if (
+            added_items is not None
+            and max_items is not None
+            and np.any(inventory + added_items > max_items)
+        ):
             return False
         return True
 
@@ -385,12 +394,17 @@ class Transformation:
             world_items_list = world.zones_items
         for operation, stacks in operations.items():
             operation = InventoryOperation(operation)
+            default_value = 0
+            if operation is InventoryOperation.MAX:
+                default_value = np.inf
             if owner is InventoryOwner.ZONES:
                 operation_arr = self._build_zones_items_op(
-                    stacks, world.zones, world.zones_items
+                    stacks, world.zones, world.zones_items, default_value
                 )
             else:
-                operation_arr = self._build_operation_array(stacks, world_items_list)
+                operation_arr = self._build_operation_array(
+                    stacks, world_items_list, default_value
+                )
             if owner not in self._inventory_operations:
                 self._inventory_operations[owner] = {}
             self._inventory_operations[owner][operation] = operation_arr
@@ -402,9 +416,12 @@ class Transformation:
             self._inventory_operations[owner][apply_op] = apply_arr
 
     def _build_operation_array(
-        self, itemstacks: List[ItemStack], world_items_list: List["Item"]
+        self,
+        itemstacks: List[ItemStack],
+        world_items_list: List["Item"],
+        default_value: float = 0.0,
     ) -> np.ndarray:
-        operation = np.zeros(len(world_items_list), dtype=np.int32)
+        operation = default_value * np.ones(len(world_items_list), dtype=np.int32)
         for itemstack in itemstacks:
             item_slot = world_items_list.index(itemstack.item)
             operation[item_slot] = itemstack.quantity
@@ -415,8 +432,11 @@ class Transformation:
         stacks_per_zone: Dict[Zone, List["ItemStack"]],
         zones: List[Zone],
         zones_items: List["Item"],
+        default_value: float = 0.0,
     ) -> np.ndarray:
-        operation = np.zeros((len(zones), len(zones_items)), dtype=np.int32)
+        operation = default_value * np.ones(
+            (len(zones), len(zones_items)), dtype=np.int32
+        )
         for zone, stacks in stacks_per_zone.items():
             zone_slot = zones.index(zone)
             for stack in stacks:

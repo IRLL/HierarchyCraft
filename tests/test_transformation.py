@@ -68,6 +68,7 @@ class TestTransformationIsValid:
             inventory_changes={
                 InventoryOwner.PLAYER: {
                     "add": [ItemStack(self.items[1], 5)],
+                    "max": [ItemStack(self.items[1], 5)],
                     "remove": [
                         ItemStack(self.items[0], 2),
                         ItemStack(self.items[2], 3),
@@ -78,12 +79,20 @@ class TestTransformationIsValid:
         transfo.build(self.world)
         position = np.array([1, 0, 0])
 
-        state = DummyState(position=position, player_inventory=np.array([2, 0, 3]))
-        check.is_true(transfo.is_valid(state))
-        state = DummyState(position=position, player_inventory=np.array([1, 0, 3]))
-        check.is_false(transfo.is_valid(state))
-        state = DummyState(position=position, player_inventory=np.array([3, 5, 2]))
-        check.is_false(transfo.is_valid(state))
+        inv_examples = [
+            (True, np.array([2, 0, 3])),  # Minimal required
+            (False, np.array([1, 0, 3])),  # Not enough items[0]
+            (False, np.array([2, 0, 2])),  # Not enough items[2]
+            (False, np.array([2, 1, 3])),  # Hit maximum items[1]
+        ]
+
+        for expected_valid, player_inventory in inv_examples:
+            state = DummyState(position=position, player_inventory=player_inventory)
+            check.equal(
+                transfo.is_valid(state),
+                expected_valid,
+                msg=f"{state}, {transfo.is_valid(state)}|{expected_valid}",
+            )
 
     def test_zone_items_is_valid(self):
         transfo = Transformation(
