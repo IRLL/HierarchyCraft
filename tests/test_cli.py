@@ -3,7 +3,6 @@ import pytest_check as check
 
 from crafting.cli import crafting_cli
 from crafting.examples import (
-    KeyDoorCraftingEnv,
     LightRecursiveCraftingEnv,
     MineCraftingEnv,
     RandomCraftingEnv,
@@ -14,7 +13,7 @@ from crafting.examples import (
 pygame = pytest.importorskip("pygame")
 
 
-ENV_NAMES = ("minecraft", "tower", "recursive", "light-recursive", "random", "keydoor")
+ENV_NAMES = ("minecraft", "tower", "recursive", "light-recursive", "random")
 
 
 def test_purposeless_minecrafting_cli():
@@ -82,8 +81,3 @@ def test_random_cli():
     )
     check.is_instance(env, RandomCraftingEnv)
     check.equal(env.n_items, 14)
-
-
-def test_key_door_cli():
-    env = crafting_cli(["keydoor"])
-    check.is_instance(env, KeyDoorCraftingEnv)

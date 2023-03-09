@@ -26,7 +26,7 @@ try:
 
     gym.register(
         id="KeyDoorCrafting-v1",
-        entry_point="crafting.examples.keydoor:KeyDoorCraftingEnv",
+        entry_point="crafting.examples.minicraft.keydoor:KeyDoorCraftingEnv",
     )
 except ImportError:
     pass

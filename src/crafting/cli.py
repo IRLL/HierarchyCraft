@@ -4,7 +4,6 @@ from typing import List, Optional
 from crafting.elements import Item
 from crafting.env import CraftingEnv
 from crafting.examples import (
-    KeyDoorCraftingEnv,
     LightRecursiveCraftingEnv,
     MineCraftingEnv,
     RandomCraftingEnv,
@@ -31,7 +30,6 @@ def crafting_cli(args: Optional[List[str]] = None) -> CraftingEnv:
     _recursive_sub_parser(subparsers)
     _light_recursive_sub_parser(subparsers)
     _random_sub_parser(subparsers)
-    _key_door_sub_parser(subparsers)
 
     parser.add_argument(
         "--max-step",
@@ -249,22 +247,6 @@ def _randomcrafting_from_cli(args: Namespace):
     }
     return RandomCraftingEnv(
         n_items_per_n_inputs=n_items_per_n_inputs,
-        render_window=window,
-        max_step=args.max_step,
-    )
-
-
-def _key_door_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
-    subparser = subparsers.add_parser(
-        "keydoor",
-        help="KeyDoorCrafting: Crafting version of the classic gridworld keydoor example.",
-    )
-    subparser.set_defaults(func=_keydoor_crafting_from_cli)
-
-
-def _keydoor_crafting_from_cli(args: Namespace):
-    window = _window_from_cli(args)
-    return KeyDoorCraftingEnv(
         render_window=window,
         max_step=args.max_step,
     )
