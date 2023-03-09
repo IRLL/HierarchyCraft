@@ -9,7 +9,7 @@ from crafting.world import world_from_transformations
 
 
 class MiniCraftMultiRoom(CraftingEnv):
-    """Reproduces the MultiRoom minigrid environment as a Crafting environment."""
+    """Reproduces the MultiRoom minigrid environment as a crafting environment."""
 
     GOAL = Item("goal")
     """Goal to reach."""

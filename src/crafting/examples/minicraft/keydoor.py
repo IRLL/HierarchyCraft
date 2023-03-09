@@ -33,7 +33,7 @@ except ImportError:
 
 
 class KeyDoorCraftingEnv(CraftingEnv):
-    """Reproduces the classic KeyDoor gridworld environment as a Crafting environment."""
+    """Reproduces the classic KeyDoor gridworld environment as a crafting environment."""
 
     START = Zone("start_room")
     """Start room."""

@@ -7,9 +7,15 @@ from crafting.examples.minicraft import (
     MiniCraftEmpty,
     MiniCraftFourRooms,
     MiniCraftMultiRoom,
+    MiniCraftCrossing,
 )
 
-minicraft_envs = [MiniCraftEmpty, MiniCraftFourRooms, MiniCraftMultiRoom]
+minicraft_envs = [
+    MiniCraftEmpty,
+    MiniCraftFourRooms,
+    MiniCraftMultiRoom,
+    MiniCraftCrossing,
+]
 
 
 @pytest.mark.parametrize("env_class", minicraft_envs)

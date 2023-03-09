@@ -9,7 +9,7 @@ from crafting.world import world_from_transformations
 
 
 class MiniCraftFourRooms(CraftingEnv):
-    """Reproduces the classic FourRooms gridworld environment as a Crafting environment."""
+    """Reproduces the classic FourRooms gridworld environment as a crafting environment."""
 
     SOUTH_WEST_ROOM = Zone("SW")
     """South west room."""
