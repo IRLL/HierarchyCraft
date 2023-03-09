@@ -8,6 +8,7 @@ from crafting.examples.minicraft import (
     MiniCraftFourRooms,
     MiniCraftMultiRoom,
     MiniCraftCrossing,
+    MiniCraftDoorKey,
 )
 
 minicraft_envs = [
@@ -15,6 +16,7 @@ minicraft_envs = [
     MiniCraftFourRooms,
     MiniCraftMultiRoom,
     MiniCraftCrossing,
+    MiniCraftDoorKey,
 ]
 
 
