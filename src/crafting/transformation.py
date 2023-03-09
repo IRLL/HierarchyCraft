@@ -419,7 +419,7 @@ class Transformation:
         self,
         itemstacks: List[ItemStack],
         world_items_list: List["Item"],
-        default_value: float = 0.0,
+        default_value: int = 0,
     ) -> np.ndarray:
         operation = default_value * np.ones(len(world_items_list), dtype=np.int32)
         for itemstack in itemstacks:
