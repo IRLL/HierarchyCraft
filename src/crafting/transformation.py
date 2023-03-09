@@ -372,35 +372,25 @@ class Transformation:
     def _build_inventory_ops(self, world: "World"):
         self._inventory_operations = {}
         for owner, operations in self.inventory_changes.items():
-            owner = InventoryOwner(owner)
-            if owner is InventoryOwner.ZONES:
-                self._build_zones_operations(operations, world)
-                continue
             self._build_inventory_operation(owner, operations, world)
-
         self._build_apply_operations()
 
     def _build_inventory_operation(
         self, owner: InventoryOwner, operations: InventoryChanges, world: "World"
     ):
+        owner = InventoryOwner(owner)
         if owner is InventoryOwner.PLAYER:
             world_items_list = world.items
         else:
             world_items_list = world.zones_items
-        for operation, itemstacks in operations.items():
+        for operation, stacks in operations.items():
             operation = InventoryOperation(operation)
-            operation_arr = self._build_operation_array(itemstacks, world_items_list)
-            if owner not in self._inventory_operations:
-                self._inventory_operations[owner] = {}
-            self._inventory_operations[owner][operation] = operation_arr
-
-    def _build_zones_operations(self, operations: InventoryChanges, world: "World"):
-        owner = InventoryOwner.ZONES
-        for operation, zones_stacks in operations.items():
-            operation = InventoryOperation(operation)
-            operation_arr = self._build_zones_items_op(
-                zones_stacks, world.zones, world.zones_items
-            )
+            if owner is InventoryOwner.ZONES:
+                operation_arr = self._build_zones_items_op(
+                    stacks, world.zones, world.zones_items
+                )
+            else:
+                operation_arr = self._build_operation_array(stacks, world_items_list)
             if owner not in self._inventory_operations:
                 self._inventory_operations[owner] = {}
             self._inventory_operations[owner][operation] = operation_arr
