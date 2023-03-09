@@ -67,11 +67,10 @@ class TestTransformationIsValid:
         transfo = Transformation(
             inventory_changes={
                 InventoryOwner.PLAYER: {
-                    "add": [ItemStack(self.items[1], 5)],
-                    "max": [ItemStack(self.items[1], 5)],
+                    "add": [self.items[1]],
+                    "max": [ItemStack(self.items[1], 2), ItemStack(self.items[2], 0)],
                     "remove": [
                         ItemStack(self.items[0], 2),
-                        ItemStack(self.items[2], 3),
                     ],
                 },
             }
@@ -80,10 +79,10 @@ class TestTransformationIsValid:
         position = np.array([1, 0, 0])
 
         inv_examples = [
-            (True, np.array([2, 0, 3])),  # Minimal required
-            (False, np.array([1, 0, 3])),  # Not enough items[0]
-            (False, np.array([2, 0, 2])),  # Not enough items[2]
-            (False, np.array([2, 1, 3])),  # Hit maximum items[1]
+            (True, np.array([2, 0, 0])),  # Minimal required
+            (False, np.array([1, 0, 0])),  # Not enough items[0] < 2
+            (False, np.array([2, 2, 0])),  # Hit maximum items[1] (2 + 1 > 2)
+            (False, np.array([2, 0, 1])),  # Hit maximum items[2] (1 + 0 > 0)
         ]
 
         for expected_valid, player_inventory in inv_examples:
@@ -98,6 +97,8 @@ class TestTransformationIsValid:
         transfo = Transformation(
             inventory_changes={
                 InventoryOwner.CURRENT: {
+                    "add": [ItemStack(self.zones_items[1], 1)],
+                    "max": [ItemStack(self.zones_items[1], 1)],
                     "remove": [ItemStack(self.zones_items[0], 3)],
                 },
             }
