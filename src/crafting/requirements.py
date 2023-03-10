@@ -146,7 +146,6 @@ class RequirementTheme:
 class Requirements:
     def __init__(self, world: "World"):
         self.world = world
-        self.resources_path = world.resources_path
         self.graph = nx.MultiDiGraph()
         self._digraph: nx.DiGraph = None
         self._acydigraph: nx.DiGraph = None
@@ -165,7 +164,11 @@ class Requirements:
             layout: Drawing layout. Defaults to "level".
         """
         draw_requirements_graph(
-            ax, self, theme, resources_path=self.resources_path, layout=layout
+            ax,
+            self,
+            theme,
+            resources_path=self.world.resources_path,
+            layout=layout,
         )
 
     @property
@@ -271,7 +274,7 @@ class Requirements:
                 elif not alternative_transformations:
                     zones.add(other_zone)
                 else:
-                    raise NotImplementedError
+                    raise NotImplementedError("A complex case, raise issue if needed")
 
         transfo_params = {
             "in_items": in_items,

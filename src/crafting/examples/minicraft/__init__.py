@@ -3,6 +3,7 @@ from crafting.examples.minicraft.fourrooms import MiniCraftFourRooms
 from crafting.examples.minicraft.multiroom import MiniCraftMultiRoom
 from crafting.examples.minicraft.crossing import MiniCraftCrossing
 from crafting.examples.minicraft.doorkey import MiniCraftDoorKey
+from crafting.examples.minicraft.keycorridor import MiniCraftKeyCorridor
 
 __all__ = [
     "MiniCraftEmpty",
@@ -10,4 +11,5 @@ __all__ = [
     "MiniCraftMultiRoom",
     "MiniCraftCrossing",
     "MiniCraftDoorKey",
+    "MiniCraftKeyCorridor",
 ]

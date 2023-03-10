@@ -3,12 +3,14 @@ import pytest_check as check
 
 import os
 from crafting.env import CraftingEnv
+from crafting.render.human import render_env_with_human
 from crafting.examples.minicraft import (
     MiniCraftEmpty,
     MiniCraftFourRooms,
     MiniCraftMultiRoom,
     MiniCraftCrossing,
     MiniCraftDoorKey,
+    # MiniCraftKeyCorridor,
 )
 
 minicraft_envs = [
@@ -17,12 +19,16 @@ minicraft_envs = [
     MiniCraftMultiRoom,
     MiniCraftCrossing,
     MiniCraftDoorKey,
+    # MiniCraftKeyCorridor,
 ]
 
 
 @pytest.mark.parametrize("env_class", minicraft_envs)
 def test_build_env(env_class):
-    env_class()
+    human_run = False
+    env = env_class()
+    if human_run:
+        render_env_with_human(env)
 
 
 @pytest.mark.parametrize("env_class", minicraft_envs)
