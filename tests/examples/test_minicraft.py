@@ -3,29 +3,19 @@ import pytest_check as check
 
 import os
 from crafting.env import CraftingEnv
-from crafting.examples.minicraft import (
-    MiniCraftEmpty,
-    MiniCraftFourRooms,
-    MiniCraftMultiRoom,
-    MiniCraftCrossing,
-    MiniCraftDoorKey,
-)
-
-minicraft_envs = [
-    MiniCraftEmpty,
-    MiniCraftFourRooms,
-    MiniCraftMultiRoom,
-    MiniCraftCrossing,
-    MiniCraftDoorKey,
-]
+from crafting.render.human import render_env_with_human
+from crafting.examples.minicraft import MINICRAFT_ENVS
 
 
-@pytest.mark.parametrize("env_class", minicraft_envs)
+@pytest.mark.parametrize("env_class", MINICRAFT_ENVS)
 def test_build_env(env_class):
-    env_class()
+    human_run = False
+    env = env_class()
+    if human_run:
+        render_env_with_human(env)
 
 
-@pytest.mark.parametrize("env_class", minicraft_envs)
+@pytest.mark.parametrize("env_class", MINICRAFT_ENVS)
 def test_can_solve(env_class):
     env: CraftingEnv = env_class(max_step=20)
     solving_behavior = env.solving_behavior(env.task)
@@ -37,7 +27,7 @@ def test_can_solve(env_class):
     check.is_true(env.task.terminated)
 
 
-@pytest.mark.parametrize("env_class", minicraft_envs)
+@pytest.mark.parametrize("env_class", MINICRAFT_ENVS)
 def test_requirements_graph(env_class):
     draw = True
     env: CraftingEnv = env_class()
