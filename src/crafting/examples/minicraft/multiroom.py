@@ -1,3 +1,5 @@
+"""# MiniCraft - MultiRoom"""
+
 import os
 from typing import List
 
@@ -9,7 +11,12 @@ from crafting.world import world_from_transformations
 
 
 class MiniCraftMultiRoom(CraftingEnv):
-    """Reproduces the MultiRoom minigrid environment as a crafting environment."""
+    """Reproduces the minigrid
+    [MultiRoom](https://minigrid.farama.org/environments/minigrid/MultiRoomEnv/)
+    gridworld environment as a crafting environment.
+
+    ![Minigrid MultiRoom display](https://minigrid.farama.org/_images/MultiRoomEnv.gif)
+    """
 
     GOAL = Item("goal")
     """Goal to reach."""

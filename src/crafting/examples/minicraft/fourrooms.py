@@ -1,3 +1,6 @@
+"""# MiniCraft - FourRooms"""
+
+
 import os
 from typing import List
 
@@ -9,7 +12,12 @@ from crafting.world import world_from_transformations
 
 
 class MiniCraftFourRooms(CraftingEnv):
-    """Reproduces the classic FourRooms gridworld environment as a crafting environment."""
+    """Reproduces the minigrid
+    [FourRooms](https://minigrid.farama.org/environments/minigrid/FourRoomsEnv/)
+    gridworld environment as a crafting environment.
+
+    ![Minigrid FourRooms display](https://minigrid.farama.org/_images/FourRoomsEnv.gif)
+    """
 
     SOUTH_WEST_ROOM = Zone("SW")
     """South west room."""
@@ -31,13 +39,12 @@ class MiniCraftFourRooms(CraftingEnv):
         Kwargs:
             See `crafting.env.CraftingEnv`
         """
-        resources_path = os.path.join(os.path.dirname(__file__), "resources")
         transformations = self._build_transformations()
         world = world_from_transformations(
             transformations=transformations, start_zone=self.SOUTH_WEST_ROOM
         )
         self.task = GetItemTask(self.GOAL)
-        world.resources_path = resources_path
+        world.resources_path = os.path.join(os.path.dirname(__file__), "resources")
         super().__init__(world, purpose=self.task, name="MiniCraftFourRooms", **kwargs)
 
     def _build_transformations(self) -> List[Transformation]:

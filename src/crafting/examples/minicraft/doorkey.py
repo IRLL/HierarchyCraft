@@ -1,14 +1,4 @@
-"""# KeyDoorBall example
-
-Example inspired from classic gridworld examples.
-
-
-Directly inspired from minigrid
-[DoorKey](https://minigrid.farama.org/environments/minigrid/DoorKeyEnv/)
-
-![](https://github.com/Farama-Foundation/Minigrid/blob/master/figures/door-key-curriculum.gif?raw=true)
-
-"""
+"""# MiniCraft - DoorKey"""
 
 import os
 from typing import List
@@ -21,7 +11,12 @@ from crafting.world import world_from_transformations
 
 
 class MiniCraftDoorKey(CraftingEnv):
-    """Reproduces the classic KeyDoor gridworld environment as a crafting environment."""
+    """Reproduces the minigrid
+    [DoorKey](https://minigrid.farama.org/environments/minigrid/DoorKeyEnv/)
+    gridworld environment as a crafting environment.
+
+    ![Minigrid DoorKey display](https://minigrid.farama.org/_images/DoorKeyEnv.gif)
+    """
 
     START = Zone("start_room")
     """Start room."""

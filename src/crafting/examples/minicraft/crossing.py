@@ -1,3 +1,5 @@
+"""# MiniCraft - Crossing"""
+
 import os
 from typing import List
 
@@ -9,7 +11,12 @@ from crafting.world import world_from_transformations
 
 
 class MiniCraftCrossing(CraftingEnv):
-    """Reproduces the crossing minigrid environment as a crafting environment."""
+    """Reproduces the minigrid
+    [Crossing](https://minigrid.farama.org/environments/minigrid/CrossingEnv/)
+    gridworld environment as a crafting environment.
+
+    ![Minigrid Crossing display](https://minigrid.farama.org/_images/CrossingEnv.gif)
+    """
 
     ROOM = Zone("0")
     """The one and only room."""
