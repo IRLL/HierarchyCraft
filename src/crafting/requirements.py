@@ -146,7 +146,6 @@ class RequirementTheme:
 class Requirements:
     def __init__(self, world: "World"):
         self.world = world
-        self.resources_path = world.resources_path
         self.graph = nx.MultiDiGraph()
         self._digraph: nx.DiGraph = None
         self._acydigraph: nx.DiGraph = None
@@ -165,7 +164,7 @@ class Requirements:
             layout: Drawing layout. Defaults to "level".
         """
         draw_requirements_graph(
-            ax, self, theme, resources_path=self.resources_path, layout=layout
+            ax, self, theme, resources_path=self.world.resources_path, layout=layout
         )
 
     @property
