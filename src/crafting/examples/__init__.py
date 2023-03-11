@@ -15,6 +15,7 @@ If you built one of your own, send us a pull request so we can add it to the lis
 """
 
 import crafting.examples.minecraft as minecraft
+import crafting.examples.minicraft as minicraft
 import crafting.examples.random_simple as random_simple
 import crafting.examples.recursive as recursive
 import crafting.examples.tower as tower
@@ -26,9 +27,10 @@ from crafting.examples.tower import TowerCraftingEnv
 
 __all__ = [
     "minecraft",
-    "random_simple",
+    "minicraft",
     "recursive",
     "tower",
+    "random_simple",
     "MineCraftingEnv",
     "RandomCraftingEnv",
     "LightRecursiveCraftingEnv",
