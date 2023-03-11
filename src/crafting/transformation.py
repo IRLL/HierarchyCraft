@@ -179,7 +179,7 @@ class Transformation:
 
     The picture bellow illustrates the impact of
     an example transformation on a given `crafting.CraftingState`:
-    ![crafting transformation](../../docs/images/crafting_transformation.png)
+    ![crafting transformation](https://raw.githubusercontent.com/IRLL/Crafting/master/docs/images/crafting_state.png)
 
     In this example, when applied, the transformation will:
 

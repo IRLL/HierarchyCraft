@@ -15,7 +15,9 @@ class MiniCraftCrossing(CraftingEnv):
     [Crossing](https://minigrid.farama.org/environments/minigrid/CrossingEnv/)
     gridworld environment as a crafting environment.
 
-    ![Minigrid Crossing display](https://minigrid.farama.org/_images/CrossingEnv.gif)
+    ![minigrid display](https://minigrid.farama.org/_images/CrossingEnv.gif)
+
+    ![requirements graph](../../docs/images/requirements_graphs/MiniCraftCrossing.png)
     """
 
     ROOM = Zone("0")

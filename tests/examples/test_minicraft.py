@@ -50,8 +50,10 @@ def test_requirements_graph(env_class):
         fig, ax = plt.subplots(figsize=(16, 9))
         env.world.requirements.draw(ax)
 
-        requirements_dir = "requirements_graphs"
+        requirements_dir = os.path.join("docs", "images", "requirements_graphs")
         os.makedirs(requirements_dir, exist_ok=True)
         plt.tight_layout()
-        fig.savefig(os.path.join(requirements_dir, f"{env.name}.png"), transparent=True)
+        filename = os.path.join(requirements_dir, f"{env.name}.png")
+        if not os.path.exists(filename):
+            fig.savefig(filename, transparent=True)
         plt.close()
