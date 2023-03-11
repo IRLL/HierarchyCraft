@@ -81,7 +81,7 @@ class DropItem(Behavior):
     def build_graph(self) -> HEBGraph:
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
 
-        # Any of the Tranformation that gives the item
+        # Any of the Tranformation that drops the item
         for transfo in self.env.world.transformations:
             produced_items = transfo.production("player")
             consumed_items = transfo.consumption("player")
@@ -97,7 +97,11 @@ class DropItem(Behavior):
 
 class PlaceItem(Behavior):
 
-    """Behavior for getting an item in the current zone"""
+    """Behavior for getting an item in any of the given zones.
+
+    If no zones are given, places in any of the zones were the item can be placed.
+
+    """
 
     def __init__(
         self,

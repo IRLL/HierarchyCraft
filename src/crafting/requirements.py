@@ -270,7 +270,7 @@ class Requirements:
                 elif not alternative_transformations:
                     zones.add(other_zone)
                 else:
-                    raise NotImplementedError
+                    raise NotImplementedError("A complex case, raise issue if needed")
 
         transfo_params = {
             "in_items": in_items,

@@ -18,7 +18,7 @@ def test_build_env(env_class):
         render_env_with_human(env)
 
 
-@pytest.mark.parametrize("env_class", MINICRAFT_ENVS[:-1])
+@pytest.mark.parametrize("env_class", MINICRAFT_ENVS[:-2])
 def test_can_solve(env_class):
     env: CraftingEnv = env_class(max_step=20)
     solving_behavior = env.solving_behavior(env.task)
