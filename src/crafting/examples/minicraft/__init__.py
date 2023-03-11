@@ -5,6 +5,7 @@ from crafting.examples.minicraft.crossing import MiniCraftCrossing
 from crafting.examples.minicraft.doorkey import MiniCraftDoorKey
 from crafting.examples.minicraft.unlock import MiniCraftUnlock
 from crafting.examples.minicraft.unlockpickup import MiniCraftUnlockPickup
+from crafting.examples.minicraft.unlockpickupblocked import MiniCraftBlockedUnlockPickup
 
 MINICRAFT_ENVS = [
     MiniCraftEmpty,
@@ -14,6 +15,7 @@ MINICRAFT_ENVS = [
     MiniCraftDoorKey,
     MiniCraftUnlock,
     MiniCraftUnlockPickup,
+    MiniCraftBlockedUnlockPickup,
 ]
 
 __all__ = [
@@ -24,4 +26,5 @@ __all__ = [
     "MiniCraftDoorKey",
     "MiniCraftUnlock",
     "MiniCraftUnlockPickup",
+    "MiniCraftBlockedUnlockPickup",
 ]

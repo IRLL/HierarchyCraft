@@ -1,4 +1,4 @@
-"""# MiniCraft - UnlockPickup"""
+"""# MiniCraft - BlockedUnlockPickup"""
 
 import os
 from typing import List
@@ -10,12 +10,12 @@ from crafting.transformation import Transformation
 from crafting.world import world_from_transformations
 
 
-class MiniCraftUnlockPickup(CraftingEnv):
+class MiniCraftBlockedUnlockPickup(CraftingEnv):
     """Reproduces the minigrid
-    [UnlockPickup](https://minigrid.farama.org/environments/minigrid/UnlockPickupEnv/)
+    [BlockedUnlockPickup](https://minigrid.farama.org/environments/minigrid/BlockedUnlockPickupEnv/)
     gridworld environment as a crafting environment.
 
-    ![Minigrid UnlockPickup display](https://minigrid.farama.org/_images/UnlockPickupEnv.gif)
+    ![Minigrid BlockedUnlockPickup display](https://minigrid.farama.org/_images/BlockedUnlockPickupEnv.gif)
     """
 
     START = Zone("start_room")
@@ -27,6 +27,8 @@ class MiniCraftUnlockPickup(CraftingEnv):
     """Key used to unlock the door."""
     BOX = Item("box")
     """Box to pickup."""
+    BALL = Item("ball")
+    """Ball blocking the door."""
     WEIGHT = Item("weight")
     """Weight of carried items, can only be less than 1."""
 
@@ -34,6 +36,10 @@ class MiniCraftUnlockPickup(CraftingEnv):
     """Open door between the two rooms."""
     LOCKED_DOOR = Item("locked_door")
     """Locked door between the two rooms, can be unlocked with a key."""
+    BLOCKED_DOOR = Item("blocked_door")
+    """Open but blocked door between the two rooms."""
+    BLOCKED_LOCKED_DOOR = Item("blocked_locked_door")
+    """Locked and blocked door between the two rooms."""
 
     def __init__(self, **kwargs) -> None:
         """
@@ -48,7 +54,7 @@ class MiniCraftUnlockPickup(CraftingEnv):
         self.task = GetItemTask(self.BOX)
         world.resources_path = os.path.join(os.path.dirname(__file__), "resources")
         super().__init__(
-            world, purpose=self.task, name="MiniCraftUnlockPickup", **kwargs
+            world, purpose=self.task, name="MiniCraftBlockedUnlockPickup", **kwargs
         )
 
     def _build_transformations(self) -> List[Transformation]:
@@ -73,6 +79,7 @@ class MiniCraftUnlockPickup(CraftingEnv):
             )
             transformations.append(search_for_item)
 
+        for item in (self.KEY, self.BOX, self.BALL):
             pickup = Transformation(
                 inventory_changes={
                     "player": {
@@ -94,13 +101,46 @@ class MiniCraftUnlockPickup(CraftingEnv):
         search_for_door = Transformation(
             inventory_changes={
                 "current_zone": {
-                    "add": [self.LOCKED_DOOR],
-                    "max": [self.LOCKED_DOOR, ItemStack(self.OPEN_DOOR, 0)],
+                    "add": [self.BLOCKED_LOCKED_DOOR],
+                    # Prevent creating door if door was already found
+                    "max": [
+                        self.BLOCKED_LOCKED_DOOR,
+                        ItemStack(self.BLOCKED_DOOR, 0),
+                        ItemStack(self.LOCKED_DOOR, 0),
+                        ItemStack(self.OPEN_DOOR, 0),
+                    ],
                 },
             },
             zones=[self.START],
         )
         transformations.append(search_for_door)
+
+        unblock_locked_door = Transformation(
+            inventory_changes={
+                "player": {
+                    "add": [self.BALL, self.WEIGHT],
+                    "max": [self.WEIGHT],
+                },
+                "current_zone": {
+                    "remove": [self.BLOCKED_LOCKED_DOOR],
+                    "add": [self.LOCKED_DOOR],
+                },
+            },
+        )
+        transformations.append(unblock_locked_door)
+
+        block_locked_door = Transformation(
+            inventory_changes={
+                "player": {
+                    "remove": [self.BALL, self.WEIGHT],
+                },
+                "current_zone": {
+                    "remove": [self.LOCKED_DOOR],
+                    "add": [self.BLOCKED_LOCKED_DOOR],
+                },
+            },
+        )
+        transformations.append(block_locked_door)
 
         unlock_door = Transformation(
             inventory_changes={
@@ -115,6 +155,33 @@ class MiniCraftUnlockPickup(CraftingEnv):
             },
         )
         transformations.append(unlock_door)
+
+        block_door = Transformation(
+            inventory_changes={
+                "player": {
+                    "remove": [self.BALL, self.WEIGHT],
+                },
+                "current_zone": {
+                    "remove": [self.OPEN_DOOR],
+                    "add": [self.BLOCKED_DOOR],
+                },
+            },
+        )
+        transformations.append(block_door)
+
+        unblock_door = Transformation(
+            inventory_changes={
+                "player": {
+                    "add": [self.BALL, self.WEIGHT],
+                    "max": [self.WEIGHT],
+                },
+                "current_zone": {
+                    "remove": [self.BLOCKED_DOOR],
+                    "add": [self.OPEN_DOOR],
+                },
+            },
+        )
+        transformations.append(unblock_door)
 
         move_to_box_room = Transformation(
             destination=self.BOX_ROOM,
