@@ -1,15 +1,17 @@
-import os
+"""# MiniCraft - KeyCorridor"""
+
 from typing import List
 
 from crafting.elements import Item, Zone
-from crafting.env import CraftingEnv
 from crafting.task import GetItemTask
 from crafting.transformation import Transformation
-from crafting.world import world_from_transformations
+
+from crafting.examples.minicraft.minicraft import MiniCraftEnv
 
 
-class MiniCraftKeyCorridor(CraftingEnv):
-    """Reproduces the KeyCorridor minigrid environment as a crafting environment."""
+class MiniCraftKeyCorridor(MiniCraftEnv):
+    MINICRAFT_NAME = "KeyCorridor"
+    __doc__ = MiniCraftEnv.description(MINICRAFT_NAME)
 
     START = Zone("start_room")
     """Start room."""
@@ -35,27 +37,19 @@ class MiniCraftKeyCorridor(CraftingEnv):
     """Locked door, can be unlocked with a key."""
 
     def __init__(self, **kwargs) -> None:
-        """
-        Kwargs:
-            See `crafting.env.CraftingEnv`
-        """
-        resources_path = os.path.join(os.path.dirname(__file__), "resources")
-        transformations = self._build_transformations()
-        world = world_from_transformations(
-            transformations=transformations,
+        self.task = GetItemTask(self.BALL)
+        super().__init__(
+            self.MINICRAFT_NAME,
             start_zone=self.START,
             start_zones_items={
+                self.START: [self.CLOSED_KEY_DOOR, self.LOCKED_DOOR],
                 self.LOCKED_ROOM: [self.BALL],
-                self.START: [self.LOCKED_DOOR, self.CLOSED_KEY_DOOR],
             },
-        )
-        self.task = GetItemTask(self.BALL)
-        world.resources_path = resources_path
-        super().__init__(
-            world, purpose=self.task, name="MiniCraftKeyCorridor", **kwargs
+            purpose=self.task,
+            **kwargs,
         )
 
-    def _build_transformations(self) -> List[Transformation]:
+    def build_transformations(self) -> List[Transformation]:
         transformations = []
 
         search_for_key = Transformation(

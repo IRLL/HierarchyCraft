@@ -1,22 +1,17 @@
 """# MiniCraft - Unlock"""
 
-import os
 from typing import List
 
 from crafting.elements import Item, Zone
-from crafting.env import CraftingEnv
 from crafting.task import PlaceItemTask
 from crafting.transformation import Transformation
-from crafting.world import world_from_transformations
+
+from crafting.examples.minicraft.minicraft import MiniCraftEnv
 
 
-class MiniCraftUnlock(CraftingEnv):
-    """Reproduces the minigrid
-    [Unlock](https://minigrid.farama.org/environments/minigrid/UnlockEnv/)
-    gridworld environment as a crafting environment.
-
-    ![Minigrid Unlock display](https://minigrid.farama.org/_images/UnlockEnv.gif)
-    """
+class MiniCraftUnlock(MiniCraftEnv):
+    MINICRAFT_NAME = "Unlock"
+    __doc__ = MiniCraftEnv.description(MINICRAFT_NAME)
 
     START = Zone("start_room")
     """Start room."""
@@ -30,20 +25,15 @@ class MiniCraftUnlock(CraftingEnv):
     """Locked door between the two rooms, can be unlocked with a key."""
 
     def __init__(self, **kwargs) -> None:
-        """
-        Kwargs:
-            See `crafting.env.CraftingEnv`
-        """
-        transformations = self._build_transformations()
-        world = world_from_transformations(
-            transformations=transformations,
-            start_zone=self.START,
-        )
         self.task = PlaceItemTask(self.OPEN_DOOR)
-        world.resources_path = os.path.join(os.path.dirname(__file__), "resources")
-        super().__init__(world, purpose=self.task, name="MiniCraftUnlock", **kwargs)
+        super().__init__(
+            self.MINICRAFT_NAME,
+            purpose=self.task,
+            start_zone=self.START,
+            **kwargs,
+        )
 
-    def _build_transformations(self) -> List[Transformation]:
+    def build_transformations(self) -> List[Transformation]:
         transformations = []
 
         search_for_key = Transformation(

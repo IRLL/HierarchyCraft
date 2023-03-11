@@ -1,23 +1,18 @@
 """# MiniCraft - FourRooms"""
 
 
-import os
 from typing import List
 
 from crafting.elements import Item, Zone
-from crafting.env import CraftingEnv
 from crafting.task import GetItemTask
 from crafting.transformation import Transformation
-from crafting.world import world_from_transformations
+
+from crafting.examples.minicraft.minicraft import MiniCraftEnv
 
 
-class MiniCraftFourRooms(CraftingEnv):
-    """Reproduces the minigrid
-    [FourRooms](https://minigrid.farama.org/environments/minigrid/FourRoomsEnv/)
-    gridworld environment as a crafting environment.
-
-    ![Minigrid FourRooms display](https://minigrid.farama.org/_images/FourRoomsEnv.gif)
-    """
+class MiniCraftFourRooms(MiniCraftEnv):
+    MINICRAFT_NAME = "FourRooms"
+    __doc__ = MiniCraftEnv.description(MINICRAFT_NAME)
 
     SOUTH_WEST_ROOM = Zone("SW")
     """South west room."""
@@ -35,19 +30,15 @@ class MiniCraftFourRooms(CraftingEnv):
     """Goal to reach."""
 
     def __init__(self, **kwargs) -> None:
-        """
-        Kwargs:
-            See `crafting.env.CraftingEnv`
-        """
-        transformations = self._build_transformations()
-        world = world_from_transformations(
-            transformations=transformations, start_zone=self.SOUTH_WEST_ROOM
-        )
         self.task = GetItemTask(self.GOAL)
-        world.resources_path = os.path.join(os.path.dirname(__file__), "resources")
-        super().__init__(world, purpose=self.task, name="MiniCraftFourRooms", **kwargs)
+        super().__init__(
+            self.MINICRAFT_NAME,
+            start_zone=self.SOUTH_WEST_ROOM,
+            purpose=self.task,
+            **kwargs,
+        )
 
-    def _build_transformations(self) -> List[Transformation]:
+    def build_transformations(self) -> List[Transformation]:
         find_goal = Transformation(
             inventory_changes={
                 "current_zone": {"add": [self.GOAL], "max": [self.GOAL]},

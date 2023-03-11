@@ -1,22 +1,18 @@
 """# MiniCraft - UnlockPickup"""
 
-import os
 from typing import List
 
 from crafting.elements import Item, Zone, ItemStack
-from crafting.env import CraftingEnv
 from crafting.task import GetItemTask
 from crafting.transformation import Transformation
-from crafting.world import world_from_transformations
 
 
-class MiniCraftUnlockPickup(CraftingEnv):
-    """Reproduces the minigrid
-    [UnlockPickup](https://minigrid.farama.org/environments/minigrid/UnlockPickupEnv/)
-    gridworld environment as a crafting environment.
+from crafting.examples.minicraft.minicraft import MiniCraftEnv
 
-    ![Minigrid UnlockPickup display](https://minigrid.farama.org/_images/UnlockPickupEnv.gif)
-    """
+
+class MiniCraftUnlockPickup(MiniCraftEnv):
+    MINICRAFT_NAME = "UnlockPickup"
+    __doc__ = MiniCraftEnv.description(MINICRAFT_NAME)
 
     START = Zone("start_room")
     """Start room."""
@@ -36,22 +32,15 @@ class MiniCraftUnlockPickup(CraftingEnv):
     """Locked door between the two rooms, can be unlocked with a key."""
 
     def __init__(self, **kwargs) -> None:
-        """
-        Kwargs:
-            See `crafting.env.CraftingEnv`
-        """
-        transformations = self._build_transformations()
-        world = world_from_transformations(
-            transformations=transformations,
-            start_zone=self.START,
-        )
         self.task = GetItemTask(self.BOX)
-        world.resources_path = os.path.join(os.path.dirname(__file__), "resources")
         super().__init__(
-            world, purpose=self.task, name="MiniCraftUnlockPickup", **kwargs
+            self.MINICRAFT_NAME,
+            purpose=self.task,
+            start_zone=self.START,
+            **kwargs,
         )
 
-    def _build_transformations(self) -> List[Transformation]:
+    def build_transformations(self) -> List[Transformation]:
         transformations = []
 
         zones = (self.START, self.BOX_ROOM)

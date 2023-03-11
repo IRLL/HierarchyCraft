@@ -1,22 +1,17 @@
 """# MiniCraft - Empty"""
 
-import os
 from typing import List
 
 from crafting.elements import Item, Zone
-from crafting.env import CraftingEnv
 from crafting.task import GetItemTask
 from crafting.transformation import Transformation
-from crafting.world import world_from_transformations
+
+from crafting.examples.minicraft.minicraft import MiniCraftEnv
 
 
-class MiniCraftEmpty(CraftingEnv):
-    """Reproduces the minigrid
-    [Empty](https://minigrid.farama.org/environments/minigrid/EmptyEnv/)
-    gridworld environment as a crafting environment.
-
-    ![Minigrid Empty display](https://minigrid.farama.org/_images/EmptyEnv.gif)
-    """
+class MiniCraftEmpty(MiniCraftEnv):
+    MINICRAFT_NAME = "Empty"
+    __doc__ = MiniCraftEnv.description(MINICRAFT_NAME)
 
     ROOM = Zone("0")
     """The one and only room."""
@@ -25,20 +20,14 @@ class MiniCraftEmpty(CraftingEnv):
     """Goal to reach."""
 
     def __init__(self, **kwargs) -> None:
-        """
-        Kwargs:
-            See `crafting.env.CraftingEnv`
-        """
-        resources_path = os.path.join(os.path.dirname(__file__), "resources")
-        transformations = self._build_transformations()
-        world = world_from_transformations(
-            transformations=transformations, start_zone=self.ROOM
-        )
         self.task = GetItemTask(self.GOAL)
-        world.resources_path = resources_path
-        super().__init__(world, purpose=self.task, name="MiniCraftEmpty", **kwargs)
+        super().__init__(
+            self.MINICRAFT_NAME,
+            purpose=self.task,
+            **kwargs,
+        )
 
-    def _build_transformations(self) -> List[Transformation]:
+    def build_transformations(self) -> List[Transformation]:
         find_goal = Transformation(
             inventory_changes={
                 "current_zone": {"add": [self.GOAL], "max": [self.GOAL]},

@@ -1,24 +1,17 @@
 """# MiniCraft - Crossing"""
 
-import os
 from typing import List
 
 from crafting.elements import Item, Zone
-from crafting.env import CraftingEnv
 from crafting.purpose import Purpose, GetItemTask
 from crafting.transformation import Transformation
-from crafting.world import world_from_transformations
+
+from crafting.examples.minicraft.minicraft import MiniCraftEnv
 
 
-class MiniCraftCrossing(CraftingEnv):
-    """Reproduces the minigrid
-    [Crossing](https://minigrid.farama.org/environments/minigrid/CrossingEnv/)
-    gridworld environment as a crafting environment.
-
-    ![minigrid display](https://minigrid.farama.org/_images/CrossingEnv.gif)
-
-    ![requirements graph](../../docs/images/requirements_graphs/MiniCraftCrossing.png)
-    """
+class MiniCraftCrossing(MiniCraftEnv):
+    MINICRAFT_NAME = "Crossing"
+    __doc__ = MiniCraftEnv.description(MINICRAFT_NAME)
 
     ROOM = Zone("0")
     """The one and only room."""
@@ -30,24 +23,19 @@ class MiniCraftCrossing(CraftingEnv):
     """Lava, it burns."""
 
     def __init__(self, **kwargs) -> None:
-        """
-        Kwargs:
-            See `crafting.env.CraftingEnv`
-        """
-        resources_path = os.path.join(os.path.dirname(__file__), "resources")
-        transformations = self._build_transformations()
-        world = world_from_transformations(
-            transformations=transformations, start_zone=self.ROOM
-        )
         purpose = Purpose()
         self.task = GetItemTask(self.GOAL)
         purpose.add_task(self.task, terminal_groups="goal")
         die_in_lava = GetItemTask(self.LAVA, reward=-1)
         purpose.add_task(die_in_lava, terminal_groups="die")
-        world.resources_path = resources_path
-        super().__init__(world, purpose=purpose, name="MiniCraftCrossing", **kwargs)
+        super().__init__(
+            self.MINICRAFT_NAME,
+            start_zone=self.ROOM,
+            purpose=purpose,
+            **kwargs,
+        )
 
-    def _build_transformations(self) -> List[Transformation]:
+    def build_transformations(self) -> List[Transformation]:
         find_goal = Transformation(
             inventory_changes={
                 "current_zone": {"add": [self.GOAL], "max": [self.GOAL]},
