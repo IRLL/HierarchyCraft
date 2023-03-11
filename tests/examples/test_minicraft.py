@@ -47,13 +47,15 @@ def test_requirements_graph(env_class):
     if draw:
         import matplotlib.pyplot as plt
 
-        fig, ax = plt.subplots(figsize=(16, 9))
+        fig, ax = plt.subplots()
+        plt.tight_layout()
+        fig.set_size_inches(16, 9)
         env.world.requirements.draw(ax)
 
         requirements_dir = os.path.join("docs", "images", "requirements_graphs")
         os.makedirs(requirements_dir, exist_ok=True)
-        plt.tight_layout()
+
         filename = os.path.join(requirements_dir, f"{env.name}.png")
         if not os.path.exists(filename):
-            fig.savefig(filename, transparent=True)
+            fig.savefig(filename, dpi=80, transparent=True)
         plt.close()
