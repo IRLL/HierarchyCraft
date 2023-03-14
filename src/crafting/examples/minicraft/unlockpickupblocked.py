@@ -62,6 +62,7 @@ class MiniCraftBlockedUnlockPickup(MiniCraftEnv):
                 {zone: {"max": [item]} for zone in zones},
             )
             search_for_item = Transformation(
+                f"search_for_{item.name}",
                 inventory_changes=inventory_changes,
                 zones=[zone],
             )
@@ -69,6 +70,7 @@ class MiniCraftBlockedUnlockPickup(MiniCraftEnv):
 
         for item in (self.KEY, self.BOX, self.BALL):
             pickup = Transformation(
+                f"pickup_{item.name}",
                 inventory_changes={
                     "player": {
                         "add": [item, self.WEIGHT],
@@ -79,6 +81,7 @@ class MiniCraftBlockedUnlockPickup(MiniCraftEnv):
                 },
             )
             put_down = Transformation(
+                f"put_down_{item.name}",
                 inventory_changes={
                     "player": {"remove": [item, self.WEIGHT]},
                     "current_zone": {"add": [item]},
@@ -87,6 +90,7 @@ class MiniCraftBlockedUnlockPickup(MiniCraftEnv):
             transformations += [pickup, put_down]
 
         search_for_door = Transformation(
+            "search_for_door",
             inventory_changes={
                 "current_zone": {
                     "add": [self.BLOCKED_LOCKED_DOOR],
@@ -104,6 +108,7 @@ class MiniCraftBlockedUnlockPickup(MiniCraftEnv):
         transformations.append(search_for_door)
 
         unblock_locked_door = Transformation(
+            "unblock_locked_door",
             inventory_changes={
                 "player": {
                     "add": [self.BALL, self.WEIGHT],
@@ -118,6 +123,7 @@ class MiniCraftBlockedUnlockPickup(MiniCraftEnv):
         transformations.append(unblock_locked_door)
 
         block_locked_door = Transformation(
+            "block_locked_door",
             inventory_changes={
                 "player": {
                     "remove": [self.BALL, self.WEIGHT],
@@ -131,6 +137,7 @@ class MiniCraftBlockedUnlockPickup(MiniCraftEnv):
         transformations.append(block_locked_door)
 
         unlock_door = Transformation(
+            "unlock_door",
             inventory_changes={
                 "player": {
                     "remove": [self.KEY],
@@ -145,6 +152,7 @@ class MiniCraftBlockedUnlockPickup(MiniCraftEnv):
         transformations.append(unlock_door)
 
         block_door = Transformation(
+            "block_door",
             inventory_changes={
                 "player": {
                     "remove": [self.BALL, self.WEIGHT],
@@ -158,6 +166,7 @@ class MiniCraftBlockedUnlockPickup(MiniCraftEnv):
         transformations.append(block_door)
 
         unblock_door = Transformation(
+            "unblock_door",
             inventory_changes={
                 "player": {
                     "add": [self.BALL, self.WEIGHT],
@@ -172,6 +181,7 @@ class MiniCraftBlockedUnlockPickup(MiniCraftEnv):
         transformations.append(unblock_door)
 
         move_to_box_room = Transformation(
+            "move_to_box_room",
             destination=self.BOX_ROOM,
             inventory_changes={
                 "current_zone": {
@@ -184,6 +194,7 @@ class MiniCraftBlockedUnlockPickup(MiniCraftEnv):
         transformations.append(move_to_box_room)
 
         move_to_start_room = Transformation(
+            "move_to_start_room",
             destination=self.START,
             zones=[self.BOX_ROOM],
         )

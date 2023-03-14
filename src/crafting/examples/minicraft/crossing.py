@@ -13,7 +13,7 @@ class MiniCraftCrossing(MiniCraftEnv):
     MINICRAFT_NAME = "Crossing"
     __doc__ = MiniCraftEnv.description(MINICRAFT_NAME)
 
-    ROOM = Zone("0")
+    ROOM = Zone("room")
     """The one and only room."""
 
     GOAL = Item("goal")
@@ -37,6 +37,7 @@ class MiniCraftCrossing(MiniCraftEnv):
 
     def build_transformations(self) -> List[Transformation]:
         find_goal = Transformation(
+            "find_goal",
             inventory_changes={
                 "current_zone": {"add": [self.GOAL], "max": [self.GOAL]},
             },
@@ -44,6 +45,7 @@ class MiniCraftCrossing(MiniCraftEnv):
         )
 
         reach_goal = Transformation(
+            "reach_goal",
             inventory_changes={
                 "player": {"add": [self.GOAL]},
                 "current_zone": {"remove": [self.GOAL]},
@@ -51,6 +53,7 @@ class MiniCraftCrossing(MiniCraftEnv):
         )
 
         find_lava = Transformation(
+            "find_lava",
             inventory_changes={
                 "current_zone": {"add": [self.LAVA], "max": [self.LAVA]},
             },
@@ -58,6 +61,7 @@ class MiniCraftCrossing(MiniCraftEnv):
         )
 
         reach_lava = Transformation(
+            "reach_lava",
             inventory_changes={
                 "player": {"add": [self.LAVA]},
                 "current_zone": {"remove": [self.LAVA]},

@@ -41,6 +41,7 @@ class MiniCraftDoorKey(MiniCraftEnv):
         transformations = []
 
         search_for_key = Transformation(
+            "search_for_key",
             inventory_changes={
                 "current_zone": {"add": [self.KEY]},
                 "player": {"max": [self.KEY]},
@@ -52,12 +53,14 @@ class MiniCraftDoorKey(MiniCraftEnv):
         transformations.append(search_for_key)
 
         pickup = Transformation(
+            "pickup_key",
             inventory_changes={
                 "player": {"add": [self.KEY]},
                 "current_zone": {"remove": [self.KEY]},
             },
         )
         put_down = Transformation(
+            "put_down_key",
             inventory_changes={
                 "player": {"remove": [self.KEY]},
                 "current_zone": {"add": [self.KEY]},
@@ -66,6 +69,7 @@ class MiniCraftDoorKey(MiniCraftEnv):
         transformations += [pickup, put_down]
 
         search_for_door = Transformation(
+            "search_for_door",
             inventory_changes={
                 "current_zone": {
                     "add": [self.LOCKED_DOOR],
@@ -77,6 +81,7 @@ class MiniCraftDoorKey(MiniCraftEnv):
         transformations.append(search_for_door)
 
         unlock_door = Transformation(
+            "unlock_door",
             inventory_changes={
                 "player": {
                     "remove": [self.KEY],
@@ -91,6 +96,7 @@ class MiniCraftDoorKey(MiniCraftEnv):
         transformations.append(unlock_door)
 
         move_to_locked_room = Transformation(
+            "move_to_locked_room",
             destination=self.LOCKED_ROOM,
             inventory_changes={
                 "current_zone": {
@@ -109,6 +115,7 @@ class MiniCraftDoorKey(MiniCraftEnv):
         transformations.append(move_to_start_room)
 
         find_goal = Transformation(
+            "find_goal",
             inventory_changes={
                 "current_zone": {"add": [self.GOAL], "max": [self.GOAL]},
             },
@@ -117,6 +124,7 @@ class MiniCraftDoorKey(MiniCraftEnv):
         transformations.append(find_goal)
 
         reach_goal = Transformation(
+            "reach_goal",
             inventory_changes={
                 "player": {"add": [self.GOAL]},
                 "current_zone": {"remove": [self.GOAL]},

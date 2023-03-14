@@ -57,12 +57,14 @@ class MiniCraftUnlockPickup(MiniCraftEnv):
                 {zone: {"max": [item]} for zone in zones},
             )
             search_for_item = Transformation(
+                f"search_for_{item.name}",
                 inventory_changes=inventory_changes,
                 zones=[zone],
             )
             transformations.append(search_for_item)
 
             pickup = Transformation(
+                f"pickup_{item.name}",
                 inventory_changes={
                     "player": {
                         "add": [item, self.WEIGHT],
@@ -73,6 +75,7 @@ class MiniCraftUnlockPickup(MiniCraftEnv):
                 },
             )
             put_down = Transformation(
+                f"put_down_{item.name}",
                 inventory_changes={
                     "player": {"remove": [item, self.WEIGHT]},
                     "current_zone": {"add": [item]},
@@ -81,6 +84,7 @@ class MiniCraftUnlockPickup(MiniCraftEnv):
             transformations += [pickup, put_down]
 
         search_for_door = Transformation(
+            "search_for_door",
             inventory_changes={
                 "current_zone": {
                     "add": [self.LOCKED_DOOR],
@@ -92,6 +96,7 @@ class MiniCraftUnlockPickup(MiniCraftEnv):
         transformations.append(search_for_door)
 
         unlock_door = Transformation(
+            "unlock_door",
             inventory_changes={
                 "player": {
                     "remove": [self.KEY],
@@ -106,6 +111,7 @@ class MiniCraftUnlockPickup(MiniCraftEnv):
         transformations.append(unlock_door)
 
         move_to_box_room = Transformation(
+            "move_to_box_room",
             destination=self.BOX_ROOM,
             inventory_changes={
                 "current_zone": {
@@ -118,6 +124,7 @@ class MiniCraftUnlockPickup(MiniCraftEnv):
         transformations.append(move_to_box_room)
 
         move_to_start_room = Transformation(
+            "move_to_start_room",
             destination=self.START,
             zones=[self.BOX_ROOM],
         )

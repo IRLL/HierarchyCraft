@@ -10,12 +10,14 @@ def classic_env():
     zones = [start_zone, other_zone]
 
     move_to_other_zone = Transformation(
+        "move_to_other_zone",
         destination=other_zone,
         zones=[start_zone],
     )
 
     wood = Item("wood")
     search_wood = Transformation(
+        "search_wood",
         inventory_changes={
             "player": {"add": [wood]},
         }
@@ -23,6 +25,7 @@ def classic_env():
 
     stone = Item("stone")
     search_stone = Transformation(
+        "search_stone",
         inventory_changes={
             "player": {"add": [ItemStack(stone, 1)]},
         }
@@ -30,6 +33,7 @@ def classic_env():
 
     plank = Item("plank")
     craft_plank = Transformation(
+        "craft_plank",
         inventory_changes={
             "player": {"remove": [wood], "add": [ItemStack(plank, 4)]},
         }
@@ -37,6 +41,7 @@ def classic_env():
 
     table = Item("table")
     craft_table = Transformation(
+        "craft_table",
         inventory_changes={
             "player": {"remove": [ItemStack(plank, 4)]},
             "current_zone": {"add": [ItemStack(table)]},
@@ -45,6 +50,7 @@ def classic_env():
 
     wood_house = Item("wood house")
     build_house = Transformation(
+        "build_house",
         inventory_changes={
             "player": {"remove": [ItemStack(plank, 32), ItemStack(wood, 8)]},
             "current_zone": {"add": [ItemStack(wood_house)]},

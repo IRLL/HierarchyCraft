@@ -53,6 +53,7 @@ class MiniCraftKeyCorridor(MiniCraftEnv):
         transformations = []
 
         search_for_key = Transformation(
+            "search_for_key",
             inventory_changes={
                 "current_zone": {"add": [self.KEY]},
                 "player": {"max": [self.KEY]},
@@ -65,12 +66,14 @@ class MiniCraftKeyCorridor(MiniCraftEnv):
         transformations.append(search_for_key)
 
         pickup = Transformation(
+            "pickup_key",
             inventory_changes={
                 "player": {"add": [self.KEY, self.WEIGHT], "max": [self.WEIGHT]},
                 "current_zone": {"remove": [self.KEY]},
             },
         )
         put_down = Transformation(
+            "put_down_key",
             inventory_changes={
                 "player": {"remove": [self.KEY, self.WEIGHT]},
                 "current_zone": {"add": [self.KEY]},
@@ -79,6 +82,7 @@ class MiniCraftKeyCorridor(MiniCraftEnv):
         transformations += [pickup, put_down]
 
         open_door = Transformation(
+            "open_door",
             inventory_changes={
                 "current_zone": {
                     "remove": [self.CLOSED_KEY_DOOR],
@@ -89,6 +93,7 @@ class MiniCraftKeyCorridor(MiniCraftEnv):
         transformations.append(open_door)
 
         move_to_key_room = Transformation(
+            "move_to_key_room",
             destination=self.KEY_ROOM,
             inventory_changes={
                 "current_zone": {
@@ -101,12 +106,14 @@ class MiniCraftKeyCorridor(MiniCraftEnv):
         transformations.append(move_to_key_room)
 
         move_to_start_room = Transformation(
+            "move_to_start_room",
             destination=self.START,
             zones=[self.KEY_ROOM, self.LOCKED_ROOM],
         )
         transformations.append(move_to_start_room)
 
         unlock_door = Transformation(
+            "unlock_door",
             inventory_changes={
                 "player": {
                     "remove": [self.KEY],
@@ -121,6 +128,7 @@ class MiniCraftKeyCorridor(MiniCraftEnv):
         transformations.append(unlock_door)
 
         move_to_locked_room = Transformation(
+            "move_to_locked_room",
             destination=self.LOCKED_ROOM,
             inventory_changes={
                 "current_zone": {
@@ -133,10 +141,11 @@ class MiniCraftKeyCorridor(MiniCraftEnv):
         transformations.append(move_to_locked_room)
 
         pickup_ball = Transformation(
+            "pickup_ball",
             inventory_changes={
                 "player": {"add": [self.BALL, self.WEIGHT], "max": [self.WEIGHT]},
                 "current_zone": {"remove": [self.BALL]},
-            }
+            },
         )
         transformations.append(pickup_ball)
 

@@ -29,6 +29,7 @@ class MiniCraftMultiRoom(MiniCraftEnv):
     def build_transformations(self) -> List[Transformation]:
         transformations = []
         find_goal = Transformation(
+            "find_goal",
             inventory_changes={
                 "current_zone": {"add": [self.GOAL], "max": [self.GOAL]},
             },
@@ -37,10 +38,11 @@ class MiniCraftMultiRoom(MiniCraftEnv):
         transformations.append(find_goal)
 
         reach_goal = Transformation(
+            "reach_goal",
             inventory_changes={
                 "player": {"add": [self.GOAL]},
                 "current_zone": {"remove": [self.GOAL]},
-            }
+            },
         )
         transformations.append(reach_goal)
 
@@ -50,7 +52,11 @@ class MiniCraftMultiRoom(MiniCraftEnv):
                 connected_rooms.append(self.rooms[i - 1])
             if i < len(self.rooms) - 1:
                 connected_rooms.append(self.rooms[i + 1])
-            go_to_room = Transformation(destination=room, zones=connected_rooms)
+            go_to_room = Transformation(
+                f"go_to_{room}",
+                destination=room,
+                zones=connected_rooms,
+            )
             transformations.append(go_to_room)
 
         return transformations

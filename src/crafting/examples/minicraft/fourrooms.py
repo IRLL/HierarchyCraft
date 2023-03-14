@@ -40,6 +40,7 @@ class MiniCraftFourRooms(MiniCraftEnv):
 
     def build_transformations(self) -> List[Transformation]:
         find_goal = Transformation(
+            "find_goal",
             inventory_changes={
                 "current_zone": {"add": [self.GOAL], "max": [self.GOAL]},
             },
@@ -47,28 +48,33 @@ class MiniCraftFourRooms(MiniCraftEnv):
         )
 
         reach_goal = Transformation(
+            "reach_goal",
             inventory_changes={
                 "player": {"add": [self.GOAL]},
                 "current_zone": {"remove": [self.GOAL]},
-            }
+            },
         )
 
         go_to_se = Transformation(
+            "go_to_se",
             destination=self.SOUTH_EAST_ROOM,
             zones=[self.NORTH_EAST_ROOM, self.SOUTH_WEST_ROOM],
         )
 
         go_to_ne = Transformation(
+            "go_to_ne",
             destination=self.NORTH_EAST_ROOM,
             zones=[self.SOUTH_EAST_ROOM, self.NORTH_WEST_ROOM],
         )
 
         go_to_sw = Transformation(
+            "go_to_sw",
             destination=self.SOUTH_WEST_ROOM,
             zones=[self.NORTH_WEST_ROOM, self.SOUTH_EAST_ROOM],
         )
 
         go_to_nw = Transformation(
+            "go_to_nw",
             destination=self.NORTH_WEST_ROOM,
             zones=[self.NORTH_EAST_ROOM, self.SOUTH_WEST_ROOM],
         )

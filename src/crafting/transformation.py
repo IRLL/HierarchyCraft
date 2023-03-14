@@ -121,7 +121,7 @@ because the player only observe the current zone items.
 """
 
 
-from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union, Any
 from enum import Enum
 
 import numpy as np
@@ -206,6 +206,7 @@ class Transformation:
 
     def __init__(
         self,
+        name: Optional[str] = None,
         destination: Optional[Zone] = None,
         inventory_changes: Optional[Dict[InventoryOwner, InventoryChanges]] = None,
         zones: Optional[List[Zone]] = None,
@@ -231,6 +232,8 @@ class Transformation:
         self._inventory_operations: Optional[
             Dict[InventoryOwner, InventoryOperations]
         ] = None
+
+        self.name = name if name is not None else "transformation"
 
     def apply(
         self,
@@ -271,7 +274,7 @@ class Transformation:
         self._build_zones_op(world)
 
     def get_changes(
-        self, owner: InventoryOwner, operation: InventoryOperation
+        self, owner: InventoryOwner, operation: InventoryOperation, default: Any = None
     ) -> Optional[Union[List[ItemStack], Dict[Zone, List[ItemStack]]]]:
         """Get individual changes for a given owner and a given operation.
 
@@ -285,7 +288,7 @@ class Transformation:
         owner = InventoryOwner(owner)
         operation = InventoryOperation(operation)
         operations = self.inventory_changes.get(owner, {})
-        return operations.get(operation, None)
+        return operations.get(operation, default)
 
     def production(self, owner: InventoryOwner) -> Set["Item"]:
         """Set of produced items for the given owner by this transformation."""
