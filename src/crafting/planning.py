@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING, Dict, List, Optional
 
+import numpy as np
+
 from unified_planning.shortcuts import (
     UserType,
     Object,
@@ -9,20 +11,33 @@ from unified_planning.shortcuts import (
     InstantaneousAction,
     Problem,
     Or,
+    And,
     GE,
     LE,
 )
 
 from crafting.transformation import Transformation, InventoryOwner
 from crafting.task import Task, GetItemTask, PlaceItemTask, GoToZoneTask
+from crafting.purpose import Purpose
 
 if TYPE_CHECKING:
     from crafting.world import World
 
 
 def world_task_to_planning_problem(
-    world: "World", name: str, task: Optional["Task"]
+    world: "World", name: str, purpose: Optional["Purpose"]
 ) -> Problem:
+    """Build a unified planning problem from the given world and purpose.
+
+    Args:
+        world: Crafting world to generate the problem from.
+        name: Name given to the planning problem.
+        purpose: Purpose of the agent.
+            Will be used to set the goal of the planning problem.
+
+    Returns:
+        Problem: Unified planning problem.
+    """
     item_type = UserType("item")
     zone_type = UserType("zone")
     player_item_type = UserType("player_item", item_type)
@@ -111,9 +126,10 @@ def world_task_to_planning_problem(
     problem.add_fluent(amount_at, default_initial_value=0)
     problem.add_objects(zones_obj.values())
     problem.add_actions(actions)
-    if task is not None:
-        goal = task_to_goal(
-            task, pos, amount, amount_at, items_obj, zone_items_obj, zones_obj
+
+    if purpose is not None and purpose.terminal_groups:
+        goal = _purpose_to_goal(
+            purpose, pos, amount, amount_at, items_obj, zone_items_obj, zones_obj
         )
         problem.add_goal(goal)
     for zone_name, zone in zones_obj.items():
@@ -137,7 +153,7 @@ def world_task_to_planning_problem(
     return problem
 
 
-def task_to_goal(
+def _task_to_goal(
     task: "Task",
     pos: Fluent,
     amount: Fluent,
@@ -162,3 +178,31 @@ def task_to_goal(
     if isinstance(task, GoToZoneTask):
         return pos(zones_obj[task.zone.name])
     raise NotImplementedError
+
+
+def _purpose_to_goal(
+    purpose: "Purpose",
+    pos: Fluent,
+    amount: Fluent,
+    amount_at: Fluent,
+    items_obj: Dict[str, List[Object]],
+    zone_items_obj: Dict[str, List[Object]],
+    zones_obj: Dict[str, List[Object]],
+):
+    # Individual tasks goals
+    goals = {}
+    for task in purpose.tasks:
+        goals[task] = _task_to_goal(
+            task, pos, amount, amount_at, items_obj, zone_items_obj, zones_obj
+        )
+
+    # Terminal goals and values
+    best_terminal_group, best_terminal_value = None, -np.inf
+    for terminal_group in purpose.terminal_groups:
+        terminal_value = sum(task._reward for task in terminal_group.tasks)
+        if terminal_value > best_terminal_value:
+            best_terminal_value = terminal_value
+            best_terminal_group = terminal_group
+
+    # We only consider the best terminal group goal
+    return And(*[goals[task] for task in best_terminal_group.tasks])

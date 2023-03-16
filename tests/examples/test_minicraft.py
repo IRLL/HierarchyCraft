@@ -10,7 +10,6 @@ from unified_planning.plans import SequentialPlan
 from crafting.render.human import render_env_with_human
 from crafting.examples.minicraft import MINICRAFT_ENVS, MiniCraftBlockedUnlockPickup
 from crafting.examples.minicraft.minicraft import MiniCraftEnv
-from crafting.planning import world_task_to_planning_problem
 
 
 @pytest.mark.parametrize("env_class", MINICRAFT_ENVS)
@@ -25,7 +24,7 @@ def test_build_env(env_class):
 def test_pddl_solve(env_class):
     write = False
     env: MiniCraftEnv = env_class()
-    problem = world_task_to_planning_problem(env.world, env.name, task=env.task)
+    problem = env.planning_problem()
 
     if write:
         writer = PDDLWriter(problem)
@@ -46,7 +45,8 @@ def test_pddl_solve(env_class):
     def action_from_plan():
         if not actions:
             raise ValueError("Plan has failed")
-        action = int(str(actions.pop(0)).split("_")[0])
+        plan_action_name = str(actions.pop(0))
+        action = int(plan_action_name.split("_")[0])
         return action
 
     done = False

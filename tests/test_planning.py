@@ -1,6 +1,6 @@
 from unified_planning.shortcuts import OneshotPlanner
-from crafting.planning import world_task_to_planning_problem
 from crafting.task import PlaceItemTask
+from crafting.purpose import Purpose
 from crafting.elements import Item, Zone, ItemStack
 
 from tests.envs import classic_env
@@ -10,8 +10,9 @@ def test_crafting_classic():
     env, _, named_transformations, start_zone, items, zones, zones_items = classic_env()
 
     task = PlaceItemTask(ItemStack(Item("table"), 1), Zone("other_zone"))
+    env.purpose = Purpose(task)
 
-    problem = world_task_to_planning_problem(env.world, env.name, task)
+    problem = env.planning_problem()
     print(problem)
 
     with OneshotPlanner(problem_kind=problem.kind) as planner:
