@@ -489,10 +489,10 @@ class CraftingEnv(Env):
         Example:
             Write as PDDL files:
             ```python
-                problem = env.planning_problem()
-                writer = PDDLWriter(problem)
-                writer.write_domain("domain.pddl")
-                writer.write_problem("problem.pddl")
+            problem = env.planning_problem()
+            writer = PDDLWriter(problem)
+            writer.write_domain("domain.pddl")
+            writer.write_problem("problem.pddl")
             ```
 
             Using a plan to solve a Crafting gym environment:
