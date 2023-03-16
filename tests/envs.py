@@ -20,7 +20,7 @@ def classic_env():
         "search_wood",
         inventory_changes={
             "player": {"add": [wood]},
-        }
+        },
     )
 
     stone = Item("stone")
@@ -28,7 +28,7 @@ def classic_env():
         "search_stone",
         inventory_changes={
             "player": {"add": [ItemStack(stone, 1)]},
-        }
+        },
     )
 
     plank = Item("plank")
@@ -36,7 +36,7 @@ def classic_env():
         "craft_plank",
         inventory_changes={
             "player": {"remove": [wood], "add": [ItemStack(plank, 4)]},
-        }
+        },
     )
 
     table = Item("table")
@@ -45,7 +45,7 @@ def classic_env():
         inventory_changes={
             "player": {"remove": [ItemStack(plank, 4)]},
             "current_zone": {"add": [ItemStack(table)]},
-        }
+        },
     )
 
     wood_house = Item("wood house")
@@ -54,7 +54,7 @@ def classic_env():
         inventory_changes={
             "player": {"remove": [ItemStack(plank, 32), ItemStack(wood, 8)]},
             "current_zone": {"add": [ItemStack(wood_house)]},
-        }
+        },
     )
 
     items = [wood, stone, plank]

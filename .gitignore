@@ -138,3 +138,6 @@ dmypy.json
 
 /images
 TODO.txt
+
+# Local planners
+enhsp-dist

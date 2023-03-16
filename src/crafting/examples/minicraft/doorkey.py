@@ -128,7 +128,7 @@ class MiniCraftDoorKey(MiniCraftEnv):
             inventory_changes={
                 "player": {"add": [self.GOAL]},
                 "current_zone": {"remove": [self.GOAL]},
-            }
+            },
         )
         transformations.append(reach_goal)
 

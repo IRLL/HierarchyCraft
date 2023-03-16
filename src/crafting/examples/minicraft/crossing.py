@@ -49,7 +49,7 @@ class MiniCraftCrossing(MiniCraftEnv):
             inventory_changes={
                 "player": {"add": [self.GOAL]},
                 "current_zone": {"remove": [self.GOAL]},
-            }
+            },
         )
 
         find_lava = Transformation(
@@ -65,6 +65,6 @@ class MiniCraftCrossing(MiniCraftEnv):
             inventory_changes={
                 "player": {"add": [self.LAVA]},
                 "current_zone": {"remove": [self.LAVA]},
-            }
+            },
         )
         return [find_goal, reach_goal, find_lava, reach_lava]
