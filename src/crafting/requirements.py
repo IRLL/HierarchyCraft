@@ -146,7 +146,6 @@ class RequirementTheme:
 class Requirements:
     def __init__(self, world: "World"):
         self.world = world
-        self.resources_path = world.resources_path
         self.graph = nx.MultiDiGraph()
         self._digraph: nx.DiGraph = None
         self._acydigraph: nx.DiGraph = None
@@ -165,7 +164,7 @@ class Requirements:
             layout: Drawing layout. Defaults to "level".
         """
         draw_requirements_graph(
-            ax, self, theme, resources_path=self.resources_path, layout=layout
+            ax, self, theme, resources_path=self.world.resources_path, layout=layout
         )
 
     @property
@@ -271,7 +270,7 @@ class Requirements:
                 elif not alternative_transformations:
                     zones.add(other_zone)
                 else:
-                    raise NotImplementedError
+                    raise NotImplementedError("A complex case, raise issue if needed")
 
         transfo_params = {
             "in_items": in_items,
@@ -589,13 +588,14 @@ def draw_requirements_graph(
     ax.margins(0, 0)
 
     # Add Hierarchies numbers
-    nodes_by_level: Dict[int, Any] = digraph.graph["nodes_by_level"]
-    for level, level_nodes in nodes_by_level.items():
-        level_poses = np.array([pos[node] for node in level_nodes])
-        mean_x = np.mean(level_poses[:, 0])
-        if level == 0:
-            ax.text(mean_x - 1, -0.07, "Depth", ha="left", va="center")
-        ax.text(mean_x, -0.07, str(level), ha="center", va="center")
+    if layout == "level":
+        nodes_by_level: Dict[int, Any] = digraph.graph["nodes_by_level"]
+        for level, level_nodes in nodes_by_level.items():
+            level_poses = np.array([pos[node] for node in level_nodes])
+            mean_x = np.mean(level_poses[:, 0])
+            if level == 0:
+                ax.text(mean_x - 1, -0.07, "Depth", ha="left", va="center")
+            ax.text(mean_x, -0.07, str(level), ha="center", va="center")
     return ax
 
 

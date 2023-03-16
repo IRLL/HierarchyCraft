@@ -1,0 +1,44 @@
+"""# MiniCraft - Empty"""
+
+from typing import List
+
+from crafting.elements import Item, Zone
+from crafting.task import GetItemTask
+from crafting.transformation import Transformation
+
+from crafting.examples.minicraft.minicraft import MiniCraftEnv
+
+
+class MiniCraftEmpty(MiniCraftEnv):
+    MINICRAFT_NAME = "Empty"
+    __doc__ = MiniCraftEnv.description(MINICRAFT_NAME)
+
+    ROOM = Zone("0")
+    """The one and only room."""
+
+    GOAL = Item("goal")
+    """Goal to reach."""
+
+    def __init__(self, **kwargs) -> None:
+        self.task = GetItemTask(self.GOAL)
+        super().__init__(
+            self.MINICRAFT_NAME,
+            purpose=self.task,
+            **kwargs,
+        )
+
+    def build_transformations(self) -> List[Transformation]:
+        find_goal = Transformation(
+            inventory_changes={
+                "current_zone": {"add": [self.GOAL], "max": [self.GOAL]},
+            },
+            zones=[self.ROOM],
+        )
+
+        reach_goal = Transformation(
+            inventory_changes={
+                "player": {"add": [self.GOAL]},
+                "current_zone": {"remove": [self.GOAL]},
+            }
+        )
+        return [find_goal, reach_goal]

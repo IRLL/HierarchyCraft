@@ -285,7 +285,7 @@ except ImportError:
 
 
 class CraftingEnv(Env):
-    """A gym-like environment to simulate inventory management."""
+    """Environment to simulate inventory management."""
 
     def __init__(
         self,
