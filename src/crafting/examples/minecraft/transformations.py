@@ -28,20 +28,24 @@ def build_minecrafting_transformations() -> List[Transformation]:
 
 
 def _move_to_zones() -> List[Transformation]:
+    name_prefix = "move-to-"
     walk = [
         #: Move to FOREST
         Transformation(
-            destination=items.FOREST,
+            name_prefix + zones.FOREST.name,
+            destination=zones.FOREST,
             zones=[zone for zone in zones.OVERWORLD if zone != zones.FOREST]
             + [zones.END],
         ),
         #: Move to SWAMP
         Transformation(
+            name_prefix + zones.SWAMP.name,
             destination=zones.SWAMP,
             zones=[zone for zone in zones.OVERWORLD if zone != zones.SWAMP],
         ),
         #: Move to zones.MEADOW
         Transformation(
+            name_prefix + zones.MEADOW.name,
             destination=zones.MEADOW,
             zones=[zone for zone in zones.OVERWORLD if zone != zones.MEADOW],
         ),
@@ -62,6 +66,7 @@ def _move_to_zones() -> List[Transformation]:
             ]
             dig.append(
                 Transformation(
+                    name_prefix + zone.name,
                     destination=zone,
                     zones=other_zones,
                     inventory_changes={"player": {"remove": [ItemStack(pickaxe)]}},
@@ -71,6 +76,7 @@ def _move_to_zones() -> List[Transformation]:
     nether = [
         #: Move to zones.NETHER
         Transformation(
+            name_prefix + zones.NETHER.name,
             destination=zones.NETHER,
             inventory_changes={
                 "current_zone": {
@@ -84,6 +90,7 @@ def _move_to_zones() -> List[Transformation]:
     for zone in zones.OVERWORLD:
         nether.append(
             Transformation(
+                name_prefix + zone.name + f"-from-{zones.NETHER.name}",
                 destination=zone,
                 zones=[zones.NETHER],
                 inventory_changes={
@@ -102,12 +109,14 @@ def _move_to_zones() -> List[Transformation]:
     end = [
         #: Move to zones.STRONGHOLD
         Transformation(
+            name_prefix + zones.STRONGHOLD.name,
             destination=zones.STRONGHOLD,
             zones=zones.OVERWORLD,
             inventory_changes={"player": {"remove": [ItemStack(items.ENDER_EYE, 2)]}},
         ),
         #: Move to zones.END
         Transformation(
+            name_prefix + zones.END.name,
             destination=zones.END,
             inventory_changes={
                 "current_zone": {
@@ -132,6 +141,7 @@ def _zones_search() -> List[Transformation]:
         Material.DIAMOND: 8,
     }
 
+    name_prefix = "search-for-"
     search_item = []
     for mc_item in items.MC_ITEMS:
         item = mc_item.item
@@ -140,6 +150,7 @@ def _zones_search() -> List[Transformation]:
             quantity = max(1, round(1 / mc_item.hardness))
             search_item.append(
                 Transformation(
+                    name_prefix + item.name,
                     zones=mc_item.zones,
                     inventory_changes={
                         "player": {"add": [ItemStack(item, quantity)]},
@@ -154,6 +165,7 @@ def _zones_search() -> List[Transformation]:
                 quantity = max(1, round(1 / mc_item.hardness))
                 search_item.append(
                     Transformation(
+                        name_prefix + item.name,
                         zones=mc_item.zones,
                         inventory_changes={
                             "player": {"add": [ItemStack(item, quantity)]},
@@ -176,6 +188,7 @@ def _zones_search() -> List[Transformation]:
                         inventory_changes["player"]["remove"] = [tool_stack]
                     search_item.append(
                         Transformation(
+                            name_prefix + item.name + f"-with-{tool_stack.item.name}",
                             zones=mc_item.zones,
                             inventory_changes=inventory_changes,
                         )
@@ -186,9 +199,11 @@ def _zones_search() -> List[Transformation]:
 
 def _crafting_recipes() -> List[Transformation]:
     """Build the item only based crafting recipes."""
+    name_prefix = "craft-"
     return [
         #: Recipe of WOOD_PLANK
         Transformation(
+            name_prefix + items.WOOD_PLANK.name,
             inventory_changes={
                 "player": {
                     "remove": [items.WOOD],
@@ -198,6 +213,7 @@ def _crafting_recipes() -> List[Transformation]:
         ),
         #: Recipe of STICK
         Transformation(
+            name_prefix + items.STICK.name,
             inventory_changes={
                 "player": {
                     "remove": [ItemStack(items.WOOD_PLANK, 2)],
@@ -207,6 +223,7 @@ def _crafting_recipes() -> List[Transformation]:
         ),
         #: Recipe of CRAFTING_TABLE
         Transformation(
+            name_prefix + items.CRAFTING_TABLE.name,
             inventory_changes={
                 "player": {
                     "remove": [ItemStack(items.WOOD_PLANK, 4)],
@@ -216,6 +233,7 @@ def _crafting_recipes() -> List[Transformation]:
         ),
         #: Recipe of FURNACE
         Transformation(
+            name_prefix + items.FURNACE.name,
             inventory_changes={
                 "player": {
                     "remove": [ItemStack(items.COBBLESTONE, 8)],
@@ -229,6 +247,7 @@ def _crafting_recipes() -> List[Transformation]:
         ),
         #: Recipe of PAPER
         Transformation(
+            name_prefix + items.PAPER.name,
             inventory_changes={
                 "player": {
                     "remove": [ItemStack(items.REEDS, 3)],
@@ -242,6 +261,7 @@ def _crafting_recipes() -> List[Transformation]:
         ),
         #: Recipe of BOOK
         Transformation(
+            name_prefix + items.BOOK.name,
             inventory_changes={
                 "player": {
                     "remove": [ItemStack(items.PAPER, 3), ItemStack(items.LEATHER)],
@@ -255,6 +275,7 @@ def _crafting_recipes() -> List[Transformation]:
         ),
         #: Recipe of ENCHANTING_TABLE
         Transformation(
+            name_prefix + items.ENCHANTING_TABLE.name,
             inventory_changes={
                 "player": {
                     "remove": [
@@ -272,6 +293,7 @@ def _crafting_recipes() -> List[Transformation]:
         ),
         #: Recipe of CLOCK
         Transformation(
+            name_prefix + items.CLOCK.name,
             inventory_changes={
                 "player": {
                     "remove": [
@@ -288,6 +310,7 @@ def _crafting_recipes() -> List[Transformation]:
         ),
         #: Recipe of FLINT
         Transformation(
+            name_prefix + items.FLINT.name,
             inventory_changes={
                 "player": {
                     "remove": [ItemStack(items.GRAVEL, 10)],
@@ -297,6 +320,7 @@ def _crafting_recipes() -> List[Transformation]:
         ),
         #: Recipe of FLINT_AND_STEEL
         Transformation(
+            name_prefix + items.FLINT_AND_STEEL.name,
             inventory_changes={
                 "player": {
                     "remove": [items.IRON_INGOT, items.FLINT],
@@ -306,6 +330,7 @@ def _crafting_recipes() -> List[Transformation]:
         ),
         #: Recipe of BLAZE_POWDER
         Transformation(
+            name_prefix + items.BLAZE_POWDER.name,
             inventory_changes={
                 "player": {
                     "remove": [items.BLAZE_ROD],
@@ -313,8 +338,9 @@ def _crafting_recipes() -> List[Transformation]:
                 }
             },
         ),
-        #: Recipe of BLAZE_POWDER
+        #: Recipe of ENDER_EYE
         Transformation(
+            name_prefix + items.ENDER_EYE.name,
             inventory_changes={
                 "player": {
                     "remove": [items.BLAZE_POWDER, items.ENDER_PEARL],
@@ -332,6 +358,7 @@ def _building() -> List[Transformation]:
 
     place_items = [
         Transformation(
+            "place-" + item.name,
             inventory_changes={
                 "player": {"remove": [item]},
                 "current_zone": {"add": [item]},
@@ -342,6 +369,7 @@ def _building() -> List[Transformation]:
 
     pickup_items = [
         Transformation(
+            "pickup-" + item.name,
             inventory_changes={
                 "player": {"add": [item]},
                 "current_zone": {"remove": [item]},
@@ -353,6 +381,7 @@ def _building() -> List[Transformation]:
     building_creation = [
         #: Build NETHER_PORTAL
         Transformation(
+            "build-" + items.CLOSE_NETHER_PORTAL.name,
             inventory_changes={
                 "player": {"remove": [ItemStack(items.OBSIDIAN, 10)]},
                 "current_zone": {"add": [items.CLOSE_NETHER_PORTAL]},
@@ -360,6 +389,7 @@ def _building() -> List[Transformation]:
         ),
         #: Open NETHER_PORTAL
         Transformation(
+            "open-nether-portal",
             inventory_changes={
                 "player": {"remove": [items.FLINT_AND_STEEL]},
                 "current_zone": {
@@ -370,6 +400,7 @@ def _building() -> List[Transformation]:
         ),
         #: Open END_PORTAL
         Transformation(
+            "open-end-portal",
             inventory_changes={
                 "player": {"remove": [ItemStack(items.ENDER_EYE, 9)]},
                 "current_zone": {
@@ -387,6 +418,7 @@ def _building() -> List[Transformation]:
 
     smelt_with_wood = [
         Transformation(
+            f"smelt-{ore.name}-with-{items.WOOD_PLANK.name}",
             inventory_changes={
                 "player": {
                     "remove": [
@@ -406,6 +438,7 @@ def _building() -> List[Transformation]:
 
     smelt_with_coal = [
         Transformation(
+            f"smelt-{ore.name}-with-{items.COAL.name}",
             inventory_changes={
                 "player": {
                     "remove": [
@@ -464,7 +497,10 @@ def _tools_recipes() -> List[Transformation]:
 
     for material in Material:
         for tool_type in ToolType:
+            tool = MC_TOOLS_BY_TYPE_AND_MATERIAL[tool_type][material]
+            durability = durability_by_material[material]
             tool_recipe = Transformation(
+                f"craft-{tool.name}",
                 inventory_changes={
                     "player": {
                         "remove": [
@@ -474,12 +510,7 @@ def _tools_recipes() -> List[Transformation]:
                             ),
                             ItemStack(items.STICK, sticks_per_type[tool_type]),
                         ],
-                        "add": [
-                            ItemStack(
-                                MC_TOOLS_BY_TYPE_AND_MATERIAL[tool_type][material],
-                                durability_by_material[material],
-                            )
-                        ],
+                        "add": [ItemStack(tool, durability)],
                     },
                     "current_zone": {
                         "remove": [ItemStack(items.CRAFTING_TABLE)],

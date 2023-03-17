@@ -274,7 +274,7 @@ class TestTransformationIsValid:
         tranfo.build(self.world)
         check.is_none(tranfo._zones)
 
-    def test_str(self):
+    def test_repr(self):
         tranfo = Transformation(
             inventory_changes={
                 "player": {
@@ -285,7 +285,7 @@ class TestTransformationIsValid:
                 }
             }
         )
-        check_equal_str(str(tranfo), "> wood[2],stone[3]")
+        check_equal_str(repr(tranfo), "> wood[2],stone[3]")
 
         tranfo = Transformation(
             inventory_changes={
@@ -297,7 +297,7 @@ class TestTransformationIsValid:
                 }
             }
         )
-        check_equal_str(str(tranfo), "wood[2],stone[3] > ")
+        check_equal_str(repr(tranfo), "wood[2],stone[3] > ")
 
         tranfo = Transformation(
             inventory_changes={
@@ -309,7 +309,7 @@ class TestTransformationIsValid:
                 }
             }
         )
-        check_equal_str(str(tranfo), "> Zone(wood[2],stone[3])")
+        check_equal_str(repr(tranfo), "> Zone(wood[2],stone[3])")
 
         tranfo = Transformation(
             inventory_changes={
@@ -321,7 +321,7 @@ class TestTransformationIsValid:
                 }
             }
         )
-        check_equal_str(str(tranfo), "Zone(wood[2],stone[3]) > ")
+        check_equal_str(repr(tranfo), "Zone(wood[2],stone[3]) > ")
 
         tranfo = Transformation(
             inventory_changes={
@@ -333,7 +333,7 @@ class TestTransformationIsValid:
                 }
             }
         )
-        check_equal_str(str(tranfo), "> Dest(wood[2],stone[3])")
+        check_equal_str(repr(tranfo), "> Dest(wood[2],stone[3])")
 
         tranfo = Transformation(
             inventory_changes={
@@ -345,10 +345,10 @@ class TestTransformationIsValid:
                 }
             }
         )
-        check_equal_str(str(tranfo), "Dest(wood[2],stone[3]) > ")
+        check_equal_str(repr(tranfo), "Dest(wood[2],stone[3]) > ")
 
         tranfo = Transformation(destination=Zone("other zone"))
-        check_equal_str(str(tranfo), "> | other zone")
+        check_equal_str(repr(tranfo), "> | other zone")
 
         tranfo = Transformation(
             inventory_changes={
@@ -406,7 +406,7 @@ class TestTransformationIsValid:
             destination=Zone("D"),
         )
         check_equal_str(
-            str(tranfo),
+            repr(tranfo),
             "P1,P2 Zone(Z1,Z2) Dest(D1,D2) A(A1,A2) B(B1,B2) "
             "> P3,P4 Zone(Z3,Z4) Dest(D3,D4) A(A3,A4) B(B3,B4) | D",
         )

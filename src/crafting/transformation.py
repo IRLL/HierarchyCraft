@@ -479,6 +479,9 @@ class Transformation:
         return operation
 
     def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
         transfo_text = ""
 
         remove_texts = []

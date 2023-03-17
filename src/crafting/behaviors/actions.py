@@ -24,7 +24,7 @@ class DoTransformation(Action):
         self.transformation = transformation
         super().__init__(
             action,
-            name=str(transformation),
+            name=repr(transformation),
             image=image,
             complexity=1,
         )

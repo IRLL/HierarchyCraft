@@ -249,7 +249,7 @@ class AbleAndPerformTransformation(Behavior):
     @staticmethod
     def get_name(transformation: "Transformation"):
         """Name of the behavior to able the transformation."""
-        return f"Able and perform: {str(transformation)}"
+        return f"Able and perform: {repr(transformation)}"
 
     def build_graph(self) -> HEBGraph:
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
