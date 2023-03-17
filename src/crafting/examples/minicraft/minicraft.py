@@ -57,8 +57,7 @@ class MiniCraftEnv(CraftingEnv):
         minigrid_gif = "https://minigrid.farama.org/_images/<EnvName>Env.gif"
 
         requirements_image = (
-            "https://raw.githubusercontent.com/"
-            "IRLL/Crafting/feature/minigrid-to-crafting"
+            "https://raw.githubusercontent.com/IRLL/Crafting/master"
             "/docs/images/requirements_graphs/MiniCraft<EnvName>.png"
         )
 

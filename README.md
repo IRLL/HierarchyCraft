@@ -1,4 +1,4 @@
-# **Crafting - An environement builder for hierarchical ML research**
+# **Crafting - Environements builder for hierarchical ML research**
 
 [![Fury - PyPi stable version](https://badge.fury.io/py/irll-crafting.svg)](https://badge.fury.io/py/irll-crafting)
 [![PePy - Downloads](https://static.pepy.tech/badge/irll-crafting)](https://pepy.tech/project/irll-crafting)
@@ -11,28 +11,77 @@
 [![CodeStyle - Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v1.json)](https://github.com/charliermarsh/ruff)
 
 
-# But what is Crafting ?
+# Crafting
 
-Crafting is NOT an environment, it's an environment builder.
+Crafting is a Python library designed to create arbitrary hierarchical environments that are compatible with both the [OpenAI Gym](https://github.com/openai/gym) reinforcement learning framework and [AIPlan4EU Unified Planning Framework](https://github.com/aiplan4eu/unified-planning). This library enables users to easily create complex hierarchical structures that can be used to test and develop various reinforcement learning or planning algorithms.
 
-Crafting allows to generate arbitrarily hierarchical environments for machine learning research purposes.
+In environments built with Crafting the agent (player) has inventory and can navigate into abstract zones that themselves have inventories.
 
-It uses the classic reinforcement learning framework, the player is in a state and can take actions to update the state.
+Available actions of the agent are defined by **transformations**.
+**Transformations** are the core element of every Crafting environment, they define the actions that an agent can perform in the environment. At their core, transformations are simply changes to the state of the environment that can be triggered by the agent if the transformation is allowed in the current state.
 
-A Crafting environment is a sandbox environment composed of
-items, zones, and transformations.
+## Create your own tailored Crafting environments
 
-The main example of Crafting environment is the MineCrafting environment
-that mimics the (complex) hierarchies of the popular game Minecraft.
-
-You can use Crafting to create your own customized environments.
-For more examples, see [examples](https://irll.github.io/Crafting/crafting/examples.html).
+You can use Crafting to create various custom hierarchical environments. As an example, here is a replica of the underlying hierarchy of the popular game Minecraft without the computationaly intensive 3D:
 
 ![A player knowing Minecraft will find MineCrafting easy.](docs/images/minecrafting_human_demo.gif)
 
+### Play yourself!
+
+```bash
+pip install irll-crafting[gui]
+crafting minecraft
+```
+
+
+For more examples, see [examples](https://irll.github.io/Crafting/crafting/examples.html).
+
+To create a Crafting environment, one need to understand **transformations** fully.
+
+Each **transformation** is composed of three optional elements:
+
+- The first element is a **destination** zone, which specifies the zone to which the agent will move if the transformation changes the player position. This element is only necessary if the transformation changes the agent's position in the environment.
+
+- The second element is a list of **zones** to which the transformation is restricted. This element allows users to define which zones the agent can perform the transformation in, restricting the agent's actions to certain areas of the environment. If not specified, the transformation can be done anywhere.
+
+- The third element is a dictionary of **inventory changes** for the player, the current zone, the destination zone, or any specific zones. Inventory changes are defined as a dictionary mapping operations such as 'add', 'remove', 'min', 'max' on lists of stacks of items. This element allows users to define changes to any inventory that may result from the transformation, it also restricts the transformation to only be possible if the amount of the specified item is more that min and less than max. If unspecified, no changes are done, and 'min' will default to 0, 'max' to +inf.
+
+For examples, see [`crafting.transformation`](https://irll.github.io/Crafting/crafting/transformation.html)
+
+
+Each Crafting environment is defined by a list of transformations and an initial state. The initial state defines the starting state of the environment, including the agent's position, inventory, and zones inventories. By combining transformations and an initial state, users can simply create complex hierarchical environments with a high degree of flexibility and control.
+
+See [`crafting.env`](https://irll.github.io/Crafting/crafting/env.html) for a complete tutorial on creating custom environments.
+
+See [`crafting.state`](https://irll.github.io/Crafting/crafting/state.html) for more details on the Crafting environements state.
+
+## Custom purposes for agents in Crafting environments
+
+Crafting allows users to specify custom purposes for agents in their environments, composed of one or multiple tasks. This feature provides a high degree of flexibility and allows users to design environments that are tailored to specific applications or scenarios. This feature enables to study mutli-task or lifelong learning settings.
+
+See [`crafting.purpose`](https://irll.github.io/Crafting/crafting/purpose.html) for more details.
+
+## Solving behavior for all tasks of most Crafting environments
+
+Crafting also includes solving behaviors that can be used to generate actions from observations that will complete most tasks in any Crafting environment, including those designed by the user.
+
+Solving behaviors are handcrafted, and may not work in some edge cases when transformations require items in specific zones. This feature makes it easy for users to obtain a strong baseline in their custom environments.
+
+See [`crafting.solving_behaviors`](https://irll.github.io/Crafting/crafting/solving_behaviors.html) for more details.
+
+## Visualizing the underlying hierarchy of the environment (requirements graph)
+
+Crafting gives the ability to visualize the hierarchy of the environment as a requirements graph. This graph provides a potentialy complex but complete representation of what is required to obtain each item or to go in each zone, allowing users to easily understand the structure of the environment and identify key items of the environment.
+
+For example, here is the graph of the 'MiniCraftUnlock' environment where the goal is to open a door using a key:
+![Unlock requirements graph](https://raw.githubusercontent.com/IRLL/Crafting/master/docs/images/requirements_graphs/MiniCraftUnlock.png)
+
+See [`crafting.requirements`](https://irll.github.io/Crafting/crafting/requirements.html) for more details.
+
+
 # Installation
 
-## Using pip.
+## Using pip
 
 Without optional dependencies:
 
@@ -61,39 +110,9 @@ With gym requirements:
 pip install irll-crafting[gym]
 ```
 
-## Build from source (for contributions)
-
-```bash
-git clone https://github.com/IRLL/Crafting.git
-```
-
-Install crafting as an editable package
-```bash
-pip install -e .[all]
-```
-
-Install dev requirements
-```bash
-pip install -r requirements-dev.txt
-```
-
-Check installation by running tests
-```bash
-pytest
-```
-
 # Quickstart
 
-
-## Play MineCrafting yourself! (need gui dependencies)
-
-Using the command line interface:
-
-```bash
-crafting minecraft
-```
-
-See more options with:
+See command line interface (CLI) options with:
 
 ```bash
 crafting --help
@@ -160,23 +179,4 @@ random_env = RandomCrafting(n_items_per_n_inputs={0:2, 1:5, 2:10}, seed=42)
 # or random_env = gym.make("RandomCrafting-v1", n_items_per_n_inputs={0:2, 1:5, 2:10}, seed=42)
 ```
 
-## More about Crafting
-
-### Add a Purpose to the player
-See [`crafting.purpose`](https://irll.github.io/Crafting/crafting/purpose.html).
-
-###  Get a solving behavior for any given task
-See [`crafting.solving_behaviors`](https://irll.github.io/Crafting/crafting/solving_behaviors.html).
-
-### Details of the environment state
-See [`crafting.state`](https://irll.github.io/Crafting/crafting/state.html).
-
-### Plot the underlying requirements graph
-See [`crafting.requirements`](https://irll.github.io/Crafting/crafting/requirements.html).
-
-### Create your own customized Crafting environment
-See [`crafting.env`](https://irll.github.io/Crafting/crafting/env.html).
-
-Find everything in the [documentation](https://irll.github.io/Crafting/crafting.html):
-
-[![DOCUMENTATION](docs/images/doc_index.png)](https://irll.github.io/Crafting/crafting.html)
+Learn more in the [documentation](https://irll.github.io/Crafting/crafting.html)

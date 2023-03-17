@@ -52,9 +52,6 @@ see `crafting.purpose.RewardShaping.REQUIREMENTS_ACHIVEMENTS`.
 # Example
 
 ```python
-from crafting.examples import MineCraftingEnv
-env = MineCraftingEnv()
-
 # Obtain the raw Networkx MultiDiGraph
 graph = env.world.requirements.graph
 
@@ -65,7 +62,10 @@ env.world.requirements.draw(ax)
 plt.show()
 ```
 
-![MineCrafting hierarchy](../../docs/images/MineCrafting_Requirements_graph.png)
+For example, here is the underlying hierarchy of the toy environment MinicraftUnlock:
+<img
+    src="https://raw.githubusercontent.com/IRLL/Crafting/master/docs/images/requirements_graphs/MiniCraftUnlock.png"
+width="90%"/>
 
 """
 
