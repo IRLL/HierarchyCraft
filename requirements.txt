@@ -2,3 +2,4 @@ numpy
 networkx >= 2.5.1
 matplotlib
 hebg >= 0.2.3
+unified_planning >= 0.5.0

@@ -99,6 +99,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
 
 import networkx as nx
+import numpy as np
 
 from crafting.requirements import RequirementNode, req_node_name
 from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
@@ -186,6 +187,8 @@ class Purpose:
             tasks = []
         for task in tasks:
             self.add_task(task, reward_shaping=default_reward_shaping)
+
+        self._best_terminal_group = None
 
     def add_task(
         self,
@@ -284,6 +287,30 @@ class Purpose:
             terminal_tasks += group.tasks
         return [task for task in self.tasks if task not in terminal_tasks]
 
+    @property
+    def terminated(self) -> bool:
+        """True if any of the terminal groups are terminated."""
+        return any(
+            all(task.terminated for task in terminal_group.tasks)
+            for terminal_group in self.terminal_groups
+        )
+
+    @property
+    def best_terminal_group(self) -> TerminalGroup:
+        """Best rewarding terminal group."""
+        if self._best_terminal_group is not None:
+            return self._best_terminal_group
+
+        best_terminal_group, best_terminal_value = None, -np.inf
+        for terminal_group in self.terminal_groups:
+            terminal_value = sum(task._reward for task in terminal_group.tasks)
+            if terminal_value > best_terminal_value:
+                best_terminal_value = terminal_value
+                best_terminal_group = terminal_group
+
+        self._best_terminal_group = best_terminal_group
+        return best_terminal_group
+
     def _terminal_group_from_name(self, name: str) -> Optional[TerminalGroup]:
         if name not in self.terminal_groups:
             return None
@@ -323,6 +350,21 @@ class Purpose:
             shaping_str = f"#{shaping.value}" if shaping != RewardShaping.NONE else ""
             tasks_str.append(f"{task}{shaping_str}")
         return ",".join(tasks_str)
+
+
+def platinium_purpose(
+    world: "World",
+    success_reward: float = 10.0,
+    timestep_reward: float = -0.1,
+):
+    purpose = Purpose(timestep_reward=timestep_reward)
+    for item in world.items:
+        purpose.add_task(GetItemTask(item, reward=success_reward))
+    for zone in world.zones:
+        purpose.add_task(GoToZoneTask(zone, reward=success_reward))
+    for item in world.zones_items:
+        purpose.add_task(PlaceItemTask(item, reward=success_reward))
+    return purpose
 
 
 def _all_subtasks(world: "World", shaping_reward: float) -> List[Task]:

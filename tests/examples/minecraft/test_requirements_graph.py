@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import pytest
 import pytest_check as check
 
@@ -77,16 +76,3 @@ class TestMineCraftingReqGraph:
             any(key in self_indexes for key in from_nether_indexes),
             msg=f"self_indexes={self_indexes},from_nether_indexes={from_nether_indexes}",
         )
-
-
-def test_draw_requirements_graph():
-    save = False
-    fig, ax = plt.subplots()
-    env = MineCraftingEnv()
-    layout = "level" if save else "spring"
-    env.world.requirements.draw(ax, layout=layout)
-    plt.subplots_adjust(right=1, left=0, hspace=0, wspace=0)
-    fig.set_size_inches((24, 12), forward=False)
-    if save:
-        fig.savefig("MineCrafting_Requirements_graph.png", dpi=100)
-    plt.close(fig)

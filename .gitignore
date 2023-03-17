@@ -139,5 +139,6 @@ dmypy.json
 /images
 TODO.txt
 
-# Local planners
+# Local planners and planning files
 enhsp-dist
+*.pddl

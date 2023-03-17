@@ -245,6 +245,8 @@ def _randomcrafting_from_cli(args: Namespace):
     n_items_per_n_inputs = {
         n_inputs: getattr(args, f"n_items_{n_inputs}") for n_inputs in range(5)
     }
+    if sum(n_items_per_n_inputs.values()) == 1:
+        n_items_per_n_inputs = None
     return RandomCraftingEnv(
         n_items_per_n_inputs=n_items_per_n_inputs,
         render_window=window,

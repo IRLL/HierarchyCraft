@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING, Dict, List, Optional
 
-import numpy as np
 
 from unified_planning.shortcuts import (
     UserType,
@@ -56,6 +55,7 @@ def world_task_to_planning_problem(
         zone_items_obj[item.name] = Object(item.name, zone_item_type)
 
     pos = Fluent("pos", BoolType(), zone=zone_type)
+    visited = Fluent("visited", BoolType(), zone=zone_type)
     amount = Fluent("amount", IntType(), item=player_item_type)
     amount_at = Fluent("amount_at", IntType(), item=zone_item_type, zone=zone_type)
 
@@ -102,10 +102,14 @@ def world_task_to_planning_problem(
 
     actions = []
     for t_id, transfo in enumerate(world.transformations):
-        action = InstantaneousAction(f"{t_id}_{transfo.name}", loc=zone_type)
-        loc = action.parameter("loc")
+        action_name = f"{t_id}_{transfo.name}"
+        action = InstantaneousAction(action_name)
+        loc = None
+        if world.n_zones > 0:
+            action = InstantaneousAction(action_name, loc=zone_type)
+            loc = action.parameter("loc")
+            action.add_precondition(pos(loc))
 
-        action.add_precondition(pos(loc))
         if transfo.zones and world.n_zones > 1:
             action.add_precondition(
                 Or(*[pos(zones_obj[zone.name]) for zone in transfo.zones])
@@ -113,6 +117,7 @@ def world_task_to_planning_problem(
 
         if transfo.destination is not None:
             action.add_effect(pos(loc), False)
+            action.add_effect(visited(zones_obj[transfo.destination.name]), True)
             action.add_effect(pos(zones_obj[transfo.destination.name]), True)
 
         add_player_operation(action, transfo)
@@ -122,6 +127,7 @@ def world_task_to_planning_problem(
 
     problem = Problem(name)
     problem.add_fluent(pos, default_initial_value=False)
+    problem.add_fluent(visited, default_initial_value=False)
     problem.add_fluent(amount, default_initial_value=0)
     problem.add_fluent(amount_at, default_initial_value=0)
     problem.add_objects(zones_obj.values())
@@ -129,11 +135,12 @@ def world_task_to_planning_problem(
 
     if purpose is not None and purpose.terminal_groups:
         goal = _purpose_to_goal(
-            purpose, pos, amount, amount_at, items_obj, zone_items_obj, zones_obj
+            purpose, visited, amount, amount_at, items_obj, zone_items_obj, zones_obj
         )
         problem.add_goal(goal)
     for zone_name, zone in zones_obj.items():
         problem.set_initial_value(pos(zone), zone_name == world.start_zone.name)
+        problem.set_initial_value(visited(zone), zone_name == world.start_zone.name)
     for item in items_obj.values():
         problem.set_initial_value(amount(item), 0)
     for zone_item in zone_items_obj.values():
@@ -155,7 +162,7 @@ def world_task_to_planning_problem(
 
 def _task_to_goal(
     task: "Task",
-    pos: Fluent,
+    visited: Fluent,
     amount: Fluent,
     amount_at: Fluent,
     items_obj: Dict[str, List[Object]],
@@ -176,13 +183,13 @@ def _task_to_goal(
         ]
         return Or(*conditions)
     if isinstance(task, GoToZoneTask):
-        return pos(zones_obj[task.zone.name])
+        return visited(zones_obj[task.zone.name])
     raise NotImplementedError
 
 
 def _purpose_to_goal(
     purpose: "Purpose",
-    pos: Fluent,
+    visited: Fluent,
     amount: Fluent,
     amount_at: Fluent,
     items_obj: Dict[str, List[Object]],
@@ -193,16 +200,8 @@ def _purpose_to_goal(
     goals = {}
     for task in purpose.tasks:
         goals[task] = _task_to_goal(
-            task, pos, amount, amount_at, items_obj, zone_items_obj, zones_obj
+            task, visited, amount, amount_at, items_obj, zone_items_obj, zones_obj
         )
 
-    # Terminal goals and values
-    best_terminal_group, best_terminal_value = None, -np.inf
-    for terminal_group in purpose.terminal_groups:
-        terminal_value = sum(task._reward for task in terminal_group.tasks)
-        if terminal_value > best_terminal_value:
-            best_terminal_value = terminal_value
-            best_terminal_group = terminal_group
-
     # We only consider the best terminal group goal
-    return And(*[goals[task] for task in best_terminal_group.tasks])
+    return And(*[goals[task] for task in purpose.best_terminal_group.tasks])

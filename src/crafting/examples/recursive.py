@@ -45,6 +45,7 @@ from typing import List
 from crafting.elements import Item, ItemStack
 from crafting.env import CraftingEnv
 from crafting.transformation import Transformation
+from crafting.task import GetItemTask
 from crafting.world import world_from_transformations
 
 # gym is an optional dependency
@@ -74,11 +75,13 @@ class RecursiveCraftingEnv(CraftingEnv):
 
     """
 
-    def __init__(self, n_items: int, **kwargs):
+    def __init__(self, n_items: int = 6, **kwargs):
         items = [Item(str(i)) for i in range(n_items)]
         self.n_items = n_items
         transformations = self.build_transformations(items)
         world = world_from_transformations(transformations)
+        if "purpose" not in kwargs:
+            kwargs["purpose"] = GetItemTask(items[-1])
         super().__init__(
             world,
             name=f"RecursiveCrafting-I{n_items}",
@@ -120,7 +123,7 @@ class LightRecursiveCraftingEnv(CraftingEnv):
 
     """
 
-    def __init__(self, n_items: int, n_required_previous: int = 2, **kwargs):
+    def __init__(self, n_items: int = 6, n_required_previous: int = 2, **kwargs):
         self.n_items = n_items
         self.n_required_previous = n_required_previous
         if n_required_previous == 1:
@@ -130,6 +133,8 @@ class LightRecursiveCraftingEnv(CraftingEnv):
         items = [Item(str(i)) for i in range(n_items)]
         transformations = self._transformations(items)
         world = world_from_transformations(transformations)
+        if "purpose" not in kwargs:
+            kwargs["purpose"] = GetItemTask(items[-1])
         super().__init__(world, name=env_name, **kwargs)
 
     def _transformations(self, items: List[Item]) -> List[Transformation]:

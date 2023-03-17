@@ -24,6 +24,16 @@ from crafting.examples.minecraft.env import MineCraftingEnv
 from crafting.examples.random_simple import RandomCraftingEnv
 from crafting.examples.recursive import LightRecursiveCraftingEnv, RecursiveCraftingEnv
 from crafting.examples.tower import TowerCraftingEnv
+from crafting.examples.minicraft import MINICRAFT_ENVS
+
+EXAMPLE_ENVS = [
+    MineCraftingEnv,
+    *MINICRAFT_ENVS,
+    TowerCraftingEnv,
+    RecursiveCraftingEnv,
+    LightRecursiveCraftingEnv,
+    # RandomCraftingEnv,
+]
 
 __all__ = [
     "minecraft",

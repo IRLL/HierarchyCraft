@@ -183,6 +183,11 @@ class Requirements:
         self._acydigraph = break_cycles_through_level(self.digraph)
         return self._acydigraph
 
+    @property
+    def depth(self) -> int:
+        """Depth of the requirements graph."""
+        return self.graph.graph.get("depth")
+
     def _build(self) -> None:
         self._add_requirements_nodes(self.world)
         edge_index = self._add_start_edges(self.world)

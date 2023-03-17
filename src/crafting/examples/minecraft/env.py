@@ -16,11 +16,17 @@ from crafting.examples.minecraft.transformations import (
 )
 from crafting.examples.minecraft.zones import FOREST, NETHER, STRONGHOLD
 from crafting.world import world_from_transformations
+from crafting.elements import Item
+from crafting.purpose import GetItemTask
 
 
 class MineCraftingEnv(CraftingEnv):
 
-    """MineCrafting Environment: A minecraft-like Crafting Environment."""
+    """MineCrafting Environment: A minecraft-like Crafting Environment.
+
+    Default purpose is to get an iron_ingot.
+
+    """
 
     def __init__(self, **kwargs):
         mc_dir = os.path.dirname(__file__)
@@ -36,5 +42,7 @@ class MineCraftingEnv(CraftingEnv):
             },
         )
         mc_world.resources_path = resources_path
+        if "purpose" not in kwargs:
+            kwargs["purpose"] = GetItemTask(Item("iron_ingot"))
         super().__init__(world=mc_world, name="MineCrafting", **kwargs)
         self.metadata["video.frames_per_second"] = kwargs.pop("fps", 10)
