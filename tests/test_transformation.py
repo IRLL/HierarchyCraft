@@ -6,7 +6,7 @@ import pytest_check as check
 
 from crafting.elements import Item, Stack, Zone
 from crafting.transformation import Transformation, InventoryOwner
-from crafting.world import World
+from crafting.world import World, world_from_transformations
 from tests.custom_checks import check_np_equal
 
 
@@ -410,6 +410,114 @@ class TestTransformationIsValid:
             "P1,P2 Zone(Z1,Z2) Dest(D1,D2) A(A1,A2) B(B1,B2) "
             "> P3,P4 Zone(Z3,Z4) Dest(D3,D4) A(A3,A4) B(B3,B4) | D",
         )
+
+
+def test_docstring_examples():
+    transformations = []
+
+    DIRT = Item("dirt")
+    search_for_dirt = Transformation(
+        "search_for_dirt",
+        inventory_changes={"player": {"add": [DIRT]}},
+    )
+    transformations.append(search_for_dirt)
+
+    FOREST = Zone("forest")
+    move_to_forest = Transformation(
+        "move_to_forest",
+        destination=FOREST,
+    )
+    transformations.append(move_to_forest)
+
+    WOOD = Item("wood")
+    search_for_wood = Transformation(
+        "search_for_wood",
+        inventory_changes={"player": {"add": [WOOD]}},
+        zones=[FOREST],
+    )
+    transformations.append(search_for_wood)
+
+    PLANK = Item("plank")
+    craft_wood_plank = Transformation(
+        "craft_wood_plank",
+        inventory_changes={
+            "player": {"add": [Stack(PLANK, 4)], "remove": [WOOD]},
+        },
+    )
+    transformations.append(craft_wood_plank)
+
+    HOUSE = Item("house")  # Need 12 WOOD and 64 PLANK to
+    build_house = Transformation(
+        "build_house",
+        inventory_changes={
+            "player": {"remove": [Stack(WOOD, 12), Stack(PLANK, 64)]},
+            "current_zone": {"add": [HOUSE]},
+        },
+    )
+    transformations.append(build_house)
+
+    TREETOPS = Zone("treetops")
+    LADDER = Item("ladder")
+    climb_tree = Transformation(
+        "climb_tree",
+        destination=TREETOPS,
+        inventory_changes={"player": {"remove": [LADDER]}},
+        zones=[FOREST],
+    )
+    transformations.append(climb_tree)
+
+    CRATER = Item("crater")
+    jump_from_tree = Transformation(
+        "jump_from_tree",
+        destination=FOREST,
+        inventory_changes={"destination": {"add": [CRATER]}},
+        zones=[TREETOPS],
+    )
+    transformations.append(jump_from_tree)
+
+    INSIDE_HOUSE = Zone("house")
+    DOOR = Item("door")
+    KEY = Item("key")
+    enter_house = Transformation(
+        destination=INSIDE_HOUSE,
+        inventory_changes={
+            "player": {
+                "remove": [KEY],  # Ensure has key
+                "add": [KEY],  # Then give it back
+            },
+            "current_zone": {
+                "remove": [DOOR],  # Ensure has door
+                "add": [DOOR],  # Then give it back
+            },
+        },
+    )
+    transformations.append(enter_house)
+
+    STRANGE_RED_BUTTON = Item("don't press me")
+    SPACE = Zone("space")
+    INCOMING_MISSILES = Item("incoming_missiles")
+    press_red_button = Transformation(
+        "press_red_button",
+        inventory_changes={
+            "current_zone": {  # Current zone
+                "remove": [STRANGE_RED_BUTTON],
+                "add": [STRANGE_RED_BUTTON],
+            },
+            SPACE: {  # An 'absolute' specific zone
+                "add": [Stack(INCOMING_MISSILES, 64)]
+            },
+        },
+    )
+    transformations.append(press_red_button)
+
+    world = world_from_transformations(
+        transformations,
+        start_zone=FOREST,
+        start_items=[Stack(DIRT, 4)],
+        start_zones_items={FOREST: [HOUSE]},
+    )
+
+    world = world
 
 
 def check_equal_str(actual, expected):

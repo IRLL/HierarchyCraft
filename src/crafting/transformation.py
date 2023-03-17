@@ -10,33 +10,38 @@ from crafting.transformation import Transformation
 ### Add an item in player inventory
 ```python
 DIRT = Item("dirt")
-Transformation(inventory_changes={"player": {"add":[DIRT]}})
+search_for_dirt = Transformation(
+    "search_for_dirt",
+    inventory_changes={"player": {"add": [DIRT]}},
+)
 ```
 
 ### Modify the player position
 ```python
 FOREST = Zone("forest")
-Transformation(destination=FOREST)
+move_to_forest = Transformation(
+    "move_to_forest",
+    destination=FOREST,
+)
 ```
 
 ### Restrict a transformation to a set of zones
 ```python
 WOOD = Item("wood")
-Transformation(
-    inventory_changes={"player": {"add":[WOOD]}},
-    zones=[FOREST]
+search_for_wood = Transformation(
+    "search_for_wood",
+    inventory_changes={"player": {"add": [WOOD]}},
+    zones=[FOREST],
 )
 ```
 
 ### Modify the player inventory
 ```python
 PLANK = Item("plank")
-Transformation(
+craft_wood_plank = Transformation(
+    "craft_wood_plank",
     inventory_changes={
-        "player": {
-            "add":[Stack(PLANK, 4)]
-            "remove": [WOOD]
-        },
+        "player": {"add": [Stack(PLANK, 4)], "remove": [WOOD]},
     },
 )
 ```
@@ -44,11 +49,12 @@ Note the use of Stack to give a quantity > 1.
 
 ### Modify the current zone's inventory
 ```python
-HOUSE = Item("house") # Need 12 WOOD and 64 PLANK
-Transformation(
+HOUSE = Item("house")  # Need 12 WOOD and 64 PLANK to
+build_house = Transformation(
+    "build_house",
     inventory_changes={
         "player": {"remove": [Stack(WOOD, 12), Stack(PLANK, 64)]},
-        "current_zone": {"add": [HOUSE]}
+        "current_zone": {"add": [HOUSE]},
     },
 )
 ```
@@ -57,9 +63,11 @@ Transformation(
 ```python
 TREETOPS = Zone("treetops")
 LADDER = Item("ladder")
-Transformation(
+climb_tree = Transformation(
+    "climb_tree",
     destination=TREETOPS,
-    inventory_changes={"player": {"remove":[LADDER]}},
+    inventory_changes={"player": {"remove": [LADDER]}},
+    zones=[FOREST],
 )
 ```
 
@@ -67,10 +75,11 @@ Transformation(
 ```python
 # Jump from treetops
 CRATER = Item("crater")
-Transformation(
+jump_from_tree = Transformation(
+    "jump_from_tree",
     destination=FOREST,
-    inventory_changes={"destination": {"add":[CRATER]}},
-    zones=[TREETOPS]
+    inventory_changes={"destination": {"add": [CRATER]}},
+    zones=[TREETOPS],
 )
 ```
 
@@ -79,17 +88,17 @@ Transformation(
 INSIDE_HOUSE = Zone("house")
 DOOR = Item("door")
 KEY = Item("key")
-Transformation(
+enter_house = Transformation(
     destination=INSIDE_HOUSE,
     inventory_changes={
         "player": {
             "remove": [KEY],  # Ensure has key
-            "add":[KEY],      # Then give it back
+            "add": [KEY],  # Then give it back
         },
         "current_zone": {
             "remove": [DOOR],  # Ensure has door
-            "add":[DOOR],      # Then give it door
-        }
+            "add": [DOOR],  # Then give it back
+        },
     },
 )
 ```
@@ -102,11 +111,12 @@ we make sure that the item is required to be in the inventory but is not consume
 STRANGE_RED_BUTTON = Item("don't press me")
 SPACE = Zone("space")
 INCOMING_MISSILES = Item("incoming_missiles")
-Transformation(
+press_red_button = Transformation(
+    "press_red_button",
     inventory_changes={
         "current_zone": {  # Current zone
             "remove": [STRANGE_RED_BUTTON],
-            "add":[STRANGE_RED_BUTTON],
+            "add": [STRANGE_RED_BUTTON],
         },
         SPACE: {  # An 'absolute' specific zone
             "add": [Stack(INCOMING_MISSILES, 64)]
