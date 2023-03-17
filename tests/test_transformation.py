@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import pytest_check as check
 
-from crafting.elements import Item, ItemStack, Zone
+from crafting.elements import Item, Stack, Zone
 from crafting.transformation import Transformation, InventoryOwner
 from crafting.world import World
 from tests.custom_checks import check_np_equal
@@ -35,7 +35,7 @@ class TestTransformationIsValid:
         def check_stacks(stacks_lists):
             for stacks in stacks_lists:
                 for stack in stacks:
-                    check.is_instance(stack, ItemStack)
+                    check.is_instance(stack, Stack)
 
         transfo = Transformation(
             inventory_changes={
@@ -68,9 +68,9 @@ class TestTransformationIsValid:
             inventory_changes={
                 InventoryOwner.PLAYER: {
                     "add": [self.items[1]],
-                    "max": [ItemStack(self.items[1], 2), ItemStack(self.items[2], 0)],
+                    "max": [Stack(self.items[1], 2), Stack(self.items[2], 0)],
                     "remove": [
-                        ItemStack(self.items[0], 2),
+                        Stack(self.items[0], 2),
                     ],
                 },
             }
@@ -97,9 +97,9 @@ class TestTransformationIsValid:
         transfo = Transformation(
             inventory_changes={
                 InventoryOwner.CURRENT: {
-                    "add": [ItemStack(self.zones_items[1], 1)],
-                    "max": [ItemStack(self.zones_items[1], 1)],
-                    "remove": [ItemStack(self.zones_items[0], 3)],
+                    "add": [Stack(self.zones_items[1], 1)],
+                    "max": [Stack(self.zones_items[1], 1)],
+                    "remove": [Stack(self.zones_items[0], 3)],
                 },
             }
         )
@@ -125,9 +125,9 @@ class TestTransformationIsValid:
             destination=self.zones[1],
             inventory_changes={
                 InventoryOwner.DESTINATION: {
-                    "add": [ItemStack(self.zones_items[1], 1)],
-                    "max": [ItemStack(self.zones_items[1], 1)],
-                    "remove": [ItemStack(self.zones_items[0], 3)],
+                    "add": [Stack(self.zones_items[1], 1)],
+                    "max": [Stack(self.zones_items[1], 1)],
+                    "remove": [Stack(self.zones_items[0], 3)],
                 },
             },
         )
@@ -152,9 +152,9 @@ class TestTransformationIsValid:
         transfo = Transformation(
             inventory_changes={
                 self.zones[1]: {
-                    "add": [ItemStack(self.zones_items[1], 1)],
-                    "max": [ItemStack(self.zones_items[1], 1)],
-                    "remove": [ItemStack(self.zones_items[0], 3)],
+                    "add": [Stack(self.zones_items[1], 1)],
+                    "max": [Stack(self.zones_items[1], 1)],
+                    "remove": [Stack(self.zones_items[0], 3)],
                 },
             }
         )
@@ -193,10 +193,10 @@ class TestTransformationIsValid:
             inventory_changes={
                 "player": {
                     "remove": [
-                        ItemStack(self.items[0], 2),
-                        ItemStack(self.items[2], 3),
+                        Stack(self.items[0], 2),
+                        Stack(self.items[2], 3),
                     ],
-                    "add": [ItemStack(self.items[1], 5)],
+                    "add": [Stack(self.items[1], 5)],
                 },
             }
         )
@@ -210,8 +210,8 @@ class TestTransformationIsValid:
         transfo = Transformation(
             inventory_changes={
                 "current_zone": {
-                    "remove": [ItemStack(self.zones_items[0], 3)],
-                    "add": [ItemStack(self.zones_items[1], 7)],
+                    "remove": [Stack(self.zones_items[0], 3)],
+                    "add": [Stack(self.zones_items[1], 7)],
                 },
             }
         )
@@ -226,11 +226,11 @@ class TestTransformationIsValid:
             inventory_changes={
                 self.zones[0]: {
                     "remove": [
-                        ItemStack(self.zones_items[0], 3),
-                        ItemStack(self.zones_items[1], 1),
+                        Stack(self.zones_items[0], 3),
+                        Stack(self.zones_items[1], 1),
                     ],
                 },
-                self.zones[2]: {"add": [ItemStack(self.zones_items[1], 7)]},
+                self.zones[2]: {"add": [Stack(self.zones_items[1], 7)]},
             }
         )
         transfo.build(self.world)
@@ -244,8 +244,8 @@ class TestTransformationIsValid:
             destination=self.zones[1],
             inventory_changes={
                 "destination": {
-                    "remove": [ItemStack(self.zones_items[0], 3)],
-                    "add": [ItemStack(self.zones_items[1], 7)],
+                    "remove": [Stack(self.zones_items[0], 3)],
+                    "add": [Stack(self.zones_items[1], 7)],
                 },
             },
         )
@@ -279,8 +279,8 @@ class TestTransformationIsValid:
             inventory_changes={
                 "player": {
                     "add": [
-                        ItemStack(Item("wood"), 2),
-                        ItemStack(Item("stone"), 3),
+                        Stack(Item("wood"), 2),
+                        Stack(Item("stone"), 3),
                     ]
                 }
             }
@@ -291,8 +291,8 @@ class TestTransformationIsValid:
             inventory_changes={
                 "player": {
                     "remove": [
-                        ItemStack(Item("wood"), 2),
-                        ItemStack(Item("stone"), 3),
+                        Stack(Item("wood"), 2),
+                        Stack(Item("stone"), 3),
                     ]
                 }
             }
@@ -303,8 +303,8 @@ class TestTransformationIsValid:
             inventory_changes={
                 "current_zone": {
                     "add": [
-                        ItemStack(Item("wood"), 2),
-                        ItemStack(Item("stone"), 3),
+                        Stack(Item("wood"), 2),
+                        Stack(Item("stone"), 3),
                     ]
                 }
             }
@@ -315,8 +315,8 @@ class TestTransformationIsValid:
             inventory_changes={
                 "current_zone": {
                     "remove": [
-                        ItemStack(Item("wood"), 2),
-                        ItemStack(Item("stone"), 3),
+                        Stack(Item("wood"), 2),
+                        Stack(Item("stone"), 3),
                     ]
                 }
             }
@@ -327,8 +327,8 @@ class TestTransformationIsValid:
             inventory_changes={
                 "destination": {
                     "add": [
-                        ItemStack(Item("wood"), 2),
-                        ItemStack(Item("stone"), 3),
+                        Stack(Item("wood"), 2),
+                        Stack(Item("stone"), 3),
                     ]
                 }
             }
@@ -339,8 +339,8 @@ class TestTransformationIsValid:
             inventory_changes={
                 "destination": {
                     "remove": [
-                        ItemStack(Item("wood"), 2),
-                        ItemStack(Item("stone"), 3),
+                        Stack(Item("wood"), 2),
+                        Stack(Item("stone"), 3),
                     ]
                 }
             }
@@ -354,52 +354,52 @@ class TestTransformationIsValid:
             inventory_changes={
                 "player": {
                     "remove": [
-                        ItemStack(Item("P1")),
-                        ItemStack(Item("P2")),
+                        Stack(Item("P1")),
+                        Stack(Item("P2")),
                     ],
                     "add": [
-                        ItemStack(Item("P3")),
-                        ItemStack(Item("P4")),
+                        Stack(Item("P3")),
+                        Stack(Item("P4")),
                     ],
                 },
                 "current_zone": {
                     "remove": [
-                        ItemStack(Item("Z1")),
-                        ItemStack(Item("Z2")),
+                        Stack(Item("Z1")),
+                        Stack(Item("Z2")),
                     ],
                     "add": [
-                        ItemStack(Item("Z3")),
-                        ItemStack(Item("Z4")),
+                        Stack(Item("Z3")),
+                        Stack(Item("Z4")),
                     ],
                 },
                 "destination": {
                     "remove": [
-                        ItemStack(Item("D1")),
-                        ItemStack(Item("D2")),
+                        Stack(Item("D1")),
+                        Stack(Item("D2")),
                     ],
                     "add": [
-                        ItemStack(Item("D3")),
-                        ItemStack(Item("D4")),
+                        Stack(Item("D3")),
+                        Stack(Item("D4")),
                     ],
                 },
                 Zone("A"): {
                     "remove": [
-                        ItemStack(Item("A1")),
-                        ItemStack(Item("A2")),
+                        Stack(Item("A1")),
+                        Stack(Item("A2")),
                     ],
                     "add": [
-                        ItemStack(Item("A3")),
-                        ItemStack(Item("A4")),
+                        Stack(Item("A3")),
+                        Stack(Item("A4")),
                     ],
                 },
                 Zone("B"): {
                     "remove": [
-                        ItemStack(Item("B1")),
-                        ItemStack(Item("B2")),
+                        Stack(Item("B1")),
+                        Stack(Item("B2")),
                     ],
                     "add": [
-                        ItemStack(Item("B3")),
-                        ItemStack(Item("B4")),
+                        Stack(Item("B3")),
+                        Stack(Item("B4")),
                     ],
                 },
             },

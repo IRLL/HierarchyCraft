@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional
 import numpy as np
 from hebg import FeatureCondition
 
-from crafting.elements import ItemStack, Zone
+from crafting.elements import Stack, Zone
 from crafting.render.utils import load_or_create_image
 from crafting.task import _quantity_str
 
@@ -13,49 +13,49 @@ if TYPE_CHECKING:
     from crafting.env import CraftingEnv
 
 
-class HasItemStack(FeatureCondition):
+class HasStack(FeatureCondition):
 
     """FeatureCondition to check if player has an Item in a given quantity."""
 
-    def __init__(self, env: "CraftingEnv", stack: ItemStack) -> None:
+    def __init__(self, env: "CraftingEnv", stack: Stack) -> None:
         image = load_or_create_image(stack, env.world.resources_path)
         super().__init__(name=self.get_name(stack), image=np.array(image), complexity=1)
 
-        self.itemstack = stack
+        self.stack = stack
         self.n_items = env.world.n_items
         self.slot = env.world.items.index(stack.item)
 
     @staticmethod
-    def get_name(stack: ItemStack):
-        """Name of the HasItemStack feature condition given the stack."""
+    def get_name(stack: Stack):
+        """Name of the HasStack feature condition given the stack."""
         quantity_str = _quantity_str(stack.quantity)
         return f"Has{quantity_str}{stack.item.name}?"
 
     def __call__(self, observation) -> int:
         inventory_content = observation[: self.n_items]
-        return inventory_content[self.slot] >= self.itemstack.quantity
+        return inventory_content[self.slot] >= self.stack.quantity
 
 
-class HasLessItemStack(FeatureCondition):
+class HasLessStack(FeatureCondition):
 
     """FeatureCondition to check if player has an Item in less than a given quantity."""
 
-    def __init__(self, env: "CraftingEnv", stack: ItemStack) -> None:
+    def __init__(self, env: "CraftingEnv", stack: Stack) -> None:
         image = load_or_create_image(stack, env.world.resources_path)
         super().__init__(name=self.get_name(stack), image=np.array(image), complexity=1)
 
-        self.itemstack = stack
+        self.stack = stack
         self.n_items = env.world.n_items
         self.slot = env.world.items.index(stack.item)
 
     @staticmethod
-    def get_name(stack: ItemStack):
-        """Name of the HasItemStack feature condition given the stack."""
+    def get_name(stack: Stack):
+        """Name of the HasStack feature condition given the stack."""
         return f"Has less than {stack.quantity} {stack.item.name}?"
 
     def __call__(self, observation) -> int:
         inventory_content = observation[: self.n_items]
-        return inventory_content[self.slot] <= self.itemstack.quantity
+        return inventory_content[self.slot] <= self.stack.quantity
 
 
 class IsInZone(FeatureCondition):
@@ -86,7 +86,7 @@ class HasZoneItem(FeatureCondition):
     """FeatureCondition to check if a Zone has the given property."""
 
     def __init__(
-        self, env: "CraftingEnv", stack: ItemStack, zone: Optional[Zone] = None
+        self, env: "CraftingEnv", stack: Stack, zone: Optional[Zone] = None
     ) -> None:
         image = np.array(load_or_create_image(stack, env.world.resources_path))
         super().__init__(name=self.get_name(stack, zone), image=image, complexity=1)
@@ -101,7 +101,7 @@ class HasZoneItem(FeatureCondition):
         self.state = env.state
 
     @staticmethod
-    def get_name(stack: ItemStack, zone: Optional[Zone] = None):
+    def get_name(stack: Stack, zone: Optional[Zone] = None):
         """Name of the HasZoneItem feature condition given stack and optional zone."""
         zone_str = "Current zone" if zone is None else zone.name.capitalize()
         quantity_str = _quantity_str(stack.quantity)

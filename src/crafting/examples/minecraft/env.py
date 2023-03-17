@@ -8,7 +8,7 @@ Crafting environment adapted to the Minecraft inventory
 
 import os
 
-from crafting.elements import ItemStack
+from crafting.elements import Stack
 from crafting.env import CraftingEnv
 from crafting.examples.minecraft.items import CLOSE_ENDER_PORTAL, OPEN_NETHER_PORTAL
 from crafting.examples.minecraft.transformations import (
@@ -37,8 +37,8 @@ class MineCraftingEnv(CraftingEnv):
             mc_transformations,
             start_zone=start_zone,
             start_zones_items={
-                NETHER: [ItemStack(OPEN_NETHER_PORTAL)],
-                STRONGHOLD: [ItemStack(CLOSE_ENDER_PORTAL)],
+                NETHER: [Stack(OPEN_NETHER_PORTAL)],
+                STRONGHOLD: [Stack(CLOSE_ENDER_PORTAL)],
             },
         )
         mc_world.resources_path = resources_path

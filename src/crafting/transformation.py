@@ -3,7 +3,7 @@
 ## Examples
 
 ```python
-from crafting.elements import Item, ItemStack, Zone
+from crafting.elements import Item, Stack, Zone
 from crafting.transformation import Transformation
 ```
 
@@ -34,20 +34,20 @@ PLANK = Item("plank")
 Transformation(
     inventory_changes={
         "player": {
-            "add":[ItemStack(PLANK, 4)]
+            "add":[Stack(PLANK, 4)]
             "remove": [WOOD]
         },
     },
 )
 ```
-Note the use of ItemStack to give a quantity > 1.
+Note the use of Stack to give a quantity > 1.
 
 ### Modify the current zone's inventory
 ```python
 HOUSE = Item("house") # Need 12 WOOD and 64 PLANK
 Transformation(
     inventory_changes={
-        "player": {"remove": [ItemStack(WOOD, 12), ItemStack(PLANK, 64)]},
+        "player": {"remove": [Stack(WOOD, 12), Stack(PLANK, 64)]},
         "current_zone": {"add": [HOUSE]}
     },
 )
@@ -109,7 +109,7 @@ Transformation(
             "add":[STRANGE_RED_BUTTON],
         },
         SPACE: {  # An 'absolute' specific zone
-            "add": [ItemStack(INCOMING_MISSILES, 64)]
+            "add": [Stack(INCOMING_MISSILES, 64)]
         },
     },
 )
@@ -126,7 +126,7 @@ from enum import Enum
 
 import numpy as np
 
-from crafting.elements import Item, ItemStack, Zone
+from crafting.elements import Item, Stack, Zone
 
 if TYPE_CHECKING:
     from crafting.env import CraftingState
@@ -149,7 +149,7 @@ class InventoryOperation(Enum):
 
 InventoryChanges = Dict[
     InventoryOperation,
-    Union[List[Union[Item, ItemStack]], Dict[Zone, List[Union[Item, ItemStack]]]],
+    Union[List[Union[Item, Stack]], Dict[Zone, List[Union[Item, Stack]]]],
 ]
 InventoryOperations = Dict[InventoryOperation, np.ndarray]
 
@@ -168,7 +168,7 @@ class Transformation:
     * the destination zone inventory (if a destination is specified).
     * all specific zones inventories
 
-    Each inventory change is a list of removed (-) and added (+) ItemStack.
+    Each inventory change is a list of removed (-) and added (+) Stack.
 
     If specified, they may be restricted to only a subset of valid zones,
     all zones are valid by default.
@@ -275,7 +275,7 @@ class Transformation:
 
     def get_changes(
         self, owner: InventoryOwner, operation: InventoryOperation, default: Any = None
-    ) -> Optional[Union[List[ItemStack], Dict[Zone, List[ItemStack]]]]:
+    ) -> Optional[Union[List[Stack], Dict[Zone, List[Stack]]]]:
         """Get individual changes for a given owner and a given operation.
 
         Args:
@@ -451,19 +451,19 @@ class Transformation:
 
     def _build_operation_array(
         self,
-        itemstacks: List[ItemStack],
+        stacks: List[Stack],
         world_items_list: List["Item"],
         default_value: int = 0,
     ) -> np.ndarray:
         operation = default_value * np.ones(len(world_items_list), dtype=np.int32)
-        for itemstack in itemstacks:
-            item_slot = world_items_list.index(itemstack.item)
-            operation[item_slot] = itemstack.quantity
+        for stack in stacks:
+            item_slot = world_items_list.index(stack.item)
+            operation[item_slot] = stack.quantity
         return operation
 
     def _build_zones_items_op(
         self,
-        stacks_per_zone: Dict[Zone, List["ItemStack"]],
+        stacks_per_zone: Dict[Zone, List["Stack"]],
         zones: List[Zone],
         zones_items: List["Item"],
         default_value: float = 0.0,
@@ -575,7 +575,7 @@ def _build_apply_operation_array(
     return apply_operation
 
 
-def _dict_stacks_str(dict_of_stacks: Optional[Dict[Zone, List["ItemStack"]]]):
+def _dict_stacks_str(dict_of_stacks: Optional[Dict[Zone, List["Stack"]]]):
     strings = []
     if dict_of_stacks is None:
         return strings
@@ -585,7 +585,7 @@ def _dict_stacks_str(dict_of_stacks: Optional[Dict[Zone, List["ItemStack"]]]):
 
 
 def _stacks_str(
-    stacks: Optional[List["ItemStack"]],
+    stacks: Optional[List["Stack"]],
     prefix: str = "",
     suffix: str = "",
 ) -> List[str]:
@@ -596,19 +596,19 @@ def _stacks_str(
     return strings
 
 
-def _unstacked_str(itemstacks: List["ItemStack"], prefix: str = "", suffix: str = ""):
-    items_text = ",".join([str(itemstack) for itemstack in itemstacks])
+def _unstacked_str(stacks: List["Stack"], prefix: str = "", suffix: str = ""):
+    items_text = ",".join([str(stack) for stack in stacks])
     return f"{prefix}{items_text}{suffix}"
 
 
 def _stack_items_list(
-    items_or_stacks: Optional[List[Union["Item", "ItemStack"]]]
-) -> Optional[List["ItemStack"]]:
+    items_or_stacks: Optional[List[Union["Item", "Stack"]]]
+) -> Optional[List["Stack"]]:
     if items_or_stacks is None:
         return None
     for i, item_or_stack in enumerate(items_or_stacks):
-        if not isinstance(item_or_stack, ItemStack):
-            items_or_stacks[i] = ItemStack(item_or_stack)
+        if not isinstance(item_or_stack, Stack):
+            items_or_stacks[i] = Stack(item_or_stack)
     return items_or_stacks
 
 
@@ -659,5 +659,5 @@ def _format_inventory_changes(
     return dict_of_stacks
 
 
-def _items_from_stack_list(stacks: List["ItemStack"]) -> Set["Item"]:
+def _items_from_stack_list(stacks: List["Stack"]) -> Set["Item"]:
     return set(stack.item for stack in stacks)

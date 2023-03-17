@@ -1,6 +1,6 @@
 import pytest_check as check
 
-from crafting.elements import Item, ItemStack, Zone
+from crafting.elements import Item, Stack, Zone
 from crafting.requirements import _available_in_zones_stacks
 
 
@@ -18,7 +18,7 @@ class TestAvailableFromStart:
     def test_consumed_stacks_in_start_zone(self):
         zone = Zone("0")
         req_item = Item("requirement")
-        req_stack = ItemStack(req_item)
+        req_stack = Stack(req_item)
         check.is_true(
             _available_in_zones_stacks(
                 stacks=[req_stack],
@@ -30,7 +30,7 @@ class TestAvailableFromStart:
     def test_consumed_stacks_not_in_start_zone(self):
         zone = Zone("0")
         req_item = Item("requirement")
-        req_stack = ItemStack(req_item)
+        req_stack = Stack(req_item)
         check.is_false(
             _available_in_zones_stacks(
                 stacks=[req_stack],
@@ -42,23 +42,23 @@ class TestAvailableFromStart:
     def test_consumed_stacks_not_enough_in_start_zone(self):
         zone = Zone("0")
         req_item = Item("requirement")
-        req_stack = ItemStack(req_item, 2)
+        req_stack = Stack(req_item, 2)
         check.is_false(
             _available_in_zones_stacks(
                 stacks=[req_stack],
                 zone=zone,
-                zones_stacks={zone: [ItemStack(req_item, 1)]},
+                zones_stacks={zone: [Stack(req_item, 1)]},
             )
         )
 
     def test_consumed_stacks_other_in_start_zone(self):
         zone = Zone("0")
         req_item = Item("requirement")
-        req_stack = ItemStack(req_item)
+        req_stack = Stack(req_item)
         check.is_false(
             _available_in_zones_stacks(
                 stacks=[req_stack],
                 zone=zone,
-                zones_stacks={zone: [ItemStack(Item("1"))]},
+                zones_stacks={zone: [Stack(Item("1"))]},
             )
         )

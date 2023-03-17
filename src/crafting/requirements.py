@@ -83,7 +83,7 @@ from matplotlib.legend_handler import HandlerPatch
 from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
-    from crafting.elements import Item, ItemStack, Zone
+    from crafting.elements import Item, Stack, Zone
     from crafting.transformation import Transformation
     from crafting.world import World
 
@@ -457,9 +457,9 @@ def collapse_as_digraph(multidigraph: nx.MultiDiGraph) -> nx.DiGraph:
 
 
 def _available_in_zones_stacks(
-    stacks: Optional[List["ItemStack"]],
+    stacks: Optional[List["Stack"]],
     zone: "Zone",
-    zones_stacks: Dict["Zone", List["ItemStack"]],
+    zones_stacks: Dict["Zone", List["Stack"]],
 ) -> bool:
     """
     Args:
@@ -472,7 +472,7 @@ def _available_in_zones_stacks(
     """
     if stacks is None:
         return True
-    is_available: Dict["ItemStack", bool] = {}
+    is_available: Dict["Stack", bool] = {}
     for consumed_stack in stacks:
         start_stacks = zones_stacks.get(zone, [])
         for start_stack in start_stacks:

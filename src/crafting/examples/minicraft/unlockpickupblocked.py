@@ -2,7 +2,7 @@
 
 from typing import List
 
-from crafting.elements import Item, Zone, ItemStack
+from crafting.elements import Item, Zone, Stack
 from crafting.task import GetItemTask
 from crafting.transformation import Transformation
 
@@ -97,9 +97,9 @@ class MiniCraftBlockedUnlockPickup(MiniCraftEnv):
                     # Prevent creating door if door was already found
                     "max": [
                         self.BLOCKED_LOCKED_DOOR,
-                        ItemStack(self.BLOCKED_DOOR, 0),
-                        ItemStack(self.LOCKED_DOOR, 0),
-                        ItemStack(self.OPEN_DOOR, 0),
+                        Stack(self.BLOCKED_DOOR, 0),
+                        Stack(self.LOCKED_DOOR, 0),
+                        Stack(self.OPEN_DOOR, 0),
                     ],
                 },
             },

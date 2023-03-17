@@ -11,7 +11,7 @@ import crafting.env as env
 import crafting.examples as examples
 import crafting.world as world
 
-from crafting.elements import Item, ItemStack, Zone
+from crafting.elements import Item, Stack, Zone
 from crafting.transformation import Transformation
 from crafting.env import CraftingEnv, CraftingState
 from crafting.purpose import Purpose
@@ -21,7 +21,7 @@ from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask
 
 __all__ = [
     "Item",
-    "ItemStack",
+    "Stack",
     "Zone",
     "CraftingState",
     "Transformation",

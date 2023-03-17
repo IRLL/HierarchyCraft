@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-from crafting.elements import Item, ItemStack
+from crafting.elements import Item, Stack
 from crafting.env import CraftingEnv
 from crafting.transformation import Transformation
 from crafting.world import world_from_transformations
@@ -82,7 +82,7 @@ class RandomCraftingEnv(CraftingEnv):
         for item in self.items:
             if item.name.startswith("0"):
                 search_item = Transformation(
-                    inventory_changes={"player": {"add": [ItemStack(item)]}}
+                    inventory_changes={"player": {"add": [Stack(item)]}}
                 )
                 transformations.append(search_item)
                 accessible_items.append(item)
@@ -95,16 +95,16 @@ class RandomCraftingEnv(CraftingEnv):
 
         while len(accessible_items) < len(self.items):
             new_accessible_item = unaccessible_items.pop()
-            outputs = [ItemStack(new_accessible_item)]
+            outputs = [Stack(new_accessible_item)]
 
             n_inputs = int(new_accessible_item.name.split("_")[0])
             n_inputs = min(n_inputs, len(accessible_items))
 
-            # Chooses randomly accessible items and build ItemStacks of size 1.
+            # Chooses randomly accessible items and build Stacks of size 1.
             input_items = list(
                 self.np_random.choice(accessible_items, size=n_inputs, replace=False)
             )
-            inputs = [ItemStack(item) for item in input_items]
+            inputs = [Stack(item) for item in input_items]
 
             # Build recipe
             new_recipe = Transformation(

@@ -3,7 +3,7 @@ import os
 from typing import Optional, List, Dict, Union
 from abc import abstractmethod
 
-from crafting.elements import Item, ItemStack, Zone
+from crafting.elements import Item, Stack, Zone
 from crafting.transformation import Transformation
 from crafting.env import CraftingEnv
 
@@ -19,8 +19,8 @@ class MiniCraftEnv(CraftingEnv):
         self,
         minicraft_name: str,
         start_zone: Optional[Zone] = None,
-        start_items: Optional[List[Union[ItemStack, Item]]] = None,
-        start_zones_items: Optional[Dict[Zone, List[Union[ItemStack, Item]]]] = None,
+        start_items: Optional[List[Union[Stack, Item]]] = None,
+        start_zones_items: Optional[Dict[Zone, List[Union[Stack, Item]]]] = None,
         **kwargs,
     ) -> None:
         """

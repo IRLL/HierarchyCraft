@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 import numpy as np
 
-from crafting.elements import Item, ItemStack, Zone
+from crafting.elements import Item, Stack, Zone
 
 if TYPE_CHECKING:
     from crafting.env import CraftingState
@@ -79,7 +79,7 @@ class AchievementTask(Task):
 class GetItemTask(AchievementTask):
     """Task of getting a given quantity of an item."""
 
-    def __init__(self, item_stack: Union[Item, ItemStack], reward: float = 1.0):
+    def __init__(self, item_stack: Union[Item, Stack], reward: float = 1.0):
         self.item_stack = _stack_item(item_stack)
         super().__init__(name=self.get_name(self.item_stack), reward=reward)
 
@@ -92,8 +92,8 @@ class GetItemTask(AchievementTask):
         return np.all(state.player_inventory >= self._terminate_player_items)
 
     @staticmethod
-    def get_name(stack: ItemStack):
-        """Name of the task for a given ItemStack"""
+    def get_name(stack: Stack):
+        """Name of the task for a given Stack"""
         quantity_str = _quantity_str(stack.quantity)
         return f"Get{quantity_str}{stack.item.name}"
 
@@ -115,7 +115,7 @@ class GoToZoneTask(AchievementTask):
 
     @staticmethod
     def get_name(zone: Zone):
-        """Name of the task for a given ItemStack"""
+        """Name of the task for a given Stack"""
         return f"Go to {zone.name}"
 
 
@@ -128,7 +128,7 @@ class PlaceItemTask(AchievementTask):
 
     def __init__(
         self,
-        item_stack: Union[Item, ItemStack],
+        item_stack: Union[Item, Stack],
         zones: Optional[Union[Zone, List[Zone]]] = None,
         reward: float = 1.0,
     ):
@@ -156,16 +156,16 @@ class PlaceItemTask(AchievementTask):
         return np.all(state.zones_inventories >= self._terminate_zones_items)
 
     @staticmethod
-    def get_name(stack: ItemStack, zones: Optional[List[Zone]]):
-        """Name of the task for a given ItemStack and list of Zone"""
+    def get_name(stack: Stack, zones: Optional[List[Zone]]):
+        """Name of the task for a given Stack and list of Zone"""
         quantity_str = _quantity_str(stack.quantity)
         zones_str = _zones_str(_ensure_zone_list(zones))
         return f"Place{quantity_str}{stack.item.name}{zones_str}"
 
 
-def _stack_item(item_or_stack: Union[Item, ItemStack]) -> ItemStack:
-    if not isinstance(item_or_stack, ItemStack):
-        item_or_stack = ItemStack(item_or_stack)
+def _stack_item(item_or_stack: Union[Item, Stack]) -> Stack:
+    if not isinstance(item_or_stack, Stack):
+        item_or_stack = Stack(item_or_stack)
     return item_or_stack
 
 

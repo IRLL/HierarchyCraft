@@ -2,7 +2,7 @@
 
 from typing import List
 
-from crafting.elements import Item, Zone, ItemStack
+from crafting.elements import Item, Zone, Stack
 from crafting.task import GetItemTask
 from crafting.transformation import Transformation
 
@@ -73,7 +73,7 @@ class MiniCraftDoorKey(MiniCraftEnv):
             inventory_changes={
                 "current_zone": {
                     "add": [self.LOCKED_DOOR],
-                    "max": [self.LOCKED_DOOR, ItemStack(self.OPEN_DOOR, 0)],
+                    "max": [self.LOCKED_DOOR, Stack(self.OPEN_DOOR, 0)],
                 },
             },
             zones=[self.START],

@@ -18,7 +18,7 @@ except ImportError:
 
 from PIL.Image import Image
 
-from crafting.elements import Item, ItemStack, Zone
+from crafting.elements import Item, Stack, Zone
 from crafting.render.utils import (
     _font_path,
     _get_scale_ratio,
@@ -143,7 +143,7 @@ class InventoryWidget(Menu):
                 button, self.base_images[item], quantity, self.resources_path
             )
 
-        button.set_title(str(ItemStack(item, quantity)))
+        button.set_title(str(Stack(item, quantity)))
         self.old_quantity[item] = quantity
 
         if show_button(self.display_mode, quantity > 0, discovered[item_slot]):

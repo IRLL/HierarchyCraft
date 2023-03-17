@@ -141,7 +141,7 @@ and we add a transformation that will unlock the `LOCKED_CHEST` into a `CHEST` u
 LOCKED_CHEST = Item("locked_chest")
 UNLOCK_CHEST = Transformation(
     inventory_changes={
-        "player": {"remove": [ItemStack(KEY, 2)]},
+        "player": {"remove": [Stack(KEY, 2)]},
         "current_zone": {"remove": [LOCKED_CHEST], "add": [CHEST]},
     },
 )

@@ -30,7 +30,7 @@ Each of the items 0, 1 and 2 requires nothing and can be crafted from the start.
 
 from typing import List
 
-from crafting.elements import Item, ItemStack
+from crafting.elements import Item, Stack
 from crafting.env import CraftingEnv
 from crafting.transformation import Transformation
 from crafting.world import world_from_transformations
@@ -98,7 +98,7 @@ class TowerCraftingEnv(CraftingEnv):
         for first_layer_id in range(self.width):
             item = items[first_layer_id]
             new_recipe = Transformation(
-                inventory_changes={"player": {"add": [ItemStack(item)]}}
+                inventory_changes={"player": {"add": [Stack(item)]}}
             )
             transformations.append(new_recipe)
 
@@ -108,12 +108,12 @@ class TowerCraftingEnv(CraftingEnv):
                 item_id = layer * self.width + item_layer_id
                 item = items[item_id]
 
-                outputs = [ItemStack(item)]
+                outputs = [Stack(item)]
                 inputs = []
                 prev_layer_id = (layer - 1) * self.width
                 for prev_item_id in range(self.width):
                     required_item = items[prev_layer_id + prev_item_id]
-                    inputs.append(ItemStack(required_item))
+                    inputs.append(Stack(required_item))
 
                 new_recipe = Transformation(
                     inventory_changes={"player": {"remove": inputs, "add": outputs}}
@@ -122,12 +122,12 @@ class TowerCraftingEnv(CraftingEnv):
 
         # Last item recipe
         last_item = items[-1]
-        outputs = [ItemStack(last_item)]
+        outputs = [Stack(last_item)]
         inputs = []
         last_layer_id = (self.height - 1) * self.width
         for prev_item_id in range(self.width):
             required_item = items[last_layer_id + prev_item_id]
-            inputs.append(ItemStack(required_item))
+            inputs.append(Stack(required_item))
 
         new_recipe = Transformation(
             inventory_changes={"player": {"remove": inputs, "add": outputs}}

@@ -19,15 +19,15 @@ with a zone "Secret zone" containing items "Secret item" and 3 "Gold tresure".
 
 
 ```python
-from crafting.elements import Item, ItemStack, Zone, world_from_transformations
+from crafting.elements import Item, Stack, Zone, world_from_transformations
 
 transformations: List["Transformation"] = ...
 world = world_from_transformations(
     transformations=transformations,
     start_zone=Zone("Start zone"),
-    start_items=[Item("Head"), ItemStack(Item("Hand"), 2)],
+    start_items=[Item("Head"), Stack(Item("Hand"), 2)],
     start_zones_items={
-        Zone("Secret zone"): [Item("Secret item"), ItemStack(Item("Gold tresure"), 3)]
+        Zone("Secret zone"): [Item("Secret item"), Stack(Item("Gold tresure"), 3)]
     }
 )
 ```
@@ -39,7 +39,7 @@ from dataclasses import dataclass, field
 from functools import partial
 from typing import Dict, List, Optional, Set, Tuple, Union
 
-from crafting.elements import Item, ItemStack, Zone
+from crafting.elements import Item, Stack, Zone
 from crafting.requirements import RequirementNode, Requirements, req_node_name
 from crafting.transformation import Transformation, InventoryOwner
 
@@ -63,8 +63,8 @@ class World:
     transformations: List["Transformation"] = field(default_factory=list)
 
     start_zone: Optional[Zone] = None
-    start_items: List[ItemStack] = field(default_factory=list)
-    start_zones_items: Dict[Zone, List[ItemStack]] = field(default_factory=dict)
+    start_items: List[Stack] = field(default_factory=list)
+    start_zones_items: Dict[Zone, List[Stack]] = field(default_factory=dict)
 
     resources_path: str = field(default_factory=_default_resources_path)
     order_world: bool = False
@@ -133,21 +133,21 @@ class World:
 def world_from_transformations(
     transformations: List["Transformation"],
     start_zone: Optional[Zone] = None,
-    start_items: Optional[List[Union[ItemStack, Item]]] = None,
-    start_zones_items: Optional[Dict[Zone, List[Union[ItemStack, Item]]]] = None,
+    start_items: Optional[List[Union[Stack, Item]]] = None,
+    start_zones_items: Optional[Dict[Zone, List[Union[Stack, Item]]]] = None,
     order_world: bool = True,
 ) -> World:
     """Reads the transformation to build the list of items, zones and zones_items
     composing the world."""
     start_items = start_items if start_items is not None else []
     for i, stack in enumerate(start_items):
-        if not isinstance(stack, ItemStack):
-            start_items[i] = ItemStack(stack)
+        if not isinstance(stack, Stack):
+            start_items[i] = Stack(stack)
     start_zones_items = start_zones_items if start_zones_items is not None else {}
     for zone, items in start_zones_items.items():
         for i, stack in enumerate(items):
-            if not isinstance(stack, ItemStack):
-                start_zones_items[zone][i] = ItemStack(stack)
+            if not isinstance(stack, Stack):
+                start_zones_items[zone][i] = Stack(stack)
 
     zones, items, zones_items = _start_elements(
         start_zone, start_items, start_zones_items
@@ -172,18 +172,18 @@ def world_from_transformations(
 
 def _start_elements(
     start_zone: Optional[Zone],
-    start_items: List[Union[ItemStack, Item]],
-    start_zones_items: Dict[Zone, List[Union[ItemStack, Item]]],
+    start_items: List[Union[Stack, Item]],
+    start_zones_items: Dict[Zone, List[Union[Stack, Item]]],
 ) -> Tuple[Set[Zone], Set[Item], Set[Item]]:
     zones = set()
     if start_zone is not None:
         zones.add(start_zone)
 
-    items = set(itemstack.item for itemstack in start_items)
+    items = set(stack.item for stack in start_items)
     zones_items = set()
     for zone, zone_items in start_zones_items.items():
         zones.add(zone)
-        zones_items |= set(itemstack.item for itemstack in zone_items)
+        zones_items |= set(stack.item for stack in zone_items)
     return zones, items, zones_items
 
 
@@ -220,15 +220,15 @@ def _get_node_level(
     return (requirements.graph.nodes[node_name].get("level", 1000), node_name)
 
 
-def _add_items_to(stacks: Optional[List[ItemStack]], items_set: Set[Item]):
+def _add_items_to(stacks: Optional[List[Stack]], items_set: Set[Item]):
     if stacks is not None:
-        for itemstack in stacks:
-            items_set.add(itemstack.item)
+        for stack in stacks:
+            items_set.add(stack.item)
     return items_set
 
 
 def _add_dict_items_to(
-    dict_of_stacks: Optional[Dict[Zone, List[ItemStack]]],
+    dict_of_stacks: Optional[Dict[Zone, List[Stack]]],
     items_set: Set[Item],
     zones_set: Set[Zone],
 ):

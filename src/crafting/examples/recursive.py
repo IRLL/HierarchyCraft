@@ -42,7 +42,7 @@ Thus the number of actions required is $1 + 2 + 4 + 1 = 8 = 2^4$.
 
 from typing import List
 
-from crafting.elements import Item, ItemStack
+from crafting.elements import Item, Stack
 from crafting.env import CraftingEnv
 from crafting.transformation import Transformation
 from crafting.task import GetItemTask
@@ -104,8 +104,8 @@ class RecursiveCraftingEnv(CraftingEnv):
             if index == 0:
                 inputs = []
             else:
-                inputs = [ItemStack(items[item_id]) for item_id in range(index)]
-            outputs = [ItemStack(item)]
+                inputs = [Stack(items[item_id]) for item_id in range(index)]
+            outputs = [Stack(item)]
 
             new_recipe = Transformation(
                 inventory_changes={"player": {"remove": inputs, "add": outputs}}
@@ -154,8 +154,8 @@ class LightRecursiveCraftingEnv(CraftingEnv):
             if index == 0:
                 inputs = []
             else:
-                inputs = [ItemStack(items[item_id]) for item_id in range(low_id, index)]
-            outputs = [ItemStack(item)]
+                inputs = [Stack(items[item_id]) for item_id in range(low_id, index)]
+            outputs = [Stack(item)]
 
             new_recipe = Transformation(
                 inventory_changes={"player": {"remove": inputs, "add": outputs}}

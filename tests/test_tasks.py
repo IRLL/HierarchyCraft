@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 import pytest_check as check
 
-from crafting.elements import Item, ItemStack, Zone
+from crafting.elements import Item, Stack, Zone
 from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask
 from crafting.world import World
 from tests.custom_checks import check_np_equal
@@ -31,7 +31,7 @@ class TestGetItem:
     @pytest.fixture(autouse=True)
     def setup_method(self):
         self.world = simple_world()
-        self.task = GetItemTask(ItemStack(Item("wood"), 3), reward=5)
+        self.task = GetItemTask(Stack(Item("wood"), 3), reward=5)
 
     def test_build(self):
         """should build expected operations arrays based on the given world."""
@@ -102,7 +102,7 @@ class TestPlaceItem:
     def setup_method(self):
         self.world = simple_world()
         self.task = PlaceItemTask(
-            ItemStack(Item("wood_house"), 2), Zone("other_zone"), reward=5
+            Stack(Item("wood_house"), 2), Zone("other_zone"), reward=5
         )
 
     def test_build(self):
@@ -120,7 +120,7 @@ class TestPlaceItem:
 
     def test_build_no_zone(self):
         """should consider any zone if none is given."""
-        task = PlaceItemTask(ItemStack(Item("wood_house"), 2), None, reward=5)
+        task = PlaceItemTask(Stack(Item("wood_house"), 2), None, reward=5)
         task.build(self.world)
         expected_op = np.array([[0, 0, 2], [0, 0, 2]])
         check_np_equal(task._terminate_zones_items, expected_op)
@@ -128,7 +128,7 @@ class TestPlaceItem:
     def test_build_any_zones(self):
         """should consider any of given zones if multiple are given."""
         task = PlaceItemTask(
-            ItemStack(Item("wood_house"), 2),
+            Stack(Item("wood_house"), 2),
             [Zone("start"), Zone("other_zone")],
             reward=5,
         )
@@ -147,7 +147,7 @@ class TestPlaceItem:
 
     def test_terminate_any_zone(self):
         """should terminate when any zone has more than wanted items."""
-        task = PlaceItemTask(ItemStack(Item("wood_house"), 2), reward=5)
+        task = PlaceItemTask(Stack(Item("wood_house"), 2), reward=5)
         task.build(self.world)
 
         state = DummyState(zones_inventories=np.array([[10, 10, 0], [10, 10, 0]]))

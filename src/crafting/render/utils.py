@@ -17,7 +17,7 @@ except ImportError:
     pass
 
 
-from crafting.elements import Item, ItemStack, Zone
+from crafting.elements import Item, Stack, Zone
 
 if TYPE_CHECKING:
     from pygame.surface import Surface
@@ -212,12 +212,10 @@ def build_transformation_image(
     return transformation_image
 
 
-def load_or_create_image(
-    obj: Union[ItemStack, Zone], resources_path: str, bg_color=None
-):
+def load_or_create_image(obj: Union[Stack, Zone], resources_path: str, bg_color=None):
     """Load or create an image for an item or zone."""
 
-    if isinstance(obj, ItemStack):
+    if isinstance(obj, Stack):
         obj_name = str(obj)
         quantity = obj.quantity
         obj = obj.item
@@ -240,7 +238,7 @@ def load_or_create_image(
 
 
 def load_or_create_images(
-    objs: List[Union[ItemStack, Zone]], resources_path: str, bg_color=None
+    objs: List[Union[Stack, Zone]], resources_path: str, bg_color=None
 ) -> List["Image.Image"]:
     """Load or create images for the given objects."""
     return [load_or_create_image(obj, resources_path, bg_color) for obj in objs]

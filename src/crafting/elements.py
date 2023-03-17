@@ -9,7 +9,7 @@ class Item:
 
 
 @dataclass(frozen=True)
-class ItemStack:
+class Stack:
     """Represent a stack of an item for any crafting environement"""
 
     item: Item

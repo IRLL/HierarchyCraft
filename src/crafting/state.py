@@ -86,9 +86,9 @@ class CraftingState:
     def reset(self) -> None:
         """Reset the state to it's initial value."""
         self.player_inventory = np.zeros(self.world.n_items, dtype=np.int32)
-        for itemstack in self.world.start_items:
-            item_slot = self.world.items.index(itemstack.item)
-            self.player_inventory[item_slot] = itemstack.quantity
+        for stack in self.world.start_items:
+            item_slot = self.world.items.index(stack.item)
+            self.player_inventory[item_slot] = stack.quantity
 
         self.position = np.zeros(self.world.n_zones, dtype=np.int32)
         start_slot = 0  # Start in first Zone by default
@@ -100,11 +100,11 @@ class CraftingState:
         self.zones_inventories = np.zeros(
             (self.world.n_zones, self.world.n_zones_items), dtype=np.int32
         )
-        for zone, zone_itemstacks in self.world.start_zones_items.items():
+        for zone, zone_stacks in self.world.start_zones_items.items():
             zone_slot = self.world.slot_from_zone(zone)
-            for itemstack in zone_itemstacks:
-                item_slot = self.world.zones_items.index(itemstack.item)
-                self.zones_inventories[zone_slot, item_slot] = itemstack.quantity
+            for stack in zone_stacks:
+                item_slot = self.world.zones_items.index(stack.item)
+                self.zones_inventories[zone_slot, item_slot] = stack.quantity
 
         self.discovered_items = np.zeros(self.world.n_items, dtype=np.ubyte)
         self.discovered_zones_items = np.zeros(self.world.n_zones_items, dtype=np.ubyte)
