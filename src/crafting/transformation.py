@@ -144,17 +144,29 @@ if TYPE_CHECKING:
 
 
 class InventoryOwner(Enum):
+    """Enumeration of possible owners of inventory changes."""
+
     PLAYER = "player"
+    """The player inventory"""
     CURRENT = "current_zone"
+    """The current zone inventory"""
     DESTINATION = "destination"
+    """The destination zone inventory"""
     ZONES = "zones"
+    """A specific zone inventory"""
 
 
 class InventoryOperation(Enum):
+    """Enumeration of operations that can be done on an inventory."""
+
     REMOVE = "remove"
+    """Remove the list of stacks."""
     ADD = "add"
+    """Add the list of stacks."""
     MAX = "max"
+    """Limit to the list of stacks."""
     APPLY = "apply"
+    """Apply all operations."""
 
 
 InventoryChanges = Dict[
