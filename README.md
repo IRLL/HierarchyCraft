@@ -15,7 +15,7 @@
 
 Crafting is a Python library designed to create arbitrary hierarchical environments that are compatible with both the [OpenAI Gym](https://github.com/openai/gym) reinforcement learning framework and [AIPlan4EU Unified Planning Framework](https://github.com/aiplan4eu/unified-planning). This library enables users to easily create complex hierarchical structures that can be used to test and develop various reinforcement learning or planning algorithms.
 
-In environments built with Crafting the agent (player) has inventory and can navigate into abstract zones that themselves have inventories.
+In environments built with Crafting the agent (player) has an inventory and can navigate into abstract zones that themselves have inventories.
 
 Available actions of the agent are defined by **transformations**.
 **Transformations** are the core element of every Crafting environment, they define the actions that an agent can perform in the environment. At their core, transformations are simply changes to the state of the environment that can be triggered by the agent if the transformation is allowed in the current state.
@@ -75,6 +75,11 @@ Crafting gives the ability to visualize the hierarchy of the environment as a re
 
 For example, here is the graph of the 'MiniCraftUnlock' environment where the goal is to open a door using a key:
 ![Unlock requirements graph](https://raw.githubusercontent.com/IRLL/Crafting/master/docs/images/requirements_graphs/MiniCraftUnlock.png)
+
+
+And here is much more complex graph of the 'MineCrafting' environment shown previously:
+![Minecrafting requirements graph](https://raw.githubusercontent.com/IRLL/Crafting/master/docs/images/requirements_graphs/MineCrafting.png)
+
 
 See [`crafting.requirements`](https://irll.github.io/Crafting/crafting/requirements.html) for more details.
 
