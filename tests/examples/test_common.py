@@ -68,7 +68,8 @@ def test_can_solve(env_class):
 
 @pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
 def test_requirements_graph(env_class):
-    draw = False
+    draw = True
+    save = False
     env: CraftingEnv = env_class()
     requirements = env.world.requirements
     requirements.graph
@@ -82,10 +83,11 @@ def test_requirements_graph(env_class):
         fig.set_size_inches(width, 9 / 16 * width)
         requirements.draw(ax)
 
-        requirements_dir = os.path.join("docs", "images", "requirements_graphs")
-        os.makedirs(requirements_dir, exist_ok=True)
+        if save:
+            requirements_dir = os.path.join("docs", "images", "requirements_graphs")
+            os.makedirs(requirements_dir, exist_ok=True)
 
-        filename = os.path.join(requirements_dir, f"{env.name}.png")
-        if not os.path.exists(filename):
+            filename = os.path.join(requirements_dir, f"{env.name}.png")
             fig.savefig(filename, dpi=80 * 16 / width, transparent=True)
+
         plt.close()
