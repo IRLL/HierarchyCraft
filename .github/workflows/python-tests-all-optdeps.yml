@@ -25,7 +25,6 @@ jobs:
       run: |
         git submodule update --init --recursive
         python -m pip install --upgrade pip
-        pip install unified_planning[tamer]
         pip install .[all]
         pip install -r requirements-dev.txt
     - name: Test with pytest
