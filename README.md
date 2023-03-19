@@ -40,11 +40,11 @@ To create a Crafting environment, one need to understand **transformations** ful
 
 Each **transformation** is composed of three optional elements:
 
-- The first element is a **destination** zone, which specifies the zone to which the agent will move if the transformation changes the player position. This element is only necessary if the transformation changes the agent's position in the environment.
+  - The first element is a **destination** zone, which specifies the zone to which the agent will move if the transformation changes the player position. This element is only necessary if the transformation changes the agent's position in the environment.
 
-- The second element is a list of **zones** to which the transformation is restricted. This element allows users to define which zones the agent can perform the transformation in, restricting the agent's actions to certain areas of the environment. If not specified, the transformation can be done anywhere.
+  - The second element is a list of **zones** to which the transformation is restricted. This element allows users to define which zones the agent can perform the transformation in, restricting the agent's actions to certain areas of the environment. If not specified, the transformation can be done anywhere.
 
-- The third element is a dictionary of **inventory changes** for the player, the current zone, the destination zone, or any specific zones. Inventory changes are defined as a dictionary mapping operations such as 'add', 'remove', 'min', 'max' on lists of stacks of items. This element allows users to define changes to any inventory that may result from the transformation, it also restricts the transformation to only be possible if the amount of the specified item is more that min and less than max. If unspecified, no changes are done, and 'min' will default to 0, 'max' to +inf.
+  - The third element is a dictionary of **inventory changes** for the player, the current zone, the destination zone, or any specific zones. Inventory changes are defined as a dictionary mapping operations such as 'add', 'remove', 'min', 'max' on lists of stacks of items. This element allows users to define changes to any inventory that may result from the transformation, it also restricts the transformation to only be possible if the amount of the specified item is more that min and less than max. If unspecified, no changes are done, and 'min' will default to 0, 'max' to +inf.
 
 For examples, see [`crafting.transformation`](https://irll.github.io/Crafting/crafting/transformation.html)
 
