@@ -261,7 +261,7 @@ from crafting.solving_behaviors import (
     build_all_solving_behaviors,
     task_to_behavior_name,
 )
-from crafting.planning import world_task_to_planning_problem, Problem
+from crafting.planning import state_purpose_to_planning_problem, Problem
 from crafting.state import CraftingState
 
 if TYPE_CHECKING:
@@ -519,7 +519,7 @@ class CraftingEnv(Env):
             assert env.purpose.is_terminated # Purpose is achieved
             ```
         """
-        return world_task_to_planning_problem(self.world, self.name, self.purpose)
+        return state_purpose_to_planning_problem(self.state, self.name, self.purpose)
 
     def _step_output(self, reward: float, terminated: bool, truncated: bool):
         infos = {
