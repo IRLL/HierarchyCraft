@@ -40,7 +40,7 @@ class CraftingPlanningProblem:
             name: Name of the planning problem.
             purpose: Purpose used to compute the planning goal.
         """
-        self._init_problem(state, name, purpose)
+        self.upf_problem: Optional[Problem] = self._init_problem(state, name, purpose)
         self.plan: Optional[SequentialPlan] = None
 
     def action_from_plan(self, state: "CraftingState") -> int:
@@ -164,6 +164,7 @@ class CraftingPlanningProblem:
             self.upf_problem.add_goal(self._purpose_to_goal(purpose))
 
         self.update_problem_to_state(state)
+        return self.upf_problem
 
     def _action_from_transformation(
         self, transformation: "Transformation", transformation_id: int
