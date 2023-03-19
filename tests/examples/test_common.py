@@ -4,8 +4,6 @@ import pytest_check as check
 import os
 
 from unified_planning.io import PDDLWriter
-from unified_planning.shortcuts import OneshotPlanner
-from unified_planning.plans import SequentialPlan
 
 from crafting.render.human import render_env_with_human
 from crafting.examples import EXAMPLE_ENVS
@@ -31,7 +29,7 @@ def test_pddl_solve(env_class):
     problem = env.planning_problem()
 
     if write:
-        writer = PDDLWriter(problem)
+        writer = PDDLWriter(problem.upf_problem)
         pddl_dir = os.path.join("planning", "pddl", env.name)
         os.makedirs(pddl_dir, exist_ok=True)
         writer.write_domain(os.path.join(pddl_dir, "domain.pddl"))
@@ -40,23 +38,10 @@ def test_pddl_solve(env_class):
     if isinstance(env, MiniCraftBlockedUnlockPickup):
         return  # Infinite loop for no reason ???
 
-    with OneshotPlanner(problem_kind=problem.kind) as planner:
-        results = planner.solve(problem)
-        plan: SequentialPlan = results.plan
-        assert plan is not None, "Not plan found !"
-        actions = plan.actions
-
-    def action_from_plan():
-        if not actions:
-            raise ValueError("Plan has failed")
-        plan_action_name = str(actions.pop(0))
-        action = int(plan_action_name.split("_")[0])
-        return action
-
     done = False
     _observation = env.reset()
     while not done:
-        action = action_from_plan()
+        action = problem.action_from_plan(env.state)
         _observation, _reward, done, _ = env.step(action)
     check.is_true(env.purpose.terminated)
 

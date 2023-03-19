@@ -261,7 +261,7 @@ from crafting.solving_behaviors import (
     build_all_solving_behaviors,
     task_to_behavior_name,
 )
-from crafting.planning import state_purpose_to_planning_problem, Problem
+from crafting.planning import CraftingPlanningProblem
 from crafting.state import CraftingState
 
 if TYPE_CHECKING:
@@ -480,7 +480,7 @@ class CraftingEnv(Env):
         """
         return self.all_behaviors[task_to_behavior_name(task)]
 
-    def planning_problem(self) -> Problem:
+    def planning_problem(self) -> CraftingPlanningProblem:
         """Build this crafting environment planning problem.
 
         Returns:
@@ -489,37 +489,26 @@ class CraftingEnv(Env):
         Example:
             Write as PDDL files:
             ```python
+            from unified_planning.io import PDDLWriter
             problem = env.planning_problem()
-            writer = PDDLWriter(problem)
+            writer = PDDLWriter(problem.upf_problem)
             writer.write_domain("domain.pddl")
             writer.write_problem("problem.pddl")
             ```
 
             Using a plan to solve a Crafting gym environment:
             ```python
-            problem = env.planning_problem()
-
-            with OneshotPlanner(problem_kind=problem.kind) as planner:
-                results = planner.solve(problem)
-                assert results.plan is not None, "Not plan found !"
-                actions = results.plan.actions
-
-            def action_from_plan():
-                if not actions:
-                    raise ValueError("Plan has failed")
-                plan_action_name = str(actions.pop(0))
-                action = int(plan_action_name.split("_")[0])
-                return action
+            crafting_problem = env.planning_problem()
 
             done = False
             _observation = env.reset()
             while not done:
-                action = action_from_plan()
+                action = crafting_problem.action_from_plan(env.state)
                 _observation, _reward, done, _ = env.step(action)
             assert env.purpose.is_terminated # Purpose is achieved
             ```
         """
-        return state_purpose_to_planning_problem(self.state, self.name, self.purpose)
+        return CraftingPlanningProblem(self.state, self.name, self.purpose)
 
     def _step_output(self, reward: float, terminated: bool, truncated: bool):
         infos = {

@@ -1,4 +1,3 @@
-from unified_planning.shortcuts import OneshotPlanner
 from crafting.task import PlaceItemTask
 from crafting.purpose import Purpose
 from crafting.elements import Item, Zone, Stack
@@ -13,10 +12,9 @@ def test_crafting_classic():
     env.purpose = Purpose(task)
 
     problem = env.planning_problem()
-    print(problem)
+    print(problem.upf_problem)
 
-    with OneshotPlanner(problem_kind=problem.kind) as planner:
-        result = planner.solve(problem)
+    problem.solve()
 
     expected_plan = (
         "[1_search_wood(start), "
@@ -25,4 +23,4 @@ def test_crafting_classic():
         "4_craft_table(other_zone)]"
     )
 
-    assert repr(result.plan) == expected_plan
+    assert repr(problem.plan) == expected_plan
