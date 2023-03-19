@@ -14,6 +14,12 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: '3.10'
+    - name: Install dependencies
+      run: |
+        git submodule update --init --recursive
+        python -m pip install --upgrade pip
+        pip install -e .[all]
+        pip install -r requirements-dev.txt
     - name: Setup java for ENHSP
       uses: actions/setup-java@v2
       with:
@@ -22,14 +28,8 @@ jobs:
     - name: Download and install ENHSP
       run: |
         git clone https://gitlab.com/enricos83/ENHSP-Public.git
-        cd ENHSP-Public; git checkout enhsp20-0.9.7; ./compile; cd ..
-        mkdir .planners; mv ENHSP-Public/enhsp-dist .planners/enhsp-20; rm -rf ENHSP-Public
-    - name: Install dependencies
-      run: |
-        git submodule update --init --recursive
-        python -m pip install --upgrade pip
-        pip install -e .[all]
-        pip install -r requirements-dev.txt
+        cd ENHSP-Public; git checkout enhsp20-0.9.7; bash ./compile; cd ..
+        bash -c "mkdir .planners; mv ENHSP-Public/enhsp-dist .planners/enhsp-20; rm -rf ENHSP-Public"
     - name: Build coverage using pytest-cov
       run: |
         pytest --cov=crafting --cov-report=xml tests
