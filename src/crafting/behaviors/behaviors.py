@@ -7,12 +7,12 @@ from hebg import Behavior, HEBGraph
 
 from crafting.behaviors.actions import DoTransformation
 from crafting.behaviors.feature_conditions import (
-    HasItemStack,
-    HasLessItemStack,
+    HasStack,
+    HasLessStack,
     HasZoneItem,
     IsInZone,
 )
-from crafting.elements import Item, ItemStack, Zone
+from crafting.elements import Item, Stack, Zone
 from crafting.render.utils import load_or_create_image
 from crafting.task import _ensure_zone_list, _zones_str
 
@@ -162,9 +162,9 @@ class PlaceItem(Behavior):
 
     def _zone_item_is_in(
         self,
-        zone_items: Optional[List[ItemStack]],
-        destination_items: Optional[List[ItemStack]],
-        zones_items: Optional[Dict[Zone, List[ItemStack]]],
+        zone_items: Optional[List[Stack]],
+        destination_items: Optional[List[Stack]],
+        zones_items: Optional[Dict[Zone, List[Stack]]],
         zones: Optional[List[Zone]],
         destination: Optional[Zone],
     ):
@@ -183,7 +183,7 @@ class PlaceItem(Behavior):
         return False
 
     def _zone_item_in_dict_of_stacks(
-        self, dict_of_stack: Optional[Dict["Zone", List["ItemStack"]]]
+        self, dict_of_stack: Optional[Dict["Zone", List["Stack"]]]
     ):
         if dict_of_stack is None:
             return False
@@ -194,7 +194,7 @@ class PlaceItem(Behavior):
             stacks.extend(zone_stacks)
         return self._item_is_in_stack(stacks)
 
-    def _item_is_in_stack(self, stacks: Optional[List["ItemStack"]]) -> bool:
+    def _item_is_in_stack(self, stacks: Optional[List["Stack"]]) -> bool:
         return stacks is not None and self.item in [stack.item for stack in stacks]
 
 
@@ -249,7 +249,7 @@ class AbleAndPerformTransformation(Behavior):
     @staticmethod
     def get_name(transformation: "Transformation"):
         """Name of the behavior to able the transformation."""
-        return f"Able and perform: {str(transformation)}"
+        return f"Able and perform: {repr(transformation)}"
 
     def build_graph(self) -> HEBGraph:
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
@@ -311,7 +311,7 @@ class AbleAndPerformTransformation(Behavior):
                     for added_stack in added_player_items:
                         if added_stack.item == stack.item:
                             max_quantity -= added_stack.quantity
-                max_stack = ItemStack(stack.item, max_quantity)
+                max_stack = Stack(stack.item, max_quantity)
                 has_not_item = _add_drop_item(max_stack, graph, self.env)
                 for prev in last_nodes:
                     graph.add_edge(prev, has_not_item, index=int(True))
@@ -326,20 +326,16 @@ class AbleAndPerformTransformation(Behavior):
         return graph
 
 
-def _add_get_item(
-    stack: ItemStack, graph: HEBGraph, env: "CraftingEnv"
-) -> HasItemStack:
-    has_item = HasItemStack(env, stack)
+def _add_get_item(stack: Stack, graph: HEBGraph, env: "CraftingEnv") -> HasStack:
+    has_item = HasStack(env, stack)
     image = np.array(load_or_create_image(stack, env.world.resources_path))
     get_item = Behavior(GetItem.get_name(stack.item), image=image)
     graph.add_edge(has_item, get_item, index=int(False))
     return has_item
 
 
-def _add_drop_item(
-    stack: ItemStack, graph: HEBGraph, env: "CraftingEnv"
-) -> HasLessItemStack:
-    has_not_item = HasLessItemStack(env, stack)
+def _add_drop_item(stack: Stack, graph: HEBGraph, env: "CraftingEnv") -> HasLessStack:
+    has_not_item = HasLessStack(env, stack)
     image = np.array(load_or_create_image(stack, env.world.resources_path))
     drop_item = Behavior(DropItem.get_name(stack.item), image=image)
     graph.add_edge(has_not_item, drop_item, index=int(False))
@@ -357,7 +353,7 @@ def _add_zone_behavior(zone: Zone, graph: HEBGraph, env: "CraftingEnv") -> IsInZ
 def _add_place_item(
     graph: HEBGraph,
     env: "CraftingEnv",
-    stack: ItemStack,
+    stack: Stack,
     zone: Optional[Zone] = None,
 ) -> HasZoneItem:
     has_item_in_zone = HasZoneItem(env, stack, zone)

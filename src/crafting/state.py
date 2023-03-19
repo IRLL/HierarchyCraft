@@ -4,6 +4,7 @@ import numpy as np
 
 if TYPE_CHECKING:
     from crafting.world import World
+    from crafting.elements import Zone, Item
 
 
 class CraftingState:
@@ -43,8 +44,7 @@ class CraftingState:
         """Inventory of the zone where the player is."""
         if self.position.shape[0] == 0:
             return np.array([])  # No Zone
-        current_zone_slot = self.position.nonzero()[0]
-        return self.zones_inventories[current_zone_slot, :][0]
+        return self.zones_inventories[self._current_zone_slot, :][0]
 
     @property
     def observation(self) -> np.ndarray:
@@ -62,6 +62,48 @@ class CraftingState:
                 self.current_zone_inventory,
             )
         )
+
+    def amount_of(self, item: "Item", owner: Optional["Zone"] = "player") -> int:
+        """Current amount of the given item owned by owner.
+
+        Args:
+            item: Item to get the amount of.
+            owner: Owner of the inventory to check. Defaults to player.
+
+        Returns:
+            int: Amount of the item in the owner's inventory.
+        """
+
+        if owner in self.world.zones:
+            zone_index = self.world.zones.index(owner)
+            zone_item_index = self.world.zones_items.index(item)
+            return int(self.zones_inventories[zone_index, zone_item_index])
+
+        item_index = self.world.items.index(item)
+        return int(self.player_inventory[item_index])
+
+    def has_discovered(self, zone: "Zone") -> bool:
+        """Whether the given zone was discovered.
+
+        Args:
+            zone (Zone): Zone to check.
+
+        Returns:
+            bool: True if the zone was discovered.
+        """
+        zone_index = self.world.zones.index(zone)
+        return bool(self.discovered_zones[zone_index])
+
+    @property
+    def current_zone(self) -> Optional["Zone"]:
+        """Current position of the player."""
+        if self.world.n_zones == 0:
+            return None
+        return self.world.zones[self._current_zone_slot[0]]
+
+    @property
+    def _current_zone_slot(self) -> int:
+        return self.position.nonzero()[0]
 
     def apply(self, action: int) -> bool:
         """Apply the given action to update the state.
@@ -86,9 +128,9 @@ class CraftingState:
     def reset(self) -> None:
         """Reset the state to it's initial value."""
         self.player_inventory = np.zeros(self.world.n_items, dtype=np.int32)
-        for itemstack in self.world.start_items:
-            item_slot = self.world.items.index(itemstack.item)
-            self.player_inventory[item_slot] = itemstack.quantity
+        for stack in self.world.start_items:
+            item_slot = self.world.items.index(stack.item)
+            self.player_inventory[item_slot] = stack.quantity
 
         self.position = np.zeros(self.world.n_zones, dtype=np.int32)
         start_slot = 0  # Start in first Zone by default
@@ -100,11 +142,11 @@ class CraftingState:
         self.zones_inventories = np.zeros(
             (self.world.n_zones, self.world.n_zones_items), dtype=np.int32
         )
-        for zone, zone_itemstacks in self.world.start_zones_items.items():
+        for zone, zone_stacks in self.world.start_zones_items.items():
             zone_slot = self.world.slot_from_zone(zone)
-            for itemstack in zone_itemstacks:
-                item_slot = self.world.zones_items.index(itemstack.item)
-                self.zones_inventories[zone_slot, item_slot] = itemstack.quantity
+            for stack in zone_stacks:
+                item_slot = self.world.zones_items.index(stack.item)
+                self.zones_inventories[zone_slot, item_slot] = stack.quantity
 
         self.discovered_items = np.zeros(self.world.n_items, dtype=np.ubyte)
         self.discovered_zones_items = np.zeros(self.world.n_zones_items, dtype=np.ubyte)

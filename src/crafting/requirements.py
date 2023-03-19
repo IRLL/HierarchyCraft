@@ -52,9 +52,6 @@ see `crafting.purpose.RewardShaping.REQUIREMENTS_ACHIVEMENTS`.
 # Example
 
 ```python
-from crafting.examples import MineCraftingEnv
-env = MineCraftingEnv()
-
 # Obtain the raw Networkx MultiDiGraph
 graph = env.world.requirements.graph
 
@@ -65,7 +62,10 @@ env.world.requirements.draw(ax)
 plt.show()
 ```
 
-![MineCrafting hierarchy](../../docs/images/MineCrafting_Requirements_graph.png)
+For example, here is the underlying hierarchy of the toy environment MinicraftUnlock:
+<img
+    src="https://raw.githubusercontent.com/IRLL/Crafting/master/docs/images/requirements_graphs/MiniCraftUnlock.png"
+width="90%"/>
 
 """
 
@@ -83,7 +83,7 @@ from matplotlib.legend_handler import HandlerPatch
 from crafting.render.utils import load_or_create_image
 
 if TYPE_CHECKING:
-    from crafting.elements import Item, ItemStack, Zone
+    from crafting.elements import Item, Stack, Zone
     from crafting.transformation import Transformation
     from crafting.world import World
 
@@ -182,6 +182,11 @@ class Requirements:
             return self._acydigraph
         self._acydigraph = break_cycles_through_level(self.digraph)
         return self._acydigraph
+
+    @property
+    def depth(self) -> int:
+        """Depth of the requirements graph."""
+        return self.graph.graph.get("depth")
 
     def _build(self) -> None:
         self._add_requirements_nodes(self.world)
@@ -452,9 +457,9 @@ def collapse_as_digraph(multidigraph: nx.MultiDiGraph) -> nx.DiGraph:
 
 
 def _available_in_zones_stacks(
-    stacks: Optional[List["ItemStack"]],
+    stacks: Optional[List["Stack"]],
     zone: "Zone",
-    zones_stacks: Dict["Zone", List["ItemStack"]],
+    zones_stacks: Dict["Zone", List["Stack"]],
 ) -> bool:
     """
     Args:
@@ -467,7 +472,7 @@ def _available_in_zones_stacks(
     """
     if stacks is None:
         return True
-    is_available: Dict["ItemStack", bool] = {}
+    is_available: Dict["Stack", bool] = {}
     for consumed_stack in stacks:
         start_stacks = zones_stacks.get(zone, [])
         for start_stack in start_stacks:

@@ -4,7 +4,7 @@ from typing import Any, List, Tuple
 import pytest
 import pytest_check as check
 
-from crafting.elements import Item, ItemStack, Zone
+from crafting.elements import Item, Stack, Zone
 from crafting.env import CraftingEnv
 from crafting.purpose import Purpose, RewardShaping
 from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
@@ -204,7 +204,7 @@ class TestPurposeRewardShaping:
             inventory_changes={
                 "player": {
                     "remove": [self.items[2]],
-                    "add": [ItemStack(self.items[2], 2)],
+                    "add": [Stack(self.items[2], 2)],
                 },
             },
         )
@@ -250,7 +250,7 @@ class TestPurposeRewardShaping:
         self.env = CraftingEnv(
             world_from_transformations(
                 transformations,
-                start_zones_items={self.zones[4]: [ItemStack(self.items[2], 2)]},
+                start_zones_items={self.zones[4]: [Stack(self.items[2], 2)]},
             )
         )
         self.zone_items = self.env.world.zones_items
@@ -354,7 +354,7 @@ class TestPurposeRewardShaping:
 
 
 def _check_get_item_tasks(items: List[Item], tasks: List[Task]):
-    all_items_stacks = [ItemStack(item) for item in items]
+    all_items_stacks = [Stack(item) for item in items]
     expected_task_names = [
         GetItemTask.get_name(item_stack) for item_stack in all_items_stacks
     ]
@@ -369,7 +369,7 @@ def _check_go_to_zone_tasks(zones: List[Zone], tasks: List[Task]):
 def _check_place_item_tasks(
     items_and_zones: List[Tuple[Item, Zone]], tasks: List[Task]
 ):
-    stacks_and_zones = [(ItemStack(item), zones) for item, zones in items_and_zones]
+    stacks_and_zones = [(Stack(item), zones) for item, zones in items_and_zones]
     expected_task_names = [
         PlaceItemTask.get_name(stack, zones) for stack, zones in stacks_and_zones
     ]

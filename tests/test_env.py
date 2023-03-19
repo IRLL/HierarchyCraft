@@ -5,7 +5,7 @@ import pytest
 import pytest_check as check
 from pytest_mock import MockerFixture
 
-from crafting.elements import Item, ItemStack, Zone
+from crafting.elements import Item, Stack, Zone
 from crafting.env import CraftingEnv
 from crafting.task import GetItemTask
 from crafting.transformation import Transformation
@@ -71,7 +71,7 @@ class TestCratingEnv:
         world = world_from_transformations(
             self.transformations,
             start_zone=self.start_zone,
-            start_items=[ItemStack(start_item, 2), ItemStack(Item("wood"), 3)],
+            start_items=[Stack(start_item, 2), Stack(Item("wood"), 3)],
         )
         env = CraftingEnv(world)
         expected_items = np.zeros(env.world.n_items, np.int32)
@@ -88,7 +88,7 @@ class TestCratingEnv:
             self.transformations,
             start_zone=self.start_zone,
             start_zones_items={
-                new_zone: [ItemStack(new_zone_item, 2), ItemStack(Item("wood"), 3)],
+                new_zone: [Stack(new_zone_item, 2), Stack(Item("wood"), 3)],
             },
         )
         env = CraftingEnv(world)
@@ -413,7 +413,7 @@ def test_treasure_env(mocker: MockerFixture):
     LOCKED_CHEST = Item("locked_chest")
     UNLOCK_CHEST = Transformation(
         inventory_changes={
-            "player": {"remove": [ItemStack(KEY, 2)]},
+            "player": {"remove": [Stack(KEY, 2)]},
             "current_zone": {"remove": [LOCKED_CHEST], "add": [CHEST]},
         },
     )

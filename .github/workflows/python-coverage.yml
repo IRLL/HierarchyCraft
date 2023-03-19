@@ -4,7 +4,7 @@ on: ["push"]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     env:
       MPLBACKEND: Agg  # https://github.com/orgs/community/discussions/26434
       SDL_VIDEODRIVER: "dummy" # for PyGame render https://stackoverflow.com/questions/15933493/pygame-error-no-available-video-device
@@ -20,6 +20,16 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e .[all]
         pip install -r requirements-dev.txt
+    - name: Setup java for ENHSP
+      uses: actions/setup-java@v2
+      with:
+        distribution: "microsoft"
+        java-version: "17"
+    - name: Download and install ENHSP
+      run: |
+        git clone https://gitlab.com/enricos83/ENHSP-Public.git
+        cd ENHSP-Public; git checkout enhsp20-0.9.7; bash ./compile; cd ..
+        bash -c "mkdir .planners; mv ENHSP-Public/enhsp-dist .planners/enhsp-20; rm -rf ENHSP-Public"
     - name: Build coverage using pytest-cov
       run: |
         pytest --cov=crafting --cov-report=xml tests

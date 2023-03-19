@@ -141,7 +141,7 @@ and we add a transformation that will unlock the `LOCKED_CHEST` into a `CHEST` u
 LOCKED_CHEST = Item("locked_chest")
 UNLOCK_CHEST = Transformation(
     inventory_changes={
-        "player": {"remove": [ItemStack(KEY, 2)]},
+        "player": {"remove": [Stack(KEY, 2)]},
         "current_zone": {"remove": [LOCKED_CHEST], "add": [CHEST]},
     },
 )
@@ -261,6 +261,7 @@ from crafting.solving_behaviors import (
     build_all_solving_behaviors,
     task_to_behavior_name,
 )
+from crafting.planning import CraftingPlanningProblem
 from crafting.state import CraftingState
 
 if TYPE_CHECKING:
@@ -463,8 +464,51 @@ class CraftingEnv(Env):
 
         Returns:
             Behavior: Behavior solving the task.
+
+        Example:
+            ```python
+            solving_behavior = env.solving_behavior(task)
+
+            done = False
+            observation = env.reset()
+            while not done:
+                action = solving_behavior(observation)
+                observation, _reward, done, _info = env.step(action)
+
+            assert task.is_terminated # Task is successfuly terminated
+            ```
         """
         return self.all_behaviors[task_to_behavior_name(task)]
+
+    def planning_problem(self) -> CraftingPlanningProblem:
+        """Build this crafting environment planning problem.
+
+        Returns:
+            Problem: Unified planning problem cooresponding to that environment.
+
+        Example:
+            Write as PDDL files:
+            ```python
+            from unified_planning.io import PDDLWriter
+            problem = env.planning_problem()
+            writer = PDDLWriter(problem.upf_problem)
+            writer.write_domain("domain.pddl")
+            writer.write_problem("problem.pddl")
+            ```
+
+            Using a plan to solve a Crafting gym environment:
+            ```python
+            crafting_problem = env.planning_problem()
+
+            done = False
+            _observation = env.reset()
+            while not done:
+                action = crafting_problem.action_from_plan(env.state)
+                _observation, _reward, done, _ = env.step(action)
+            assert env.purpose.is_terminated # Purpose is achieved
+            ```
+        """
+        return CraftingPlanningProblem(self.state, self.name, self.purpose)
 
     def _step_output(self, reward: float, terminated: bool, truncated: bool):
         infos = {

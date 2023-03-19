@@ -37,6 +37,7 @@ class MiniCraftUnlock(MiniCraftEnv):
         transformations = []
 
         search_for_key = Transformation(
+            "search_for_key",
             inventory_changes={
                 "current_zone": {"add": [self.KEY]},
                 "player": {"max": [self.KEY]},
@@ -47,12 +48,14 @@ class MiniCraftUnlock(MiniCraftEnv):
         transformations.append(search_for_key)
 
         pickup = Transformation(
+            "pickup_key",
             inventory_changes={
                 "player": {"add": [self.KEY]},
                 "current_zone": {"remove": [self.KEY]},
             },
         )
         put_down = Transformation(
+            "put_down_key",
             inventory_changes={
                 "player": {"remove": [self.KEY]},
                 "current_zone": {"add": [self.KEY]},
@@ -61,6 +64,7 @@ class MiniCraftUnlock(MiniCraftEnv):
         transformations += [pickup, put_down]
 
         search_for_door = Transformation(
+            "search_for_door",
             inventory_changes={
                 "current_zone": {"add": [self.LOCKED_DOOR], "max": [self.LOCKED_DOOR]},
             },
@@ -69,6 +73,7 @@ class MiniCraftUnlock(MiniCraftEnv):
         transformations.append(search_for_door)
 
         unlock_door = Transformation(
+            "unlock_door",
             inventory_changes={
                 "player": {
                     "remove": [self.KEY],

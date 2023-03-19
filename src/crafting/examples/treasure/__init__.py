@@ -1,7 +1,7 @@
 import os
 from typing import List
 
-from crafting.elements import Item, ItemStack, Zone
+from crafting.elements import Item, Stack, Zone
 from crafting.env import CraftingEnv
 from crafting.purpose import GetItemTask
 from crafting.transformation import Transformation
@@ -58,7 +58,7 @@ class TreasureEnv(CraftingEnv):
 
         UNLOCK_CHEST = Transformation(
             inventory_changes={
-                "player": {"remove": [ItemStack(self.KEY, 2)]},
+                "player": {"remove": [Stack(self.KEY, 2)]},
                 "current_zone": {"remove": [self.LOCKED_CHEST], "add": [self.CHEST]},
             }
         )

@@ -17,8 +17,8 @@ from crafting.examples.minecraft.tools import (
     ToolType,
 )
 from crafting.examples.minecraft.zones import NETHER, UNDERGROUND
-from crafting.purpose import Purpose
-from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask
+from crafting.purpose import platinium_purpose
+from crafting.task import GetItemTask, GoToZoneTask
 
 WOODEN_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.WOOD]
 STONE_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.STONE]
@@ -27,17 +27,9 @@ STONE_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.STONE]
 @pytest.mark.slow
 def test_solving_behaviors():
     """All tasks should be solved by their solving behavior."""
-    mc_env = MineCraftingEnv()
-
-    do_all_purpose = Purpose()
-    for item in mc_env.world.items:
-        do_all_purpose.add_task(GetItemTask(item, reward=1))
-    for zone in mc_env.world.zones:
-        do_all_purpose.add_task(GoToZoneTask(zone, reward=1))
-    for item in mc_env.world.zones_items:
-        do_all_purpose.add_task(PlaceItemTask(item, reward=1))
-
-    mc_env = MineCraftingEnv(purpose=do_all_purpose, max_step=1000)
+    mc_env = MineCraftingEnv(
+        purpose=platinium_purpose(MineCraftingEnv().world), max_step=200
+    )
     done = False
     observation = mc_env.reset()
     while not done:
