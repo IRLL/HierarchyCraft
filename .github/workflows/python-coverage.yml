@@ -4,7 +4,7 @@ on: ["push"]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     env:
       MPLBACKEND: Agg  # https://github.com/orgs/community/discussions/26434
       SDL_VIDEODRIVER: "dummy" # for PyGame render https://stackoverflow.com/questions/15933493/pygame-error-no-available-video-device
