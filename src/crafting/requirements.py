@@ -76,7 +76,6 @@ import matplotlib.patches as mpatches
 import networkx as nx
 import numpy as np
 from hebg.graph import draw_networkx_nodes_images, get_nodes_by_level
-from hebg.layouts.metabased import leveled_layout_energy
 from matplotlib.axes import Axes
 from matplotlib.legend_handler import HandlerPatch
 
@@ -151,12 +150,7 @@ class Requirements:
         self._acydigraph: nx.DiGraph = None
         self._build()
 
-    def draw(
-        self,
-        ax: Axes,
-        theme: RequirementTheme = RequirementTheme(),
-        layout: "RequirementsGraphLayout" = "level",
-    ) -> None:
+    def draw(self, ax: Axes, theme: RequirementTheme = RequirementTheme()) -> None:
         """Draw the requirements graph on the given Axes.
 
         Args:
@@ -164,7 +158,7 @@ class Requirements:
             layout: Drawing layout. Defaults to "level".
         """
         draw_requirements_graph(
-            ax, self, theme, resources_path=self.world.resources_path, layout=layout
+            ax, self, theme, resources_path=self.world.resources_path
         )
 
     @property
@@ -485,19 +479,11 @@ def _available_in_zones_stacks(
     return all(is_available.values())
 
 
-class RequirementsGraphLayout(Enum):
-    LEVEL = "level"
-    """Layout using requirement level and a metaheuristic."""
-    SPRING = "spring"
-    """Classic spring layout."""
-
-
 def draw_requirements_graph(
     ax: Axes,
     requirements: Requirements,
     theme: RequirementTheme,
     resources_path: str,
-    layout: RequirementsGraphLayout = "level",
 ):
     """Draw the requirement graph on a given Axes.
 
@@ -508,21 +494,14 @@ def draw_requirements_graph(
         The Axes with requirements_graph drawn on it.
 
     """
-    digraph = requirements.digraph
+    G = requirements.acydigraph
+    pos = nx.multipartite_layout(G, subset_key="level")
 
-    layout = RequirementsGraphLayout(layout)
-    if layout == RequirementsGraphLayout.LEVEL:
-        pos = leveled_layout_energy(digraph)
-    elif layout == RequirementsGraphLayout.SPRING:
-        pos = nx.spring_layout(digraph)
-
-    edges_colors = [
-        theme.color(edge_type) for _, _, edge_type in digraph.edges(data="type")
-    ]
-    edges_alphas = [_compute_edge_alpha(*edge, digraph) for edge in digraph.edges()]
+    edges_colors = [theme.color(edge_type) for _, _, edge_type in G.edges(data="type")]
+    edges_alphas = [_compute_edge_alpha(*edge, G) for edge in G.edges()]
     # Plain edges
     nx.draw_networkx_edges(
-        digraph,
+        G,
         pos=pos,
         ax=ax,
         arrowsize=20,
@@ -531,20 +510,20 @@ def draw_requirements_graph(
         alpha=edges_alphas,
     )
 
-    for node, node_data in digraph.nodes(data=True):
+    for node, node_data in G.nodes(data=True):
         node_obj = node_data.get("obj", None)
         if node_obj is not None:
-            digraph.nodes[node]["color"] = theme.color(node_data["type"])
+            G.nodes[node]["color"] = theme.color(node_data["type"])
             image = load_or_create_image(node_obj, resources_path, bg_color=(0, 0, 0))
-            digraph.nodes[node]["image"] = np.array(image)
-    draw_networkx_nodes_images(digraph, pos, ax=ax, img_zoom=0.3)
+            G.nodes[node]["image"] = np.array(image)
+    draw_networkx_nodes_images(G, pos, ax=ax, img_zoom=0.3)
 
     # Add legend for edges (if any for each type)
     legend_arrows = []
     for legend_edge_type in RequirementEdge:
         has_type = [
             edge_type == legend_edge_type.value
-            for _, _, edge_type in digraph.edges(data="type")
+            for _, _, edge_type in G.edges(data="type")
         ]
         if any(has_type):
             legend_arrows.append(
@@ -560,8 +539,7 @@ def draw_requirements_graph(
     legend_patches = []
     for legend_node_type in RequirementNode:
         has_type = [
-            node_type == legend_node_type.value
-            for _, node_type in digraph.nodes(data="type")
+            node_type == legend_node_type.value for _, node_type in G.nodes(data="type")
         ]
         if any(has_type):
             legend_patches.append(
@@ -593,14 +571,17 @@ def draw_requirements_graph(
     ax.margins(0, 0)
 
     # Add Hierarchies numbers
-    if layout == "level":
-        nodes_by_level: Dict[int, Any] = digraph.graph["nodes_by_level"]
-        for level, level_nodes in nodes_by_level.items():
-            level_poses = np.array([pos[node] for node in level_nodes])
-            mean_x = np.mean(level_poses[:, 0])
-            if level == 0:
-                ax.text(mean_x - 1, -0.07, "Depth", ha="left", va="center")
-            ax.text(mean_x, -0.07, str(level), ha="center", va="center")
+    nodes_by_level: Dict[int, Any] = G.graph["nodes_by_level"]
+    min_y = min(y for _, y in pos.values())
+    max_y = max(y for _, y in pos.values())
+    height = max_y - min_y
+    text_y = min_y - 0.07 * height
+    for level, level_nodes in nodes_by_level.items():
+        level_poses = np.array([pos[node] for node in level_nodes])
+        mean_x = np.mean(level_poses[:, 0])
+        if level == 0:
+            ax.text(mean_x - 1, text_y, "Depth", ha="left", va="center")
+        ax.text(mean_x, text_y, str(level), ha="center", va="center")
     return ax
 
 
