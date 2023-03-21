@@ -2,7 +2,7 @@
 requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 
 [project]
-name = "irll-crafting"
+name = "hcraft"
 description = "Lightweight environments to study hierarchical reasoning"
 
 dynamic = ["version", "readme", "dependencies"]
@@ -14,7 +14,7 @@ authors = [
 ]
 keywords = [
     "gym",
-    "crafting",
+    "hcraft",
     "minecraft",
     "hierachical",
     "reinforcement",
@@ -28,13 +28,13 @@ gui = ["pygame >= 2.1.0", "pygame-menu >= 4.3.8"]
 all = ["gym >= 0.17.3", "pygame >= 2.1.0", "pygame-menu >= 4.3.8"]
 
 [project.urls]
-Source = "https://github.com/IRLL/Crafting"
+Source = "https://github.com/IRLL/HierarchyCraft"
 
 [tool.setuptools]
 license-files = ['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']
 
 [project.scripts]
-crafting = "crafting.__main__:main"
+hcraft = "hcraft.__main__:main"
 
 [tool.setuptools.dynamic]
 readme = { file = ["README.md"] , content-type = "text/markdown"}

@@ -2,16 +2,16 @@ import networkx as nx
 import pytest
 import pytest_check as check
 
-from crafting.examples.recursive import LightRecursiveCraftingEnv, RecursiveCraftingEnv
+from hcraft.examples.recursive import LightRecursiveHcraftEnv, RecursiveHcraftEnv
 from tests.custom_checks import check_isomorphic
 
 
 def test_gym_make_recursive():
     gym = pytest.importorskip("gym")
     n_items = 10
-    env: RecursiveCraftingEnv = gym.make("RecursiveCrafting-v1", n_items=n_items)
+    env: RecursiveHcraftEnv = gym.make("RecursiveHcraft-v1", n_items=n_items)
     check.equal(len(env.world.items), n_items)
-    check.equal(env.name, "RecursiveCrafting-I10")
+    check.equal(env.name, "RecursiveHcraft-I10")
 
 
 def test_recursive_requirements_graph():
@@ -24,7 +24,7 @@ def test_recursive_requirements_graph():
     expected_graph.add_edge(1, 3)
     expected_graph.add_edge(2, 3)
 
-    env = RecursiveCraftingEnv(n_items=n_items)
+    env = RecursiveHcraftEnv(n_items=n_items)
     check_isomorphic(env.world.requirements.graph, expected_graph)
 
 
@@ -40,7 +40,7 @@ def test_solve_recursive():
         3,  # 3 < 0 + 1 + 2
     ]
 
-    env = RecursiveCraftingEnv(n_items=n_items)
+    env = RecursiveHcraftEnv(n_items=n_items)
     env.reset()
     for action in actions:
         observation, done, _reward, _info = env.step(action)
@@ -54,19 +54,19 @@ def test_gym_make_light_recursive():
     gym = pytest.importorskip("gym")
     n_items = 10
     n_required_previous = 3
-    env: LightRecursiveCraftingEnv = gym.make(
-        "LightRecursiveCrafting-v1",
+    env: LightRecursiveHcraftEnv = gym.make(
+        "LightRecursiveHcraft-v1",
         n_items=n_items,
         n_required_previous=n_required_previous,
     )
     check.equal(len(env.world.items), n_items)
-    check.equal(env.name, "LightRecursiveCrafting-K3-I10")
+    check.equal(env.name, "LightRecursiveHcraft-K3-I10")
 
 
 def test_light_recursive_requirements_graph():
     n_items = 6
     n_required_previous = 3
-    env = LightRecursiveCraftingEnv(
+    env = LightRecursiveHcraftEnv(
         n_items=n_items,
         n_required_previous=n_required_previous,
     )
@@ -108,7 +108,7 @@ def test_solve_light_recursive():
         4,  # 4 < 2 + 3
     ]
 
-    env = LightRecursiveCraftingEnv(
+    env = LightRecursiveHcraftEnv(
         n_items=n_items,
         n_required_previous=n_required_previous,
     )

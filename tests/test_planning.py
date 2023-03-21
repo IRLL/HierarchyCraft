@@ -1,11 +1,11 @@
-from crafting.task import PlaceItemTask
-from crafting.purpose import Purpose
-from crafting.elements import Item, Zone, Stack
+from hcraft.task import PlaceItemTask
+from hcraft.purpose import Purpose
+from hcraft.elements import Item, Zone, Stack
 
 from tests.envs import classic_env
 
 
-def test_crafting_classic():
+def test_hcraft_classic():
     env, _, named_transformations, start_zone, items, zones, zones_items = classic_env()
 
     task = PlaceItemTask(Stack(Item("table"), 1), Zone("other_zone"))

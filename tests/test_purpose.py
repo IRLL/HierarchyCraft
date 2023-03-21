@@ -4,12 +4,12 @@ from typing import Any, List, Tuple
 import pytest
 import pytest_check as check
 
-from crafting.elements import Item, Stack, Zone
-from crafting.env import CraftingEnv
-from crafting.purpose import Purpose, RewardShaping
-from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
-from crafting.transformation import Transformation
-from crafting.world import World, world_from_transformations
+from hcraft.elements import Item, Stack, Zone
+from hcraft.env import HcraftEnv
+from hcraft.purpose import Purpose, RewardShaping
+from hcraft.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
+from hcraft.transformation import Transformation
+from hcraft.world import World, world_from_transformations
 
 
 @dataclass
@@ -68,7 +68,7 @@ class TestPurposeSingleTask:
     def setup_method(self):
         self.go_to_1 = DummyPosEqualTask(reward=5, goal_position=1)
         self.purpose = Purpose(self.go_to_1)
-        self.env = CraftingEnv(World([], [], [], []))
+        self.env = HcraftEnv(World([], [], [], []))
         self.pos_0 = DummyState.from_pos(0)
         self.pos_1 = DummyState.from_pos(1)
 
@@ -97,7 +97,7 @@ class TestPurposeMultiTasks:
         self.purpose.add_task(self.go_to_2, terminal_groups="other")
         self.go_to_3 = DummyPosEqualTask(reward=1, goal_position=3)
         self.purpose.add_task(self.go_to_3, terminal_groups="")
-        self.env = CraftingEnv(World([], [], [], []))
+        self.env = HcraftEnv(World([], [], [], []))
 
     def test_build(self):
         self.purpose.build(self.env)
@@ -247,7 +247,7 @@ class TestPurposeRewardShaping:
             place_2,
             *go_to_zones,
         ]
-        self.env = CraftingEnv(
+        self.env = HcraftEnv(
             world_from_transformations(
                 transformations,
                 start_zones_items={self.zones[4]: [Stack(self.items[2], 2)]},

@@ -4,9 +4,9 @@ import numpy as np
 import pytest
 import pytest_check as check
 
-from crafting.elements import Item, Stack, Zone
-from crafting.transformation import Transformation, InventoryOwner
-from crafting.world import World, world_from_transformations
+from hcraft.elements import Item, Stack, Zone
+from hcraft.transformation import Transformation, InventoryOwner
+from hcraft.world import World, world_from_transformations
 from tests.custom_checks import check_np_equal
 
 

@@ -5,9 +5,9 @@ import numpy as np
 import pytest
 import pytest_check as check
 
-from crafting.elements import Item, Stack, Zone
-from crafting.task import GetItemTask, GoToZoneTask, PlaceItemTask
-from crafting.world import World
+from hcraft.elements import Item, Stack, Zone
+from hcraft.task import GetItemTask, GoToZoneTask, PlaceItemTask
+from hcraft.world import World
 from tests.custom_checks import check_np_equal
 
 

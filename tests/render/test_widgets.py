@@ -1,6 +1,6 @@
 import pytest_check as check
 
-from crafting.render.widgets import ContentMode, DisplayMode, show_button, show_content
+from hcraft.render.widgets import ContentMode, DisplayMode, show_button, show_content
 
 
 class TestShowButton:

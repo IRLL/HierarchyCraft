@@ -1,7 +1,7 @@
 import numpy as np
 import pytest_check as check
 
-from crafting.env import CraftingEnv
+from hcraft.env import HcraftEnv
 from tests.envs import classic_env
 
 
@@ -12,7 +12,7 @@ def random_legal_agent(observation, action_is_legal):
 
 def test_random_legal_agent():
     world = classic_env()[1]
-    env = CraftingEnv(world, max_step=10)
+    env = HcraftEnv(world, max_step=10)
     done = False
     observation = env.reset()
     total_reward = 0

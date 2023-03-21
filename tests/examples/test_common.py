@@ -5,13 +5,13 @@ import os
 
 from unified_planning.io import PDDLWriter
 
-from crafting.render.human import render_env_with_human
-from crafting.examples import EXAMPLE_ENVS
-from crafting.examples.minicraft import (
+from hcraft.render.human import render_env_with_human
+from hcraft.examples import EXAMPLE_ENVS
+from hcraft.examples.minicraft import (
     MiniCraftBlockedUnlockPickup,
     MiniCraftKeyCorridor,
 )
-from crafting.env import CraftingEnv
+from hcraft.env import HcraftEnv
 
 
 @pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
@@ -25,7 +25,7 @@ def test_build_env(env_class):
 @pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
 def test_pddl_solve(env_class):
     write = False
-    env: CraftingEnv = env_class(max_step=200)
+    env: HcraftEnv = env_class(max_step=200)
     problem = env.planning_problem()
 
     if write:
@@ -51,7 +51,7 @@ KNOWN_TO_FAIL = [MiniCraftKeyCorridor, MiniCraftBlockedUnlockPickup]
 
 @pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
 def test_can_solve(env_class):
-    env: CraftingEnv = env_class(max_step=50)
+    env: HcraftEnv = env_class(max_step=50)
     done = False
     observation = env.reset()
     for task in env.purpose.best_terminal_group.tasks:
@@ -70,7 +70,7 @@ def test_can_solve(env_class):
 def test_requirements_graph(env_class):
     draw = True
     save = False
-    env: CraftingEnv = env_class()
+    env: HcraftEnv = env_class()
     requirements = env.world.requirements
     requirements.graph
     if draw:

@@ -2,46 +2,46 @@ import pytest
 import pytest_check as check
 
 
-from crafting.examples.minecraft.env import MineCraftingEnv
+from hcraft.examples.minecraft.env import MineHcraftEnv
 
 gym = pytest.importorskip("gym")
 
 
 def test_no_reward_gym_make():
-    env: MineCraftingEnv = gym.make("MineCrafting-NoReward-v1")
+    env: MineHcraftEnv = gym.make("MineHcraft-NoReward-v1")
     check.equal(env.purpose.tasks, [])
 
 
 def test_stone_gym_make():
-    env: MineCraftingEnv = gym.make("MineCrafting-Stone-v1")
+    env: MineHcraftEnv = gym.make("MineHcraft-Stone-v1")
     check.equal(len(env.purpose.tasks), 1)
     task = env.purpose.tasks[0]
     check.equal(task.name, "Get cobblestone")
 
 
 def test_iron_gym_make():
-    env: MineCraftingEnv = gym.make("MineCrafting-Iron-v1")
+    env: MineHcraftEnv = gym.make("MineHcraft-Iron-v1")
     check.equal(len(env.purpose.tasks), 1)
     task = env.purpose.tasks[0]
     check.equal(task.name, "Get iron_ingot")
 
 
 def test_diamond_gym_make():
-    env: MineCraftingEnv = gym.make("MineCrafting-Diamond-v1")
+    env: MineHcraftEnv = gym.make("MineHcraft-Diamond-v1")
     check.equal(len(env.purpose.tasks), 1)
     task = env.purpose.tasks[0]
     check.equal(task.name, "Get diamond")
 
 
 def test_enchanting_table_gym_make():
-    env: MineCraftingEnv = gym.make("MineCrafting-EnchantingTable-v1")
+    env: MineHcraftEnv = gym.make("MineHcraft-EnchantingTable-v1")
     check.equal(len(env.purpose.tasks), 1)
     task = env.purpose.tasks[0]
     check.equal(task.name, "Get enchanting_table")
 
 
 def test_all_items_gym_make():
-    env: MineCraftingEnv = gym.make("MineCrafting-v1")
+    env: MineHcraftEnv = gym.make("MineHcraft-v1")
     check.equal(
         len(env.purpose.tasks),
         env.world.n_items + env.world.n_zones + env.world.n_zones_items,
@@ -49,7 +49,7 @@ def test_all_items_gym_make():
 
 
 def test_dragon_gym_make():
-    env: MineCraftingEnv = gym.make("MineCrafting-Dragon-v1")
+    env: MineHcraftEnv = gym.make("MineHcraft-Dragon-v1")
     env.reset()
     expected_tasknames = {
         "Go to meadow",

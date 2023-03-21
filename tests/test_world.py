@@ -1,8 +1,8 @@
 import pytest
 import pytest_check as check
 
-from crafting.elements import Item, Zone
-from crafting.world import World
+from hcraft.elements import Item, Zone
+from hcraft.world import World
 
 
 class TestWorld:

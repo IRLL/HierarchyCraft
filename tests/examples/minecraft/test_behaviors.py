@@ -1,24 +1,24 @@
-""" Module testing utils functions for crafting behaviors. """
+""" Module testing utils functions for hcraft behaviors. """
 
 import matplotlib.pyplot as plt
 import pytest
 import pytest_check as check
 
-from crafting.behaviors.utils import get_items_in_graph, get_zones_items_in_graph
-from crafting.examples.minecraft.env import MineCraftingEnv
-from crafting.examples.minecraft.items import (
+from hcraft.behaviors.utils import get_items_in_graph, get_zones_items_in_graph
+from hcraft.examples.minecraft.env import MineHcraftEnv
+from hcraft.examples.minecraft.items import (
     OPEN_NETHER_PORTAL,
     STICK,
     WOOD_PLANK,
 )
-from crafting.examples.minecraft.tools import (
+from hcraft.examples.minecraft.tools import (
     MC_TOOLS_BY_TYPE_AND_MATERIAL,
     Material,
     ToolType,
 )
-from crafting.examples.minecraft.zones import NETHER, UNDERGROUND
-from crafting.purpose import platinium_purpose
-from crafting.task import GetItemTask, GoToZoneTask
+from hcraft.examples.minecraft.zones import NETHER, UNDERGROUND
+from hcraft.purpose import platinium_purpose
+from hcraft.task import GetItemTask, GoToZoneTask
 
 WOODEN_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.WOOD]
 STONE_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.STONE]
@@ -27,8 +27,8 @@ STONE_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.STONE]
 @pytest.mark.slow
 def test_solving_behaviors():
     """All tasks should be solved by their solving behavior."""
-    mc_env = MineCraftingEnv(
-        purpose=platinium_purpose(MineCraftingEnv().world), max_step=200
+    mc_env = MineHcraftEnv(
+        purpose=platinium_purpose(MineHcraftEnv().world), max_step=200
     )
     done = False
     observation = mc_env.reset()
@@ -47,7 +47,7 @@ class TestItemsInWoodenPickaxeGraph:
 
     @pytest.fixture(autouse=True)
     def setup_method(self):
-        self.mc_env = MineCraftingEnv()
+        self.mc_env = MineHcraftEnv()
         task = GetItemTask(WOODEN_PICKAXE)
         self.pickaxe_behavior = self.mc_env.solving_behavior(task)
 
@@ -69,7 +69,7 @@ class TestItemsInWoodenPickaxeGraph:
 
 
 def test_go_to_zone_with_tool_needed():
-    env = MineCraftingEnv()
+    env = MineHcraftEnv()
     task = GoToZoneTask(UNDERGROUND)
     go_to_underground = env.solving_behavior(task)
     items = get_items_in_graph(go_to_underground.graph, all_behaviors=env.all_behaviors)
@@ -77,7 +77,7 @@ def test_go_to_zone_with_tool_needed():
 
 
 def test_go_to_nether_needs_open_portal():
-    env = MineCraftingEnv()
+    env = MineHcraftEnv()
     task = GoToZoneTask(NETHER)
     go_to_nether = env.solving_behavior(task)
     zone_items = get_zones_items_in_graph(

@@ -1,9 +1,9 @@
 import pytest
 import pytest_check as check
 
-from crafting.elements import Item
-from crafting.env import CraftingEnv
-from crafting.purpose import GetItemTask, PlaceItemTask, Purpose
+from hcraft.elements import Item
+from hcraft.env import HcraftEnv
+from hcraft.purpose import GetItemTask, PlaceItemTask, Purpose
 from tests.envs import classic_env
 
 
@@ -18,7 +18,7 @@ class TestMetricsPurposeLess:
     @pytest.fixture(autouse=True)
     def setup_method(self):
         self.world, self.named_transformations = classic_env()[1:3]
-        self.env = CraftingEnv(self.world)
+        self.env = HcraftEnv(self.world)
 
     def test_successes(self):
         for _, actions in enumerate(_actions_per_episodes()):
@@ -40,7 +40,7 @@ class TestMetricsSinglePurpose:
         self.purpose.add_task(self.get_wood_task, terminal_groups=None)
         self.place_table_task = PlaceItemTask(Item("table"), reward=15)
         self.purpose.add_task(self.place_table_task, terminal_groups="table")
-        self.env = CraftingEnv(self.world, purpose=self.purpose, max_step=4)
+        self.env = HcraftEnv(self.world, purpose=self.purpose, max_step=4)
 
     def test_successes(self):
         for episode, actions in enumerate(_actions_per_episodes()):
@@ -80,7 +80,7 @@ class TestMetricsMultiPurpose:
         self.purpose.add_task(self.get_stone_task, terminal_groups="stone")
         self.place_table_task = PlaceItemTask(Item("table"), reward=15)
         self.purpose.add_task(self.place_table_task, terminal_groups="table")
-        self.env = CraftingEnv(self.world, purpose=self.purpose)
+        self.env = HcraftEnv(self.world, purpose=self.purpose)
 
     def test_successes(self):
         for episode, actions in enumerate(_actions_per_episodes()):

@@ -5,11 +5,11 @@ import pytest
 import pytest_check as check
 from pytest_mock import MockerFixture
 
-from crafting.elements import Item, Stack, Zone
-from crafting.env import CraftingEnv
-from crafting.task import GetItemTask
-from crafting.transformation import Transformation
-from crafting.world import world_from_transformations
+from hcraft.elements import Item, Stack, Zone
+from hcraft.env import HcraftEnv
+from hcraft.task import GetItemTask
+from hcraft.transformation import Transformation
+from hcraft.world import world_from_transformations
 from tests.custom_checks import check_np_equal
 from tests.envs import classic_env, player_only_env, zone_only_env
 
@@ -59,7 +59,7 @@ class TestCratingEnv:
         world = world_from_transformations(
             self.transformations, start_zone=new_start_zone
         )
-        env = CraftingEnv(world)
+        env = HcraftEnv(world)
         expected_position = np.zeros(len(env.world.zones), np.int32)
         expected_position[env.world.zones.index(new_start_zone)] = 1
         check_np_equal(env.state.position, expected_position)
@@ -73,7 +73,7 @@ class TestCratingEnv:
             start_zone=self.start_zone,
             start_items=[Stack(start_item, 2), Stack(Item("wood"), 3)],
         )
-        env = CraftingEnv(world)
+        env = HcraftEnv(world)
         expected_items = np.zeros(env.world.n_items, np.int32)
         expected_items[env.world.items.index(start_item)] = 2
         expected_items[env.world.items.index(Item("wood"))] = 3
@@ -91,7 +91,7 @@ class TestCratingEnv:
                 new_zone: [Stack(new_zone_item, 2), Stack(Item("wood"), 3)],
             },
         )
-        env = CraftingEnv(world)
+        env = HcraftEnv(world)
         zone_slot = env.world.zones.index(new_zone)
         expected_position = np.zeros_like(env.state.zones_inventories, np.int32)
         new_zone_item_slot = env.world.zones_items.index(new_zone_item)
@@ -181,7 +181,7 @@ class TestCratingEnv:
     def test_single_task(self):
         """task should affect the reward and environement termination."""
         task = GetItemTask(Item("wood"), reward=5)
-        env = CraftingEnv(self.world, purpose=task)
+        env = HcraftEnv(self.world, purpose=task)
         env.reset()
         action = env.world.transformations.index(
             self.named_transformations.get("search_wood")
@@ -196,7 +196,7 @@ class TestCratingEnv:
             GetItemTask(Item("wood"), reward=5),
             GetItemTask(Item("stone"), reward=10),
         ]
-        env = CraftingEnv(self.world, purpose=tasks)
+        env = HcraftEnv(self.world, purpose=tasks)
         env.reset()
         action = env.world.transformations.index(
             self.named_transformations.get("search_wood")
@@ -225,7 +225,7 @@ class TestCratingEnv:
 
     def test_max_step(self):
         """max_step should truncate the episode after desired number of steps."""
-        env = CraftingEnv(self.world, max_step=3)
+        env = HcraftEnv(self.world, max_step=3)
         env.reset()
         _, _, done, _ = env.step(0)
         check.is_false(done)
@@ -363,14 +363,14 @@ def test_treasure_env(mocker: MockerFixture):
     def fake_human_action(*args, **kwargs):
         return HUMAN_ACTIONS.pop(0)
 
-    mocker.patch("crafting.render.human.get_human_action", fake_human_action)
+    mocker.patch("hcraft.render.human.get_human_action", fake_human_action)
 
-    from crafting.elements import Item
+    from hcraft.elements import Item
 
     CHEST = Item("treasure_chest")
     GOLD = Item("gold")
 
-    from crafting.transformation import Transformation
+    from hcraft.transformation import Transformation
 
     TAKE_GOLD_FROM_CHEST = Transformation(
         inventory_changes={
@@ -379,11 +379,11 @@ def test_treasure_env(mocker: MockerFixture):
         }
     )
 
-    from crafting.elements import Zone
+    from hcraft.elements import Zone
 
     TREASURE_ROOM = Zone("treasure_room")
 
-    from crafting.world import world_from_transformations
+    from hcraft.world import world_from_transformations
 
     WORLD = world_from_transformations(
         transformations=[TAKE_GOLD_FROM_CHEST],
@@ -391,13 +391,13 @@ def test_treasure_env(mocker: MockerFixture):
         start_zones_items={TREASURE_ROOM: [CHEST]},
     )
 
-    from crafting.env import CraftingEnv
-    from crafting.purpose import GetItemTask
+    from hcraft.env import HcraftEnv
+    from hcraft.purpose import GetItemTask
 
     get_gold_task = GetItemTask(GOLD)
-    env = CraftingEnv(WORLD, purpose=get_gold_task)
+    env = HcraftEnv(WORLD, purpose=get_gold_task)
 
-    from crafting.render.human import render_env_with_human
+    from hcraft.render.human import render_env_with_human
 
     render_env_with_human(env)
 
@@ -442,7 +442,7 @@ def test_treasure_env(mocker: MockerFixture):
         start_zone=START_ROOM,
         start_zones_items={TREASURE_ROOM: [LOCKED_CHEST]},
     )
-    env = CraftingEnv(WORLD_2, purpose=get_gold_task, max_step=7)
+    env = HcraftEnv(WORLD_2, purpose=get_gold_task, max_step=7)
 
     HUMAN_ACTIONS = [3, 1, 1, 5, 4, 2, 0]
     render_env_with_human(env)
@@ -450,12 +450,12 @@ def test_treasure_env(mocker: MockerFixture):
 
     import os
 
-    import crafting
+    import hcraft
 
-    treasure_path = os.path.dirname(crafting.__file__)
+    treasure_path = os.path.dirname(hcraft.__file__)
     resources_path = os.path.join(treasure_path, "examples", "treasure", "resources")
     WORLD_2.resources_path = resources_path
-    env = CraftingEnv(WORLD_2, purpose=get_gold_task, max_step=7)
+    env = HcraftEnv(WORLD_2, purpose=get_gold_task, max_step=7)
     HUMAN_ACTIONS = [3, 1, 1, 5, 4, 2, 0]
     render_env_with_human(env)
     check.is_true(env.purpose.terminal_groups[0].terminated)
@@ -468,10 +468,10 @@ def test_class_tresure_env(mocker: MockerFixture):
     def fake_human_action(*args, **kwargs):
         return 0
 
-    mocker.patch("crafting.render.human.get_human_action", fake_human_action)
+    mocker.patch("hcraft.render.human.get_human_action", fake_human_action)
 
-    from crafting.examples.treasure import TreasureEnv
-    from crafting.render.human import render_env_with_human
+    from hcraft.examples.treasure import TreasureEnv
+    from hcraft.render.human import render_env_with_human
 
     env = TreasureEnv(max_step=10)
     render_env_with_human(env)

@@ -1,7 +1,7 @@
 import pytest
 
-from crafting.env import CraftingEnv
-from crafting.render.human import render_env_with_human
+from hcraft.env import HcraftEnv
+from hcraft.render.human import render_env_with_human
 from tests.envs import classic_env, player_only_env, zone_only_env
 
 
@@ -20,7 +20,7 @@ def test_render_rgb_array_zone_only_env():
     _render_env(env, test_with_human=False)
 
 
-def _render_env(env: CraftingEnv, test_with_human: bool = False):
+def _render_env(env: HcraftEnv, test_with_human: bool = False):
     pytest.importorskip("pygame")
     pytest.importorskip("pygame_menu")
     if test_with_human:

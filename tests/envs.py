@@ -1,7 +1,7 @@
-from crafting.elements import Item, Stack, Zone
-from crafting.env import CraftingEnv
-from crafting.transformation import Transformation
-from crafting.world import world_from_transformations
+from hcraft.elements import Item, Stack, Zone
+from hcraft.env import HcraftEnv
+from hcraft.transformation import Transformation
+from hcraft.world import world_from_transformations
 
 
 def classic_env():
@@ -72,7 +72,7 @@ def classic_env():
         transformations=list(named_transformations.values()),
         start_zone=start_zone,
     )
-    env = CraftingEnv(world)
+    env = HcraftEnv(world)
     return env, world, named_transformations, start_zone, items, zones, zones_items
 
 
@@ -108,7 +108,7 @@ def player_only_env():
     world = world_from_transformations(
         transformations=list(named_transformations.values())
     )
-    env = CraftingEnv(world)
+    env = HcraftEnv(world)
     return env, world, named_transformations, None, items, [], []
 
 
@@ -147,5 +147,5 @@ def zone_only_env():
         transformations=list(named_transformations.values()),
         start_zone=start_zone,
     )
-    env = CraftingEnv(world)
+    env = HcraftEnv(world)
     return env, world, named_transformations, start_zone, [], [], zones_items

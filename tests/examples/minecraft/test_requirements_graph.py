@@ -1,23 +1,23 @@
 import pytest
 import pytest_check as check
 
-from crafting.examples.minecraft.env import MineCraftingEnv
-import crafting.examples.minecraft.items as items
-import crafting.examples.minecraft.zones as zones
-from crafting.examples.minecraft.tools import (
+from hcraft.examples.minecraft.env import MineHcraftEnv
+import hcraft.examples.minecraft.items as items
+import hcraft.examples.minecraft.zones as zones
+from hcraft.examples.minecraft.tools import (
     MC_TOOLS_BY_TYPE_AND_MATERIAL,
     Material,
     ToolType,
 )
-from crafting.requirements import RequirementNode, req_node_name
+from hcraft.requirements import RequirementNode, req_node_name
 
 IRON_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.IRON]
 
 
-class TestMineCraftingReqGraph:
+class TestMineHcraftReqGraph:
     @pytest.fixture(autouse=True)
     def setup_method(self):
-        self.env = MineCraftingEnv()
+        self.env = MineHcraftEnv()
         self.graph = self.env.world.requirements.graph
 
     def test_wood_require_forest(self):

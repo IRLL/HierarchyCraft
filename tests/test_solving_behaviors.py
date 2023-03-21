@@ -4,12 +4,12 @@ import pytest_check as check
 
 @pytest.mark.slow
 def test_doc_example():
-    from crafting.examples import MineCraftingEnv
-    from crafting.examples.minecraft.items import DIAMOND
-    from crafting.task import GetItemTask
+    from hcraft.examples import MineHcraftEnv
+    from hcraft.examples.minecraft.items import DIAMOND
+    from hcraft.task import GetItemTask
 
     get_diamond = GetItemTask(DIAMOND)
-    env = MineCraftingEnv(purpose=get_diamond)
+    env = MineHcraftEnv(purpose=get_diamond)
     solving_behavior = env.solving_behavior(get_diamond)
 
     done = False

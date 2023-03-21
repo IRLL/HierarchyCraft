@@ -1,2 +1,2 @@
-graft crafting/examples/**/resources
-graft crafting/render/default_resources
+graft hcraft/examples/**/resources
+graft hcraft/render/default_resources
