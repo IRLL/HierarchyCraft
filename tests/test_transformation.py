@@ -68,10 +68,7 @@ class TestTransformationIsValid:
             inventory_changes={
                 InventoryOwner.PLAYER: {
                     "add": [self.items[1]],
-                    "max": [Stack(self.items[1], 2), Stack(self.items[2], 0)],
-                    "remove": [
-                        Stack(self.items[0], 2),
-                    ],
+                    "remove": [Stack(self.items[0], 2)],
                 },
             }
         )
@@ -80,9 +77,36 @@ class TestTransformationIsValid:
 
         inv_examples = [
             (True, np.array([2, 0, 0])),  # Minimal required
-            (False, np.array([1, 0, 0])),  # Not enough items[0] < 2
-            (False, np.array([2, 2, 0])),  # Hit maximum items[1] (2 + 1 > 2)
-            (False, np.array([2, 0, 1])),  # Hit maximum items[2] (1 + 0 > 0)
+            (False, np.array([1, 0, 0])),  # Hit default minimum items[0] (-1 < 0)
+        ]
+
+        for expected_valid, player_inventory in inv_examples:
+            state = DummyState(position=position, player_inventory=player_inventory)
+            check.equal(
+                transfo.is_valid(state),
+                expected_valid,
+                msg=f"{state}, {transfo.is_valid(state)}|{expected_valid}",
+            )
+
+    def test_player_items_is_valid_min_max(self):
+        transfo = Transformation(
+            inventory_changes={
+                InventoryOwner.PLAYER: {
+                    "add": [self.items[1]],
+                    "max": [Stack(self.items[1], 2), Stack(self.items[2], 0)],
+                    "remove": [Stack(self.items[0], 2)],
+                    "min": [Stack(self.items[0], 1)],
+                },
+            }
+        )
+        transfo.build(self.world)
+        position = np.array([1, 0, 0])
+
+        inv_examples = [
+            (True, np.array([3, 0, 0])),  # Minimal required
+            (False, np.array([2, 0, 0])),  # Hit minimum items[0] (2 - 2 = 0 < 1)
+            (False, np.array([3, 2, 0])),  # Hit maximum items[1] (2 + 1 > 2)
+            (False, np.array([3, 0, 1])),  # Hit maximum items[2] (1 + 0 > 0)
         ]
 
         for expected_valid, player_inventory in inv_examples:
@@ -100,6 +124,7 @@ class TestTransformationIsValid:
                     "add": [Stack(self.zones_items[1], 1)],
                     "max": [Stack(self.zones_items[1], 1)],
                     "remove": [Stack(self.zones_items[0], 3)],
+                    "min": [Stack(self.zones_items[0], 1)],
                 },
             }
         )
@@ -107,9 +132,9 @@ class TestTransformationIsValid:
         position = np.array([0, 1, 0])
 
         inv_examples = [
-            (True, np.array([[0, 0], [3, 0], [0, 0]])),  # Minimal required
-            (False, np.array([[9, 0], [2, 0], [9, 0]])),  # Not enough items
-            (False, np.array([[0, 0], [3, 1], [0, 0]])),  # Hit maximum
+            (True, np.array([[0, 0], [4, 0], [0, 0]])),  # Minimal required
+            (False, np.array([[9, 0], [3, 0], [9, 0]])),  # Hit minimum
+            (False, np.array([[0, 0], [4, 1], [0, 0]])),  # Hit maximum
         ]
 
         for expected_valid, zones_inventories in inv_examples:
@@ -128,6 +153,7 @@ class TestTransformationIsValid:
                     "add": [Stack(self.zones_items[1], 1)],
                     "max": [Stack(self.zones_items[1], 1)],
                     "remove": [Stack(self.zones_items[0], 3)],
+                    "min": [Stack(self.zones_items[0], 1)],
                 },
             },
         )
@@ -135,9 +161,9 @@ class TestTransformationIsValid:
         position = np.array([1, 0, 0])
 
         inv_examples = [
-            (True, np.array([[0, 0], [3, 0], [0, 0]])),  # Minimal required
-            (False, np.array([[9, 0], [2, 0], [9, 0]])),  # Not enough items
-            (False, np.array([[0, 0], [3, 1], [0, 0]])),  # Hit maximum
+            (True, np.array([[0, 0], [4, 0], [0, 0]])),  # Minimal required
+            (False, np.array([[9, 0], [3, 0], [9, 0]])),  # Hit minimum
+            (False, np.array([[0, 0], [4, 1], [0, 0]])),  # Hit maximum
         ]
 
         for expected_valid, zones_inventories in inv_examples:

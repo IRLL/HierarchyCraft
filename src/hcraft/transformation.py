@@ -164,7 +164,9 @@ class InventoryOperation(Enum):
     ADD = "add"
     """Add the list of stacks."""
     MAX = "max"
-    """Limit to the list of stacks."""
+    """Superior limit to the list of stacks AFTER the transformation."""
+    MIN = "min"
+    """Inferior limit to the list of stacks AFTER the transformation."""
     APPLY = "apply"
     """Apply all operations."""
 
@@ -368,12 +370,15 @@ class Transformation:
         added: Optional[np.ndarray],
         removed: Optional[np.ndarray],
         max_items: Optional[np.ndarray],
+        min_items: Optional[np.ndarray],
     ):
         if added is None:
             added = 0
         if removed is not None and not np.all(inventory >= removed):
             return False
         if max_items is not None and np.any(inventory + added > max_items):
+            return False
+        if min_items is not None and np.any(inventory - removed < min_items):
             return False
         return True
 
@@ -382,7 +387,10 @@ class Transformation:
         added = items_changes.get(InventoryOperation.ADD, 0)
         removed = items_changes.get(InventoryOperation.REMOVE)
         max_items = items_changes.get(InventoryOperation.MAX)
-        return self._is_valid_inventory(player_inventory, added, removed, max_items)
+        min_items = items_changes.get(InventoryOperation.MIN)
+        return self._is_valid_inventory(
+            player_inventory, added, removed, max_items, min_items
+        )
 
     def _is_valid_zones_inventory(
         self, zones_inventories: np.ndarray, position: np.ndarray
@@ -397,6 +405,7 @@ class Transformation:
         removed = zones_changes.get(InventoryOperation.REMOVE, zeros.copy())
         infs = np.inf * np.ones_like(zones_inventories)
         max_items = zones_changes.get(InventoryOperation.MAX, infs.copy())
+        min_items = zones_changes.get(InventoryOperation.MIN, zeros.copy())
 
         # Current zone
         current_changes = self._inventory_operations.get(InventoryOwner.CURRENT, {})
@@ -406,6 +415,10 @@ class Transformation:
         max_items[current_slot] = np.minimum(
             max_items[current_slot],
             current_changes.get(InventoryOperation.MAX, np.inf),
+        )
+        min_items[current_slot] = np.maximum(
+            min_items[current_slot],
+            current_changes.get(InventoryOperation.MIN, -np.inf),
         )
 
         # Destination
@@ -420,8 +433,14 @@ class Transformation:
                 max_items[dest_slot],
                 dest_changes.get(InventoryOperation.MAX, np.inf),
             )
+            min_items[dest_slot] = np.maximum(
+                min_items[dest_slot],
+                dest_changes.get(InventoryOperation.MIN, -np.inf),
+            )
 
-        return self._is_valid_inventory(zones_inventories, added, removed, max_items)
+        return self._is_valid_inventory(
+            zones_inventories, added, removed, max_items, min_items
+        )
 
     def _build_destination_op(self, world: "World") -> None:
         if self.destination is None:
