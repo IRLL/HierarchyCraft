@@ -372,10 +372,8 @@ class Transformation:
         max_items: Optional[np.ndarray],
         min_items: Optional[np.ndarray],
     ):
-        if added is None:
-            added = 0
-        if removed is not None and not np.all(inventory >= removed):
-            return False
+        added = 0 if added is None else added
+        removed = 0 if removed is None else removed
         if max_items is not None and np.any(inventory + added > max_items):
             return False
         if min_items is not None and np.any(inventory - removed < min_items):
@@ -469,6 +467,14 @@ class Transformation:
             world_items_list = world.items
         else:
             world_items_list = world.zones_items
+
+        # Always add MIN of 0 by default (even if unspecified)
+        if InventoryOperation.MIN not in operations:
+            if owner is InventoryOwner.ZONES:
+                operations[InventoryOperation.MIN] = {}
+            else:
+                operations[InventoryOperation.MIN] = []
+
         for operation, stacks in operations.items():
             operation = InventoryOperation(operation)
             default_value = 0

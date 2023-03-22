@@ -95,7 +95,7 @@ class TestTransformationIsValid:
                     "add": [self.items[1]],
                     "max": [Stack(self.items[1], 2), Stack(self.items[2], 0)],
                     "remove": [Stack(self.items[0], 2)],
-                    "min": [Stack(self.items[0], 1)],
+                    "min": [Stack(self.items[0], -1)],
                 },
             }
         )
@@ -103,9 +103,9 @@ class TestTransformationIsValid:
         position = np.array([1, 0, 0])
 
         inv_examples = [
-            (True, np.array([3, 0, 0])),  # Minimal required
-            (False, np.array([2, 0, 0])),  # Hit minimum items[0] (2 - 2 = 0 < 1)
-            (False, np.array([3, 2, 0])),  # Hit maximum items[1] (2 + 1 > 2)
+            (True, np.array([1, 0, 0])),  # Minimal required
+            (False, np.array([0, 0, 0])),  # Hit minimum items[0] (-2 < -1)
+            (False, np.array([1, 2, 0])),  # Hit maximum items[1] (2 + 1 > 2)
             (False, np.array([3, 0, 1])),  # Hit maximum items[2] (1 + 0 > 0)
         ]
 
