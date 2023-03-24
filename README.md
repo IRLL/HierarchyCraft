@@ -157,7 +157,7 @@ from hcraft import MineHcraftEnv
 
 def random_legal_agent(observation, action_is_legal):
     action = np.random.choice(np.nonzero(action_is_legal)[0])
-    return action
+    return int(action)
 
 env = MineHcraftEnv(max_step=10)
 done = False

@@ -47,10 +47,10 @@ class GetItem(Behavior):
         # Any of the Tranformation that gives the item
         for transfo in self.env.world.transformations:
             produced_items = transfo.production("player")
-            item_is_added = produced_items and self.item in produced_items
-            consumed_items = transfo.consumption("player")
-            item_is_not_removed = not consumed_items or self.item not in consumed_items
-            if item_is_added and item_is_not_removed:
+            item_is_added = self.item in produced_items
+            required_items = transfo.min_required("player")
+            item_is_not_required = self.item not in required_items
+            if item_is_added and item_is_not_required:
                 sub_behavior = Behavior(AbleAndPerformTransformation.get_name(transfo))
                 graph.add_node(sub_behavior)
 
@@ -133,9 +133,9 @@ class PlaceItem(Behavior):
 
         # Any of the Tranformation that places the item in the given zone
         for transfo in self.env.world.transformations:
-            if self._zone_item_is_added(transfo) and not self._zone_item_is_removed(
-                transfo
-            ):
+            is_added = self._zone_item_is_added(transfo)
+            is_required = self._zone_item_is_required(transfo)
+            if is_added and not is_required:
                 sub_behavior = Behavior(AbleAndPerformTransformation.get_name(transfo))
                 graph.add_node(sub_behavior)
 
@@ -151,11 +151,11 @@ class PlaceItem(Behavior):
             transformation.destination,
         )
 
-    def _zone_item_is_removed(self, transformation: "Transformation") -> bool:
+    def _zone_item_is_required(self, transformation: "Transformation") -> bool:
         return self._zone_item_is_in(
-            transformation.get_changes("current_zone", "remove"),
-            transformation.get_changes("destination", "remove"),
-            transformation.get_changes("zones", "remove"),
+            transformation.get_changes("current_zone", "min"),
+            transformation.get_changes("destination", "min"),
+            transformation.get_changes("zones", "min"),
             transformation.zones,
             transformation.destination,
         )
@@ -249,32 +249,28 @@ class AbleAndPerformTransformation(Behavior):
     @staticmethod
     def get_name(transformation: "Transformation"):
         """Name of the behavior to able the transformation."""
-        return f"Able and perform: {repr(transformation)}"
+        return f"Able and perform: {transformation.name}"
 
     def build_graph(self) -> HEBGraph:
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
         last_node = None
 
-        # Require all items to be removed from player inventory
-        removed_player_items = self.transformation.get_changes("player", "remove")
-        if removed_player_items is not None:
-            for stack in removed_player_items:
-                has_item = _add_get_item(stack, graph, self.env)
+        # Required items from specific zones
+        for zone, stacks in self.transformation.get_changes("zones", "min", {}).items():
+            for stack in stacks:
+                has_item_in_zone = _add_place_item(graph, self.env, stack, zone)
                 if last_node is not None:
-                    graph.add_edge(last_node, has_item, index=int(True))
-                last_node = has_item
+                    graph.add_edge(last_node, has_item_in_zone, index=int(True))
+                last_node = has_item_in_zone
 
-        # Require all items to be removed from specific zones
-        removed_zones_items = self.transformation.get_changes("zones", "remove")
-        if removed_zones_items is not None:
-            for zone, stacks in removed_zones_items.items():
-                for stack in stacks:
-                    has_item_in_zone = _add_place_item(graph, self.env, stack, zone)
-                    if last_node is not None:
-                        graph.add_edge(last_node, has_item_in_zone, index=int(True))
-                    last_node = has_item_in_zone
+        # Required items
+        for stack in self.transformation.get_changes("player", "min", []):
+            has_item = _add_get_item(stack, graph, self.env)
+            if last_node is not None:
+                graph.add_edge(last_node, has_item, index=int(True))
+            last_node = has_item
 
-        # Require to be in any of the zones possibles
+        # Be in any of the possible zones
         prev_checks_zone = []
         if self.env.world.n_zones > 1 and self.transformation.zones is not None:
             for zone in self.transformation.zones:
@@ -290,32 +286,19 @@ class AbleAndPerformTransformation(Behavior):
         else:  # Require nothing yet
             last_nodes = []
 
-        # Require all items to be removed from current zone
-        removed_zone_items = self.transformation.get_changes("current_zone", "remove")
-        if removed_zone_items is not None:
-            for stack in removed_zone_items:
-                has_item_in_zone = _add_place_item(graph, self.env, stack)
-                for prev in last_nodes:
-                    graph.add_edge(prev, has_item_in_zone, index=int(True))
-                last_nodes = [has_item_in_zone]
+        # Required items from current zone
+        for stack in self.transformation.get_changes("current_zone", "min", []):
+            has_item_in_zone = _add_place_item(graph, self.env, stack)
+            for prev in last_nodes:
+                graph.add_edge(prev, has_item_in_zone, index=int(True))
+            last_nodes = [has_item_in_zone]
 
         # Drop all items that would go be over maximum in player inventory
-        max_player_items = self.transformation.get_changes("player", "max")
-        if max_player_items is not None:
-            for stack in max_player_items:
-                max_quantity = stack.quantity
-                if stack.item in self.transformation.production("player"):
-                    added_player_items = self.transformation.get_changes(
-                        "player", "add"
-                    )
-                    for added_stack in added_player_items:
-                        if added_stack.item == stack.item:
-                            max_quantity -= added_stack.quantity
-                max_stack = Stack(stack.item, max_quantity)
-                has_not_item = _add_drop_item(max_stack, graph, self.env)
-                for prev in last_nodes:
-                    graph.add_edge(prev, has_not_item, index=int(True))
-                last_nodes = [has_not_item]
+        for stack in self.transformation.get_changes("player", "max", []):
+            has_not_item = _add_drop_item(stack, graph, self.env)
+            for prev in last_nodes:
+                graph.add_edge(prev, has_not_item, index=int(True))
+            last_nodes = [has_not_item]
 
         # Add last action
         action = DoTransformation(self.transformation, self.env)

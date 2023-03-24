@@ -223,24 +223,24 @@ class Requirements:
         """Add edges induced by a HierarchyCraft recipe."""
         zones = set() if zone is None else {zone}
 
-        in_items = transfo.consumption("player")
+        in_items = transfo.min_required("player")
         out_items = [
             item for item in transfo.production("player") if item not in in_items
         ]
 
-        in_zone_items = transfo.consumed_zones_items
+        in_zone_items = transfo.min_required_zones_items
         out_zone_items = [
             item for item in transfo.produced_zones_items if item not in in_zone_items
         ]
 
         other_zones_items = {}
         if transfo.destination is not None:
-            removed_dest_items = transfo.get_changes("destination", "remove")
-            other_zones_items[transfo.destination] = removed_dest_items
+            required_dest_stacks = transfo.get_changes("destination", "min")
+            other_zones_items[transfo.destination] = required_dest_stacks
 
-        removed_zones_items = transfo.get_changes("zones", "remove")
-        if removed_zones_items is not None:
-            for other_zone, consumed_stacks in removed_zones_items.items():
+        required_zones_stacks = transfo.get_changes("zones", "min")
+        if required_zones_stacks is not None:
+            for other_zone, consumed_stacks in required_zones_stacks.items():
                 other_zones_items[other_zone] = consumed_stacks
 
         for other_zone, other_zone_items in other_zones_items.items():
@@ -268,8 +268,8 @@ class Requirements:
                         len(alt_transfo.zones) == 1
                         and alt_transfo.zones[0] == other_zone
                     ):
-                        in_items |= alt_transfo.consumption("player")
-                        in_zone_items |= alt_transfo.consumed_zones_items
+                        in_items |= alt_transfo.min_required("player")
+                        in_zone_items |= alt_transfo.min_required_zones_items
                     else:
                         zones.add(other_zone)
                 elif not alternative_transformations:

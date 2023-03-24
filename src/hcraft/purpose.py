@@ -446,13 +446,13 @@ def _inputs_subtasks(task: Task, world: "World", shaping_reward: float) -> List[
         transfo
         for transfo in world.transformations
         if goal_item in transfo.production("player")
-        and goal_item not in transfo.consumption("player")
+        and goal_item not in transfo.min_required("player")
     ]
     transfo_placing_zone_item = [
         transfo
         for transfo in world.transformations
         if goal_zone_item in transfo.produced_zones_items
-        and goal_zone_item not in transfo.consumed_zones_items
+        and goal_zone_item not in transfo.min_required_zones_items
     ]
     transfo_going_to_any_zones = [
         transfo

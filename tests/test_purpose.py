@@ -8,7 +8,14 @@ from hcraft.elements import Item, Stack, Zone
 from hcraft.env import HcraftEnv
 from hcraft.purpose import Purpose, RewardShaping
 from hcraft.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
-from hcraft.transformation import Transformation
+from hcraft.transformation import (
+    Transformation,
+    Use,
+    Yield,
+    PLAYER,
+    CURRENT_ZONE,
+    DESTINATION,
+)
 from hcraft.world import World, world_from_transformations
 
 
@@ -166,68 +173,63 @@ class TestPurposeRewardShaping:
         go_to_zones.append(
             Transformation(
                 destination=self.zones[4],
-                inventory_changes={
-                    "player": {"remove": [self.items[0]]},
-                    "current_zone": {"remove": [self.items[0]]},
-                    "destination": {"remove": [self.items[2]]},
-                },
+                inventory_changes=[
+                    Use(PLAYER, self.items[0], consume=1),
+                    Use(CURRENT_ZONE, self.items[0], consume=1),
+                    Use(DESTINATION, self.items[2], consume=1),
+                ],
                 zones=self.zones[:2],
             )
         )
 
         # Item 0
         search_0 = Transformation(
-            inventory_changes={"player": {"add": [self.items[0]]}},
+            inventory_changes=[Yield(PLAYER, self.items[0])],
             zones=[self.zones[0]],
         )
         # Item 0 > Item 1
         craft_1 = Transformation(
-            inventory_changes={
-                "player": {
-                    "remove": [self.items[0]],
-                    "add": [self.items[1]],
-                },
-            },
+            inventory_changes=[
+                Use(PLAYER, self.items[0], consume=1),
+                Yield(PLAYER, self.items[1], create=1),
+            ],
         )
         # Item 1 > Item 2
         craft_2 = Transformation(
-            inventory_changes={
-                "player": {
-                    "remove": [self.items[1]],
-                    "add": [self.items[2]],
-                },
-            },
+            inventory_changes=[
+                Use(PLAYER, self.items[1], consume=1),
+                Yield(PLAYER, self.items[2], create=1),
+            ],
             zones=[self.zones[1]],
         )
         # Item 2 > 2 * Item 2
         craft_2_with_2 = Transformation(
-            inventory_changes={
-                "player": {
-                    "remove": [self.items[2]],
-                    "add": [Stack(self.items[2], 2)],
-                },
-            },
+            inventory_changes=[
+                Use(PLAYER, self.items[2], consume=1),
+                Yield(PLAYER, self.items[2], create=2),
+            ],
         )
         # Item 3
         search_3 = Transformation(
-            inventory_changes={"player": {"add": [self.items[3]]}},
+            inventory_changes=[Yield(PLAYER, self.items[3], create=1)],
             zones=[self.zones[2]],
         )
 
         # Zone Item 0
         place_0 = Transformation(
-            inventory_changes={
-                "player": {"remove": [self.items[0]]},
-                "current_zone": {"add": [self.items[0]]},
-            },
+            inventory_changes=[
+                Use(PLAYER, self.items[0], consume=1),
+                Yield(CURRENT_ZONE, self.items[0], create=1),
+            ],
         )
 
         # Zone Item 2
         place_2 = Transformation(
-            inventory_changes={
-                "player": {"remove": [self.items[2]]},
-                "current_zone": {"remove": [self.items[0]], "add": [self.items[2]]},
-            },
+            inventory_changes=[
+                Use(PLAYER, self.items[2], consume=1),
+                Use(CURRENT_ZONE, self.items[0], consume=1),
+                Yield(CURRENT_ZONE, self.items[2], create=1),
+            ],
         )
 
         self.get_item_2 = GetItemTask(self.items[2], reward=10.0)

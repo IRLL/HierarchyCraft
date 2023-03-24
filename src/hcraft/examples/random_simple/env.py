@@ -10,9 +10,9 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
-from hcraft.elements import Item, Stack
+from hcraft.elements import Item
 from hcraft.env import HcraftEnv
-from hcraft.transformation import Transformation
+from hcraft.transformation import Transformation, Use, Yield, PLAYER
 from hcraft.world import world_from_transformations
 from hcraft.purpose import GetItemTask, Purpose
 
@@ -81,9 +81,7 @@ class RandomHcraftEnv(HcraftEnv):
         accessible_items = []
         for item in self.items:
             if item.name.startswith("0"):
-                search_item = Transformation(
-                    inventory_changes={"player": {"add": [Stack(item)]}}
-                )
+                search_item = Transformation(inventory_changes=[Yield(PLAYER, item)])
                 transformations.append(search_item)
                 accessible_items.append(item)
 
@@ -95,21 +93,19 @@ class RandomHcraftEnv(HcraftEnv):
 
         while len(accessible_items) < len(self.items):
             new_accessible_item = unaccessible_items.pop()
-            outputs = [Stack(new_accessible_item)]
+            inventory_changes = [Yield(PLAYER, new_accessible_item)]
 
             n_inputs = int(new_accessible_item.name.split("_")[0])
             n_inputs = min(n_inputs, len(accessible_items))
 
-            # Chooses randomly accessible items and build Stacks of size 1.
+            # Chooses randomly accessible items
             input_items = list(
                 self.np_random.choice(accessible_items, size=n_inputs, replace=False)
             )
-            inputs = [Stack(item) for item in input_items]
+            inventory_changes += [Use(PLAYER, item, consume=1) for item in input_items]
 
             # Build recipe
-            new_recipe = Transformation(
-                inventory_changes={"player": {"remove": inputs, "add": outputs}}
-            )
+            new_recipe = Transformation(inventory_changes=inventory_changes)
             transformations.append(new_recipe)
             accessible_items.append(new_accessible_item)
 

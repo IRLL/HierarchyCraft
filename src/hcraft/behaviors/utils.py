@@ -8,6 +8,7 @@ from hcraft.behaviors.behaviors import (
     AbleAndPerformTransformation,
     GetItem,
     ReachZone,
+    PlaceItem,
 )
 from hcraft.elements import Item
 
@@ -29,15 +30,13 @@ def get_items_in_graph(
     for node in graph.nodes():
         if isinstance(node, Behavior) and node in all_behaviors:
             node = all_behaviors[node]
-        if isinstance(node, GetItem) and isinstance(node.item, Item):
+        if isinstance(node, GetItem):
             items_in_graph.add(node.item)
         if isinstance(node, AbleAndPerformTransformation):
-            added_player_items = node.transformation.get_changes("player", "add")
-            if added_player_items is not None:
-                items_in_graph |= {stack.item for stack in added_player_items}
-            removed_player_items = node.transformation.get_changes("player", "remove")
-            if removed_player_items is not None:
-                items_in_graph |= {stack.item for stack in removed_player_items}
+            items_in_graph |= node.transformation.production("player")
+            items_in_graph |= node.transformation.consumption("player")
+            items_in_graph |= node.transformation.min_required("player")
+            items_in_graph |= node.transformation.max_required("player")
     return items_in_graph
 
 
@@ -59,19 +58,11 @@ def get_zones_items_in_graph(
     for node in graph.nodes():
         if isinstance(node, Behavior) and node in all_behaviors:
             node = all_behaviors[node]
-        if isinstance(node, GetItem) and isinstance(node.item, str):
+        if isinstance(node, PlaceItem):
             zone_items_in_graph.add(node.item)
-
-        if (
-            isinstance(node, AbleAndPerformTransformation)
-            and node.transformation.get_changes("current_zone", "add") is not None
-        ):
-            added_zone_items = node.transformation.get_changes("current_zone", "add")
-            if added_zone_items is not None:
-                zone_items_in_graph |= {stack.item for stack in added_zone_items}
-            removed_zone_items = node.transformation.get_changes(
-                "current_zone", "remove"
-            )
-            if removed_zone_items is not None:
-                zone_items_in_graph |= {stack.item for stack in removed_zone_items}
+        if isinstance(node, AbleAndPerformTransformation):
+            zone_items_in_graph |= node.transformation.produced_zones_items
+            zone_items_in_graph |= node.transformation.consumed_zones_items
+            zone_items_in_graph |= node.transformation.min_required_zones_items
+            zone_items_in_graph |= node.transformation.max_required_zones_items
     return zone_items_in_graph

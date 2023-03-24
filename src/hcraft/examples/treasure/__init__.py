@@ -1,10 +1,10 @@
 import os
 from typing import List
 
-from hcraft.elements import Item, Stack, Zone
+from hcraft.elements import Item, Zone
 from hcraft.env import HcraftEnv
 from hcraft.purpose import GetItemTask
-from hcraft.transformation import Transformation
+from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZONE
 from hcraft.world import world_from_transformations
 
 
@@ -43,24 +43,25 @@ class TreasureEnv(HcraftEnv):
 
     def _build_transformations(self) -> List[Transformation]:
         TAKE_GOLD_FROM_CHEST = Transformation(
-            inventory_changes={
-                "player": {"add": [self.GOLD]},
-                "current_zone": {"remove": [self.CHEST]},
-            }
+            inventory_changes=[
+                Use(CURRENT_ZONE, self.CHEST, consume=1),
+                Yield(PLAYER, self.GOLD),
+            ]
         )
 
         SEARCH_KEY = Transformation(
-            inventory_changes={
-                "player": {"add": [self.KEY]},
-            },
+            inventory_changes=[
+                Yield(PLAYER, self.KEY, max=1),
+            ],
             zones=[self.KEY_ROOM],
         )
 
         UNLOCK_CHEST = Transformation(
-            inventory_changes={
-                "player": {"remove": [Stack(self.KEY, 2)]},
-                "current_zone": {"remove": [self.LOCKED_CHEST], "add": [self.CHEST]},
-            }
+            inventory_changes=[
+                Use(PLAYER, self.KEY, 2),
+                Use(CURRENT_ZONE, self.LOCKED_CHEST, consume=1),
+                Yield(CURRENT_ZONE, self.CHEST),
+            ],
         )
 
         MOVE_TO_KEY_ROOM = Transformation(

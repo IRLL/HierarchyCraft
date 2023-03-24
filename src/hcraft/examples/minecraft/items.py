@@ -86,7 +86,7 @@ MC_DIRT = McItem(
 
 WOOD = Item("wood")
 MC_WOOD = McItem(
-    WOOD, zones=[FOREST], hardness=2, required_tool_types=[None, ToolType.AXE]
+    WOOD, zones=[FOREST, SWAMP], hardness=2, required_tool_types=[None, ToolType.AXE]
 )
 """WOOD"""
 

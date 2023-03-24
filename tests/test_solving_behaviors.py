@@ -9,7 +9,7 @@ def test_doc_example():
     from hcraft.task import GetItemTask
 
     get_diamond = GetItemTask(DIAMOND)
-    env = MineHcraftEnv(purpose=get_diamond)
+    env = MineHcraftEnv(purpose=get_diamond, max_step=50)
     solving_behavior = env.solving_behavior(get_diamond)
 
     done = False

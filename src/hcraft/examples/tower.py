@@ -30,9 +30,9 @@ Each of the items 0, 1 and 2 requires nothing and can be crafted from the start.
 
 from typing import List
 
-from hcraft.elements import Item, Stack
+from hcraft.elements import Item
 from hcraft.env import HcraftEnv
-from hcraft.transformation import Transformation
+from hcraft.transformation import Transformation, Use, Yield, PLAYER
 from hcraft.world import world_from_transformations
 from hcraft.task import GetItemTask
 
@@ -97,9 +97,7 @@ class TowerHcraftEnv(HcraftEnv):
         # First layer recipes
         for first_layer_id in range(self.width):
             item = items[first_layer_id]
-            new_recipe = Transformation(
-                inventory_changes={"player": {"add": [Stack(item)]}}
-            )
+            new_recipe = Transformation(inventory_changes=[Yield(PLAYER, item)])
             transformations.append(new_recipe)
 
         # Tower recipes
@@ -108,30 +106,25 @@ class TowerHcraftEnv(HcraftEnv):
                 item_id = layer * self.width + item_layer_id
                 item = items[item_id]
 
-                outputs = [Stack(item)]
-                inputs = []
+                inventory_changes = [Yield(PLAYER, item)]
+
                 prev_layer_id = (layer - 1) * self.width
                 for prev_item_id in range(self.width):
                     required_item = items[prev_layer_id + prev_item_id]
-                    inputs.append(Stack(required_item))
+                    inventory_changes.append(Use(PLAYER, required_item, consume=1))
 
-                new_recipe = Transformation(
-                    inventory_changes={"player": {"remove": inputs, "add": outputs}}
-                )
+                new_recipe = Transformation(inventory_changes=inventory_changes)
                 transformations.append(new_recipe)
 
         # Last item recipe
         last_item = items[-1]
-        outputs = [Stack(last_item)]
-        inputs = []
+        inventory_changes = [Yield(PLAYER, last_item)]
         last_layer_id = (self.height - 1) * self.width
         for prev_item_id in range(self.width):
             required_item = items[last_layer_id + prev_item_id]
-            inputs.append(Stack(required_item))
+            inventory_changes.append(Use(PLAYER, required_item, consume=1))
 
-        new_recipe = Transformation(
-            inventory_changes={"player": {"remove": inputs, "add": outputs}}
-        )
+        new_recipe = Transformation(inventory_changes=inventory_changes)
         transformations.append(new_recipe)
 
         return transformations

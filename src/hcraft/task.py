@@ -56,6 +56,9 @@ class Task:
     def __str__(self) -> str:
         return self.name
 
+    def __repr__(self) -> str:
+        return self.name
+
 
 class AchievementTask(Task):
     """Task giving a reward to the player only the first time achieved."""
@@ -71,7 +74,7 @@ class AchievementTask(Task):
         """
 
     def reward(self, state: "HcraftState") -> float:
-        if not self.terminated and self.is_terminal(state):
+        if not self.terminated and self._is_terminal(state):
             return self._reward
         return 0.0
 
