@@ -4,7 +4,7 @@
 
 ```python
 from hcraft.elements import Item, Stack, Zone
-from hcraft.transformation import Transformation
+from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZONE
 ```
 
 ### Add an item in player inventory
@@ -12,7 +12,7 @@ from hcraft.transformation import Transformation
 DIRT = Item("dirt")
 search_for_dirt = Transformation(
     "search_for_dirt",
-    inventory_changes={"player": {"add": [DIRT]}},
+    inventory_changes=[Yield(PLAYER, DIRT)],
 )
 ```
 
@@ -30,7 +30,7 @@ move_to_forest = Transformation(
 WOOD = Item("wood")
 search_for_wood = Transformation(
     "search_for_wood",
-    inventory_changes={"player": {"add": [WOOD]}},
+    inventory_changes=[Yield(PLAYER, WOOD)],
     zones=[FOREST],
 )
 ```
@@ -40,9 +40,10 @@ search_for_wood = Transformation(
 PLANK = Item("plank")
 craft_wood_plank = Transformation(
     "craft_wood_plank",
-    inventory_changes={
-        "player": {"add": [Stack(PLANK, 4)], "remove": [WOOD]},
-    },
+    inventory_changes=[
+        Use(PLAYER, WOOD, consume=1),
+        Yield(PLAYER, PLANK, 4)
+    ],
 )
 ```
 Note the use of Stack to give a quantity > 1.
@@ -52,10 +53,11 @@ Note the use of Stack to give a quantity > 1.
 HOUSE = Item("house")  # Need 12 WOOD and 64 PLANK to
 build_house = Transformation(
     "build_house",
-    inventory_changes={
-        "player": {"remove": [Stack(WOOD, 12), Stack(PLANK, 64)]},
-        "current_zone": {"add": [HOUSE]},
-    },
+    inventory_changes=[
+        Use(PLAYER, WOOD, 12),
+        Use(PLAYER, PLANK, 64),
+        Yield(CURRENT_ZONE, HOUSE),
+    ],
 )
 ```
 
@@ -66,7 +68,7 @@ LADDER = Item("ladder")
 climb_tree = Transformation(
     "climb_tree",
     destination=TREETOPS,
-    inventory_changes={"player": {"remove": [LADDER]}},
+    inventory_changes=[Use(PLAYER, LADDER, consume=1)],
     zones=[FOREST],
 )
 ```
@@ -78,7 +80,7 @@ CRATER = Item("crater")
 jump_from_tree = Transformation(
     "jump_from_tree",
     destination=FOREST,
-    inventory_changes={"destination": {"add": [CRATER]}},
+    inventory_changes=[Yield("destination", CRATER)],
     zones=[TREETOPS],
 )
 ```
@@ -90,16 +92,10 @@ DOOR = Item("door")
 KEY = Item("key")
 enter_house = Transformation(
     destination=INSIDE_HOUSE,
-    inventory_changes={
-        "player": {
-            "remove": [KEY],  # Ensure has key
-            "add": [KEY],  # Then give it back
-        },
-        "current_zone": {
-            "remove": [DOOR],  # Ensure has door
-            "add": [DOOR],  # Then give it back
-        },
-    },
+    inventory_changes=[
+        Use(PLAYER, KEY),  # Ensure has key
+        Use(CURRENT_ZONE, DOOR),  # Ensure has door
+    ],
 )
 ```
 By removing and adding the same item,
@@ -113,15 +109,10 @@ SPACE = Zone("space")
 INCOMING_MISSILES = Item("incoming_missiles")
 press_red_button = Transformation(
     "press_red_button",
-    inventory_changes={
-        "current_zone": {  # Current zone
-            "remove": [STRANGE_RED_BUTTON],
-            "add": [STRANGE_RED_BUTTON],
-        },
-        SPACE: {  # An 'absolute' specific zone
-            "add": [Stack(INCOMING_MISSILES, 64)]
-        },
-    },
+    inventory_changes=[
+        Use(CURRENT_ZONE, STRANGE_RED_BUTTON),  # Ensure has door
+        Yield(SPACE, INCOMING_MISSILES),  # An 'absolute' specific zone
+    ],
 )
 ```
 Note that the player may not see the effect of such a transformation,
@@ -133,6 +124,7 @@ because the player only observe the current zone items.
 
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union, Any
 from enum import Enum
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -156,6 +148,53 @@ class InventoryOwner(Enum):
     """A specific zone inventory"""
 
 
+PLAYER = InventoryOwner.PLAYER
+CURRENT_ZONE = InventoryOwner.CURRENT
+DESTINATION = InventoryOwner.DESTINATION
+
+
+@dataclass()
+class Use:
+    """Use the given item in the given inventory."""
+
+    owner: Union[InventoryOwner, Zone]
+    """Owner of the inventory to change."""
+    item: Item
+    """Item to use."""
+    consume: int = 0
+    """Amout of the item to remove from the inventory. Defaults to 0."""
+    min: Optional[int] = None
+    """Minimum amout of the item *before* the transformation to be valid.
+
+    By default, min is 1 if consume is 0, else min=consume.
+
+    """
+
+    def __post_init__(self):
+        if not isinstance(self.owner, Zone):
+            self.owner = InventoryOwner(self.owner)
+        if self.min is None:
+            self.min = self.consume if self.consume > 0 else 1
+
+
+@dataclass()
+class Yield:
+    """Yield the given item in the given inventory."""
+
+    owner: Union[InventoryOwner, Zone]
+    """Owner of the inventory to change."""
+    item: Item
+    """Item to use."""
+    create: int = 1
+    """Amout of the item to create in the inventory. Defaults to 1."""
+    max: int = np.inf
+    """Maximum amout of the item *before* the transformation to be valid. Defaults to inf."""
+
+    def __post_init__(self):
+        if not isinstance(self.owner, Zone):
+            self.owner = InventoryOwner(self.owner)
+
+
 class InventoryOperation(Enum):
     """Enumeration of operations that can be done on an inventory."""
 
@@ -164,13 +203,14 @@ class InventoryOperation(Enum):
     ADD = "add"
     """Add the list of stacks."""
     MAX = "max"
-    """Superior limit to the list of stacks AFTER the transformation."""
+    """Superior limit to the list of stacks *before* the transformation."""
     MIN = "min"
-    """Inferior limit to the list of stacks AFTER the transformation."""
+    """Inferior limit to the list of stacks *before* the transformation."""
     APPLY = "apply"
-    """Apply all operations."""
+    """Effects of applying the transformation."""
 
 
+InventoryChange = Union[Use, Yield]
 InventoryChanges = Dict[
     InventoryOperation,
     Union[List[Union[Item, Stack]], Dict[Zone, List[Union[Item, Stack]]]],
@@ -234,7 +274,7 @@ class Transformation:
         self,
         name: Optional[str] = None,
         destination: Optional[Zone] = None,
-        inventory_changes: Optional[Dict[InventoryOwner, InventoryChanges]] = None,
+        inventory_changes: Optional[List[InventoryChange]] = None,
         zones: Optional[List[Zone]] = None,
     ) -> None:
         """The building blocks of every HierarchyCraft environment.
@@ -242,8 +282,7 @@ class Transformation:
         Args:
             destination: Destination zone.
                 Defaults to None.
-            inventory_changes: Dictionary inventory changes for
-                the player, the current zone, the destination zone and each zone.
+            inventory_changes: List of inventory changes done by this transformation.
                 Defaults to None.
             zones: List of valid zones, if None all zones are valid.
                 Defaults to None.
@@ -254,12 +293,13 @@ class Transformation:
         self.zones = zones
         self._zones = None
 
+        self._changes_list = inventory_changes
         self.inventory_changes = _format_inventory_changes(inventory_changes)
         self._inventory_operations: Optional[
             Dict[InventoryOwner, InventoryOperations]
         ] = None
 
-        self.name = name if name is not None else "transformation"
+        self.name = name if name is not None else self.__repr__()
 
     def apply(
         self,
@@ -324,6 +364,16 @@ class Transformation:
         """Set of consumed items for the given owner by this transformation."""
         return self._relevant_items_changed(owner, InventoryOperation.REMOVE)
 
+    def min_required(self, owner: InventoryOwner) -> Set["Item"]:
+        """Set of items for which a minimum is required by this transformation
+        for the given owner."""
+        return self._relevant_items_changed(owner, InventoryOperation.MIN)
+
+    def max_required(self, owner: InventoryOwner) -> Set["Item"]:
+        """Set of items for which a maximum is required by this transformation
+        for the given owner."""
+        return self._relevant_items_changed(owner, InventoryOperation.MAX)
+
     @property
     def produced_zones_items(self) -> Set["Item"]:
         """Set of produced zones items by this transformation."""
@@ -340,6 +390,24 @@ class Transformation:
             self.consumption(InventoryOwner.CURRENT)
             | self.consumption(InventoryOwner.DESTINATION)
             | self.consumption(InventoryOwner.ZONES)
+        )
+
+    @property
+    def min_required_zones_items(self) -> Set["Item"]:
+        """Set of zone items for which a minimum is required by this transformation."""
+        return (
+            self.min_required(InventoryOwner.CURRENT)
+            | self.min_required(InventoryOwner.DESTINATION)
+            | self.min_required(InventoryOwner.ZONES)
+        )
+
+    @property
+    def max_required_zones_items(self) -> Set["Item"]:
+        """Set of zone items for which a maximum is required by this transformation."""
+        return (
+            self.max_required(InventoryOwner.CURRENT)
+            | self.max_required(InventoryOwner.DESTINATION)
+            | self.max_required(InventoryOwner.ZONES)
         )
 
     def _relevant_items_changed(
@@ -374,9 +442,9 @@ class Transformation:
     ):
         added = 0 if added is None else added
         removed = 0 if removed is None else removed
-        if max_items is not None and np.any(inventory + added > max_items):
+        if max_items is not None and np.any(inventory > max_items):
             return False
-        if min_items is not None and np.any(inventory - removed < min_items):
+        if min_items is not None and np.any(inventory < min_items):
             return False
         return True
 
@@ -468,13 +536,6 @@ class Transformation:
         else:
             world_items_list = world.zones_items
 
-        # Always add MIN of 0 by default (even if unspecified)
-        if InventoryOperation.MIN not in operations:
-            if owner is InventoryOwner.ZONES:
-                operations[InventoryOperation.MIN] = {}
-            else:
-                operations[InventoryOperation.MIN] = []
-
         for operation, stacks in operations.items():
             operation = InventoryOperation(operation)
             default_value = 0
@@ -531,58 +592,133 @@ class Transformation:
         return self.name
 
     def __repr__(self) -> str:
-        transfo_text = ""
+        return f"{self._preconditions_repr()}=>{self._effects_repr()}"
 
-        remove_texts = []
-        remove_texts += _stacks_str(
-            self.get_changes(InventoryOwner.PLAYER, InventoryOperation.REMOVE)
-        )
-        remove_texts += _stacks_str(
-            self.get_changes(InventoryOwner.CURRENT, InventoryOperation.REMOVE),
-            "Zone(",
-            ")",
-        )
-        remove_texts += _stacks_str(
-            self.get_changes(InventoryOwner.DESTINATION, InventoryOperation.REMOVE),
-            "Dest(",
-            ")",
-        )
-        remove_texts += _dict_stacks_str(
-            self.get_changes(InventoryOwner.ZONES, InventoryOperation.REMOVE),
-        )
+    def _preconditions_repr(self) -> str:
+        preconditions_text = ""
 
-        if remove_texts:
-            transfo_text = " ".join(remove_texts)
-            transfo_text += " "
+        owners_brackets = {
+            PLAYER: ".",
+            CURRENT_ZONE: "Zone(.)",
+            DESTINATION: "Dest(.)",
+        }
 
-        transfo_text += "> "
+        for owner in InventoryOwner:
+            if owner is InventoryOwner.ZONES:
+                continue
+            owner_texts = []
+            owner_texts += _stacks_precontions_str(
+                self.get_changes(owner, InventoryOperation.MIN),
+                symbol=">",
+            )
+            owner_texts += _stacks_precontions_str(
+                self.get_changes(owner, InventoryOperation.MAX),
+                symbol="<",
+            )
+            stacks_text = ",".join(owner_texts)
+            if not owner_texts:
+                continue
+            if preconditions_text:
+                preconditions_text += " "
+            preconditions_text += owners_brackets[owner].replace(".", stacks_text)
 
-        add_texts = []
-        add_texts += _stacks_str(
-            self.get_changes(InventoryOwner.PLAYER, InventoryOperation.ADD)
-        )
-        add_texts += _stacks_str(
-            self.get_changes(InventoryOwner.CURRENT, InventoryOperation.ADD),
-            "Zone(",
-            ")",
-        )
-        add_texts += _stacks_str(
-            self.get_changes(InventoryOwner.DESTINATION, InventoryOperation.ADD),
-            "Dest(",
-            ")",
-        )
-        add_texts += _dict_stacks_str(
-            self.get_changes(InventoryOwner.ZONES, InventoryOperation.ADD)
-        )
-        if add_texts:
-            transfo_text += " ".join(add_texts)
-            if self.destination is not None:
-                transfo_text += " "
+        zones_specific_ops: Dict[Zone, Dict[InventoryOperation, List[Stack]]] = {}
+        for op, zones_stacks in self.inventory_changes.get(
+            InventoryOwner.ZONES, {}
+        ).items():
+            for zone, stacks in zones_stacks.items():
+                if zone not in zones_specific_ops:
+                    zones_specific_ops[zone] = {}
+                if op not in zones_specific_ops[zone]:
+                    zones_specific_ops[zone][op] = []
+                zones_specific_ops[zone][op] += stacks
+
+        for zone, operations in zones_specific_ops.items():
+            owner_texts = []
+            owner_texts += _stacks_precontions_str(
+                operations.get(InventoryOperation.MIN, []),
+                symbol=">",
+            )
+            owner_texts += _stacks_precontions_str(
+                operations.get(InventoryOperation.MAX, []),
+                symbol="<",
+            )
+            stacks_text = ",".join(owner_texts)
+            if not owner_texts:
+                continue
+            if preconditions_text:
+                preconditions_text += " "
+            preconditions_text += f"{zone.name}({stacks_text})"
+
+        if self.zones is not None:
+            if preconditions_text:
+                preconditions_text += " "
+            zones_str = ",".join([zone.name for zone in self.zones])
+            preconditions_text += f"| {zones_str}"
+
+        if preconditions_text:
+            preconditions_text += " "
+
+        return preconditions_text
+
+    def _effects_repr(self) -> str:
+        effects_text = ""
+        owners_brackets = {
+            PLAYER: ".",
+            CURRENT_ZONE: "Zone(.)",
+            DESTINATION: "Dest(.)",
+        }
+
+        for owner in InventoryOwner:
+            if owner is InventoryOwner.ZONES:
+                continue
+            owner_texts = []
+            owner_texts += _stacks_effects_str(
+                self.get_changes(owner, InventoryOperation.REMOVE),
+                stack_prefix="-",
+            )
+            owner_texts += _stacks_effects_str(
+                self.get_changes(owner, InventoryOperation.ADD),
+                stack_prefix="+",
+            )
+            stacks_text = ",".join(owner_texts)
+            if not owner_texts:
+                continue
+            effects_text += " "
+            effects_text += owners_brackets[owner].replace(".", stacks_text)
+
+        zones_specific_ops: Dict[Zone, Dict[InventoryOperation, List[Stack]]] = {}
+        for op, zones_stacks in self.inventory_changes.get(
+            InventoryOwner.ZONES, {}
+        ).items():
+            for zone, stacks in zones_stacks.items():
+                if zone not in zones_specific_ops:
+                    zones_specific_ops[zone] = {}
+                if op not in zones_specific_ops[zone]:
+                    zones_specific_ops[zone][op] = []
+                zones_specific_ops[zone][op] += stacks
+
+        for zone, operations in zones_specific_ops.items():
+            owner_texts = []
+            owner_texts += _stacks_effects_str(
+                operations.get(InventoryOperation.REMOVE, []),
+                stack_prefix="-",
+            )
+            owner_texts += _stacks_effects_str(
+                operations.get(InventoryOperation.ADD, []),
+                stack_prefix="+",
+            )
+            stacks_text = ",".join(owner_texts)
+            if not owner_texts:
+                continue
+            effects_text += " "
+            effects_text += f"{zone.name}({stacks_text})"
 
         if self.destination is not None:
-            transfo_text += f"| {self.destination.name}"
+            effects_text += " "
+            effects_text += f"| {self.destination.name}"
 
-        return transfo_text
+        return effects_text
 
 
 def _update_inventory(
@@ -624,87 +760,105 @@ def _build_apply_operation_array(
     return apply_operation
 
 
-def _dict_stacks_str(dict_of_stacks: Optional[Dict[Zone, List["Stack"]]]):
-    strings = []
-    if dict_of_stacks is None:
-        return strings
-    for zone, stacks in dict_of_stacks.items():
-        strings += _stacks_str(stacks, f"{zone.name}(", ")")
-    return strings
-
-
-def _stacks_str(
+def _stacks_effects_str(
     stacks: Optional[List["Stack"]],
     prefix: str = "",
     suffix: str = "",
+    stack_prefix: str = "",
 ) -> List[str]:
     strings = []
-    if stacks is None:
+    if not stacks:
         return strings
-    strings.append(_unstacked_str(stacks, prefix, suffix))
+    strings.append(_unstacked_str(stacks, prefix, suffix, stack_prefix))
     return strings
 
 
-def _unstacked_str(stacks: List["Stack"], prefix: str = "", suffix: str = ""):
-    items_text = ",".join([str(stack) for stack in stacks])
+def _stacks_precontions_str(
+    stacks: Optional[List["Stack"]],
+    prefix: str = "",
+    suffix: str = "",
+    symbol: str = "",
+) -> List[str]:
+    strings = []
+    if not stacks:
+        return strings
+    strings.append(_unstacked_condition_str(stacks, prefix, suffix, symbol))
+    return strings
+
+
+def _unstacked_condition_str(
+    stacks: List["Stack"], prefix: str = "", suffix: str = "", symbol: str = ""
+):
+    items_text = ",".join(
+        [f"{stack.item.name}{symbol}{stack.quantity}" for stack in stacks]
+    )
     return f"{prefix}{items_text}{suffix}"
 
 
-def _stack_items_list(
-    items_or_stacks: Optional[List[Union["Item", "Stack"]]]
-) -> Optional[List["Stack"]]:
-    if items_or_stacks is None:
-        return None
-    for i, item_or_stack in enumerate(items_or_stacks):
-        if not isinstance(item_or_stack, Stack):
-            items_or_stacks[i] = Stack(item_or_stack)
-    return items_or_stacks
+def _unstacked_str(
+    stacks: List["Stack"], prefix: str = "", suffix: str = "", stack_prefix: str = ""
+):
+    items_text = ",".join([f"{stack_prefix}{stack}" for stack in stacks])
+    return f"{prefix}{items_text}{suffix}"
 
 
-def _group_zones_operations(
-    inventory_changes: Dict[InventoryOwner, InventoryChanges]
-) -> Dict[InventoryOwner, InventoryChanges]:
-    zones = InventoryOwner.ZONES
-    for owner_or_zone in list(inventory_changes.keys()):
-        if not isinstance(owner_or_zone, Zone):
-            continue
-        if zones not in inventory_changes:
-            inventory_changes[zones] = {}
+def _append_changes(
+    dict_of_changes: Dict[InventoryOwner, InventoryChanges],
+    change: InventoryChange,
+    zone: Optional[Zone] = None,
+):
+    owner = change.owner
+    if zone is not None:
+        owner = InventoryOwner.ZONES
 
-        changes = inventory_changes.pop(owner_or_zone)
-        for operation, stacks in changes.items():
-            if operation not in inventory_changes[zones]:
-                inventory_changes[zones][operation] = {}
-            inventory_changes[zones][operation][owner_or_zone] = stacks
-    return inventory_changes
+    if owner not in dict_of_changes:
+        dict_of_changes[owner] = {}
+
+    def _append_stack(operation: InventoryOperation, stack: Stack):
+        if operation not in dict_of_changes[owner]:
+            dict_of_changes[owner][operation] = []
+            if zone is not None:
+                dict_of_changes[owner][operation] = {}
+
+        if zone is None:
+            dict_of_changes[owner][operation].append(stack)
+            return
+
+        if zone not in dict_of_changes[owner][operation]:
+            dict_of_changes[owner][operation][zone] = []
+        dict_of_changes[owner][operation][zone].append(stack)
+
+    if isinstance(change, Use):
+        if change.min > -np.inf:
+            min_stack = Stack(change.item, change.min)
+            _append_stack(InventoryOperation.MIN, min_stack)
+
+        if change.consume > 0:
+            rem_stack = Stack(change.item, change.consume)
+            _append_stack(InventoryOperation.REMOVE, rem_stack)
+
+    elif isinstance(change, Yield):
+        if change.max < np.inf:
+            max_stack = Stack(change.item, change.max)
+            _append_stack(InventoryOperation.MAX, max_stack)
+
+        if change.create > 0:
+            add_stack = Stack(change.item, change.create)
+            _append_stack(InventoryOperation.ADD, add_stack)
 
 
 def _format_inventory_changes(
-    dict_of_items_or_stacks: Optional[Dict[InventoryOwner, InventoryChanges]]
+    list_of_changes: Optional[List[InventoryChange]],
 ) -> Dict[InventoryOwner, InventoryChanges]:
     dict_of_stacks = {}
-    if dict_of_items_or_stacks is None:
+    if list_of_changes is None:
         return dict_of_stacks
 
-    dict_of_items_or_stacks = _group_zones_operations(dict_of_items_or_stacks)
-
-    for owner, sub_dict in dict_of_items_or_stacks.items():
-        owner = InventoryOwner(owner)
-        if owner is not InventoryOwner.ZONES:
-            dict_of_stacks[owner] = {
-                InventoryOperation(op): _stack_items_list(items_or_stacks)
-                for op, items_or_stacks in sub_dict.items()
-            }
-            continue
-        if owner not in dict_of_stacks:
-            dict_of_stacks[owner] = {}
-        for op, zones_items_or_stacks in sub_dict.items():
-            zones_stacks = {
-                zone: _stack_items_list(items_or_stacks)
-                for zone, items_or_stacks in zones_items_or_stacks.items()
-            }
-            dict_of_stacks[owner][InventoryOperation(op)] = zones_stacks
-
+    for inv_change in list_of_changes:
+        zone = None
+        if isinstance(inv_change.owner, Zone):
+            zone = inv_change.owner
+        _append_changes(dict_of_stacks, inv_change, zone=zone)
     return dict_of_stacks
 
 

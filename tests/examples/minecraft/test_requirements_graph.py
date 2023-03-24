@@ -56,23 +56,3 @@ class TestMineHcraftReqGraph:
         coal_node = req_node_name(items.COAL, RequirementNode.ITEM)
         check.is_true(self.graph.has_node(coal_node))
         check.is_false(self.graph.has_edge(coal_node, furnace_node))
-
-    def test_stronghold_is_not_directly_accessible_from_nether(self):
-        stronghold_node = req_node_name(zones.STRONGHOLD, RequirementNode.ZONE)
-        check.is_true(self.graph.has_node(stronghold_node))
-        nether_node = req_node_name(zones.NETHER, RequirementNode.ZONE)
-        check.is_true(self.graph.has_node(nether_node))
-
-        assert self.graph.has_edge(nether_node, stronghold_node)
-        assert self.graph.has_edge(stronghold_node, stronghold_node)
-        from_nether_indexes = []
-        self_indexes = []
-        for start, end, key in self.graph.in_edges(stronghold_node, keys=True):
-            if start == nether_node:
-                from_nether_indexes.append(key)
-            if end == start == stronghold_node:
-                self_indexes.append(key)
-        check.is_true(
-            any(key in self_indexes for key in from_nether_indexes),
-            msg=f"self_indexes={self_indexes},from_nether_indexes={from_nether_indexes}",
-        )

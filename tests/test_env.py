@@ -8,7 +8,7 @@ from pytest_mock import MockerFixture
 from hcraft.elements import Item, Stack, Zone
 from hcraft.env import HcraftEnv
 from hcraft.task import GetItemTask
-from hcraft.transformation import Transformation
+from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZONE
 from hcraft.world import world_from_transformations
 from tests.custom_checks import check_np_equal
 from tests.envs import classic_env, player_only_env, zone_only_env
@@ -373,10 +373,10 @@ def test_treasure_env(mocker: MockerFixture):
     from hcraft.transformation import Transformation
 
     TAKE_GOLD_FROM_CHEST = Transformation(
-        inventory_changes={
-            "current_zone": {"remove": [CHEST]},
-            "player": {"add": [GOLD]},
-        }
+        inventory_changes=[
+            Use(CURRENT_ZONE, CHEST),
+            Yield(PLAYER, GOLD),
+        ]
     )
 
     from hcraft.elements import Zone
@@ -406,16 +406,19 @@ def test_treasure_env(mocker: MockerFixture):
     START_ROOM = Zone("start_room")
 
     SEARCH_KEY = Transformation(
-        inventory_changes={"player": {"add": [KEY]}},
+        inventory_changes=[
+            Yield(PLAYER, KEY, max=1),
+        ],
         zones=[KEY_ROOM],
     )
 
     LOCKED_CHEST = Item("locked_chest")
     UNLOCK_CHEST = Transformation(
-        inventory_changes={
-            "player": {"remove": [Stack(KEY, 2)]},
-            "current_zone": {"remove": [LOCKED_CHEST], "add": [CHEST]},
-        },
+        inventory_changes=[
+            Use(PLAYER, KEY, 2),
+            Use(CURRENT_ZONE, LOCKED_CHEST, consume=1),
+            Yield(CURRENT_ZONE, CHEST),
+        ],
     )
 
     MOVE_TO_KEY_ROOM = Transformation(

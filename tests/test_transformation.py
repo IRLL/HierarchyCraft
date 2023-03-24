@@ -5,7 +5,14 @@ import pytest
 import pytest_check as check
 
 from hcraft.elements import Item, Stack, Zone
-from hcraft.transformation import Transformation, InventoryOwner
+from hcraft.transformation import (
+    Transformation,
+    Use,
+    Yield,
+    PLAYER,
+    CURRENT_ZONE,
+    DESTINATION,
+)
 from hcraft.world import World, world_from_transformations
 from tests.custom_checks import check_np_equal
 
@@ -31,28 +38,6 @@ class TestTransformationIsValid:
         self.zones_items = [Item("0"), Item("z1")]
         self.world = World(self.items, self.zones, self.zones_items, [])
 
-    def test_item_as_input(self):
-        def check_stacks(stacks_lists):
-            for stacks in stacks_lists:
-                for stack in stacks:
-                    check.is_instance(stack, Stack)
-
-        transfo = Transformation(
-            inventory_changes={
-                InventoryOwner.PLAYER: {"add": [Item("0")], "remove": [Item("0")]},
-                InventoryOwner.CURRENT: {"add": [Item("0")], "remove": [Item("0")]},
-                InventoryOwner.DESTINATION: {"add": [Item("0")], "remove": [Item("0")]},
-                Zone("0"): {"add": [Item("0")], "remove": [Item("0")]},
-            }
-        )
-
-        for owner, changes in transfo.inventory_changes.items():
-            if owner is InventoryOwner.ZONES:
-                for zones_stacks in changes.values():
-                    check_stacks(list(zones_stacks.values()))
-                continue
-            check_stacks(list(changes.values()))
-
     def test_position_is_valid(self):
         transfo = Transformation(
             destination=self.zones[0], zones=[self.zones[0], self.zones[2]]
@@ -65,12 +50,10 @@ class TestTransformationIsValid:
 
     def test_player_items_is_valid(self):
         transfo = Transformation(
-            inventory_changes={
-                InventoryOwner.PLAYER: {
-                    "add": [self.items[1]],
-                    "remove": [Stack(self.items[0], 2)],
-                },
-            }
+            inventory_changes=[
+                Use(PLAYER, self.items[0], consume=2),
+                Yield(PLAYER, self.items[1]),
+            ],
         )
         transfo.build(self.world)
         position = np.array([1, 0, 0])
@@ -90,23 +73,20 @@ class TestTransformationIsValid:
 
     def test_player_items_is_valid_min_max(self):
         transfo = Transformation(
-            inventory_changes={
-                InventoryOwner.PLAYER: {
-                    "add": [self.items[1]],
-                    "max": [Stack(self.items[1], 2), Stack(self.items[2], 0)],
-                    "remove": [Stack(self.items[0], 2)],
-                    "min": [Stack(self.items[0], -1)],
-                },
-            }
+            inventory_changes=[
+                Use(PLAYER, self.items[0], consume=2, min=1),
+                Yield(PLAYER, self.items[1], max=1),
+                Yield(PLAYER, self.items[2], max=0),
+            ],
         )
         transfo.build(self.world)
         position = np.array([1, 0, 0])
 
         inv_examples = [
             (True, np.array([1, 0, 0])),  # Minimal required
-            (False, np.array([0, 0, 0])),  # Hit minimum items[0] (-2 < -1)
-            (False, np.array([1, 2, 0])),  # Hit maximum items[1] (2 + 1 > 2)
-            (False, np.array([3, 0, 1])),  # Hit maximum items[2] (1 + 0 > 0)
+            (False, np.array([0, 0, 0])),  # Hit minimum items[0] (0 < 1)
+            (False, np.array([1, 2, 0])),  # Hit maximum items[1] (2 > 1)
+            (False, np.array([1, 0, 1])),  # Hit maximum items[2] (1 > 0)
         ]
 
         for expected_valid, player_inventory in inv_examples:
@@ -119,22 +99,18 @@ class TestTransformationIsValid:
 
     def test_zone_items_is_valid(self):
         transfo = Transformation(
-            inventory_changes={
-                InventoryOwner.CURRENT: {
-                    "add": [Stack(self.zones_items[1], 1)],
-                    "max": [Stack(self.zones_items[1], 1)],
-                    "remove": [Stack(self.zones_items[0], 3)],
-                    "min": [Stack(self.zones_items[0], 1)],
-                },
-            }
+            inventory_changes=[
+                Use(CURRENT_ZONE, self.zones_items[0], consume=3, min=1),
+                Yield(CURRENT_ZONE, self.zones_items[1], max=0),
+            ],
         )
         transfo.build(self.world)
         position = np.array([0, 1, 0])
 
         inv_examples = [
-            (True, np.array([[0, 0], [4, 0], [0, 0]])),  # Minimal required
-            (False, np.array([[9, 0], [3, 0], [9, 0]])),  # Hit minimum
-            (False, np.array([[0, 0], [4, 1], [0, 0]])),  # Hit maximum
+            (True, np.array([[0, 0], [1, 0], [0, 0]])),  # Minimal required
+            (False, np.array([[9, 0], [0, 0], [9, 0]])),  # Hit minimum
+            (False, np.array([[0, 0], [1, 1], [0, 0]])),  # Hit maximum
         ]
 
         for expected_valid, zones_inventories in inv_examples:
@@ -148,22 +124,18 @@ class TestTransformationIsValid:
     def test_destination_items_is_valid(self):
         transfo = Transformation(
             destination=self.zones[1],
-            inventory_changes={
-                InventoryOwner.DESTINATION: {
-                    "add": [Stack(self.zones_items[1], 1)],
-                    "max": [Stack(self.zones_items[1], 1)],
-                    "remove": [Stack(self.zones_items[0], 3)],
-                    "min": [Stack(self.zones_items[0], 1)],
-                },
-            },
+            inventory_changes=[
+                Use(DESTINATION, self.zones_items[0], consume=3, min=1),
+                Yield(DESTINATION, self.zones_items[1], max=0),
+            ],
         )
         transfo.build(self.world)
         position = np.array([1, 0, 0])
 
         inv_examples = [
-            (True, np.array([[0, 0], [4, 0], [0, 0]])),  # Minimal required
-            (False, np.array([[9, 0], [3, 0], [9, 0]])),  # Hit minimum
-            (False, np.array([[0, 0], [4, 1], [0, 0]])),  # Hit maximum
+            (True, np.array([[0, 0], [1, 0], [0, 0]])),  # Minimal required
+            (False, np.array([[9, 0], [0, 0], [9, 0]])),  # Hit minimum
+            (False, np.array([[0, 0], [1, 1], [0, 0]])),  # Hit maximum
         ]
 
         for expected_valid, zones_inventories in inv_examples:
@@ -176,19 +148,16 @@ class TestTransformationIsValid:
 
     def test_zones_items_is_valid(self):
         transfo = Transformation(
-            inventory_changes={
-                self.zones[1]: {
-                    "add": [Stack(self.zones_items[1], 1)],
-                    "max": [Stack(self.zones_items[1], 1)],
-                    "remove": [Stack(self.zones_items[0], 3)],
-                },
-            }
+            inventory_changes=[
+                Use(self.zones[1], self.zones_items[0], consume=3, min=1),
+                Yield(self.zones[1], self.zones_items[1], max=0),
+            ],
         )
         transfo.build(self.world)
         inv_examples = [
-            (True, np.array([[0, 0], [3, 0], [0, 0]])),  # Minimal required
-            (False, np.array([[9, 0], [2, 0], [9, 0]])),  # Not enough items
-            (False, np.array([[0, 0], [3, 1], [0, 0]])),  # Hit maximum
+            (True, np.array([[0, 0], [1, 0], [0, 0]])),  # Minimal required
+            (False, np.array([[9, 0], [0, 0], [9, 0]])),  # Not enough items
+            (False, np.array([[0, 0], [1, 1], [0, 0]])),  # Hit maximum
         ]
 
         for expected_valid, zones_inventories in inv_examples:
@@ -216,15 +185,11 @@ class TestTransformationIsValid:
 
     def test_player_items(self):
         transfo = Transformation(
-            inventory_changes={
-                "player": {
-                    "remove": [
-                        Stack(self.items[0], 2),
-                        Stack(self.items[2], 3),
-                    ],
-                    "add": [Stack(self.items[1], 5)],
-                },
-            }
+            inventory_changes=[
+                Use(PLAYER, self.items[0], consume=2),
+                Use(PLAYER, self.items[2], consume=3),
+                Yield(PLAYER, self.items[1], create=5),
+            ],
         )
         transfo.build(self.world)
         position = np.array([1, 0, 0])
@@ -234,12 +199,10 @@ class TestTransformationIsValid:
 
     def test_zone_items(self):
         transfo = Transformation(
-            inventory_changes={
-                "current_zone": {
-                    "remove": [Stack(self.zones_items[0], 3)],
-                    "add": [Stack(self.zones_items[1], 7)],
-                },
-            }
+            inventory_changes=[
+                Use(CURRENT_ZONE, self.zones_items[0], consume=3),
+                Yield(CURRENT_ZONE, self.zones_items[1], create=7),
+            ],
         )
         transfo.build(self.world)
         position = np.array([0, 1, 0])
@@ -249,15 +212,11 @@ class TestTransformationIsValid:
 
     def test_zones_items(self):
         transfo = Transformation(
-            inventory_changes={
-                self.zones[0]: {
-                    "remove": [
-                        Stack(self.zones_items[0], 3),
-                        Stack(self.zones_items[1], 1),
-                    ],
-                },
-                self.zones[2]: {"add": [Stack(self.zones_items[1], 7)]},
-            }
+            inventory_changes=[
+                Use(self.zones[0], self.zones_items[0], consume=3),
+                Use(self.zones[0], self.zones_items[1], consume=1),
+                Yield(self.zones[2], self.zones_items[1], create=7),
+            ],
         )
         transfo.build(self.world)
         position = np.array([0, 1, 0])
@@ -268,12 +227,10 @@ class TestTransformationIsValid:
     def test_destination_items(self):
         transfo = Transformation(
             destination=self.zones[1],
-            inventory_changes={
-                "destination": {
-                    "remove": [Stack(self.zones_items[0], 3)],
-                    "add": [Stack(self.zones_items[1], 7)],
-                },
-            },
+            inventory_changes=[
+                Use(DESTINATION, self.zones_items[0], consume=3),
+                Yield(DESTINATION, self.zones_items[1], create=7),
+            ],
         )
         transfo.build(self.world)
         position = np.array([1, 0, 0])
@@ -300,141 +257,109 @@ class TestTransformationIsValid:
         tranfo.build(self.world)
         check.is_none(tranfo._zones)
 
-    def test_repr(self):
-        tranfo = Transformation(
-            inventory_changes={
-                "player": {
-                    "add": [
-                        Stack(Item("wood"), 2),
-                        Stack(Item("stone"), 3),
-                    ]
-                }
-            }
-        )
-        check_equal_str(repr(tranfo), "> wood[2],stone[3]")
 
-        tranfo = Transformation(
-            inventory_changes={
-                "player": {
-                    "remove": [
-                        Stack(Item("wood"), 2),
-                        Stack(Item("stone"), 3),
-                    ]
-                }
-            }
-        )
-        check_equal_str(repr(tranfo), "wood[2],stone[3] > ")
+ZONE_A = Zone("A")
 
-        tranfo = Transformation(
-            inventory_changes={
-                "current_zone": {
-                    "add": [
-                        Stack(Item("wood"), 2),
-                        Stack(Item("stone"), 3),
-                    ]
-                }
-            }
-        )
-        check_equal_str(repr(tranfo), "> Zone(wood[2],stone[3])")
 
-        tranfo = Transformation(
-            inventory_changes={
-                "current_zone": {
-                    "remove": [
-                        Stack(Item("wood"), 2),
-                        Stack(Item("stone"), 3),
-                    ]
-                }
-            }
-        )
-        check_equal_str(repr(tranfo), "Zone(wood[2],stone[3]) > ")
+class TestRepr:
+    owner_expected_prefix = {
+        PLAYER: "",
+        CURRENT_ZONE: "Zone(",
+        DESTINATION: "Dest(",
+        ZONE_A: f"{ZONE_A.name}(",
+    }
 
-        tranfo = Transformation(
-            inventory_changes={
-                "destination": {
-                    "add": [
-                        Stack(Item("wood"), 2),
-                        Stack(Item("stone"), 3),
-                    ]
-                }
-            }
-        )
-        check_equal_str(repr(tranfo), "> Dest(wood[2],stone[3])")
+    owner_expected_suffix = {
+        PLAYER: "",
+        CURRENT_ZONE: ")",
+        DESTINATION: ")",
+        ZONE_A: ")",
+    }
 
+    @pytest.mark.parametrize("owner", [PLAYER, CURRENT_ZONE, DESTINATION, ZONE_A])
+    def test_add(self, owner):
         tranfo = Transformation(
-            inventory_changes={
-                "destination": {
-                    "remove": [
-                        Stack(Item("wood"), 2),
-                        Stack(Item("stone"), 3),
-                    ]
-                }
-            }
+            inventory_changes=[Yield(owner, Item("wood"), create=2)]
         )
-        check_equal_str(repr(tranfo), "Dest(wood[2],stone[3]) > ")
+        prefix = self.owner_expected_prefix[owner]
+        suffix = self.owner_expected_suffix[owner]
+        check_equal_str(repr(tranfo), f"=> {prefix}+[2]wood{suffix}")
 
+    @pytest.mark.parametrize("owner", [PLAYER, CURRENT_ZONE, DESTINATION, ZONE_A])
+    def test_max(self, owner):
+        tranfo = Transformation(
+            inventory_changes=[Yield(owner, Item("wood"), create=0, max=2)]
+        )
+        prefix = self.owner_expected_prefix[owner]
+        suffix = self.owner_expected_suffix[owner]
+        check_equal_str(repr(tranfo), f"{prefix}wood<2{suffix} =>")
+
+    @pytest.mark.parametrize("owner", [PLAYER, CURRENT_ZONE, DESTINATION, ZONE_A])
+    def test_remove(self, owner):
+        tranfo = Transformation(inventory_changes=[Use(owner, Item("wood"), consume=3)])
+        prefix = self.owner_expected_prefix[owner]
+        suffix = self.owner_expected_suffix[owner]
+        check_equal_str(
+            repr(tranfo), f"{prefix}wood>3{suffix} => {prefix}-[3]wood{suffix}"
+        )
+
+    @pytest.mark.parametrize("owner", [PLAYER, CURRENT_ZONE, DESTINATION, ZONE_A])
+    def test_min(self, owner):
+        tranfo = Transformation(
+            inventory_changes=[Use(owner, Item("wood"), consume=0, min=2)]
+        )
+        prefix = self.owner_expected_prefix[owner]
+        suffix = self.owner_expected_suffix[owner]
+        check_equal_str(repr(tranfo), f"{prefix}wood>2{suffix} =>")
+
+    def test_destination(self):
         tranfo = Transformation(destination=Zone("other zone"))
-        check_equal_str(repr(tranfo), "> | other zone")
+        check_equal_str(repr(tranfo), "=> | other zone")
 
+    def test_zones(self):
+        tranfo = Transformation(zones=[Zone("A"), Zone("B")])
+        check_equal_str(repr(tranfo), "| A,B =>")
+
+    def test_full(self):
         tranfo = Transformation(
-            inventory_changes={
-                "player": {
-                    "remove": [
-                        Stack(Item("P1")),
-                        Stack(Item("P2")),
-                    ],
-                    "add": [
-                        Stack(Item("P3")),
-                        Stack(Item("P4")),
-                    ],
-                },
-                "current_zone": {
-                    "remove": [
-                        Stack(Item("Z1")),
-                        Stack(Item("Z2")),
-                    ],
-                    "add": [
-                        Stack(Item("Z3")),
-                        Stack(Item("Z4")),
-                    ],
-                },
-                "destination": {
-                    "remove": [
-                        Stack(Item("D1")),
-                        Stack(Item("D2")),
-                    ],
-                    "add": [
-                        Stack(Item("D3")),
-                        Stack(Item("D4")),
-                    ],
-                },
-                Zone("A"): {
-                    "remove": [
-                        Stack(Item("A1")),
-                        Stack(Item("A2")),
-                    ],
-                    "add": [
-                        Stack(Item("A3")),
-                        Stack(Item("A4")),
-                    ],
-                },
-                Zone("B"): {
-                    "remove": [
-                        Stack(Item("B1")),
-                        Stack(Item("B2")),
-                    ],
-                    "add": [
-                        Stack(Item("B3")),
-                        Stack(Item("B4")),
-                    ],
-                },
-            },
+            inventory_changes=[
+                Use(PLAYER, Item("P1"), consume=1),
+                Use(PLAYER, Item("P2"), consume=0, min=1),
+                Yield(PLAYER, Item("P3"), create=1),
+                Yield(PLAYER, Item("P4"), create=0, max=1),
+                Use(CURRENT_ZONE, Item("Z1"), consume=2, min=-1),
+                Yield(CURRENT_ZONE, Item("Z2"), create=1, max=3),
+                Use(DESTINATION, Item("D1"), consume=1),
+                Use(DESTINATION, Item("D2"), consume=0, min=1),
+                Yield(DESTINATION, Item("D3"), create=1),
+                Yield(DESTINATION, Item("D4"), create=0, max=1),
+                Use(Zone("A"), Item("A1"), consume=1),
+                Use(Zone("A"), Item("A2"), consume=0, min=1),
+                Yield(Zone("A"), Item("A3"), create=1),
+                Yield(Zone("A"), Item("A4"), create=0, max=3),
+                Use(Zone("B"), Item("B1"), consume=1),
+                Use(Zone("B"), Item("B2"), consume=0, min=1),
+                Yield(Zone("B"), Item("B3"), create=1),
+                Yield(Zone("B"), Item("B4"), create=0, max=3),
+            ],
             destination=Zone("D"),
+            zones=[Zone("E"), Zone("F")],
         )
         check_equal_str(
             repr(tranfo),
-            "P1,P2 Zone(Z1,Z2) Dest(D1,D2) A(A1,A2) B(B1,B2) "
-            "> P3,P4 Zone(Z3,Z4) Dest(D3,D4) A(A3,A4) B(B3,B4) | D",
+            "P1>1,P2>1,P4<1 "
+            "Zone(Z1>-1,Z2<3) "
+            "Dest(D1>1,D2>1,D4<1) "
+            "A(A1>1,A2>1,A4<3) "
+            "B(B1>1,B2>1,B4<3) "
+            "| E,F "
+            "=> "
+            "-P1,+P3 "
+            "Zone(-[2]Z1,+Z2) "
+            "Dest(-D1,+D3) "
+            "A(-A1,+A3) "
+            "B(-B1,+B3) "
+            "| D",
         )
 
 
@@ -444,7 +369,7 @@ def test_docstring_examples():
     DIRT = Item("dirt")
     search_for_dirt = Transformation(
         "search_for_dirt",
-        inventory_changes={"player": {"add": [DIRT]}},
+        inventory_changes=[Yield(PLAYER, DIRT)],
     )
     transformations.append(search_for_dirt)
 
@@ -458,7 +383,7 @@ def test_docstring_examples():
     WOOD = Item("wood")
     search_for_wood = Transformation(
         "search_for_wood",
-        inventory_changes={"player": {"add": [WOOD]}},
+        inventory_changes=[Yield(PLAYER, WOOD)],
         zones=[FOREST],
     )
     transformations.append(search_for_wood)
@@ -466,19 +391,18 @@ def test_docstring_examples():
     PLANK = Item("plank")
     craft_wood_plank = Transformation(
         "craft_wood_plank",
-        inventory_changes={
-            "player": {"add": [Stack(PLANK, 4)], "remove": [WOOD]},
-        },
+        inventory_changes=[Use(PLAYER, WOOD, consume=1), Yield(PLAYER, PLANK, 4)],
     )
     transformations.append(craft_wood_plank)
 
     HOUSE = Item("house")  # Need 12 WOOD and 64 PLANK to
     build_house = Transformation(
         "build_house",
-        inventory_changes={
-            "player": {"remove": [Stack(WOOD, 12), Stack(PLANK, 64)]},
-            "current_zone": {"add": [HOUSE]},
-        },
+        inventory_changes=[
+            Use(PLAYER, WOOD, 12),
+            Use(PLAYER, PLANK, 64),
+            Yield("current_zone", HOUSE),
+        ],
     )
     transformations.append(build_house)
 
@@ -487,7 +411,7 @@ def test_docstring_examples():
     climb_tree = Transformation(
         "climb_tree",
         destination=TREETOPS,
-        inventory_changes={"player": {"remove": [LADDER]}},
+        inventory_changes=[Use(PLAYER, LADDER, consume=1)],
         zones=[FOREST],
     )
     transformations.append(climb_tree)
@@ -496,7 +420,7 @@ def test_docstring_examples():
     jump_from_tree = Transformation(
         "jump_from_tree",
         destination=FOREST,
-        inventory_changes={"destination": {"add": [CRATER]}},
+        inventory_changes=[Yield("destination", CRATER)],
         zones=[TREETOPS],
     )
     transformations.append(jump_from_tree)
@@ -506,16 +430,10 @@ def test_docstring_examples():
     KEY = Item("key")
     enter_house = Transformation(
         destination=INSIDE_HOUSE,
-        inventory_changes={
-            "player": {
-                "remove": [KEY],  # Ensure has key
-                "add": [KEY],  # Then give it back
-            },
-            "current_zone": {
-                "remove": [DOOR],  # Ensure has door
-                "add": [DOOR],  # Then give it back
-            },
-        },
+        inventory_changes=[
+            Use(PLAYER, KEY),  # Ensure has key
+            Use("current_zone", DOOR),  # Ensure has door
+        ],
     )
     transformations.append(enter_house)
 
@@ -524,15 +442,10 @@ def test_docstring_examples():
     INCOMING_MISSILES = Item("incoming_missiles")
     press_red_button = Transformation(
         "press_red_button",
-        inventory_changes={
-            "current_zone": {  # Current zone
-                "remove": [STRANGE_RED_BUTTON],
-                "add": [STRANGE_RED_BUTTON],
-            },
-            SPACE: {  # An 'absolute' specific zone
-                "add": [Stack(INCOMING_MISSILES, 64)]
-            },
-        },
+        inventory_changes=[
+            Use("current_zone", STRANGE_RED_BUTTON),  # Ensure has door
+            Yield(SPACE, INCOMING_MISSILES),  # An 'absolute' specific zone
+        ],
     )
     transformations.append(press_red_button)
 
@@ -547,4 +460,4 @@ def test_docstring_examples():
 
 
 def check_equal_str(actual, expected):
-    check.equal(actual, expected, msg=f"\n{expected}\n{actual}")
+    check.equal(actual, expected, msg=f"\n{actual}\n{expected}")

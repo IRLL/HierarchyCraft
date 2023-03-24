@@ -7,7 +7,7 @@ from tests.envs import classic_env
 
 def random_legal_agent(observation, action_is_legal):
     action = np.random.choice(np.nonzero(action_is_legal)[0])
-    return action
+    return int(action)
 
 
 def test_random_legal_agent():

@@ -102,6 +102,8 @@ class HcraftPlanningProblem:
         """Solve the current planning problem with a planner."""
         with OneshotPlanner(problem_kind=self.upf_problem.kind) as planner:
             results = planner.solve(self.upf_problem)
+        if results.plan is None:
+            raise ValueError("Not plan could be found for this problem.")
         self.plan = results.plan
         return results
 
@@ -201,21 +203,21 @@ class HcraftPlanningProblem:
         transfo: Transformation,
     ):
         player = InventoryOwner.PLAYER
-        add_item_to_quantity = {}
         for stack in transfo.get_changes(player, "add", []):
             stack_amount = self.amount(self.items_obj[stack.item])
             action.add_increase_effect(stack_amount, stack.quantity)
-            add_item_to_quantity[stack.item] = stack.quantity
-
-        for stack in transfo.get_changes(player, "remove", []):
-            stack_amount = self.amount(self.items_obj[stack.item])
-            action.add_precondition(GE(stack_amount, stack.quantity))
-            action.add_decrease_effect(stack_amount, stack.quantity)
 
         for max_stack in transfo.get_changes(player, "max", []):
             stack_amount = self.amount(self.items_obj[max_stack.item])
-            removed = add_item_to_quantity.get(max_stack.item, 0)
-            action.add_precondition(LE(stack_amount, max_stack.quantity - removed))
+            action.add_precondition(LE(stack_amount, max_stack.quantity))
+
+        for stack in transfo.get_changes(player, "remove", []):
+            stack_amount = self.amount(self.items_obj[stack.item])
+            action.add_decrease_effect(stack_amount, stack.quantity)
+
+        for min_stack in transfo.get_changes(player, "min", []):
+            stack_amount = self.amount(self.items_obj[min_stack.item])
+            action.add_precondition(GE(stack_amount, min_stack.quantity))
 
     def _add_current_zone_operations(
         self,
@@ -223,23 +225,22 @@ class HcraftPlanningProblem:
         transfo: Transformation,
         loc,
     ):
-        amount_at = self.upf_problem.fluent("amount_at")
         current = InventoryOwner.CURRENT
-        add_item_to_quantity = {}
         for stack in transfo.get_changes(current, "add", []):
-            amount_at_loc = amount_at(self.zone_items_obj[stack.item], loc)
+            amount_at_loc = self.amount_at(self.zone_items_obj[stack.item], loc)
             action.add_increase_effect(amount_at_loc, stack.quantity)
-            add_item_to_quantity[stack.item] = stack.quantity
-
-        for rem_stack in transfo.get_changes(current, "remove", []):
-            amount_at_loc = amount_at(self.zone_items_obj[rem_stack.item], loc)
-            action.add_precondition(GE(amount_at_loc, rem_stack.quantity))
-            action.add_decrease_effect(amount_at_loc, rem_stack.quantity)
 
         for max_stack in transfo.get_changes(current, "max", []):
-            amount_at_loc = amount_at(self.zone_items_obj[max_stack.item], loc)
-            removed = add_item_to_quantity.get(max_stack.item, 0)
-            action.add_precondition(LE(amount_at_loc, max_stack.quantity - removed))
+            amount_at_loc = self.amount_at(self.zone_items_obj[max_stack.item], loc)
+            action.add_precondition(LE(amount_at_loc, max_stack.quantity))
+
+        for rem_stack in transfo.get_changes(current, "remove", []):
+            amount_at_loc = self.amount_at(self.zone_items_obj[rem_stack.item], loc)
+            action.add_decrease_effect(amount_at_loc, rem_stack.quantity)
+
+        for min_stack in transfo.get_changes(current, "min", []):
+            stack_amount = self.amount_at(self.zone_items_obj[min_stack.item], loc)
+            action.add_precondition(GE(stack_amount, min_stack.quantity))
 
     def _task_to_goal(self, task: "Task"):
         if isinstance(task, GetItemTask):

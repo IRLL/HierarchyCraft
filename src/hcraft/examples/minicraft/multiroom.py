@@ -4,7 +4,7 @@ from typing import List
 
 from hcraft.elements import Item, Zone
 from hcraft.task import GetItemTask
-from hcraft.transformation import Transformation
+from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZONE
 
 from hcraft.examples.minicraft.minicraft import MiniCraftEnv
 
@@ -30,19 +30,17 @@ class MiniCraftMultiRoom(MiniCraftEnv):
         transformations = []
         find_goal = Transformation(
             "find_goal",
-            inventory_changes={
-                "current_zone": {"add": [self.GOAL], "max": [self.GOAL]},
-            },
+            inventory_changes=[Yield(CURRENT_ZONE, self.GOAL, max=0)],
             zones=[self.rooms[-1]],
         )
         transformations.append(find_goal)
 
         reach_goal = Transformation(
             "reach_goal",
-            inventory_changes={
-                "player": {"add": [self.GOAL]},
-                "current_zone": {"remove": [self.GOAL]},
-            },
+            inventory_changes=[
+                Use(CURRENT_ZONE, self.GOAL, consume=1),
+                Yield(PLAYER, self.GOAL),
+            ],
         )
         transformations.append(reach_goal)
 

@@ -42,9 +42,9 @@ Thus the number of actions required is $1 + 2 + 4 + 1 = 8 = 2^4$.
 
 from typing import List
 
-from hcraft.elements import Item, Stack
+from hcraft.elements import Item
 from hcraft.env import HcraftEnv
-from hcraft.transformation import Transformation
+from hcraft.transformation import Transformation, Use, Yield, PLAYER
 from hcraft.task import GetItemTask
 from hcraft.world import world_from_transformations
 
@@ -101,15 +101,12 @@ class RecursiveHcraftEnv(HcraftEnv):
         transformation = []
 
         for index, item in enumerate(items):
-            if index == 0:
-                inputs = []
-            else:
-                inputs = [Stack(items[item_id]) for item_id in range(index)]
-            outputs = [Stack(item)]
-
-            new_recipe = Transformation(
-                inventory_changes={"player": {"remove": inputs, "add": outputs}}
-            )
+            inventory_changes = [Yield(PLAYER, item)]
+            if index > 0:
+                inventory_changes += [
+                    Use(PLAYER, items[item_id], consume=1) for item_id in range(index)
+                ]
+            new_recipe = Transformation(inventory_changes=inventory_changes)
             transformation.append(new_recipe)
 
         return transformation
@@ -151,15 +148,14 @@ class LightRecursiveHcraftEnv(HcraftEnv):
 
         for index, item in enumerate(items):
             low_id = max(0, index - self.n_required_previous)
-            if index == 0:
-                inputs = []
-            else:
-                inputs = [Stack(items[item_id]) for item_id in range(low_id, index)]
-            outputs = [Stack(item)]
+            inventory_changes = [Yield(PLAYER, item)]
+            if index > 0:
+                inventory_changes += [
+                    Use(PLAYER, items[item_id], consume=1)
+                    for item_id in range(low_id, index)
+                ]
 
-            new_recipe = Transformation(
-                inventory_changes={"player": {"remove": inputs, "add": outputs}}
-            )
+            new_recipe = Transformation(inventory_changes=inventory_changes)
             transformation.append(new_recipe)
 
         return transformation

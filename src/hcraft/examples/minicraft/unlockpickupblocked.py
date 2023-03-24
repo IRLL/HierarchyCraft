@@ -2,9 +2,9 @@
 
 from typing import List
 
-from hcraft.elements import Item, Zone, Stack
+from hcraft.elements import Item, Zone
 from hcraft.task import GetItemTask
-from hcraft.transformation import Transformation
+from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZONE
 
 from hcraft.examples.minicraft.minicraft import MiniCraftEnv
 
@@ -52,15 +52,20 @@ class MiniCraftBlockedUnlockPickup(MiniCraftEnv):
         items_in_zone = [(self.KEY, self.START), (self.BOX, self.BOX_ROOM)]
 
         for item, zone in items_in_zone:
-            inventory_changes = {
-                "current_zone": {"add": [item]},
+            inventory_changes = [
+                Yield(CURRENT_ZONE, item, create=1),
                 # Prevent searching if already found
-                "player": {"max": [item]},
-            }
+                Yield(PLAYER, item, create=0, max=0),
+            ]
             # Prevent searching if item was placed elsewhere
-            inventory_changes.update(
-                {zone: {"max": [item]} for zone in zones},
+            inventory_changes += [Yield(zone, item, create=0, max=0) for zone in zones]
+            search_for_item = Transformation(
+                f"search_for_{item.name}",
+                inventory_changes=inventory_changes,
+                zones=[zone],
             )
+            transformations.append(search_for_item)
+
             search_for_item = Transformation(
                 f"search_for_{item.name}",
                 inventory_changes=inventory_changes,
@@ -71,124 +76,94 @@ class MiniCraftBlockedUnlockPickup(MiniCraftEnv):
         for item in (self.KEY, self.BOX, self.BALL):
             pickup = Transformation(
                 f"pickup_{item.name}",
-                inventory_changes={
-                    "player": {
-                        "add": [item, self.WEIGHT],
-                        # Prevent carrying more than one item
-                        "max": [self.WEIGHT],
-                    },
-                    "current_zone": {"remove": [item]},
-                },
+                inventory_changes=[
+                    Use(CURRENT_ZONE, item, consume=1),
+                    Yield(PLAYER, item, create=1),
+                    # WEIGHT prevents carrying more than one item
+                    Yield(PLAYER, self.WEIGHT, create=1, max=0),
+                ],
             )
             put_down = Transformation(
                 f"put_down_{item.name}",
-                inventory_changes={
-                    "player": {"remove": [item, self.WEIGHT]},
-                    "current_zone": {"add": [item]},
-                },
+                inventory_changes=[
+                    Use(PLAYER, item, consume=1),
+                    Yield(CURRENT_ZONE, item, create=1),
+                    # WEIGHT prevents carrying more than one item
+                    Use(PLAYER, self.WEIGHT, consume=1),
+                ],
             )
             transformations += [pickup, put_down]
 
         search_for_door = Transformation(
             "search_for_door",
-            inventory_changes={
-                "current_zone": {
-                    "add": [self.BLOCKED_LOCKED_DOOR],
-                    # Prevent creating door if door was already found
-                    "max": [
-                        self.BLOCKED_LOCKED_DOOR,
-                        Stack(self.BLOCKED_DOOR, 0),
-                        Stack(self.LOCKED_DOOR, 0),
-                        Stack(self.OPEN_DOOR, 0),
-                    ],
-                },
-            },
+            inventory_changes=[
+                Yield(CURRENT_ZONE, self.BLOCKED_LOCKED_DOOR, create=1, max=0),
+                Yield(CURRENT_ZONE, self.BLOCKED_DOOR, create=0, max=0),
+                Yield(CURRENT_ZONE, self.LOCKED_DOOR, create=0, max=0),
+                Yield(CURRENT_ZONE, self.OPEN_DOOR, create=0, max=0),
+            ],
             zones=[self.START],
         )
         transformations.append(search_for_door)
 
         unblock_locked_door = Transformation(
             "unblock_locked_door",
-            inventory_changes={
-                "player": {
-                    "add": [self.BALL, self.WEIGHT],
-                    "max": [self.WEIGHT],
-                },
-                "current_zone": {
-                    "remove": [self.BLOCKED_LOCKED_DOOR],
-                    "add": [self.LOCKED_DOOR],
-                },
-            },
+            inventory_changes=[
+                Use(CURRENT_ZONE, self.BLOCKED_LOCKED_DOOR, consume=1),
+                Yield(CURRENT_ZONE, self.LOCKED_DOOR, create=1),
+                Yield(PLAYER, self.BALL, create=1),
+                Yield(PLAYER, self.WEIGHT, create=1, max=0),
+            ],
         )
         transformations.append(unblock_locked_door)
 
         block_locked_door = Transformation(
             "block_locked_door",
-            inventory_changes={
-                "player": {
-                    "remove": [self.BALL, self.WEIGHT],
-                },
-                "current_zone": {
-                    "remove": [self.LOCKED_DOOR],
-                    "add": [self.BLOCKED_LOCKED_DOOR],
-                },
-            },
+            inventory_changes=[
+                Use(CURRENT_ZONE, self.LOCKED_DOOR, consume=1),
+                Use(PLAYER, self.BALL, consume=1),
+                Use(PLAYER, self.WEIGHT, consume=1),
+                Yield(CURRENT_ZONE, self.BLOCKED_LOCKED_DOOR, create=1),
+            ],
         )
         transformations.append(block_locked_door)
 
         unlock_door = Transformation(
             "unlock_door",
-            inventory_changes={
-                "player": {
-                    "remove": [self.KEY],
-                    "add": [self.KEY],
-                },
-                "current_zone": {
-                    "remove": [self.LOCKED_DOOR],
-                    "add": [self.OPEN_DOOR],
-                },
-            },
+            inventory_changes=[
+                Use(PLAYER, self.KEY),
+                Use(CURRENT_ZONE, self.LOCKED_DOOR, consume=1),
+                Yield(CURRENT_ZONE, self.OPEN_DOOR, create=1),
+            ],
         )
         transformations.append(unlock_door)
 
         block_door = Transformation(
             "block_door",
-            inventory_changes={
-                "player": {
-                    "remove": [self.BALL, self.WEIGHT],
-                },
-                "current_zone": {
-                    "remove": [self.OPEN_DOOR],
-                    "add": [self.BLOCKED_DOOR],
-                },
-            },
+            inventory_changes=[
+                Use(CURRENT_ZONE, self.OPEN_DOOR, consume=1),
+                Use(PLAYER, self.BALL, consume=1),
+                Use(PLAYER, self.WEIGHT, consume=1),
+                Yield(CURRENT_ZONE, self.BLOCKED_DOOR, create=1),
+            ],
         )
         transformations.append(block_door)
 
         unblock_door = Transformation(
             "unblock_door",
-            inventory_changes={
-                "player": {
-                    "add": [self.BALL, self.WEIGHT],
-                    "max": [self.WEIGHT],
-                },
-                "current_zone": {
-                    "remove": [self.BLOCKED_DOOR],
-                    "add": [self.OPEN_DOOR],
-                },
-            },
+            inventory_changes=[
+                Use(CURRENT_ZONE, self.BLOCKED_DOOR, consume=1),
+                Yield(CURRENT_ZONE, self.OPEN_DOOR, create=1),
+                Yield(PLAYER, self.BALL, create=1),
+                Yield(PLAYER, self.WEIGHT, create=1, max=0),
+            ],
         )
         transformations.append(unblock_door)
 
         move_to_box_room = Transformation(
             "move_to_box_room",
             destination=self.BOX_ROOM,
-            inventory_changes={
-                "current_zone": {
-                    "remove": [self.OPEN_DOOR],
-                    "add": [self.OPEN_DOOR],
-                },
-            },
+            inventory_changes=[Use(CURRENT_ZONE, self.OPEN_DOOR)],
             zones=[self.START],
         )
         transformations.append(move_to_box_room)

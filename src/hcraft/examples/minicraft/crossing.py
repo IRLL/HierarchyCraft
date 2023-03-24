@@ -4,7 +4,7 @@ from typing import List
 
 from hcraft.elements import Item, Zone
 from hcraft.purpose import Purpose, GetItemTask
-from hcraft.transformation import Transformation
+from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZONE
 
 from hcraft.examples.minicraft.minicraft import MiniCraftEnv
 
@@ -38,33 +38,29 @@ class MiniCraftCrossing(MiniCraftEnv):
     def build_transformations(self) -> List[Transformation]:
         find_goal = Transformation(
             "find_goal",
-            inventory_changes={
-                "current_zone": {"add": [self.GOAL], "max": [self.GOAL]},
-            },
+            inventory_changes=[Yield(CURRENT_ZONE, self.GOAL, max=0)],
             zones=[self.ROOM],
         )
 
         reach_goal = Transformation(
             "reach_goal",
-            inventory_changes={
-                "player": {"add": [self.GOAL]},
-                "current_zone": {"remove": [self.GOAL]},
-            },
+            inventory_changes=[
+                Use(CURRENT_ZONE, self.GOAL),
+                Yield(PLAYER, self.GOAL),
+            ],
         )
 
         find_lava = Transformation(
             "find_lava",
-            inventory_changes={
-                "current_zone": {"add": [self.LAVA], "max": [self.LAVA]},
-            },
+            inventory_changes=[Yield(CURRENT_ZONE, self.LAVA, max=0)],
             zones=[self.ROOM],
         )
 
         reach_lava = Transformation(
             "reach_lava",
-            inventory_changes={
-                "player": {"add": [self.LAVA]},
-                "current_zone": {"remove": [self.LAVA]},
-            },
+            inventory_changes=[
+                Use(CURRENT_ZONE, self.LAVA),
+                Yield(PLAYER, self.LAVA),
+            ],
         )
         return [find_goal, reach_goal, find_lava, reach_lava]

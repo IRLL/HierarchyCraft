@@ -16,10 +16,8 @@ class Stack:
     quantity: int = 1
 
     def __str__(self) -> str:
-        name = self.item.name
-        if self.quantity > 1:
-            name += f"[{self.quantity}]"
-        return name
+        quantity_str = f"[{self.quantity}]" if self.quantity > 1 else ""
+        return f"{quantity_str}{self.item.name}"
 
 
 @dataclass(frozen=True)

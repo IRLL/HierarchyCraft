@@ -63,6 +63,7 @@ class TestGetItem:
         check.equal(self.task.reward(state), 0)
         state = DummyState(player_inventory=np.array([0, 4, 0, 0]))
         check.equal(self.task.reward(state), 5)
+        self.task.terminated = True
         check.equal(self.task.reward(state), 0)
 
 
@@ -94,6 +95,7 @@ class TestGoToZone:
         check.equal(self.task.reward(state), 0)
         state = DummyState(position=np.array([0, 1]))
         check.equal(self.task.reward(state), 5)
+        self.task.terminated = True
         check.equal(self.task.reward(state), 0)
 
 
@@ -165,4 +167,5 @@ class TestPlaceItem:
         check.equal(self.task.reward(state), 0)
         state = DummyState(zones_inventories=np.array([[0, 0, 0], [0, 0, 2]]))
         check.equal(self.task.reward(state), 5)
+        self.task.terminated = True
         check.equal(self.task.reward(state), 0)

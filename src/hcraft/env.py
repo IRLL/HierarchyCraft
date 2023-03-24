@@ -34,13 +34,13 @@ We want to remove the chest from the zone where our player is, and add it to his
 We can then link those two items with a Tranformation from `hcraft.transformation`:
 
 ```python
-from hcraft.transformation import Transformation
+from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZONE
 
 TAKE_GOLD_FROM_CHEST = Transformation(
-    inventory_changes={
-        "current_zone": {"remove": [CHEST]},
-        "player": {"add": [GOLD]},
-    }
+    inventory_changes=[
+        Use(CURRENT_ZONE, CHEST),
+        Yield(PLAYER, GOLD),
+    ]
 )
 ```
 
@@ -125,25 +125,29 @@ KEY = Item("key")
 KEY_ROOM = Zone("key_room")
 ```
 
-Now let's make the `KEY_ROOM` a source of infinite `KEY` with a transformation:
+Now let's make the `KEY_ROOM` a source of maximum 2 `KEY` with a transformation:
 
 ```python
 SEARCH_KEY = Transformation(
-    inventory_changes={"player": {"add": [KEY]}},
+    inventory_changes=[
+        Yield(PLAYER, KEY, max=1),
+    ],
     zones=[KEY_ROOM],
 )
 ```
+Note that `max=1` because max is the maximum *before* the transformation.
 
-Then add the new 'state' for the `CHEST`, for this we simply build a new item `LOCKED_CHEST`,
-and we add a transformation that will unlock the `LOCKED_CHEST` into a `CHEST` using two `KEYS`.
+Then add the 'new state' for the `CHEST`, for this we simply build a new item `LOCKED_CHEST`,
+and we add a transformation that will unlock the `LOCKED_CHEST` into a `CHEST` consuming two `KEYS`.
 
 ```python
 LOCKED_CHEST = Item("locked_chest")
 UNLOCK_CHEST = Transformation(
-    inventory_changes={
-        "player": {"remove": [Stack(KEY, 2)]},
-        "current_zone": {"remove": [LOCKED_CHEST], "add": [CHEST]},
-    },
+    inventory_changes=[
+        Use(PLAYER, KEY, 2),
+        Use(CURRENT_ZONE, LOCKED_CHEST, consume=1),
+        Yield(CURRENT_ZONE, CHEST),
+    ],
 )
 ```
 
@@ -384,6 +388,11 @@ class HcraftEnv(Env):
         Else the state is left unchanged and the `invalid_reward` is given to the player.
 
         """
+        if not isinstance(action, int):
+            raise TypeError(
+                "Actions should be integers corresponding the a transformation index."
+            )
+
         self.current_step += 1
 
         self.task_successes.step_reset()
@@ -395,11 +404,11 @@ class HcraftEnv(Env):
         else:
             reward = self.invalid_reward
 
-        self.task_successes.update(self.episodes)
-        self.terminal_successes.update(self.episodes)
-
         terminated = self.terminated
         truncated = self.truncated
+
+        self.task_successes.update(self.episodes)
+        self.terminal_successes.update(self.episodes)
 
         self.current_score += reward
         self.cumulated_score += reward
