@@ -12,6 +12,8 @@ from hcraft.examples.minecraft.env import MineHcraftEnv
 from hcraft.purpose import Purpose, RewardShaping, platinium_purpose
 from hcraft.task import GetItemTask
 
+MINEHCRAFT_GYM_ENVS = []
+
 # gym is an optional dependency
 try:
     import gym
@@ -24,6 +26,7 @@ try:
         entry_point=ENV_PATH,
         kwargs={"purpose": None},
     )
+    MINEHCRAFT_GYM_ENVS.append("MineHcraft-NoReward-v1")
 
     # Get all items, place all zones_items and go everywhere
     gym.register(
@@ -31,6 +34,7 @@ try:
         entry_point=ENV_PATH,
         kwargs={"purpose": platinium_purpose(MineHcraftEnv().world)},
     )
+    MINEHCRAFT_GYM_ENVS.append("MineHcraft-v1")
 
     def _to_camel_case(name: str):
         return "".join([subname.capitalize() for subname in name.split("_")])
@@ -50,13 +54,15 @@ try:
         )
         if name is None:
             name = _to_camel_case(item.name)
+        gym_name = f"MineHcraft-{name}-v{version}"
         gym.register(
-            id=f"MineHcraft-{name}-v{version}",
+            id=gym_name,
             entry_point=ENV_PATH,
             kwargs={"purpose": purpose},
         )
+        MINEHCRAFT_GYM_ENVS.append(gym_name)
 
-    _register_minehcraft_single_item(items.DIRT)
+    _register_minehcraft_single_item(items.WOOD)
     _register_minehcraft_single_item(items.COBBLESTONE, name="Stone")
     _register_minehcraft_single_item(items.IRON_INGOT, name="Iron")
     _register_minehcraft_single_item(items.DIAMOND)

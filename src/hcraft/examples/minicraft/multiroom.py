@@ -9,7 +9,7 @@ from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZO
 from hcraft.examples.minicraft.minicraft import MiniCraftEnv
 
 
-class MiniCraftMultiRoom(MiniCraftEnv):
+class MiniHCraftMultiRoom(MiniCraftEnv):
     MINICRAFT_NAME = "MultiRoom"
     __doc__ = MiniCraftEnv.description(MINICRAFT_NAME)
 

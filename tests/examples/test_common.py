@@ -6,10 +6,10 @@ import os
 from unified_planning.io import PDDLWriter
 
 from hcraft.render.human import render_env_with_human
-from hcraft.examples import EXAMPLE_ENVS
+from hcraft.examples import EXAMPLE_ENVS, HCRAFT_GYM_ENVS
 from hcraft.examples.minicraft import (
-    MiniCraftKeyCorridor,
-    MiniCraftBlockedUnlockPickup,
+    MiniHCraftKeyCorridor,
+    MiniHCraftBlockedUnlockPickup,
 )
 from hcraft.env import HcraftEnv
 
@@ -35,7 +35,7 @@ def test_pddl_solve(env_class):
         writer.write_domain(os.path.join(pddl_dir, "domain.pddl"))
         writer.write_problem(os.path.join(pddl_dir, "problem.pddl"))
 
-    if isinstance(env, MiniCraftBlockedUnlockPickup):
+    if isinstance(env, MiniHCraftBlockedUnlockPickup):
         return  # Infinite loop for no reason ???
 
     done = False
@@ -48,8 +48,8 @@ def test_pddl_solve(env_class):
 
 
 KNOWN_TO_FAIL = [
-    MiniCraftBlockedUnlockPickup,
-    MiniCraftKeyCorridor,
+    MiniHCraftBlockedUnlockPickup,
+    MiniHCraftKeyCorridor,
 ]
 
 
@@ -70,6 +70,12 @@ def test_can_solve(env_class):
             observation, _reward, done, _ = env.step(action)
             task_done = task.terminated
     check.is_true(env.purpose.terminated)
+
+
+@pytest.mark.parametrize("env_gym_id", HCRAFT_GYM_ENVS)
+def test_gym_make(env_gym_id):
+    gym = pytest.importorskip("gym")
+    gym.make(env_gym_id)
 
 
 @pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
