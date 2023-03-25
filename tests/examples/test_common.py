@@ -43,7 +43,8 @@ def test_pddl_solve(env_class):
     while not done:
         action = problem.action_from_plan(env.state)
         _observation, _reward, done, _ = env.step(action)
-    check.is_true(env.purpose.terminated)
+    check.is_true(env.purpose.terminated, msg=f"Plan was :{problem.plans}")
+    check.equal(env.current_step, problem.stats[0]["Plan-Length"])
 
 
 KNOWN_TO_FAIL = [

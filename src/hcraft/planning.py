@@ -1,5 +1,5 @@
-from typing import TYPE_CHECKING, Dict, Optional
-
+from typing import TYPE_CHECKING, Dict, Optional, Union, List
+from copy import deepcopy
 
 from unified_planning.shortcuts import (
     UserType,
@@ -26,6 +26,8 @@ from hcraft.elements import Zone, Item
 if TYPE_CHECKING:
     from hcraft.state import HcraftState
 
+Statistics = Dict[str, Union[int, float]]
+
 
 class HcraftPlanningProblem:
     """Interface between the unified planning framework and HierarchyCraft."""
@@ -42,6 +44,8 @@ class HcraftPlanningProblem:
         """
         self.upf_problem: Optional[Problem] = self._init_problem(state, name, purpose)
         self.plan: Optional[SequentialPlan] = None
+        self.plans: List[SequentialPlan] = []
+        self.stats: List[Statistics] = []
 
     def action_from_plan(self, state: "HcraftState") -> int:
         """Get the next gym action from a given state.
@@ -101,10 +105,12 @@ class HcraftPlanningProblem:
     def solve(self) -> PlanGenerationResult:
         """Solve the current planning problem with a planner."""
         with OneshotPlanner(problem_kind=self.upf_problem.kind) as planner:
-            results = planner.solve(self.upf_problem)
+            results: PlanGenerationResult = planner.solve(self.upf_problem)
         if results.plan is None:
             raise ValueError("Not plan could be found for this problem.")
-        self.plan = results.plan
+        self.plan = deepcopy(results.plan)
+        self.plans.append(deepcopy(results.plan))
+        self.stats.append(_read_statistics(results))
         return results
 
     def _init_problem(
@@ -268,3 +274,18 @@ class HcraftPlanningProblem:
 
         # We only consider the best terminal group goal
         return And(*[goals[task] for task in purpose.best_terminal_group.tasks])
+
+
+def _read_statistics(results: PlanGenerationResult) -> Statistics:
+    statistic_logs = results.log_messages[0].message.split("\n\n")[-1].split("\n")
+    stats = {}
+    for stat_log in statistic_logs:
+        stat_log = stat_log.replace("\r", "")
+        name_and_value = stat_log.split(":")
+        if len(name_and_value) != 2:
+            continue
+        try:
+            stats[name_and_value[0]] = int(name_and_value[1])
+        except ValueError:
+            stats[name_and_value[0]] = float(name_and_value[1])
+    return stats
