@@ -263,7 +263,7 @@ class HcraftPlanningProblem:
             ]
             return Or(*conditions)
         if isinstance(task, GoToZoneTask):
-            return self.visited(self.zones_obj[task.zone.name])
+            return self.visited(self.zones_obj[task.zone])
         raise NotImplementedError
 
     def _purpose_to_goal(self, purpose: "Purpose"):
