@@ -489,7 +489,7 @@ class HcraftEnv(Env):
         """
         return self.all_behaviors[task_to_behavior_name(task)]
 
-    def planning_problem(self) -> HcraftPlanningProblem:
+    def planning_problem(self, **kwargs) -> HcraftPlanningProblem:
         """Build this hcraft environment planning problem.
 
         Returns:
@@ -517,7 +517,7 @@ class HcraftEnv(Env):
             assert env.purpose.is_terminated # Purpose is achieved
             ```
         """
-        return HcraftPlanningProblem(self.state, self.name, self.purpose)
+        return HcraftPlanningProblem(self.state, self.name, self.purpose, **kwargs)
 
     def _step_output(self, reward: float, terminated: bool, truncated: bool):
         infos = {

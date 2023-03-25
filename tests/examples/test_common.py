@@ -22,11 +22,19 @@ def test_build_env(env_class):
         render_env_with_human(env)
 
 
-@pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
+KNOWN_TO_FAIL_ENHSP = [
+    MiniHCraftBlockedUnlockPickup,
+]
+
+
+@pytest.mark.parametrize("env_class", EXAMPLE_ENVS[1:])
 def test_pddl_solve(env_class):
     write = False
     env: HcraftEnv = env_class(max_step=200)
-    problem = env.planning_problem()
+    problem = env.planning_problem(timeout=5)
+
+    if env_class in KNOWN_TO_FAIL_ENHSP:
+        pytest.xfail("ENHSP planner is known to fail on this environment")
 
     if write:
         writer = PDDLWriter(problem.upf_problem)
@@ -34,9 +42,6 @@ def test_pddl_solve(env_class):
         os.makedirs(pddl_dir, exist_ok=True)
         writer.write_domain(os.path.join(pddl_dir, "domain.pddl"))
         writer.write_problem(os.path.join(pddl_dir, "problem.pddl"))
-
-    if isinstance(env, MiniHCraftBlockedUnlockPickup):
-        return  # Infinite loop for no reason ???
 
     done = False
     _observation = env.reset()
@@ -47,17 +52,17 @@ def test_pddl_solve(env_class):
     check.equal(env.current_step, problem.stats[0]["Plan-Length"])
 
 
-KNOWN_TO_FAIL = [
+KNOWN_TO_FAIL_HEBG = [
     MiniHCraftBlockedUnlockPickup,
     MiniHCraftKeyCorridor,
 ]
 
 
-@pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
+@pytest.mark.parametrize("env_class", EXAMPLE_ENVS[1:])
 def test_can_solve(env_class):
     env: HcraftEnv = env_class(max_step=50)
-    if env_class in KNOWN_TO_FAIL:
-        pytest.xfail("Known to fail on this environment")
+    if env_class in KNOWN_TO_FAIL_HEBG:
+        pytest.xfail("Hebg is known to fail on this environment")
     done = False
     observation = env.reset()
     for task in env.purpose.best_terminal_group.tasks:

@@ -33,7 +33,11 @@ class HcraftPlanningProblem:
     """Interface between the unified planning framework and HierarchyCraft."""
 
     def __init__(
-        self, state: "HcraftState", name: str, purpose: Optional["Purpose"]
+        self,
+        state: "HcraftState",
+        name: str,
+        purpose: Optional["Purpose"],
+        timeout: float = 60,
     ) -> None:
         """Initialize a HierarchyCraft planning problem on the given state and purpose.
 
@@ -41,13 +45,16 @@ class HcraftPlanningProblem:
             state: Initial state of the HierarchyCraft environment.
             name: Name of the planning problem.
             purpose: Purpose used to compute the planning goal.
+            timeout: Time budget (s) for the plan to be found before giving up.
+                Set to -1 for no limit. Defaults to 60.
         """
         self.upf_problem: Optional[Problem] = self._init_problem(state, name, purpose)
         self.plan: Optional[SequentialPlan] = None
         self.plans: List[SequentialPlan] = []
         self.stats: List[Statistics] = []
+        self.timeout = timeout
 
-    def action_from_plan(self, state: "HcraftState") -> int:
+    def action_from_plan(self, state: "HcraftState") -> Optional[int]:
         """Get the next gym action from a given state.
 
         If a plan is already existing, just use the next action in the plan.
@@ -57,11 +64,13 @@ class HcraftPlanningProblem:
             state (HcraftState): Current state of the hcraft environement.
 
         Returns:
-            int: Action to take according to the plan.
+            int: Action to take according to the plan. Returns None if no action is required.
         """
         if self.plan is None:
             self.update_problem_to_state(state)
             self.solve()
+        if not self.plan.actions:  # Empty plan, nothing to do
+            return None
         plan_action_name = str(self.plan.actions.pop(0))
         if not self.plan.actions:
             self.plan = None
@@ -105,7 +114,9 @@ class HcraftPlanningProblem:
     def solve(self) -> PlanGenerationResult:
         """Solve the current planning problem with a planner."""
         with OneshotPlanner(problem_kind=self.upf_problem.kind) as planner:
-            results: PlanGenerationResult = planner.solve(self.upf_problem)
+            results: PlanGenerationResult = planner.solve(
+                self.upf_problem, timeout=self.timeout
+            )
         if results.plan is None:
             raise ValueError("Not plan could be found for this problem.")
         self.plan = deepcopy(results.plan)
@@ -263,7 +274,7 @@ class HcraftPlanningProblem:
             ]
             return Or(*conditions)
         if isinstance(task, GoToZoneTask):
-            return self.visited(self.zones_obj[task.zone.name])
+            return self.visited(self.zones_obj[task.zone])
         raise NotImplementedError
 
     def _purpose_to_goal(self, purpose: "Purpose"):

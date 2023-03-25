@@ -19,6 +19,7 @@ try:
     import gym
 
     ENV_PATH = "hcraft.examples.minecraft.env:MineHcraftEnv"
+    MC_WORLD = MineHcraftEnv().world
 
     # Simple MineHcraft with no reward, only penalty on illegal actions
     gym.register(
@@ -32,7 +33,7 @@ try:
     gym.register(
         id="MineHcraft-v1",
         entry_point=ENV_PATH,
-        kwargs={"purpose": platinium_purpose(MineHcraftEnv().world)},
+        kwargs={"purpose": platinium_purpose(MC_WORLD)},
     )
     MINEHCRAFT_GYM_ENVS.append("MineHcraft-v1")
 
@@ -62,12 +63,17 @@ try:
         )
         MINEHCRAFT_GYM_ENVS.append(gym_name)
 
-    _register_minehcraft_single_item(items.WOOD)
-    _register_minehcraft_single_item(items.COBBLESTONE, name="Stone")
-    _register_minehcraft_single_item(items.IRON_INGOT, name="Iron")
-    _register_minehcraft_single_item(items.DIAMOND)
-    _register_minehcraft_single_item(items.ENCHANTING_TABLE)
-    _register_minehcraft_single_item(items.ENDER_DRAGON_HEAD, name="Dragon")
+    replacement_names = {
+        items.COBBLESTONE: "Stone",
+        items.IRON_INGOT: "Iron",
+        items.GOLD_INGOT: "Gold",
+        items.ENDER_DRAGON_HEAD: "Dragon",
+    }
+
+    for item in MC_WORLD.items:
+        cap_item_name = "".join([part.capitalize() for part in item.name.split("_")])
+        item_id = replacement_names.get(item, cap_item_name)
+        _register_minehcraft_single_item(item, name=item_id)
 
 
 except ImportError:
