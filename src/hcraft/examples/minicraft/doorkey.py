@@ -9,7 +9,7 @@ from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZO
 from hcraft.examples.minicraft.minicraft import MiniCraftEnv
 
 
-class MiniCraftDoorKey(MiniCraftEnv):
+class MiniHCraftDoorKey(MiniCraftEnv):
     MINICRAFT_NAME = "DoorKey"
     __doc__ = MiniCraftEnv.description(MINICRAFT_NAME)
 

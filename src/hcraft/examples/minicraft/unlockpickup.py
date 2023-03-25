@@ -10,7 +10,7 @@ from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZO
 from hcraft.examples.minicraft.minicraft import MiniCraftEnv
 
 
-class MiniCraftUnlockPickup(MiniCraftEnv):
+class MiniHCraftUnlockPickup(MiniCraftEnv):
     MINICRAFT_NAME = "UnlockPickup"
     __doc__ = MiniCraftEnv.description(MINICRAFT_NAME)
 

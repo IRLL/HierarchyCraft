@@ -9,7 +9,7 @@ from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZO
 from hcraft.examples.minicraft.minicraft import MiniCraftEnv
 
 
-class MiniCraftCrossing(MiniCraftEnv):
+class MiniHCraftCrossing(MiniCraftEnv):
     MINICRAFT_NAME = "Crossing"
     __doc__ = MiniCraftEnv.description(MINICRAFT_NAME)
 

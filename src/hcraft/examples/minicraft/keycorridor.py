@@ -9,7 +9,7 @@ from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZO
 from hcraft.examples.minicraft.minicraft import MiniCraftEnv
 
 
-class MiniCraftKeyCorridor(MiniCraftEnv):
+class MiniHCraftKeyCorridor(MiniCraftEnv):
     MINICRAFT_NAME = "KeyCorridor"
     __doc__ = MiniCraftEnv.description(MINICRAFT_NAME)
 

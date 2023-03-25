@@ -40,7 +40,7 @@ class MiniCraftEnv(HcraftEnv):
             start_zones_items=start_zones_items,
         )
         world.resources_path = os.path.join(os.path.dirname(__file__), "resources")
-        super().__init__(world, name=f"MiniCraft{self.minicraft_name}", **kwargs)
+        super().__init__(world, name=f"MiniHCraft{self.minicraft_name}", **kwargs)
 
     @abstractmethod
     def build_transformations(self) -> List[Transformation]:
