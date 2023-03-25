@@ -54,7 +54,7 @@ class HcraftPlanningProblem:
         self.stats: List[Statistics] = []
         self.timeout = timeout
 
-    def action_from_plan(self, state: "HcraftState") -> int:
+    def action_from_plan(self, state: "HcraftState") -> Optional[int]:
         """Get the next gym action from a given state.
 
         If a plan is already existing, just use the next action in the plan.
@@ -64,11 +64,13 @@ class HcraftPlanningProblem:
             state (HcraftState): Current state of the hcraft environement.
 
         Returns:
-            int: Action to take according to the plan.
+            int: Action to take according to the plan. Returns None if no action is required.
         """
         if self.plan is None:
             self.update_problem_to_state(state)
             self.solve()
+        if not self.plan.actions:  # Empty plan, nothing to do
+            return None
         plan_action_name = str(self.plan.actions.pop(0))
         if not self.plan.actions:
             self.plan = None
