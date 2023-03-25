@@ -58,7 +58,7 @@ KNOWN_TO_FAIL_HEBG = [
 ]
 
 
-@pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
+@pytest.mark.parametrize("env_class", EXAMPLE_ENVS[1:])
 def test_can_solve(env_class):
     env: HcraftEnv = env_class(max_step=50)
     if env_class in KNOWN_TO_FAIL_HEBG:

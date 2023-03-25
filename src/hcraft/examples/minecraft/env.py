@@ -16,15 +16,13 @@ from hcraft.examples.minecraft.transformations import (
 )
 from hcraft.examples.minecraft.zones import FOREST, NETHER, STRONGHOLD
 from hcraft.world import world_from_transformations
-from hcraft.elements import Item
-from hcraft.purpose import GetItemTask
 
 
 class MineHcraftEnv(HcraftEnv):
 
     """MineHcraft Environment: A minecraft-like HierarchyCraft Environment.
 
-    Default purpose is to get an iron_ingot.
+    Default purpose is None (sandbox).
 
     """
 
@@ -42,7 +40,5 @@ class MineHcraftEnv(HcraftEnv):
             },
         )
         mc_world.resources_path = resources_path
-        if "purpose" not in kwargs:
-            kwargs["purpose"] = GetItemTask(Item("iron_ingot"))
         super().__init__(world=mc_world, name="MineHcraft", **kwargs)
         self.metadata["video.frames_per_second"] = kwargs.pop("fps", 10)
