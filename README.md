@@ -20,9 +20,18 @@ In environments built with HierarchyCraft the agent (player) has an inventory an
 Available actions of the agent are defined by **transformations**.
 **Transformations** are the core element of every HierarchyCraft environment, they define the actions that an agent can perform in the environment. At their core, transformations are simply changes to the state of the environment that can be triggered by the agent if the transformation is allowed in the current state.
 
+## No feature extraction for fast research even with low compute
+
+HierarchyCraft returns vectorized state information, which plainly and directly describes the player's inventory, current positions, and the inventory of the current zone. Compared to benchmarks that return grids, pixel arrays, text or sound, we directly return a low-dimensional latent representation that doesn't need to be learned.
+Therefore saving compute time and allowing researchers to focus only the the hierarchical reasoning part.
+
+![](docs/images/hcraft_observation.png)
+
+See [`hcraft.state`](https://irll.github.io/HierarchyCraft/hcraft/state.html) for more details.
+
 ## Create your own tailored HierarchyCraft environments
 
-You can use HierarchyCraft to create various custom hierarchical environments. As an example, here is a replica of the underlying hierarchy of the popular game Minecraft without the computationaly intensive 3D:
+You can use HierarchyCraft to create various custom hierarchical environments. As an example, here is a replica of the underlying hierarchy of the popular game Minecraft, without the computationaly intensive 3D, displayed in the GUI available for any HierarchyCraft environments:
 
 ![A player knowing Minecraft will find MineHcraft easy.](docs/images/minehcraft_human_demo.gif)
 
