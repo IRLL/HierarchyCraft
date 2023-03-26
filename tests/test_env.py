@@ -110,6 +110,25 @@ class TestCratingEnv:
         expected_observation[3 + start_zone_index] = 1
         check_np_equal(self.env.state.observation, expected_observation)
 
+    def test_step_input_type(self):
+        correct_actions_types = [
+            0,
+            "0",
+            np.array([0]),
+        ]
+
+        for action in correct_actions_types:
+            self.env.step(action)
+
+        incorrect_actions_types = [
+            "a",
+            np.array([0, 1]),
+        ]
+
+        for action in incorrect_actions_types:
+            with pytest.raises(TypeError):
+                self.env.step(action)
+
     def test_step_move(self):
         """move transformation should work correctly."""
         start_zone_slot = self.env.world.slot_from_zone(self.start_zone)

@@ -388,10 +388,13 @@ class HcraftEnv(Env):
         Else the state is left unchanged and the `invalid_reward` is given to the player.
 
         """
-        if not isinstance(action, int):
+
+        try:
+            action = int(action)
+        except (TypeError, ValueError) as e:
             raise TypeError(
                 "Actions should be integers corresponding the a transformation index."
-            )
+            ) from e
 
         self.current_step += 1
 
