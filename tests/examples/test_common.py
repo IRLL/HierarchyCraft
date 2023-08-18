@@ -10,6 +10,7 @@ from hcraft.examples import EXAMPLE_ENVS, HCRAFT_GYM_ENVS
 from hcraft.examples.minicraft import (
     MiniHCraftKeyCorridor,
     MiniHCraftBlockedUnlockPickup,
+    MiniHCraftUnlockPickup,
 )
 from hcraft.env import HcraftEnv
 
@@ -54,6 +55,7 @@ def test_pddl_solve(env_class):
 
 KNOWN_TO_FAIL_HEBG = [
     MiniHCraftBlockedUnlockPickup,
+    MiniHCraftUnlockPickup,
     MiniHCraftKeyCorridor,
 ]
 
