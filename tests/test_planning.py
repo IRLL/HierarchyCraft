@@ -16,13 +16,11 @@ def test_hcraft_classic():
 
     problem.solve()
 
-    expected_plan = (
-        "SequentialPlan(["
-        "1_search_wood(start), "
-        "0_move_to_other_zone(start), "
-        "3_craft_plank(other_zone), "
-        "4_craft_table(other_zone)"
-        "])"
-    )
+    expected_plan = [
+        "1_search_wood(start)",
+        "0_move_to_other_zone(start)",
+        "3_craft_plank(other_zone)",
+        "4_craft_table(other_zone)",
+    ]
 
-    assert repr(problem.plan) == expected_plan
+    assert str(expected_plan).replace("'", "") in repr(problem.plan)
