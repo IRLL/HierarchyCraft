@@ -118,12 +118,10 @@ This makes sure that the pdoc styling doesn't leak to the rest of the page when 
     margin-bottom: 1em;
     padding: .5rem 0 .5rem .5rem;
     overflow-x: auto;
-    /*unnecessary since pdoc 10, only left here to keep old custom templates working. */
-    background-color: var(--code);
 }
 
 .pdoc code {
-    color: var(--text);
+    color: var(--code-text);
     padding: .2em .4em;
     margin: 0;
     font-size: 85%;
@@ -295,8 +293,9 @@ This makes sure that the pdoc styling doesn't leak to the rest of the page when 
     display: block;
     margin: .5rem 0 .5rem;
     padding: .4rem .4rem .4rem 1rem;
-    background-color: var(--accent);
+    background-color: var(--code);
     overflow-x: auto;
+    color: var(--code-text);
 }
 
 .pdoc .classattr {

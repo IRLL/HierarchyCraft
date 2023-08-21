@@ -117,13 +117,13 @@ body {
 nav.pdoc {
     --pad: clamp(0.5rem, 2vw, 1.75rem);
     --indent: 1.5rem;
-    background-color: var(--accent);
-    border-right: 1px solid var(--accent2);
+    background-color: var(--nav-background);
+    border-right: 1px solid var(--nav-border);
     box-shadow: 0 0 20px rgba(50, 50, 50, .2) inset;
     padding: 0 0 0 var(--pad);
     overflow-wrap: anywhere;
     scrollbar-width: thin; /* Scrollbar width on Firefox */
-    scrollbar-color: var(--accent2) transparent /* Scrollbar color on Firefox */
+    scrollbar-color: var(--nav-border) transparent /* Scrollbar color on Firefox */
 }
 
 nav.pdoc::-webkit-scrollbar {
@@ -141,7 +141,7 @@ nav.pdoc > div {
 nav.pdoc .module-list-button {
     display: inline-flex;
     align-items: center;
-    color: var(--text);
+    color: var(--nav-text);
     border-color: var(--muted);
     margin-bottom: 1rem;
 }
@@ -188,12 +188,11 @@ nav.pdoc li {
     transition: all 100ms;
 }
 
-nav.pdoc li:hover {
-    background-color: var(--nav-hover);
+nav.pdoc a, nav.pdoc {
+    color: var(--nav-text);
 }
-
-nav.pdoc a, nav.pdoc a:hover {
-    color: var(--text);
+nav.pdoc a:hover {
+    background-color: var(--nav-hover);
 }
 
 nav.pdoc a {
