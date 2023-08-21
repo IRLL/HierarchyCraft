@@ -2,39 +2,7 @@ r""" # Recursive HierarchyCraft Environments
 
 Simple environments with recursivity oriented constructor rules.
 
-## RecursiveHcraft
 
-The goal of the environment is to get the last item.
-But each item requires all the previous items,
-hence the number of actions required is exponential with the number of items.
-
-### *Proof*
-
-Let $u_n$ be the number of transitions needed for item $n$.
-
-Then $u_0 = 1$ and $\forall n \in N, u_n = 1 + \sum_{k=1}^{n} u_{n-k}$.
-
-Thus $\forall n \in N, u_n = u_{n-1} + 1 + \sum_{k=1}^{n-1} u_{n-k}$.
-
-Thus $\forall n \in N, u_n = 2 * u_{n-1}$.
-
-We recognize a geometrical sequence of common ratio 2.
-
-Thus $\forall n \in N, u_n = u_0*2^n = 2^n$.
-
-### Example
-
-For example, if there is $n=4$ items, the last item is 3.
-
-But 3 requires all previous items: {2, 1, 0}.
-
-And 2 requires all previous items: {1, 0}.
-
-And 1 requires all previous items: {0}.
-
-Item 0 can be obtained directly.
-
-Thus the number of actions required is $1 + 2 + 4 + 1 = 8 = 2^4$.
 
 
 
@@ -69,9 +37,20 @@ except ImportError:
 
 class RecursiveHcraftEnv(HcraftEnv):
 
-    """Recursive, an exponentially hierarchical Environment.
+    """RecursiveHcraft Environment
 
-    Item n requires one of all previous items (0 to n-1).
+    The goal of the environment is to get the last item.
+    But each item requires all the previous items,
+    hence the number of actions required is exponential with the number of items.
+
+    Example:
+        >>> env = RecursiveHcraft(n_items=4)
+        For example, if there is 4 items, the last item is 3.
+        But 3 requires all previous items: {2, 1, 0}.
+        And 2 requires all previous items: {1, 0}.
+        And 1 requires all previous items: {0}.
+        Finally Item 0 can be obtained directly.
+        Thus the number of actions required is $1 + 2 + 4 + 1 = 8 = 2^4$.
 
     """
 
@@ -116,7 +95,16 @@ class LightRecursiveHcraftEnv(HcraftEnv):
 
     """LightRecursive, a less recursive version of the RecursiveHcraft Environment.
 
-    Item n requires one of the k previous items (n-k to n-1).
+    Item n requires one of each the k previous items (n-k to n-1).
+
+    Example:
+        >>> env = LightRecursiveHcraftEnv(n_items=4, n_required_previous=2)
+        For example, if there is 5 items, the last item is 4.
+        But 4 requires the 2 previous items: {3, 2}.
+        And 3 requires the 2 previous items: {2, 1}.
+        And 2 requires the 2 previous items: {1, 0}.
+        And 1 requires the only previous items: {0}.
+        Finally Item 0 can be obtained directly.
 
     """
 

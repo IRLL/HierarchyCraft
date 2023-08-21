@@ -188,6 +188,11 @@ class Requirements:
         """Depth of the requirements graph."""
         return self.graph.graph.get("depth")
 
+    @property
+    def width(self) -> int:
+        """Width of the requirements graph."""
+        return self.graph.graph.get("width")
+
     def _build(self) -> None:
         self._add_requirements_nodes(self.world)
         edge_index = self._add_start_edges(self.world)
@@ -326,6 +331,7 @@ class Requirements:
         start_type: Optional[RequirementNode] = None,
     ):
         start_name = req_node_name(start_obj, start_type)
+        self._add_nodes([start_obj], start_type)
         self.graph.add_edge(
             start_name,
             end_node,
@@ -377,6 +383,7 @@ def compute_levels(graph: Requirements):
     Adds the attribute 'level' to each node in the given graph.
     Adds the attribute 'nodes_by_level' to the given graph.
     Adds the attribute 'depth' to the given graph.
+    Adds the attribute 'width' to the given graph.
 
     Args:
         graph: A RequirementsGraph.
@@ -430,7 +437,10 @@ def compute_levels(graph: Requirements):
             f"Incomplete nodes: {incomplete_nodes}"
         )
 
-    return get_nodes_by_level(graph)
+    nodes_by_level = get_nodes_by_level(graph)
+    graph.graph["depth"] = max(level for level in nodes_by_level)
+    graph.graph["width"] = max(len(nodes) for nodes in nodes_by_level.values())
+    return nodes_by_level
 
 
 def break_cycles_through_level(digraph: nx.DiGraph):
@@ -543,7 +553,7 @@ def draw_requirements_graph(
     legend_arrows = []
     for legend_edge_type in RequirementEdge:
         has_type = [
-            edge_type == legend_edge_type.value
+            RequirementEdge(edge_type) is legend_edge_type
             for _, _, edge_type in digraph.edges(data="type")
         ]
         if any(has_type):
@@ -560,7 +570,7 @@ def draw_requirements_graph(
     legend_patches = []
     for legend_node_type in RequirementNode:
         has_type = [
-            node_type == legend_node_type.value
+            RequirementNode(node_type) is legend_node_type
             for _, node_type in digraph.nodes(data="type")
         ]
         if any(has_type):

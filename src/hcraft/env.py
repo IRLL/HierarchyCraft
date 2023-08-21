@@ -6,6 +6,37 @@ You can easily create your own customized HierarchyCraft environment with the al
 For this, you just need to understand how to design transformations
 and how to build a world from those.
 
+Each **transformation** is composed of three optional elements:
+
+-   The first element is a **destination** zone, which specifies the zone to which the agent will move
+    if the transformation changes the player position.
+    This element is only necessary if the transformation changes the agent's position in the environment.
+-   The second element is a list of **zones** to which the transformation is restricted.
+    This element allows users to define which zones the agent can perform the transformation in,
+    restricting the agent's actions to certain areas of the environment.
+    If not specified, the transformation can be done anywhere.
+-   The third element is a dictionary of **inventory changes** for the player,
+    the current zone, the destination zone, or any specific zones.
+    Inventory changes are defined as a dictionary mapping operations such as 'add', 'remove',
+    'min', 'max' on lists of stacks of items.
+    This element allows users to define changes to any inventory that may result from the transformation,
+    it also restricts the transformation to only be possible if the amount of the specified item
+    is more that min and less than max.
+    If unspecified, no changes are done, and 'min' will default to 0, 'max' to +inf.
+
+For examples, see [`hcraft.transformation`](https://irll.github.io/HierarchyCraft/hcraft/transformation.html)
+
+
+Each HierarchyCraft environment is defined by a list of transformations and an initial state.
+The initial state defines the starting state of the environment,
+including the agent's position, inventory, and zones inventories.
+By combining transformations and an initial state, users can simply create complex hierarchical environments
+with a high degree of flexibility and control.
+
+See [`hcraft.state`](https://irll.github.io/HierarchyCraft/hcraft/state.html)
+for more details on the HierarchyCraft environements state.
+
+
 You can see `hcraft.transformation` for more details or the full example bellow.
 
 You can also check more complex examples in `hcraft.examples`.

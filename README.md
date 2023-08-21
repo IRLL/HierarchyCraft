@@ -31,67 +31,21 @@ See [`hcraft.state`](https://irll.github.io/HierarchyCraft/hcraft/state.html) fo
 
 ## Create your own tailored HierarchyCraft environments
 
-You can use HierarchyCraft to create various custom hierarchical environments. As an example, here is a replica of the underlying hierarchy of the popular game Minecraft, without the computationaly intensive 3D, displayed in the GUI available for any HierarchyCraft environments:
+You can use HierarchyCraft to create various custom hierarchical environments. As a showcase of the complexe possibilities, here is a replica of the underlying hierarchy of the popular game Minecraft, without the computationaly intensive 3D and without being a 2D grid version either.
 
-![A player knowing Minecraft will find MineHcraft easy.](docs/images/minehcraft_human_demo.gif)
+![A player knowing Minecraft will find MineHcraft easy.](./docs/images/minehcraft_human_demo.gif)
+
+See [`hcraft.env`](https://irll.github.io/HierarchyCraft/hcraft/env.html) for a complete tutorial on creating custom environments.
 
 ### Play yourself!
 
+You can directly try to play yourself with the GUI available for any HierarchyCraft environments:
 ```bash
 pip install hcraft[gui]
 hcraft minecraft
 ```
 
-
 For more examples, see [examples](https://irll.github.io/HierarchyCraft/hcraft/examples.html).
-
-To create a HierarchyCraft environment, one need to understand **transformations** fully.
-
-Each **transformation** is composed of three optional elements:
-
--   The first element is a **destination** zone, which specifies the zone to which the agent will move if the transformation changes the player position. This element is only necessary if the transformation changes the agent's position in the environment.
-
--   The second element is a list of **zones** to which the transformation is restricted. This element allows users to define which zones the agent can perform the transformation in, restricting the agent's actions to certain areas of the environment. If not specified, the transformation can be done anywhere.
-
--   The third element is a dictionary of **inventory changes** for the player, the current zone, the destination zone, or any specific zones. Inventory changes are defined as a dictionary mapping operations such as 'add', 'remove', 'min', 'max' on lists of stacks of items. This element allows users to define changes to any inventory that may result from the transformation, it also restricts the transformation to only be possible if the amount of the specified item is more that min and less than max. If unspecified, no changes are done, and 'min' will default to 0, 'max' to +inf.
-
-For examples, see [`hcraft.transformation`](https://irll.github.io/HierarchyCraft/hcraft/transformation.html)
-
-
-Each HierarchyCraft environment is defined by a list of transformations and an initial state. The initial state defines the starting state of the environment, including the agent's position, inventory, and zones inventories. By combining transformations and an initial state, users can simply create complex hierarchical environments with a high degree of flexibility and control.
-
-See [`hcraft.env`](https://irll.github.io/HierarchyCraft/hcraft/env.html) for a complete tutorial on creating custom environments.
-
-See [`hcraft.state`](https://irll.github.io/HierarchyCraft/hcraft/state.html) for more details on the HierarchyCraft environements state.
-
-## Custom purposes for agents in HierarchyCraft environments
-
-HierarchyCraft allows users to specify custom purposes for agents in their environments, composed of one or multiple tasks. This feature provides a high degree of flexibility and allows users to design environments that are tailored to specific applications or scenarios. This feature enables to study mutli-task or lifelong learning settings.
-
-See [`hcraft.purpose`](https://irll.github.io/HierarchyCraft/hcraft/purpose.html) for more details.
-
-## Solving behavior for all tasks of most HierarchyCraft environments
-
-HierarchyCraft also includes solving behaviors that can be used to generate actions from observations that will complete most tasks in any HierarchyCraft environment, including those designed by the user.
-
-Solving behaviors are handcrafted, and may not work in some edge cases when transformations require items in specific zones. This feature makes it easy for users to obtain a strong baseline in their custom environments.
-
-See [`hcraft.solving_behaviors`](https://irll.github.io/HierarchyCraft/hcraft/solving_behaviors.html) for more details.
-
-## Visualizing the underlying hierarchy of the environment (requirements graph)
-
-HierarchyCraft gives the ability to visualize the hierarchy of the environment as a requirements graph. This graph provides a potentialy complex but complete representation of what is required to obtain each item or to go in each zone, allowing users to easily understand the structure of the environment and identify key items of the environment.
-
-For example, here is the graph of the 'MiniCraftUnlock' environment where the goal is to open a door using a key:
-![Unlock requirements graph](https://raw.githubusercontent.com/IRLL/HierarchyCraft/master/docs/images/requirements_graphs/MiniCraftUnlock.png)
-
-
-And here is much more complex graph of the 'MineHcraft' environment shown previously:
-![Minehcraft requirements graph](https://raw.githubusercontent.com/IRLL/HierarchyCraft/master/docs/images/requirements_graphs/MineHcraft.png)
-
-
-See [`hcraft.requirements`](https://irll.github.io/HierarchyCraft/hcraft/requirements.html) for more details.
-
 
 # Installation
 
@@ -193,4 +147,8 @@ random_env = RandomHcraft(n_items_per_n_inputs={0:2, 1:5, 2:10}, seed=42)
 # or random_env = gym.make("RandomHcraft-v1", n_items_per_n_inputs={0:2, 1:5, 2:10}, seed=42)
 ```
 
-Learn more in the [documentation](https://irll.github.io/HierarchyCraft/hcraft.html)
+# More about HierarchyCraft
+
+## Online documentation
+
+Learn more in the [DOCUMENTATION](https://irll.github.io/HierarchyCraft/hcraft.html)

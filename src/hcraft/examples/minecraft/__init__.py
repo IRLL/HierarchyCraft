@@ -2,7 +2,8 @@
 
 ![MineHcraft demo](../../../../docs/images/MineHcraft_human_demo.gif)
 
-![MineHcraft hierarchy](../../../../docs/images/minehcraft_crafts_hierarchy.png)
+A rather large and complex requirements graph:
+![MineHcraft requirements graph](../../../../docs/images/requirements_graphs/MineHCraft.png)
 
 """
 from typing import Optional

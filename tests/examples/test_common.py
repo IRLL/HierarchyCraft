@@ -7,6 +7,7 @@ from unified_planning.io import PDDLWriter
 
 from hcraft.render.human import render_env_with_human
 from hcraft.examples import EXAMPLE_ENVS, HCRAFT_GYM_ENVS
+from hcraft.examples.minecraft import MineHcraftEnv
 from hcraft.examples.minicraft import (
     MiniHCraftKeyCorridor,
     MiniHCraftBlockedUnlockPickup,
@@ -24,11 +25,12 @@ def test_build_env(env_class):
 
 
 KNOWN_TO_FAIL_ENHSP = [
+    MineHcraftEnv,
     MiniHCraftBlockedUnlockPickup,
 ]
 
 
-@pytest.mark.parametrize("env_class", EXAMPLE_ENVS[1:])
+@pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
 def test_pddl_solve(env_class):
     write = False
     env: HcraftEnv = env_class(max_step=200)
@@ -54,13 +56,14 @@ def test_pddl_solve(env_class):
 
 
 KNOWN_TO_FAIL_HEBG = [
+    MineHcraftEnv,
     MiniHCraftBlockedUnlockPickup,
     MiniHCraftUnlockPickup,
     MiniHCraftKeyCorridor,
 ]
 
 
-@pytest.mark.parametrize("env_class", EXAMPLE_ENVS[1:])
+@pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
 def test_can_solve(env_class):
     env: HcraftEnv = env_class(max_step=50)
     if env_class in KNOWN_TO_FAIL_HEBG:
@@ -96,17 +99,20 @@ def test_requirements_graph(env_class):
         import matplotlib.pyplot as plt
 
         width = max(requirements.depth, 10)
+        height = max(9 / 16 * width, requirements.width / requirements.depth * width)
 
         fig, ax = plt.subplots()
         plt.tight_layout()
-        fig.set_size_inches(width, 9 / 16 * width)
+        fig.set_size_inches(width, height)
         requirements.draw(ax)
+
+        resolution = max(64 * requirements.depth, 900)
 
         if save:
             requirements_dir = os.path.join("docs", "images", "requirements_graphs")
             os.makedirs(requirements_dir, exist_ok=True)
 
             filename = os.path.join(requirements_dir, f"{env.name}.png")
-            fig.savefig(filename, dpi=80 * 16 / width, transparent=True)
+            fig.savefig(filename, dpi=resolution / width, transparent=True)
 
         plt.close()

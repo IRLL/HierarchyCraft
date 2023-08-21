@@ -25,6 +25,8 @@ Item 6 requires the items {3, 4, 5}.
 Each of the items 3, 4 and 5 requires items {0, 1, 2}.
 Each of the items 0, 1 and 2 requires nothing and can be crafted from the start.
 
+Requirements graph for H2-W3:
+![TowerHcraft example requirements graph](../../../docs/images/requirements_graphs/TowerHcraft-H2-W3.png)
 
 """
 
