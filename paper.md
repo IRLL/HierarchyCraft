@@ -34,7 +34,7 @@ We introduce **HierarchyCraft**, a builder for lightweight environments in which
 
 For example, the effects of the underlying hierarchy of Minecraft can be studied with the MineHcraft environment that mimics the sub-tasks of Minecraft without feature extraction. A view of the graphical interface common to all HierarchyCraft environments is shown in Figure \autoref{fig:MineHcraft-dragon}.
 
-![HierarchyCraft graphical user interface. 'End' zone in the MineHcraft environment.\label{fig:MineHcraft-dragon}](../docs/images/MineHcraft_face_to_dragon.png)
+![HierarchyCraft graphical user interface. 'End' zone in the MineHcraft environment.\label{fig:MineHcraft-dragon}](docs/images/MineHcraft_face_to_dragon.png)
 
 ## Design goals
 
@@ -55,13 +55,13 @@ To showcase the diversity of environments that can be created within HierarchyCr
 ### Compatible with domains frameworks
 HierarchyCraft environments are directly compatible with both reinforcement learning via  OpenAI Gym [@openai] and planning via the Unified Planning Framework [@UPF] or via PDDL [@pddl], making it easy to be used by both the reinforcement and planning communities.
 
-![HierarchyCraft pipeline into RL and UPF frameworks.\label{fig:HierarchyCraft-pipeline}](../docs/images/HierarchyCraft_pipeline.png)
+![HierarchyCraft pipeline into RL and UPF frameworks.\label{fig:HierarchyCraft-pipeline}](docs/images/HierarchyCraft_pipeline.png)
 
 
 # Statement of need
 HierarchyCraft is an easy to use Python library designed to build environments that can be used to study hierarchical reasoning in the contexts of reinforcement learning, classical planning and program synthesis as displayed in Figure \autoref{fig:HierachyCraft_domain_position}.
 
-![HierarchyCraft is at the intersection of Reinforcement learning, Planning, Hierarchical reasoning and Program synthesis.\label{fig:HierachyCraft_domain_position}](../docs/images/HierachyCraft_domain_position.png){ width=80% }
+![HierarchyCraft is at the intersection of Reinforcement learning, Planning, Hierarchical reasoning and Program synthesis.\label{fig:HierachyCraft_domain_position}](docs/images/HierachyCraft_domain_position.png){ width=80% }
 
 We argue that arbitrary hierarchical complexity can emerge from simple rules yet no metric exists to quantify this phenomenon. Studying and quantifying the effects of different hierarchical structures on learning agents should be a priority for hierarchical reasoning. Still existing reinforcement learning benchmarks considered hierarchical are not only challenging because of their underlying hierarchical structure but also because of the feature extraction and representation learning required. To our knowledge nothing exists to strictly study the hierarchical structure itself, that is why we built HierarchyCraft.
 
