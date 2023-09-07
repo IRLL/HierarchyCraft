@@ -116,14 +116,3 @@ This work was financed by The Intelligent Robot Learning Laboratory (IRL Lab), U
 This work was also made possible by the research program of the engineer cursus at CentraleSupelec, University of Paris-Saclay, France
 
 # References
-
-
-
-## Requirements checklist
-
-- [X] A list of the authors of the software and their affiliations, using the correct format (see the example below).
-- [X] A Summary describing the high-level functionality and purpose of the software for a diverse, non-specialist audience.
-- [X] A Statement of need section that clearly illustrates the research purpose of the software and places it in the context of related work.
-- [ ] A list of key references, including to other software addressing related needs. Note that the references should include full names of venues, e.g., journals and conferences, not abbreviations only understood in the context of a specific discipline.
-- [X] Mention (if applicable) a representative set of past or ongoing research projects using the software and recent scholarly publications enabled by it.
-- [X] Acknowledgement of any financial support.
