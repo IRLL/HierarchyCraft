@@ -34,7 +34,7 @@ We introduce **HierarchyCraft**, a builder for lightweight environments in which
 
 For example, the effects of the underlying hierarchy of Minecraft can be studied with the MineHcraft environment that mimics the sub-tasks of Minecraft without feature extraction. A view of the graphical interface common to all HierarchyCraft environments is shown in Figure \autoref{fig:MineHcraft-dragon}.
 
-![HierarchyCraft graphical user interface. 'End' zone in the MineHcraft environment.\label{fig:MineHcraft-dragon}](docs/images/MineHcraft_face_to_dragon.png){ width=80% }
+![HierarchyCraft graphical user interface. 'End' zone in the MineHcraft environment.\label{fig:MineHcraft-dragon}](docs/images/MineHcraft_face_to_dragon.png)
 
 ## Design goals
 
@@ -113,6 +113,6 @@ PDDLGym by @pddlgym:2020 is a framework that automatically constructs Gym enviro
 
 This work was financed by The Intelligent Robot Learning Laboratory (IRL Lab), University of Alberta, Canada.
 
-This work was also made possible by the research program of the engineer cursus at CentraleSupelec, University of Paris-Saclay, France
+This work was also made possible by the research program of the engineering cursus at CentraleSupelec, University of Paris-Saclay, France
 
 # References
