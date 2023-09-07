@@ -142,3 +142,7 @@ TODO.txt
 # Local planners and planning files
 enhsp-dist
 *.pddl
+
+# Paper draft artifacts
+paper.pdf
+paper.jats
