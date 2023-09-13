@@ -32,7 +32,7 @@ Hierarchical reasoning remains one of the most fundamental challenges in artific
 
 We introduce **HierarchyCraft**, a builder for lightweight environments in which arbitrary hierarchical reasoning tasks without feature extraction can be created within a single library. HierarchyCraft  provides a set of environments and makes it easy to build custom hierarchical environments to fit any research needs.
 
-For example, the effects of the underlying hierarchy of Minecraft can be studied with the MineHcraft environment that mimics the sub-tasks of Minecraft without feature extraction. A view of the graphical interface common to all HierarchyCraft environments is shown in Figure \autoref{fig:MineHcraft-dragon}.
+For example, the effects of the underlying hierarchy of Minecraft can be studied with the MineHcraft environment that mimics the sub-tasks of Minecraft without any 3D environment that would require feature extraction. A view of the graphical interface common to all HierarchyCraft environments is shown in Figure \autoref{fig:MineHcraft-dragon}.
 
 ![HierarchyCraft graphical user interface. 'End' zone in the MineHcraft environment.\label{fig:MineHcraft-dragon}](docs/images/MineHcraft_face_to_dragon.png)
 
@@ -111,5 +111,7 @@ PDDLGym [@pddlgym] is a framework that automatically constructs Gym environments
 This work was financed by The Intelligent Robot Learning Laboratory (IRL Lab), University of Alberta, Canada.
 
 This work was also made possible by the research program of the engineering cursus at CentraleSupelec, University of Paris-Saclay, France
+
+We would like to thank Shang Wang, Yuxuan Li and Laura Petrich from the IRL Lab for their help on finding and describing related works, for their critical thinking on the project and for revisions of the documentation and report.
 
 # References
