@@ -32,7 +32,7 @@ Hierarchical reasoning remains one of the most fundamental challenges in artific
 
 We introduce **HierarchyCraft**, a builder for lightweight environments in which arbitrary hierarchical reasoning tasks without feature extraction can be created within a single library. HierarchyCraft  provides a set of environments and makes it easy to build custom hierarchical environments to fit any research needs.
 
-For example, the effects of the underlying hierarchy of Minecraft can be studied with the MineHcraft environment that mimics the sub-tasks of Minecraft without any 3D environment that would require feature extraction. A view of the graphical interface common to all HierarchyCraft environments is shown in Figure \autoref{fig:MineHcraft-dragon}.
+For example, the effects of the underlying hierarchy of Minecraft can be studied with the MineHcraft environment that mimics the sub-tasks of Minecraft without any 3D environment that would require feature extraction. A view of the graphical interface common to all HierarchyCraft environments is shown in Figure \autoref{fig:MineHcraft-dragon}. Pictures and icons are only available on the human interface for illustration purpose, they are not accessed by the agent.
 
 ![HierarchyCraft graphical user interface. 'End' zone in the MineHcraft environment.\label{fig:MineHcraft-dragon}](docs/images/MineHcraft_face_to_dragon.png)
 
