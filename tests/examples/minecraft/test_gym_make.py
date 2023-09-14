@@ -97,4 +97,8 @@ def test_dragon_gym_make():
         "Get ender_dragon_head",
     }
     tasks_names = set(task.name for task in env.purpose.tasks)
-    check.equal(tasks_names, expected_tasknames)
+    check.equal(
+        tasks_names,
+        expected_tasknames,
+        f"Diff:\n{expected_tasknames.difference(tasks_names)}",
+    )
