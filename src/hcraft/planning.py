@@ -1,22 +1,125 @@
+"""# HierarchyCraft as planning problem
+
+HierarchyCraft environments can be converted to planning problem in one line
+thanks to the Unified Planning Framework (UPF):
+
+```python
+problem = env.planning_problem()
+print(problem.upf_problem)
+```
+
+Then they can be solved with an installed planner (default is enhsp):
+
+```python
+problem.solve()
+print(problem.plan)
+```
+
+Actions can be extracted from a planner to interact with the environment:
+
+```python
+done = False
+_observation = env.reset()
+while not done:
+    action = problem.action_from_plan(env.state)
+    _observation, _reward, done, _ = env.step(action)
+
+print(f"Plans were :{problem.plans}")
+
+# If the plan is a success, purpose should be terminated.
+assert env.purpose.terminated
+```
+
+## HierarchyCraft as PDDL2.1 domain & problem
+
+The Unified Planning Framework itself allows to write planning problems in the PDDL2.1 language,
+commonly used in the planning community. For instructions, refer to the
+[UPF documentation](https://unified-planning.readthedocs.io/en/stable/interoperability.html).
+
+
+![](../../docs/images/PDDL_HierarchyCraft_domain.png)
+
+### Types
+There is only three types in every HierarchyCraft environment:
+- zones
+- items that the player can obtain
+- items that zones can obtain.
+
+### Constants
+Most of the time, zones and items will be directly referenced in actions of the PDDL problem.
+Hence, all zones and items will be constants of the domain and not objects of the problem.
+
+### Predicates
+The only predicates are about the player position.
+They allow to track where is the player currently ("pos") and where has has been ("visited").
+
+### Functions
+HierarchyCraft relies on numerical-fluents from PDDL2.1,
+they allow to define the player inventory ("amount") and the inventories of each zone ("amount_at")
+
+### Actions
+Actions are directly defined by transformations.
+Each transformation will be converted to an action.
+Respectfully, the min/max conditions of the transformation will become the preconditions of the PDDL action
+and the added/removed items and updated position of the transformation will become the effects of the PDDL action.
+
+![](../../docs/images/PDDL_HierarchyCraft_problem.png)
+
+### Initialisation
+The problem file, will define the initial state
+of every inventory for every item together with the initial position of the player.
+
+### Goal
+The PDDL goal is translated from the HierarchyCraft purpose.
+If multiple terminal groups exists in the purpose, the PDDL goal will be the highest value terminal group.
+
+"""
+
 from typing import TYPE_CHECKING, Dict, Optional, Union, List
 from copy import deepcopy
+import collections
 
-from unified_planning.shortcuts import (
-    UserType,
-    Object,
-    BoolType,
-    IntType,
-    Fluent,
-    InstantaneousAction,
-    Problem,
-    Or,
-    And,
-    GE,
-    LE,
-    OneshotPlanner,
-)
-from unified_planning.plans import SequentialPlan
-from unified_planning.engines.results import PlanGenerationResult
+
+# unified_planning is an optional dependency.
+try:
+    import unified_planning.shortcuts as ups
+    from unified_planning.plans import SequentialPlan
+    from unified_planning.engines.results import PlanGenerationResult
+
+    UserType = ups.UserType
+    Object = ups.Object
+    BoolType = ups.BoolType
+    IntType = ups.IntType
+    Fluent = ups.Fluent
+    InstantaneousAction = ups.InstantaneousAction
+    Problem = ups.Problem
+    OneshotPlanner = ups.OneshotPlanner
+    OR = ups.Or
+    AND = ups.And
+    GE = ups.GE
+    LE = ups.LE
+
+except ImportError:
+    PlanGenerationResult = collections.namedtuple("PlanGenerationResult", "plan")
+
+    class Problem:
+        def __init__(self, name: str) -> None:
+            raise ImportError(
+                "Missing planning dependencies. Install with:\n"
+                "pip install hcraft[planning]"
+            )
+
+    UserType = collections.namedtuple("UserType", "")
+    Object = collections.namedtuple("Object", "")
+    BoolType = collections.namedtuple("BoolType", "")
+    IntType = collections.namedtuple("IntType", "")
+    Fluent = collections.namedtuple("Fluent", "")
+    InstantaneousAction = collections.namedtuple("InstantaneousAction", "")
+    OneshotPlanner = collections.namedtuple("OneshotPlanner", "")
+    OR = collections.namedtuple("Or", "")
+    AND = collections.namedtuple("And", "")
+    GE = collections.namedtuple("GE", "")
+    LE = collections.namedtuple("LE", "")
 
 from hcraft.transformation import Transformation, InventoryOwner
 from hcraft.task import Task, GetItemTask, PlaceItemTask, GoToZoneTask
@@ -198,7 +301,7 @@ class HcraftPlanningProblem:
 
         if transformation.zones and len(self.zones_obj) > 1:
             action.add_precondition(
-                Or(*[self.pos(self.zones_obj[zone]) for zone in transformation.zones])
+                OR(*[self.pos(self.zones_obj[zone]) for zone in transformation.zones])
             )
 
         if transformation.destination is not None:
@@ -272,7 +375,7 @@ class HcraftPlanningProblem:
                 GE(self.amount_at(item, self.zones_obj[zone]), task.item_stack.quantity)
                 for zone in zones
             ]
-            return Or(*conditions)
+            return OR(*conditions)
         if isinstance(task, GoToZoneTask):
             return self.visited(self.zones_obj[task.zone])
         raise NotImplementedError
@@ -284,7 +387,7 @@ class HcraftPlanningProblem:
             goals[task] = self._task_to_goal(task)
 
         # We only consider the best terminal group goal
-        return And(*[goals[task] for task in purpose.best_terminal_group.tasks])
+        return AND(*[goals[task] for task in purpose.best_terminal_group.tasks])
 
 
 def _read_statistics(results: PlanGenerationResult) -> Statistics:

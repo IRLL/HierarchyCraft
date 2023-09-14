@@ -3,9 +3,11 @@ from hcraft.purpose import Purpose
 from hcraft.elements import Item, Zone, Stack
 
 from tests.envs import classic_env
+import pytest
 
 
 def test_hcraft_classic():
+    pytest.importorskip("unified_planning")
     env, _, named_transformations, start_zone, items, zones, zones_items = classic_env()
 
     task = PlaceItemTask(Stack(Item("table"), 1), Zone("other_zone"))

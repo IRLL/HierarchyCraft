@@ -45,6 +45,7 @@ import hcraft.requirements as requirements
 import hcraft.env as env
 import hcraft.examples as examples
 import hcraft.world as world
+import hcraft.planning as planning
 
 from hcraft.elements import Item, Stack, Zone
 from hcraft.transformation import Transformation
@@ -72,7 +73,8 @@ __all__ = [
     "purpose",
     "solving_behaviors",
     "requirements",
-    "env",
-    "examples",
     "world",
+    "env",
+    "planning",
+    "examples",
 ]

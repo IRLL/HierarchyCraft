@@ -3,7 +3,6 @@ import pytest_check as check
 
 import os
 
-from unified_planning.io import PDDLWriter
 
 from hcraft.render.human import render_env_with_human
 from hcraft.examples import EXAMPLE_ENVS, HCRAFT_GYM_ENVS
@@ -32,6 +31,7 @@ KNOWN_TO_FAIL_ENHSP = [
 
 @pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
 def test_pddl_solve(env_class):
+    up = pytest.importorskip("unified_planning")
     write = False
     env: HcraftEnv = env_class(max_step=200)
     problem = env.planning_problem(timeout=5)
@@ -40,7 +40,7 @@ def test_pddl_solve(env_class):
         pytest.xfail("ENHSP planner is known to fail on this environment")
 
     if write:
-        writer = PDDLWriter(problem.upf_problem)
+        writer = up.io.PDDLWriter(problem.upf_problem)
         pddl_dir = os.path.join("planning", "pddl", env.name)
         os.makedirs(pddl_dir, exist_ok=True)
         writer.write_domain(os.path.join(pddl_dir, "domain.pddl"))

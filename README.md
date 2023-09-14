@@ -37,15 +37,6 @@ You can use HierarchyCraft to create various custom hierarchical environments. A
 
 See [`hcraft.env`](https://irll.github.io/HierarchyCraft/hcraft/env.html) for a complete tutorial on creating custom environments.
 
-### Play yourself!
-
-You can directly try to play yourself with the GUI available for any HierarchyCraft environments:
-```bash
-pip install hcraft[gui]
-hcraft minecraft
-```
-
-For more examples, see [examples](https://irll.github.io/HierarchyCraft/hcraft/examples.html).
 
 # Installation
 
@@ -63,7 +54,6 @@ With all optional dependencies:
 pip install hcraft[all]
 ```
 
-
 All hcraft environments can use a common graphical user interface.
 With gui requirements:
 
@@ -71,22 +61,39 @@ With gui requirements:
 pip install hcraft[gui]
 ```
 
-Environment can also be obtained throught the gym interface:
-With gym requirements:
+Gym environment can be obtained throught the with gym requirements:
 
 ```bash
 pip install hcraft[gym]
 ```
 
+Planning problems can be obtained throught the upf interface:
+
+```bash
+pip install hcraft[planning]
+```
+
 # Quickstart
 
-See command line interface (CLI) options with:
+## Play yourself!
 
+Don't forget to install the GUI:
+```bash
+pip install hcraft[gui]
+```
+
+### Using the command line interface
+
+You can directly try to play yourself with the GUI available for any HierarchyCraft environments, for example:
+```bash
+hcraft minecraft
+```
+
+For more examples:
 ```bash
 hcraft --help
 ```
-
-Using the programmatic interface:
+###  Using the programmatic interface:
 
 ```python
 from hcraft import MineHcraftEnv, get_human_action
@@ -109,10 +116,9 @@ for _ in range(n_episodes):
     print(f"SCORE: {total_reward}")
 ```
 
+## As a Gym RL environment
 
-## Run MineHcraft with autonomous agents
-
-Using the programmatic interface, any HierarchyCraft environment can easily be interfaced with any agent.
+Using the programmatic interface, any HierarchyCraft environment can easily be interfaced with classic reinforcement learning agents.
 
 ```python
 import numpy as np
@@ -130,13 +136,10 @@ while not done:
     action = random_legal_agent(observation, action_is_legal)
     _observation, _reward, done, _info = env.step(action)
 ```
-<!-- Run MineHcraft with MaskablePPO from sb3 agent [code] -->
 
-## Other hcraft environments
 
-See [`hcraft.examples`](https://irll.github.io/HierarchyCraft/hcraft/examples.html).
-
-``` python
+```python
+# Other HierarchyCraft environments
 from hcraft import TowerHcraft, RecursiveHcraft, RandomHcraft
 
 tower_env = TowerHcraft(height=3, width=2)
@@ -146,6 +149,29 @@ recursive_env = RecursiveHcraft(n_items=6)
 random_env = RandomHcraft(n_items_per_n_inputs={0:2, 1:5, 2:10}, seed=42)
 # or random_env = gym.make("RandomHcraft-v1", n_items_per_n_inputs={0:2, 1:5, 2:10}, seed=42)
 ```
+<!-- Run MineHcraft with MaskablePPO from sb3 agent [code] -->
+
+See [`hcraft.env`](https://irll.github.io/HierarchyCraft/hcraft/env.html) for a more complete description.
+
+## As a UPF problem for planning
+
+HierarchyCraft environments can be converted to planning problem in one line
+thanks to the Unified Planning Framework (UPF):
+
+```python
+problem = env.planning_problem()
+print(problem.upf_problem)
+```
+
+Then they can be solved with any compatible planner (default is enhsp):
+
+```python
+problem.solve()
+print(problem.plan)
+```
+
+See [`hcraft.planning`](https://irll.github.io/HierarchyCraft/hcraft/planning.html) for a more complete description.
+
 
 # More about HierarchyCraft
 

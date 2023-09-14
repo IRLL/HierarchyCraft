@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import pytest
 import pytest_check as check
 
-from unified_planning.io import PDDLWriter
 
 from hcraft.elements import Item
 from hcraft.behaviors.utils import get_items_in_graph, get_zones_items_in_graph
@@ -92,6 +91,7 @@ KNOWN_TO_FAIL_ITEM = [
 @pytest.mark.parametrize("item", [item.name for item in MineHcraftEnv().world.items])
 def test_get_all_items_pddl(item: str):
     """All items should be gettable by planning behavior."""
+    up = pytest.importorskip("unified_planning")
     task = GetItemTask(Item(item))
     env = MineHcraftEnv(purpose=task, max_step=500)
     write = False
@@ -101,7 +101,7 @@ def test_get_all_items_pddl(item: str):
         pytest.xfail(f"ENHSP planner is known to fail to get {item}")
 
     if write:
-        writer = PDDLWriter(problem.upf_problem)
+        writer = up.io.PDDLWriter(problem.upf_problem)
         pddl_dir = Path("planning", "pddl", env.name)
         os.makedirs(pddl_dir, exist_ok=True)
         writer.write_domain(pddl_dir / "domain.pddl")
