@@ -23,19 +23,18 @@ affiliations:
  - name: CentraleSupelec, University of Paris-Saclay, France
    index: 2
  - name: Alberta Machine Intelligence Institute (Amii), Canada
- - index: 3 
+   index: 3
 date: 07 September 2023
 bibliography: paper.bib
 
 ---
 
 # Summary
-Hierarchical reasoning is a fundamental challenge in artificial intelligence. Current methods may fail in the face of hierachical tasks but no metrics exist to properly quantify *how hierarchical* a task is. **Do we quantify how hierachical a task is? If it's in the second sentence of the paper, it sounds like the focus of the paper, not the software** Existing environments only allow for few specific hierarchies to be tested and rely on non-trivial feature extractions requiring heavy computational resources.
-**I don't understand non-trivial feature extractions requiring heavy computatitonal resources?**
+Hierarchical reasoning is a fundamental challenge in artificial intelligence. Current methods may fail in the face of hierachical tasks but no metrics exist to properly quantify *how hierarchical* a task is. Existing environments only allow for few specific hierarchies to be tested and rely on non-trivial feature extractions requiring heavy computational resources.
 
-We introduce **HierarchyCraft**, lightweight environment builder for arbitrary hierarchical reasoning tasks without feature extraction. **clarify what without feature extraction means?** HierarchyCraft both provides a set of environments for experimenting with hierarchical AI algorithms, but also and makes it easy to build custom hierarchical environments.
+We introduce **HierarchyCraft**, lightweight environment builder for arbitrary hierarchical reasoning tasks without feature, that is without grids, pixel images, text, sound or anything requiring feature extraction or representation to be learned. HierarchyCraft both provides a set of environments for experimenting with hierarchical AI algorithms, but also and makes it easy to build custom hierarchical environments.
 
-For example, Minecraft has been studied due to its popularity and its deep hierarchical structure, but the 3D environment requires complex feature extraction and pixel-level processing **cite?**. In contrast HierarchyCraft can recreate the hierarchical complex task without requiring a an agent to reason at the pixel level. A view of the graphical interface common to all HierarchyCraft environments is shown in Figure \autoref{fig:MineHcraft-dragon}, but pictures and icons are only available on the human interface for illustration purpose and are not seen by the agent.
+For example, Minecraft has been studied due to its popularity and its deep hierarchical structure, but the 3D environment requires complex feature extraction and pixel-level processing [@dreamerv3]. In contrast HierarchyCraft can recreate the hierarchical complex task without requiring a an agent to reason at the pixel level. A view of the graphical interface common to all HierarchyCraft environments is shown in Figure \autoref{fig:MineHcraft-dragon}, but pictures and icons are only available on the human interface for illustration purpose and are not seen by the agent.
 
 ![HierarchyCraft graphical user interface. 'End' zone in the MineHcraft environment.\label{fig:MineHcraft-dragon}](docs/images/MineHcraft_face_to_dragon.png)
 
@@ -48,7 +47,7 @@ The action space can be composed of sub-tasks instead of detailed movements and 
 
 ### 2. No feature extraction needed
 Compared to benchmarks that return grids, pixel arrays, text, or sound, HierarchyCraft directly return a low-dimensional latent representation that does not need to be learned.
-This saves compute time and allow researchers to focus on the hierarchical reasoning while also permitting the use of classical planning frameworks. **Like what frameworks?**
+This saves compute time and allow researchers to focus on the hierarchical reasoning while also permitting the use of classical planning frameworks like PDDL or ANML and the unified planning framework.
 
 ### 3. Easy to use and customize
 HierarchyCraft is a generic framework facilitating the creation of diverse hierarchical environments.
@@ -62,7 +61,7 @@ HierarchyCraft environments are directly compatible with both reinforcement lear
 
 
 # Statement of need
-HierarchyCraft is designed to be an easy to use Python library to build environments that can be used to study hierarchical reasoning in the contexts of reinforcement learning, classical planning, and program synthesis as displayed in Figure \autoref{fig:HierachyCraft_domain_position}. **Mention program synthesis earlier? We talked about RL and planning but not this.**
+HierarchyCraft is designed to be an easy to use Python library to build environments that can be used to study hierarchical reasoning in the contexts of reinforcement learning, classical planning, and program synthesis as displayed in Figure \autoref{fig:HierachyCraft_domain_position}.
 
 ![HierarchyCraft is at the intersection of Reinforcement learning, Planning, Hierarchical reasoning and Program synthesis.\label{fig:HierachyCraft_domain_position}](docs/images/HierachyCraft_domain_position.png){ width=80% }
 
@@ -92,14 +91,13 @@ GridWorld is a general class of 2D grid-based environments. It is frequently fac
 
 ### Arcade Learning Environment (Atari)
 
-The arcade learning environment [@ALE] is one of the standard benchmarks in RL and is composed of around **find the exact number?** 54 Atari games. Similar to the Minecraft benchmark, atari games **require powerful computational resources**, which substantially slow down experiments.
+The arcade learning environment [@ALE] is one of the standard benchmarks in RL and is composed of over 55 Atari games. Similar to the Minecraft benchmark, atari games **require powerful computational resources**, which substantially slow down experiments.
 Moreover, **only a few games of these games require hierarchical reasoning** (e.g., Montezuma's Revenge and Pitfall). Similar to MineRL, the agent still needs extra computational cost to extract the features from pixels. Similar to Crafter, each Atari games has a fixed hierarchies that cannot be modified.
-Moreover, the usage of the arcade learning environment by the research community has been critizied by its authors [@machado2018revisiting] considering that many problems to remain open even after five years of fruitful use of the acrade learning environement. **Don't really understand what the criticism is? And why it's related to HierachyCraft?**
 
 ### NetHack Learning Environment
 
 The NetHack learning environment [@kuttler2020nethack] is based on the game NetHack, where the observation is a grid composed of hundreds of possible symbols.
-Large numbers of items are randomly placed in each level, making NetHack extremely complex and challenging. In fact, NetHack is **too complex for agents to learn** --- they indeed require many environment steps for agents to acquire domain-specific knowledge. 10B steps were required for the NeurIPS 2021 NetHack challenge [@hafner2021benchmarking], making it impractically long for a benchmark. Moreover, the NetHack game has only a **fixed underlying hierarchy** that cannot be easily modified.
+Large numbers of items are randomly placed in each level, making NetHack extremely complex and challenging. In fact, NetHack is **too complex for agents to learn**, it requires many environment steps for agents to acquire domain-specific knowledge. 10B steps were required for the NeurIPS 2021 NetHack challenge [@hafner2021benchmarking], making it impractically long for a benchmark. Moreover, the NetHack game has only a **fixed underlying hierarchy** that cannot be easily modified.
 
 ### DeepMind Lab
 
