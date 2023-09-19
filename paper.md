@@ -30,7 +30,7 @@ bibliography: paper.bib
 ---
 
 # Summary
-Hierarchical reasoning is a fundamental challenge in artificial intelligence. Current methods may fail in the face of hierachical tasks but no metrics exist to properly quantify *how hierarchical* a task is. Existing environments only allow for few specific hierarchies to be tested and rely on non-trivial feature extractions requiring heavy computational resources.
+Hierarchical reasoning is a fundamental challenge in artificial intelligence. Current methods may fail in the face of hierachical tasks but no metrics exist to properly quantify *how hierarchical* a task is. This software was built as a tooling step towards that research question as existing environments only allow for few specific hierarchies to be tested and rely on non-trivial feature extractions requiring heavy computational resources.
 
 We introduce **HierarchyCraft**, lightweight environment builder for arbitrary hierarchical reasoning tasks without feature, that is without grids, pixel images, text, sound or anything requiring feature extraction or representation to be learned. HierarchyCraft both provides a set of environments for experimenting with hierarchical AI algorithms, but also and makes it easy to build custom hierarchical environments.
 
