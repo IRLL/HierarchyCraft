@@ -47,7 +47,7 @@ The action space can be composed of sub-tasks instead of detailed movements and 
 
 ### 2. No feature extraction needed
 Compared to benchmarks that return grids, pixel arrays, text, or sound, HierarchyCraft directly return a low-dimensional latent representation that does not need to be learned.
-This saves compute time and allow researchers to focus on the hierarchical reasoning while also permitting the use of classical planning frameworks like PDDL or ANML and the unified planning framework.
+This saves compute time and allow researchers to focus on the hierarchical reasoning while also permitting the use of classical planning frameworks like PDDL [@PDDL] or ANML [@ANML].
 
 ### 3. Easy to use and customize
 HierarchyCraft is a generic framework facilitating the creation of diverse hierarchical environments.
@@ -55,7 +55,7 @@ The library is simple and flexible, enableing researchers to define their own hi
 To showcase the diversity of environments that can be created within HierarchyCraft, multiple environment examples are provided.
 
 ### 4. Compatible with domains frameworks
-HierarchyCraft environments are directly compatible with both reinforcement learning via OpenAI Gym [@gym] and planning via the Unified Planning Framework [@UPF] via PDDL [@pddl] (see Figure \autoref{fig:HierarchyCraft-pipeline}). Compatibility with both frameworks makes it easy to be used by both the reinforcement learning and planning communities.
+HierarchyCraft environments are directly compatible with both reinforcement learning via OpenAI Gym [@gym] and planning via the Unified Planning Framework [@UPF] via PDDL [@PDDL] (see Figure \autoref{fig:HierarchyCraft-pipeline}). Compatibility with both frameworks makes it easy to be used by both the reinforcement learning and planning communities.
 
 ![HierarchyCraft pipeline into RL and UPF frameworks.\label{fig:HierarchyCraft-pipeline}](docs/images/HierarchyCraft_pipeline.png)
 
@@ -105,7 +105,7 @@ DeepMind lab [@deepmindlab] is a first-person 3D game platform designed for AI r
 
 ### PDDLGym
 
-PDDLGym [@pddlgym] is a framework that automatically constructs Gym environments from Planning Domain Definition Language (PDDL) domains and problems. PDDL [@pddl] is a problem specification language for easy comparison of various symbolic planners in the AI planning community. PDDLGym offers a compact symbolic language for describing domains, which facilitates the creation of numerous, diverse benchmarks for sequential decision-making. However, in PDDLGym, actions space are detailed templates grounded with objects (e.g., $pick(plate)$). Building from such detailed templates makes it **difficult to use for creating hierarchical environments** specifically and time-consuming for researchers who are not familiar with PDDL-like languages. Moreover, PDDLGym is **only compatible with PDDL1** and does not suppoert `numeric-fluents` introduced in PDDL 2.1 that are required to represent HierarchyCraft environments.
+PDDLGym [@PDDLgym] is a framework that automatically constructs Gym environments from Planning Domain Definition Language (PDDL) domains and problems. PDDL [@PDDL] is a problem specification language for easy comparison of various symbolic planners in the AI planning community. PDDLGym offers a compact symbolic language for describing domains, which facilitates the creation of numerous, diverse benchmarks for sequential decision-making. However, in PDDLGym, actions space are detailed templates grounded with objects (e.g., $pick(plate)$). Building from such detailed templates makes it **difficult to use for creating hierarchical environments** specifically and time-consuming for researchers who are not familiar with PDDL-like languages. Moreover, PDDLGym is **only compatible with PDDL1** and does not suppoert `numeric-fluents` introduced in PDDL 2.1 that are required to represent HierarchyCraft environments.
 
 # Acknowledgements
 
