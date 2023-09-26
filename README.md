@@ -96,7 +96,8 @@ hcraft --help
 ###  Using the programmatic interface:
 
 ```python
-from hcraft import MineHcraftEnv, get_human_action
+from hcraft import get_human_action
+from hcraft.examples import MineHcraftEnv
 
 env = MineHcraftEnv()
 # or env: MineHcraftEnv = gym.make("MineHcraft-NoReward-v1")
@@ -122,7 +123,7 @@ Using the programmatic interface, any HierarchyCraft environment can easily be i
 
 ```python
 import numpy as np
-from hcraft import MineHcraftEnv
+from hcraft.examples import MineHcraftEnv
 
 def random_legal_agent(observation, action_is_legal):
     action = np.random.choice(np.nonzero(action_is_legal)[0])
@@ -139,8 +140,8 @@ while not done:
 
 
 ```python
-# Other HierarchyCraft environments
-from hcraft import TowerHcraft, RecursiveHcraft, RandomHcraft
+# Other examples of HierarchyCraft environments
+from hcraft.examples import TowerHcraft, RecursiveHcraft, RandomHcraft
 
 tower_env = TowerHcraft(height=3, width=2)
 # or tower_env = gym.make("TowerHcraft-v1", height=3, width=2)

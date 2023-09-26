@@ -17,9 +17,9 @@ When a single task is passed to a HierarchyCraft environment, it will automatica
 Then the environment will terminates if the task is completed.
 
 Let's take an example on the MineHcraft environment.
-(This is still work on any other HierarchyCraft environment)
+(This would work on other HierarchyCraft environment)
 ```python
-from hcraftort MineHcraftv
+from hcraft.examples MineHcraftv
 from hcraft.purpose import GetItemTask
 from hcraft.examples.minecraft.items import DIAMOND
 
@@ -37,7 +37,7 @@ See `hcraft.purpose.RewardShaping` for more details.
 For example, let's add the "required" reward shaping to the get_diamond task:
 
 ```python
-from hcraftort MineHcraftEnv
+from hcraft.examples import MineHcraftEnv
 from hcraft.purpose import Purpose, GetItemTask
 from hcraft.examples.minecraft.items import DIAMOND
 
@@ -65,7 +65,7 @@ The purpose will terminate if ANY of the terminal groups have ALL its tasks done
 When adding a task to a purpose, one can choose one or multiple terminal groups like so:
 
 ```python
-from hcraft import MineHcraftEnv
+from hcraft.examples import MineHcraftEnv
 from hcraft.purpose import Purpose, GetItemTask, GoToZone
 from hcraft.examples.minecraft.items import DIAMOND, GOLD_INGOT, EGG
 from hcraft.examples.minecraft.zones import END
