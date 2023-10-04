@@ -73,8 +73,7 @@ Most of recent hierarchical RL environments require researchers to have signific
 
 ### Minecraft
 
-One of the best examples of a hierarchical tasks is the collection of diamonds in the popular video game Minecraft as illustrated by the MineRL [@milani2020minerl].
-Inspired by the historically well-selling video game Minecraft, several pioneers have developed and challenged learning Minecraft-like environments, such as the MineRL competition [@guss2021minerl] and Malmo [@johnson2016malmo].
+One of the best examples of a hierarchical tasks is the collection of diamonds in the popular video game Minecraft as illustrated by the MineRL competition [@milani2020minerl] and the environment Malmo [@johnson2016malmo].
 
 Due to the sparse rewards, exploration difficulty, and long time horizons in this procedurally generated sandbox environment, DreamerV3 [@dreamerv3] only recently became the first algorithm to successfully collect diamonds in Minecraft from scratch.
 Unfortunately, DreamerV3 needs to be trained on Nvidia V100 GPU for 17 days, gathering around 100 million environmental steps.
@@ -82,7 +81,7 @@ Such **tremendous computational resources** are not accessible to most researche
 
 ### Crafter
 
-Crafter [@hafner2021benchmarking] is a lightweight grid-based 2D environment, with similar game mechanics as Minecraft and poses substantial challenges including exploration, representation learning, rewards sparsity and long-term reasoning.
+Crafter [@hafner2022benchmarking] is a lightweight grid-based 2D environment, with similar game mechanics as Minecraft and poses substantial challenges including exploration, representation learning, rewards sparsity and long-term reasoning.
 Even tough Crafter indicates 22 achievements mapping to 22 different tasks (e.g., “collect stone” and “place stone”), the relation between items is fixed and thus **the underlying hierarchical structure of the environment is fixed**, limiting how researchers can study the effects of changes in this structure.
 
 ### GridWorld
@@ -97,9 +96,7 @@ Moreover, **only a few games of these games require hierarchical reasoning** (e.
 ### NetHack Learning Environment
 
 The NetHack learning environment [@kuttler2020nethack] is based on the game NetHack, where the observation is a grid composed of hundreds of possible symbols.
-Large numbers of items are randomly placed in each level, making NetHack extremely complex and challenging. In fact, NetHack is **too complex for agents to learn**, it requires many environment steps for agents to acquire domain-specific knowledge. 10B steps were required for the NeurIPS 2021 
-**this citation looks different from the rest: hafner2021benchmarking?**
-NetHack challenge [@hafner2021benchmarking], making it impractically long for a benchmark. Moreover, the NetHack game has only a **fixed underlying hierarchy** that cannot be easily modified.
+Large numbers of items are randomly placed in each level, making NetHack extremely complex and challenging. In fact, NetHack is **too complex for agents to learn**, it requires many environment steps for agents to acquire domain-specific knowledge. 10B steps were required for the NeurIPS 2021 NetHack challenge [@2021NetHack], making it impractically long for a benchmark. Moreover, the NetHack game has only a **fixed underlying hierarchy** that cannot be easily modified.
 
 ### DeepMind Lab
 
@@ -117,11 +114,5 @@ This work has taken place in the Intelligent Robot Learning (IRL) Lab at the Uni
 
 We would like to thank Shang Wang, Yuxuan Li and Laura Petrich from the IRL Lab for their help on finding and describing related works, for their critical thinking on the project and for revisions of the documentation and report.
 
-
-**Ref 1: is there a tech report number? Or location?**
-**Ref 6: minerl → MineRL? Also, this wasn't published - it was only an arXiv paper? Same question with other arxiv papers**
-**Ref 8: malmo → Malmo? Ijcai → IJCAI**
-**Ref 9: nethack → NetHack**
-**Ref 10: minerl → minerl. Also, do we need to cite both this and ref 6?**
 
 # References
