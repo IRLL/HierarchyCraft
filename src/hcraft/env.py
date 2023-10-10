@@ -36,9 +36,6 @@ with a high degree of flexibility and control.
 See [`hcraft.state`](https://irll.github.io/HierarchyCraft/hcraft/state.html)
 for more details on the HierarchyCraft environements state.
 
-
-You can see `hcraft.transformation` for more details or the full example bellow.
-
 You can also check more complex examples in `hcraft.examples`.
 
 # Example: Simple customed environment
