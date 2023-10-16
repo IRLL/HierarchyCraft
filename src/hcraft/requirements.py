@@ -2,13 +2,16 @@
 
 The HierarchyCraft package is meant to able the conception of arbitrary underlying hierarchial
 structures in environments.
-
-But of course, it's better to be able to manipulate and visualize those underlying hierarchies !
+Thus HierarchyCraft allows to manipulate and visualize those underlying hierarchies.
 
 ## Requirements graph
 
 In HierarchyCraft, transformations allow to obtain items, to reach zones or to place items in zones.
-Thus transformations are the links between the items and zones.
+Thus transformations are the links defining the requirements between items (and zones).
+
+A list of transformations can thus be transformed in a graph linking items and zones as illustrated bellow:
+
+![Transformation To Requirements](../../docs/images/TransformationToRequirements.png)
 
 We can represent all those links in a multi-edged directed graph (or MultiDiGraph), where:
 
@@ -62,9 +65,9 @@ env.world.requirements.draw(ax)
 plt.show()
 ```
 
-For example, here is the underlying hierarchy of the toy environment MinicraftUnlock:
+For a concrete example, here is the underlying hierarchy of the toy environment MinicraftUnlock:
 <img
-    src="https://raw.githubusercontent.com/IRLL/HierarchyCraft/master/docs/images/requirements_graphs/MiniCraftUnlock.png"
+src="https://raw.githubusercontent.com/IRLL/HierarchyCraft/master/docs/images/requirements_graphs/MiniHCraftUnlock.png"
 width="90%"/>
 
 """
