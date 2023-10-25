@@ -49,7 +49,7 @@ Yet current hierarchical benchmarks mostly consider one single hierarchical stru
 
 We argue that arbitrary hierarchical complexity can emerge from simple rules even without having to learn a representation.
 To our knowledge, no general frameworks for building environments exist to study the hierarchical structure itself, motivating the need for HierarchyCraft.
-We compare six particularly related benchmarks to HierarchyCraft.
+We compare five particularly related benchmarks to HierarchyCraft.
 
 ### PDDLGym
 
@@ -66,7 +66,7 @@ Such **tremendous computational resources** are not accessible to most researche
 
 Moreover, even tought Minecraft has a undeniable complex hierarchical structure as shown in \autoref{fig:MinecraftRequirements}, those hierarchical structures are fixed and cannot be modified without modding the game which is complex for researchers to do.
 
-![Some Minecraft tasks fixed hierarchical structure.[@guss2021minerl2020]\label{fig:MinecraftRequirements}](docs/images/MineRLCompetitionRequirementsGraph.png){ width=80% }
+![Example of Minecraft tasks fixed hierarchical structure.[@guss2021minerl2020]\label{fig:MinecraftRequirements}](docs/images/MineRLCompetitionRequirementsGraph.png){ width=80% }
 
 ### Arcade Learning Environment (Atari)
 
@@ -78,14 +78,14 @@ The arcade learning environment [@ALE] is one of the standard benchmarks in RL a
 Crafter [@hafner2022benchmarking] is a lightweight grid-based 2D environment, with similar game mechanics as Minecraft and poses substantial challenges including exploration, representation learning, rewards sparsity and long-term reasoning.
 Even tough Crafter provides 22 different tasks displayed in \autoref{fig:CrafterRequirements}, the relation between them and thus **the underlying hierarchical structure of the environment is fixed** limiting how researchers can study the effects of changes in this structure.
 
-![Fixed hierarchical structure of the Crafter environment.[@hafner2022benchmarking]\label{fig:CrafterRequirements}](docs/images/CrafterRequirementsGraph.png){ width=70% }
+![Hierarchical structure of the Crafter environment that cannot be modified.[@hafner2022benchmarking]\label{fig:CrafterRequirements}](docs/images/CrafterRequirementsGraph.png){ width=70% }
 
 
 ### GridWorld
 
 GridWorld is a general class of 2D grid-based environments. It is frequently facilitated in hierarchical reinforcement learning research, such as in the options framework [@sutton1999between]. Minigrid [@minigrid] allows researchers to build more complex cases and can be somewhat hierarchical by adding more rooms, objectives or obstacles as shown in \autoref{fig:MinigridHierarchies}. Unfortunately, GridWorld environments usually describe **shallow** hierarchical structure and are only focused on navigation tasks.
 
-![Hierarchical structures of some Minigrid environments and their relationships.\label{fig:MinigridHierarchies}](docs/images/MinigridHierarchies.png){ width=100% }
+![Example of Minigrid environments hierarchical structures and their relationships. There is only a few possible sub-tasks and most of them are navigation tasks (in green).\label{fig:MinigridHierarchies}](docs/images/MinigridHierarchies.png){ width=100% }
 
 <!-- ### NetHack Learning Environment
 
@@ -102,9 +102,9 @@ The action space can be composed of sub-tasks (i.e. _Transformations_) instead o
 
 This is further illustrated by the hierarchical structure of HierarchyCraft environments as a _requirements graph_ that can be directly built from the list of _Transformations_ composing the environement as shown in \autoref{fig:TransformationToRequirements}.
 
-![How sub-tasks build a hierarchical underlying structure.\label{fig:TransformationToRequirements}](docs/images/TransformationToRequirementsLarge.png){ width=60% }
-
 Requirements graphs are to be seen as a generalisation of graph pictures from related works such as \autoref{fig:MinecraftRequirements}, \autoref{fig:CrafterRequirements} and \autoref{fig:MinigridHierarchies}.
+
+![How sub-tasks build a hierarchical structure.\label{fig:TransformationToRequirements}](docs/images/TransformationToRequirementsLarge.png){ width=60% }
 
 ### 2. No feature extraction needed
 Compared to benchmarks that return grids, pixel arrays, text, or sound, HierarchyCraft directly return a low-dimensional latent representation that does not need to be learned as represented in \autoref{fig:HierarchyCraftState}.
