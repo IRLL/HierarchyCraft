@@ -68,17 +68,15 @@ Moreover, even tought Minecraft has a undeniable complex hierarchical structure 
 
 ![Example of Minecraft tasks fixed hierarchical structure.[@guss2021minerl2020]\label{fig:MinecraftRequirements}](docs/images/MineRLCompetitionRequirementsGraph.png){ width=80% }
 
-### Arcade Learning Environment (Atari)
-
-The arcade learning environment [@ALE] is one of the standard benchmarks in RL and is composed of over 55 Atari games over but **only a few games of these games require hierarchical reasoning** (e.g., Montezuma's Revenge and Pitfall). Each Atari games has a fixed hierarchy that cannot be modified and agents **require powerful computational resources** to extract relevant features from pixels, which substantially slow down experiments.
 
 
 ### Crafter
 
 Crafter [@hafner2022benchmarking] is a lightweight grid-based 2D environment, with similar game mechanics as Minecraft and poses substantial challenges including exploration, representation learning, rewards sparsity and long-term reasoning.
 Even tough Crafter provides 22 different tasks displayed in \autoref{fig:CrafterRequirements}, the relation between them and thus **the underlying hierarchical structure of the environment is fixed** limiting how researchers can study the effects of changes in this structure.
+Moreover, the 22 tasks considered by the authors do not contain navigation subtasks (Find water, look for a cow, wait for plant to grow, go back to a table, ...) or some optional subtasks (Swords makes killing skeletons easier) that causes sudden drops of success rates in the hierarchy instead of a more incremental difficulty.
 
-![Hierarchical structure of the Crafter environment that cannot be modified.[@hafner2022benchmarking]\label{fig:CrafterRequirements}](docs/images/CrafterRequirementsGraph.png){ width=70% }
+![Partial Hierarchical structure of the Crafter environment. Inspired from Figure 4 of [@hafner2022benchmarking]\label{fig:CrafterRequirements}](docs/images/CrafterRequirementsGraph.png){ width=100% }
 
 
 ### GridWorld
@@ -91,6 +89,10 @@ GridWorld is a general class of 2D grid-based environments. It is frequently fac
 
 The NetHack learning environment [@kuttler2020nethack] is based on the game NetHack, where the observation is a grid composed of hundreds of possible symbols.
 Large numbers of items are randomly placed in each level, making NetHack extremely complex and challenging. In fact, NetHack is **too complex for agents to learn**, it requires many environment steps for agents to acquire domain-specific knowledge. 10B steps were required for the NeurIPS 2021 NetHack challenge [@2021NetHack], making it impractically long for a benchmark. Moreover, the NetHack game also has a **fixed underlying hierarchy** that cannot be easily modified. -->
+
+### Arcade Learning Environment (Atari)
+
+The arcade learning environment [@ALE] is one of the standard benchmarks in RL and is composed of over 55 Atari games over but **only a few games of these games require hierarchical reasoning** (e.g., Montezuma's Revenge and Pitfall). Each Atari games has a fixed hierarchy that cannot be modified and agents **require powerful computational resources** to extract relevant features from pixels, which substantially slow down experiments.
 
 
 ## Design goals
