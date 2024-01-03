@@ -58,7 +58,7 @@ class MiniCraftEnv(HcraftEnv):
 
         requirements_image = (
             "https://raw.githubusercontent.com/IRLL/HierarchyCraft/master"
-            "/docs/images/requirements_graphs/MiniCraft<EnvName>.png"
+            "/docs/images/requirements_graphs/MiniHCraft<EnvName>.png"
         )
 
         template = "\n".join(
