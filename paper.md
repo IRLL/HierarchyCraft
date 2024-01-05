@@ -76,7 +76,7 @@ Crafter [@hafner2022benchmarking] is a lightweight grid-based 2D environment, wi
 Even tough Crafter provides 22 different tasks displayed in \autoref{fig:CrafterRequirements}, the relation between them and thus **the underlying hierarchical structure of the environment is fixed** limiting how researchers can study the effects of changes in this structure.
 Moreover, the 22 tasks considered by the authors do not contain navigation subtasks (Find water, look for a cow, wait for plant to grow, go back to a table, ...) or some optional subtasks (Swords makes killing skeletons easier) that causes sudden drops of success rates in the hierarchy instead of a more incremental difficulty.
 
-![Partial Hierarchical structure of the Crafter environment. Inspired from Figure 4 of [@hafner2022benchmarking]\label{fig:CrafterRequirements}](docs/images/CrafterRequirementsGraph.png){ width=100% }
+![Partial Hierarchical structure of the Crafter environment. Inspired from Figure 4 of [@hafner2022benchmarking]\label{fig:CrafterRequirements}](docs/images/CrafterRequirementsGraph.png){ width=80% }
 
 
 ### GridWorld
