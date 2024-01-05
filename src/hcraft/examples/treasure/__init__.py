@@ -7,6 +7,19 @@ from hcraft.purpose import GetItemTask
 from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZONE
 from hcraft.world import world_from_transformations
 
+# gym is an optional dependency
+try:
+    import gym
+
+    gym.register(
+        id="Treasure-v1",
+        entry_point="hcraft.examples.treasure:TreasureEnv",
+    )
+
+
+except ImportError:
+    pass
+
 
 class TreasureEnv(HcraftEnv):
     """A simple environment used in for the env building tutorial."""

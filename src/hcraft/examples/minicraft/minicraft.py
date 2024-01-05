@@ -15,6 +15,8 @@ class MiniCraftEnv(HcraftEnv):
     [minigrid environments](https://minigrid.farama.org/environments/minigrid/).
     """
 
+    MINICRAFT_NAME = None
+
     def __init__(
         self,
         minicraft_name: str,
@@ -31,7 +33,7 @@ class MiniCraftEnv(HcraftEnv):
                 If None, never truncates the episode. Defaults to None.
             render_window: Window using to render the environment with pygame.
         """
-        self.minicraft_name = minicraft_name
+        self.MINICRAFT_NAME = minicraft_name
         transformations = self.build_transformations()
         world = world_from_transformations(
             transformations=transformations,
@@ -40,7 +42,7 @@ class MiniCraftEnv(HcraftEnv):
             start_zones_items=start_zones_items,
         )
         world.resources_path = os.path.join(os.path.dirname(__file__), "resources")
-        super().__init__(world, name=f"MiniHCraft{self.minicraft_name}", **kwargs)
+        super().__init__(world, name=f"MiniHCraft{self.MINICRAFT_NAME}", **kwargs)
 
     @abstractmethod
     def build_transformations(self) -> List[Transformation]:

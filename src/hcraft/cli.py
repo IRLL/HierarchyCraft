@@ -10,6 +10,8 @@ from hcraft.examples import (
     RecursiveHcraftEnv,
     TowerHcraftEnv,
 )
+from hcraft.examples.minicraft import MINICRAFT_NAME_TO_ENV
+from hcraft.examples.treasure import TreasureEnv
 from hcraft.purpose import Purpose
 from hcraft.render.render import HcraftWindow
 from hcraft.render.widgets import ContentMode, DisplayMode
@@ -26,9 +28,11 @@ def hcraft_cli(args: Optional[List[str]] = None) -> HcraftEnv:
 
     subparsers = parser.add_subparsers(help="Available environments")
     _minecraft_sub_parser(subparsers)
+    _minicraft_sub_parser(subparsers)
     _tower_sub_parser(subparsers)
     _recursive_sub_parser(subparsers)
     _light_recursive_sub_parser(subparsers)
+    _treasure_sub_parser(subparsers)
     _random_sub_parser(subparsers)
 
     parser.add_argument(
@@ -148,6 +152,28 @@ def _minehcraft_from_cli(args: Namespace):
     return env
 
 
+def _minicraft_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
+    subparser = subparsers.add_parser(
+        "minicraft",
+        help="MiniHcraft: Bunch of environments inspired from MiniGrid environments.",
+    )
+    subparser.add_argument(
+        "name",
+        type=str,
+        help="Name of the minicraft environment.",
+        choices=MINICRAFT_NAME_TO_ENV.keys(),
+    )
+    subparser.set_defaults(func=_minicraft_from_cli)
+
+
+def _minicraft_from_cli(args: Namespace):
+    window = _window_from_cli(args)
+    return MINICRAFT_NAME_TO_ENV[args.name](
+        render_window=window,
+        max_step=args.max_step,
+    )
+
+
 def _tower_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
     subparser = subparsers.add_parser(
         "tower",
@@ -172,6 +198,24 @@ def _towerhcraft_from_cli(args: Namespace):
     env = TowerHcraftEnv(
         height=args.height,
         width=args.width,
+        render_window=window,
+        max_step=args.max_step,
+    )
+    return env
+
+
+def _treasure_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
+    subparser = subparsers.add_parser(
+        "treasure",
+        help="Treasure: A simple environment for testing.",
+        description="The goal of the environment is to get the gold from the chest using a key.",
+    )
+    subparser.set_defaults(func=_treasure_from_cli)
+
+
+def _treasure_from_cli(args: Namespace):
+    window = _window_from_cli(args)
+    env = TreasureEnv(
         render_window=window,
         max_step=args.max_step,
     )

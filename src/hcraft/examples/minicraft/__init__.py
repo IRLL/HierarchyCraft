@@ -1,6 +1,8 @@
 import inspect
 from pathlib import Path
+from typing import List, Type
 
+from hcraft.examples.minicraft.minicraft import MiniCraftEnv
 from hcraft.examples.minicraft.empty import MiniHCraftEmpty
 from hcraft.examples.minicraft.fourrooms import MiniHCraftFourRooms
 from hcraft.examples.minicraft.multiroom import MiniHCraftMultiRoom
@@ -12,7 +14,7 @@ from hcraft.examples.minicraft.unlockpickupblocked import MiniHCraftBlockedUnloc
 from hcraft.examples.minicraft.keycorridor import MiniHCraftKeyCorridor
 
 
-MINICRAFT_ENVS = [
+MINICRAFT_ENVS: List[Type[MiniCraftEnv]] = [
     MiniHCraftEmpty,
     MiniHCraftFourRooms,
     MiniHCraftMultiRoom,
@@ -23,6 +25,8 @@ MINICRAFT_ENVS = [
     MiniHCraftBlockedUnlockPickup,
     MiniHCraftKeyCorridor,
 ]
+
+MINICRAFT_NAME_TO_ENV = {env.MINICRAFT_NAME: env for env in MINICRAFT_ENVS}
 
 __all__ = [
     "MiniHCraftEmpty",
