@@ -88,6 +88,7 @@ def test_gym_make(env_gym_id):
     gym.make(env_gym_id)
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
 def test_requirements_graph(env_class):
     draw = True

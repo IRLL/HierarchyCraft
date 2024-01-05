@@ -1,5 +1,22 @@
 """# Transformation
 
+Transformations are at the core of HierarchyCraft as
+each HierarchyCraft environment is defined by
+a list of transformations and an initial state.
+
+Each **transformation** is composed of three optional elements:
+
+-   **Inventory changes**: Either
+    using an item (consuming some amount or not, with a min/max required or not)
+    or yielding an item (creating some amount of it, with a min/max required or not)
+    in any inventory of either the player, the current zone,
+    the destination zone, or any specific zones.
+-   **Destination**: If specified the agent will move to the destination zone
+    when performing the transformation.
+-   **Zones**: Zones to which the transformation is restricted.
+    If not specified, the transformation can be done anywhere.
+
+
 ## Examples
 
 ```python
@@ -169,6 +186,8 @@ class Use:
     By default, min is 1 if consume is 0, else min=consume.
 
     """
+    max: int = np.inf
+    """Maximum amout of the item *before* the transformation to be valid. Defaults to inf."""
 
     def __post_init__(self):
         if not isinstance(self.owner, Zone):
@@ -184,9 +203,11 @@ class Yield:
     owner: Union[InventoryOwner, Zone]
     """Owner of the inventory to change."""
     item: Item
-    """Item to use."""
+    """Item to yield."""
     create: int = 1
     """Amout of the item to create in the inventory. Defaults to 1."""
+    min: int = -np.inf
+    """Minimum amout of the item *before* the transformation to be valid. Defaults to -inf."""
     max: int = np.inf
     """Maximum amout of the item *before* the transformation to be valid. Defaults to inf."""
 
@@ -378,8 +399,8 @@ class Transformation:
     def produced_zones_items(self) -> Set["Item"]:
         """Set of produced zones items by this transformation."""
         return (
-            self.production(InventoryOwner.CURRENT)
-            | self.production(InventoryOwner.DESTINATION)
+            self.production(CURRENT_ZONE)
+            | self.production(DESTINATION)
             | self.production(InventoryOwner.ZONES)
         )
 
@@ -387,8 +408,8 @@ class Transformation:
     def consumed_zones_items(self) -> Set["Item"]:
         """Set of consumed zones items by this transformation."""
         return (
-            self.consumption(InventoryOwner.CURRENT)
-            | self.consumption(InventoryOwner.DESTINATION)
+            self.consumption(CURRENT_ZONE)
+            | self.consumption(DESTINATION)
             | self.consumption(InventoryOwner.ZONES)
         )
 
@@ -396,8 +417,8 @@ class Transformation:
     def min_required_zones_items(self) -> Set["Item"]:
         """Set of zone items for which a minimum is required by this transformation."""
         return (
-            self.min_required(InventoryOwner.CURRENT)
-            | self.min_required(InventoryOwner.DESTINATION)
+            self.min_required(CURRENT_ZONE)
+            | self.min_required(DESTINATION)
             | self.min_required(InventoryOwner.ZONES)
         )
 
@@ -405,8 +426,8 @@ class Transformation:
     def max_required_zones_items(self) -> Set["Item"]:
         """Set of zone items for which a maximum is required by this transformation."""
         return (
-            self.max_required(InventoryOwner.CURRENT)
-            | self.max_required(InventoryOwner.DESTINATION)
+            self.max_required(CURRENT_ZONE)
+            | self.max_required(DESTINATION)
             | self.max_required(InventoryOwner.ZONES)
         )
 
@@ -730,11 +751,11 @@ def _update_inventory(
     operation_arr: np.ndarray,
 ):
     position_slot: int = position.nonzero()[0]
-    if owner is InventoryOwner.PLAYER:
+    if owner is PLAYER:
         player_inventory[...] += operation_arr
-    elif owner is InventoryOwner.CURRENT:
+    elif owner is CURRENT_ZONE:
         zones_inventories[position_slot, :] += operation_arr
-    elif owner is InventoryOwner.DESTINATION:
+    elif owner is DESTINATION:
         destination_slot: int = destination.nonzero()[0]
         zones_inventories[destination_slot, :] += operation_arr
     elif owner is InventoryOwner.ZONES:
@@ -828,20 +849,20 @@ def _append_changes(
             dict_of_changes[owner][operation][zone] = []
         dict_of_changes[owner][operation][zone].append(stack)
 
-    if isinstance(change, Use):
-        if change.min > -np.inf:
-            min_stack = Stack(change.item, change.min)
-            _append_stack(InventoryOperation.MIN, min_stack)
+    if change.min > -np.inf:
+        min_stack = Stack(change.item, change.min)
+        _append_stack(InventoryOperation.MIN, min_stack)
 
+    if change.max < np.inf:
+        max_stack = Stack(change.item, change.max)
+        _append_stack(InventoryOperation.MAX, max_stack)
+
+    if isinstance(change, Use):
         if change.consume > 0:
             rem_stack = Stack(change.item, change.consume)
             _append_stack(InventoryOperation.REMOVE, rem_stack)
 
     elif isinstance(change, Yield):
-        if change.max < np.inf:
-            max_stack = Stack(change.item, change.max)
-            _append_stack(InventoryOperation.MAX, max_stack)
-
         if change.create > 0:
             add_stack = Stack(change.item, change.create)
             _append_stack(InventoryOperation.ADD, add_stack)

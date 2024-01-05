@@ -97,6 +97,32 @@ class TestTransformationIsValid:
                 msg=f"{state}, {transfo.is_valid(state)}|{expected_valid}",
             )
 
+    def test_player_items_is_valid_max_min(self):
+        transfo = Transformation(
+            inventory_changes=[
+                Use(PLAYER, self.items[0], consume=2, max=1, min=1),
+                Yield(PLAYER, self.items[1], min=1),
+                Yield(PLAYER, self.items[2], min=0),
+            ],
+        )
+        transfo.build(self.world)
+        position = np.array([1, 0, 0])
+
+        inv_examples = [
+            (True, np.array([1, 1, 0])),  # Minimal required
+            (False, np.array([2, 0, 0])),  # Hit maximum items[0] (2 > 0)
+            (False, np.array([1, 0, 0])),  # Hit minimum items[1] (0 < 1)
+            (False, np.array([1, 0, -1])),  # Hit maximum items[2] (0 < 0)
+        ]
+
+        for expected_valid, player_inventory in inv_examples:
+            state = DummyState(position=position, player_inventory=player_inventory)
+            check.equal(
+                transfo.is_valid(state),
+                expected_valid,
+                msg=f"{state}, {transfo.is_valid(state)}|{expected_valid}",
+            )
+
     def test_zone_items_is_valid(self):
         transfo = Transformation(
             inventory_changes=[
