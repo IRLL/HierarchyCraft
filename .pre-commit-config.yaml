@@ -15,9 +15,19 @@ repos:
     - id: black
   - repo: local
     hooks:
+      - id: pytest-fast-check
+        name: pytest-fast-check
+        entry: ./venv/Scripts/python.exe -m pytest -m "not slow"
+        stages: ["commit"]
+        language: system
+        pass_filenames: false
+        always_run: true
+  - repo: local
+    hooks:
       - id: pytest-check
         name: pytest-check
-        entry: ./venv/Scripts/python.exe -m pytest -m "not slow"
+        entry: ./venv/Scripts/python.exe -m pytest
+        stages: ["push"]
         language: system
         pass_filenames: false
         always_run: true
