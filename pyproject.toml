@@ -27,6 +27,7 @@ gym = ["gym >= 0.26"]
 gui = ["pygame >= 2.1.0", "pygame-menu >= 4.3.8"]
 planning = ["unified_planning[enhsp] >= 0.5.0"]
 all = ["gym >= 0.26", "pygame >= 2.1.0", "pygame-menu >= 4.3.8", "unified_planning[enhsp] >= 0.5.0"]
+dev = ["pytest", "pytest-cov", "pytest-mock", "pytest-check", "pytest-xdist", "pre-commit", "ruff"]
 
 [project.urls]
 Source = "https://github.com/IRLL/HierarchyCraft"

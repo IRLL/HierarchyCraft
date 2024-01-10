@@ -1,8 +1,0 @@
-pytest
-pytest-cov
-pytest-mock
-pytest-check
-pytest-xdist
-pre-commit
-ruff
-black
