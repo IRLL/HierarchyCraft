@@ -1,7 +1,7 @@
 """ Module testing utils functions for hcraft behaviors. """
 
-import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import pytest
@@ -23,10 +23,22 @@ from hcraft.examples.minecraft.tools import (
 )
 from hcraft.examples.minecraft.zones import NETHER, UNDERGROUND
 from hcraft.purpose import platinium_purpose
-from hcraft.task import GetItemTask, GoToZoneTask
+from hcraft.task import Task, GetItemTask, GoToZoneTask
+
+if TYPE_CHECKING:
+    from unified_planning.io import PDDLWriter
 
 WOODEN_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.WOOD]
 STONE_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.STONE]
+
+
+KNOWN_TO_FAIL_TASK_HEBG = [
+    "Place enchanting_table anywhere",
+    "Place open_ender_portal anywhere",
+    "Go to stronghold",
+    "Go to end",
+    "Get ender_dragon_head",
+]
 
 
 @pytest.mark.slow
@@ -41,7 +53,7 @@ def test_solving_behaviors():
     while not done and not env.purpose.terminated:
         tasks_left = [t for t in tasks_left if not t.terminated]
         if task is None:
-            task = tasks_left.pop(0)
+            task = tasks_left[0]
             print(f"Task started: {task} (step={env.current_step})")
             solving_behavior = env.solving_behavior(task)
         action = solving_behavior(observation)
@@ -49,13 +61,16 @@ def test_solving_behaviors():
         if task.terminated:
             print(f"Task finished: {task}, tasks_left: {tasks_left}")
             task = None
-    print(f"Last unfinished task: {task}")
-    if len(tasks_left) <= 4:
-        pytest.xfail("Harder tasks cannot be done for now ...")
+    if isinstance(task, Task) and not task.terminated:
+        print(f"Last unfinished task: {task}")
+    if set(t.name for t in tasks_left) == set(KNOWN_TO_FAIL_TASK_HEBG):
+        pytest.xfail(
+            f"Harder tasks ({KNOWN_TO_FAIL_TASK_HEBG}) cannot be done for now ..."
+        )
     check.is_true(env.purpose.terminated, msg=f"tasks not completed: {tasks_left}")
 
 
-KNOWN_TO_FAIL_ITEM = [
+KNOWN_TO_FAIL_ITEM_ENHSP = [
     "leather",
     "book",
     "flint_and_steel",
@@ -97,15 +112,15 @@ def test_get_all_items_pddl(item: str):
     write = False
     problem = env.planning_problem(timeout=5)
 
-    if item in KNOWN_TO_FAIL_ITEM:
-        pytest.xfail(f"ENHSP planner is known to fail to get {item}")
-
     if write:
-        writer = up.io.PDDLWriter(problem.upf_problem)
+        writer: "PDDLWriter" = up.io.PDDLWriter(problem.upf_problem)
         pddl_dir = Path("planning", "pddl", env.name)
-        os.makedirs(pddl_dir, exist_ok=True)
-        writer.write_domain(pddl_dir / "domain.pddl")
-        writer.write_problem(pddl_dir / f"{task.name}.pddl")
+        pddl_dir.mkdir(exist_ok=True)
+        writer.write_domain(pddl_dir / "MineHCraftDomain.pddl")
+        writer.write_problem(pddl_dir / f"Get{item.capitalize()}Problem.pddl")
+
+    if item in KNOWN_TO_FAIL_ITEM_ENHSP:
+        pytest.xfail(f"ENHSP planner is known to fail to get {item}")
 
     done = False
     _observation = env.reset()
