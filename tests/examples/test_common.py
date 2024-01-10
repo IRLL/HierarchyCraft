@@ -15,6 +15,7 @@ from hcraft.examples.minicraft import (
 from hcraft.env import HcraftEnv
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
 def test_build_env(env_class):
     human_run = False
@@ -29,6 +30,7 @@ KNOWN_TO_FAIL_ENHSP = [
 ]
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
 def test_pddl_solve(env_class):
     up = pytest.importorskip("unified_planning")
@@ -63,6 +65,7 @@ KNOWN_TO_FAIL_HEBG = [
 ]
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
 def test_can_solve(env_class):
     env: HcraftEnv = env_class(max_step=50)
@@ -82,6 +85,7 @@ def test_can_solve(env_class):
     check.is_true(env.purpose.terminated)
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("env_gym_id", HCRAFT_GYM_ENVS)
 def test_gym_make(env_gym_id):
     gym = pytest.importorskip("gym")

@@ -372,6 +372,7 @@ def test_observation_one_zone_no_player_items():
     )
 
 
+@pytest.mark.slow
 def test_treasure_env(mocker: MockerFixture):
     """Ensure that the example environment from the documenation is working properly."""
     pytest.importorskip("pygame")
@@ -483,6 +484,7 @@ def test_treasure_env(mocker: MockerFixture):
     check.is_true(env.purpose.terminal_groups[0].terminated)
 
 
+@pytest.mark.slow
 def test_class_tresure_env(mocker: MockerFixture):
     pytest.importorskip("pygame")
     pytest.importorskip("pygame_menu")
