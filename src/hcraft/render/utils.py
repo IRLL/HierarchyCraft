@@ -27,6 +27,7 @@ if TYPE_CHECKING:
 
 # Disable PIL logging to avoid spam (see https://github.com/camptocamp/pytest-odoo/issues/15)
 logging.getLogger("PIL").setLevel(logging.INFO)
+logging.getLogger("matplotlib.font_manager").setLevel(logging.INFO)
 
 
 def load_image(resources_path: Path, obj: Union[Item, Zone]) -> Optional[Image.Image]:

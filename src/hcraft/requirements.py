@@ -73,15 +73,20 @@ width="90%"/>
 """
 
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
 
-import matplotlib.patches as mpatches
 import networkx as nx
 import numpy as np
-from hebg.graph import draw_networkx_nodes_images, get_nodes_by_level
-from hebg.layouts.metabased import leveled_layout_energy
+
+from matplotlib import colormaps
+from matplotlib import pyplot as plt
+import matplotlib.patches as mpatches
 from matplotlib.axes import Axes
 from matplotlib.legend_handler import HandlerPatch
+
+from hebg.graph import draw_networkx_nodes_images, get_nodes_by_level
+from hebg.layouts.metabased import leveled_layout_energy
 
 from hcraft.render.utils import load_or_create_image
 
@@ -127,23 +132,43 @@ class RequirementTheme:
     }
     """Default colors"""
 
-    def __init__(self, default_color: Any = "black", **kwargs) -> None:
+    def __init__(
+        self,
+        default_color: Any = "black",
+        edge_colors=colormaps.get_cmap("Set1").colors,
+        **kwargs,
+    ) -> None:
         self.colors = self.DEFAULT_COLORS.copy()
         self.colors.update(kwargs)
         self.default_color = default_color
 
-    def color(self, obj: Union[RequirementNode, RequirementEdge]) -> Any:
-        """Give the themed color of the given object.
+        def rgba_to_hex(r, g, b, a=0.5):
+            hexes = "%02x%02x%02x%02x" % (
+                int(r * 255),
+                int(g * 255),
+                int(b * 255),
+                int(a * 255),
+            )
+            return f"#{hexes.upper()}"
 
-        Args:
-            obj: Object to color (node or edge).
+        self.edges_colors = [rgba_to_hex(*color) for color in edge_colors]
 
-        Returns:
-            Color of the object using this theme.
-        """
-        if not obj:
+    def color_node(self, node_type: RequirementNode) -> Any:
+        """Returns the themed color of the given node depending on his type."""
+        if not node_type:
             return self.default_color
-        return self.colors.get(obj.value, self.default_color)
+        return self.colors.get(node_type.value, self.default_color)
+
+    def color_edges(self, edge_index: int):
+        """Returns the themed color of the given edge depending on his type."""
+        edge_color_index = edge_index % len(self.edges_colors)
+        edge_color = self.edges_colors[edge_color_index]
+        return edge_color
+
+
+class DrawEngine(Enum):
+    PLT = "matplotlib"
+    PYVIS = "pyvis"
 
 
 class Requirements:
@@ -156,9 +181,12 @@ class Requirements:
 
     def draw(
         self,
-        ax: Axes,
+        ax: Optional[Axes] = None,
         theme: RequirementTheme = RequirementTheme(),
         layout: "RequirementsGraphLayout" = "level",
+        engine: DrawEngine = DrawEngine.PLT,
+        save_path: Optional[Path] = None,
+        **kwargs,
     ) -> None:
         """Draw the requirements graph on the given Axes.
 
@@ -166,9 +194,41 @@ class Requirements:
             ax: Matplotlib Axes to draw on.
             layout: Drawing layout. Defaults to "level".
         """
-        draw_requirements_graph(
-            ax, self, theme, resources_path=self.world.resources_path, layout=layout
-        )
+        pos = compute_layout(self.digraph, layout=layout)
+
+        if save_path:
+            save_path.parent.mkdir(exist_ok=True)
+
+        engine = DrawEngine(engine)
+        if engine is DrawEngine.PLT:
+            if ax is None:
+                raise TypeError(f"ax must be given for {engine.value} drawing engine.")
+            _draw_on_plt_ax(
+                ax,
+                self.digraph,
+                theme,
+                resources_path=self.world.resources_path,
+                pos=pos,
+                level_legend=True,
+            )
+
+            if save_path:
+                plt.gcf().savefig(
+                    save_path, dpi=kwargs.get("dpi", 100), transparent=True
+                )
+
+        if engine is DrawEngine.PYVIS:
+            if save_path is None:
+                raise TypeError(
+                    f"save_path must be given for {engine.value} drawing engine."
+                )
+            _draw_html(
+                self.graph,
+                filepath=save_path,
+                pos=pos,
+                depth=self.depth,
+                width=self.width,
+            )
 
     @property
     def digraph(self) -> nx.DiGraph:
@@ -505,12 +565,37 @@ class RequirementsGraphLayout(Enum):
     """Classic spring layout."""
 
 
-def draw_requirements_graph(
+def apply_color_theme(
+    graph: nx.MultiDiGraph, theme: RequirementTheme = RequirementTheme()
+):
+    for node, node_type in graph.nodes(data="type"):
+        graph.nodes[node]["color"] = theme.color_node(node_type)
+        incoming_edge_keys = []
+        for pred, _, key in graph.in_edges(node, keys=True):
+            if key not in incoming_edge_keys:
+                incoming_edge_keys.append(key)
+            index = incoming_edge_keys.index(key)
+            graph.edges[pred, node, key]["color"] = theme.color_edges(index)
+
+
+def compute_layout(
+    digraph: nx.DiGraph, layout: Union[str, RequirementsGraphLayout] = "level"
+):
+    layout = RequirementsGraphLayout(layout)
+    if layout == RequirementsGraphLayout.LEVEL:
+        pos = leveled_layout_energy(digraph)
+    elif layout == RequirementsGraphLayout.SPRING:
+        pos = nx.spring_layout(digraph)
+    return pos
+
+
+def _draw_on_plt_ax(
     ax: Axes,
-    requirements: Requirements,
+    digraph: nx.DiGraph,
     theme: RequirementTheme,
     resources_path: str,
-    layout: RequirementsGraphLayout = "level",
+    pos: dict,
+    level_legend: bool = False,
 ):
     """Draw the requirement graph on a given Axes.
 
@@ -521,16 +606,9 @@ def draw_requirements_graph(
         The Axes with requirements_graph drawn on it.
 
     """
-    digraph = requirements.digraph
-
-    layout = RequirementsGraphLayout(layout)
-    if layout == RequirementsGraphLayout.LEVEL:
-        pos = leveled_layout_energy(digraph)
-    elif layout == RequirementsGraphLayout.SPRING:
-        pos = nx.spring_layout(digraph)
-
     edges_colors = [
-        theme.color(edge_type) for _, _, edge_type in digraph.edges(data="type")
+        theme.color_edges([et for et in RequirementEdge].index(edge_type))
+        for _, _, edge_type in digraph.edges(data="type")
     ]
     edges_alphas = [_compute_edge_alpha(*edge, digraph) for edge in digraph.edges()]
     # Plain edges
@@ -547,7 +625,7 @@ def draw_requirements_graph(
     for node, node_data in digraph.nodes(data=True):
         node_obj = node_data.get("obj", None)
         if node_obj is not None:
-            digraph.nodes[node]["color"] = theme.color(node_data["type"])
+            digraph.nodes[node]["color"] = theme.color_node(node_data["type"])
             image = load_or_create_image(node_obj, resources_path, bg_color=(0, 0, 0))
             digraph.nodes[node]["image"] = np.array(image)
     draw_networkx_nodes_images(digraph, pos, ax=ax, img_zoom=0.3)
@@ -563,7 +641,9 @@ def draw_requirements_graph(
             legend_arrows.append(
                 mpatches.FancyArrow(
                     *(0, 0, 1, 0),
-                    facecolor=theme.color(legend_edge_type),
+                    facecolor=theme.color_edges(
+                        [et for et in RequirementEdge].index(legend_edge_type)
+                    ),
                     edgecolor="none",
                     label=str(legend_edge_type.value).capitalize(),
                 )
@@ -580,7 +660,7 @@ def draw_requirements_graph(
             legend_patches.append(
                 mpatches.Patch(
                     facecolor="none",
-                    edgecolor=theme.color(legend_node_type),
+                    edgecolor=theme.color_node(legend_node_type),
                     label=str(legend_node_type.value).capitalize(),
                 )
             )
@@ -606,7 +686,7 @@ def draw_requirements_graph(
     ax.margins(0, 0)
 
     # Add Hierarchies numbers
-    if layout == "level":
+    if level_legend:
         nodes_by_level: Dict[int, Any] = digraph.graph["nodes_by_level"]
         for level, level_nodes in nodes_by_level.items():
             level_poses = np.array([pos[node] for node in level_nodes])
@@ -617,6 +697,42 @@ def draw_requirements_graph(
     return ax
 
 
+def _draw_html(
+    graph: Union[nx.DiGraph, nx.MultiDiGraph],
+    filepath: Path,
+    pos: Dict[str, Tuple[float, float]],
+    depth: int,
+    width: int,
+):
+    from pyvis.network import Network
+
+    resolution = [max(128 * width, 600), max(128 * depth, 1000)]
+    nt = Network(width=f"{resolution[0]}px", height=f"{resolution[1]}px", directed=True)
+    serializable_graph = serialize(
+        graph,
+        edge_data_map={"type": "title"},
+        node_data_map={"name": "label", "type": "title"},
+    )
+
+    poses = np.array(list(pos.values()))
+    poses = np.flip(poses, axis=1)
+    poses_min = np.min(poses, axis=0)
+    poses_max = np.max(poses, axis=0)
+    poses_range = poses_max - poses_min
+    poses_range = np.where(poses_range == 0, 1.0, poses_range)
+
+    def scale(val, axis: int):
+        return (val - poses_min[axis]) / poses_range[axis] * 0.8 * resolution[axis]
+
+    for node, (y, x) in pos.items():
+        serializable_graph.nodes[node]["x"] = scale(x, 0)
+        serializable_graph.nodes[node]["y"] = scale(y, 1)
+    nt.from_nx(serializable_graph)
+    nt.toggle_physics(True)
+    nt.inherit_edge_colors(False)
+    nt.show(str(filepath))
+
+
 def _compute_edge_alpha(pred, _succ, graph: nx.DiGraph):
     alphas = [1, 1, 1, 1, 1, 0.5, 0.5, 0.5, 0.2, 0.2, 0.2]
     n_successors = len(list(graph.successors(pred)))
@@ -624,3 +740,45 @@ def _compute_edge_alpha(pred, _succ, graph: nx.DiGraph):
     if n_successors < len(alphas):
         alpha = alphas[n_successors - 1]
     return alpha
+
+
+def serialize(
+    graph: nx.MultiDiGraph,
+    node_data_map: Optional[Dict[str, str]] = None,
+    edge_data_map: Optional[Dict[str, str]] = None,
+):
+    """Make a serializable copy of a requirements graph
+    by converting objects in it to dicts."""
+    serializable_graph = nx.MultiDiGraph()
+    if node_data_map is None:
+        node_data_map = {}
+    if edge_data_map is None:
+        edge_data_map = {}
+
+    for node, node_data in graph.nodes(data=True):
+        node_type = node_data.pop("type")
+        flat_node_data = {
+            node_data_map.get("type", "type"): node_type.value,
+        }
+        obj: Optional[Union[Item, Zone]] = node_data.pop("obj")
+        if obj is not None:
+            name = obj.name
+            if node_type is RequirementNode.ZONE_ITEM:
+                name += " in zone"
+            flat_node_data[node_data_map.get("name", "name")] = name
+        flat_node_data.update(_apply_keys_mapping(node_data, node_data_map))
+        serializable_graph.add_node(node, **flat_node_data)
+
+    for start, end, key, edge_data in graph.edges(data=True, keys=True):
+        flat_edge_data = {
+            edge_data_map.get("type", "type"): edge_data.pop("type").value,
+            "group": key,
+        }
+        flat_edge_data.update(_apply_keys_mapping(edge_data, edge_data_map))
+        serializable_graph.add_edge(start, end, **flat_edge_data)
+
+    return serializable_graph
+
+
+def _apply_keys_mapping(original_dict: dict, keys_map: Dict[str, str]):
+    return {keys_map.get(key, key): val for key, val in original_dict.items()}

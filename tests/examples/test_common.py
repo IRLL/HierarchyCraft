@@ -1,3 +1,6 @@
+from pathlib import Path
+from time import sleep
+from typing import Type
 import pytest
 import pytest_check as check
 
@@ -13,6 +16,7 @@ from hcraft.examples.minicraft import (
     MiniHCraftUnlockPickup,
 )
 from hcraft.env import HcraftEnv
+from hcraft.requirements import apply_color_theme
 
 
 @pytest.mark.slow
@@ -94,30 +98,40 @@ def test_gym_make(env_gym_id):
 
 @pytest.mark.slow
 @pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
-def test_requirements_graph(env_class):
-    draw = True
+def test_requirements_graph(env_class: Type[HcraftEnv]):
+    draw_plt = True
+    draw_html = True
     save = False
-    env: HcraftEnv = env_class()
+    env = env_class()
     requirements = env.world.requirements
-    requirements.graph
-    if draw:
+    apply_color_theme(requirements.graph)
+
+    requirements_dir = Path("docs", "images", "requirements_graphs")
+
+    if draw_plt:
         import matplotlib.pyplot as plt
 
         width = max(requirements.depth, 10)
         height = max(9 / 16 * width, requirements.width / requirements.depth * width)
+        resolution = max(64 * requirements.depth, 900)
+        dpi = resolution / width
 
         fig, ax = plt.subplots()
         plt.tight_layout()
         fig.set_size_inches(width, height)
-        requirements.draw(ax)
 
-        resolution = max(64 * requirements.depth, 900)
-
+        save_path = None
         if save:
-            requirements_dir = os.path.join("docs", "images", "requirements_graphs")
-            os.makedirs(requirements_dir, exist_ok=True)
-
-            filename = os.path.join(requirements_dir, f"{env.name}.png")
-            fig.savefig(filename, dpi=resolution / width, transparent=True)
+            save_path = requirements_dir / f"{env.name}.png"
+        requirements.draw(ax, save_path=save_path, dpi=dpi)
 
         plt.close()
+
+    if draw_html:
+        requirements_dir.mkdir(exist_ok=True)
+        filepath = requirements_dir / f"{env.name}_requirements_graph.html"
+        exists = filepath.exists()
+        requirements.draw(engine="pyvis", save_path=filepath)
+        if not save and not exists:
+            sleep(0.2)
+            os.remove(filepath)
