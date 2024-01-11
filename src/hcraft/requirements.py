@@ -728,7 +728,7 @@ def _draw_html(
         serializable_graph.nodes[node]["x"] = scale(x, 0)
         serializable_graph.nodes[node]["y"] = scale(y, 1)
     nt.from_nx(serializable_graph)
-    nt.toggle_physics(True)
+    nt.toggle_physics(False)
     nt.inherit_edge_colors(False)
     nt.show(str(filepath))
 
