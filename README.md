@@ -20,9 +20,9 @@ In environments built with HierarchyCraft the agent (player) has an inventory an
 The action space of HierarchyCraft environments consists of sub-tasks, referred to as _Transformations_, as opposed to detailed movements and controls. But each _Transformations_ has specific requirements to be valid (eg. have enought of an item, be in the right place), and these requirements may necessitate the execution of other _Transformations_ first, inherently creating a hierarchical structure in HierarchyCraft environments.
 
 This concept is visually represented by the _Requirements graph_ depicting the hierarchical relationships within each HierarchyCraft environment.
-The _Requirements graph_ is directly constructed from the list of _Transformations_ composing the environement, as illustrated bellow:
+The _Requirements graph_ is directly constructed from the list of _Transformations_ composing the environement.
 
-![Transformations to requirements graph](docs/images/TransformationToRequirementsLarge.png)
+![](docs/images/TransformationToRequirementsLarge.png)
 
 More details about requirements graph can be found in the documentation at [`hcraft.requirements`](https://irll.github.io/HierarchyCraft/hcraft/requirements.html) and example of requirements graph for some HierarchyCraft environements can be found in [`hcraft.examples`](https://irll.github.io/HierarchyCraft/hcraft/examples.html).
 
