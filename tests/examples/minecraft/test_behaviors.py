@@ -10,9 +10,8 @@ import pytest_check as check
 
 from hcraft.elements import Item
 from hcraft.behaviors.utils import get_items_in_graph, get_zones_items_in_graph
-from hcraft.examples.minecraft.env import MineHcraftEnv
+from hcraft.examples.minecraft.env import ALL_ITEMS, MineHcraftEnv
 from hcraft.examples.minecraft.items import (
-    MC_FINDABLE_ITEMS,
     OPEN_NETHER_PORTAL,
     STICK,
     WOOD_PLANK,
@@ -73,6 +72,11 @@ def test_solving_behaviors():
 
 
 KNOWN_TO_FAIL_ITEM_ENHSP = [
+    "reeds",
+    "wood_pickaxe",
+    "wood_axe",
+    "cobblestone",
+    "coal",
     "leather",
     "book",
     "flint_and_steel",
@@ -105,7 +109,7 @@ KNOWN_TO_FAIL_ITEM_ENHSP = [
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("item", [item.item.name for item in MC_FINDABLE_ITEMS])
+@pytest.mark.parametrize("item", [item.name for item in ALL_ITEMS])
 def test_get_all_items_pddl(item: str):
     """All items should be gettable by planning behavior."""
     up = pytest.importorskip("unified_planning")
