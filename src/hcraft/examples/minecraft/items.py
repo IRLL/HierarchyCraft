@@ -43,7 +43,7 @@ CRAFTING_TABLE = Item("crafting_table")
 """CRAFTING_TABLE"""
 
 FURNACE = Item("furnace")
-"""CRAFTING_TABLE"""
+"""FURNACE"""
 
 STICK = Item("stick")
 """STICK"""
@@ -62,6 +62,25 @@ FLINT_AND_STEEL = Item("flint_and_steel")
 
 WOOD_PLANK = Item("wood_plank")
 """WOOD_PLANK"""
+
+
+CRAFTABLE_ITEMS = [
+    IRON_INGOT,
+    GOLD_INGOT,
+    PAPER,
+    BOOK,
+    CLOCK,
+    ENCHANTING_TABLE,
+    CRAFTING_TABLE,
+    FURNACE,
+    STICK,
+    BLAZE_POWDER,
+    ENDER_EYE,
+    FLINT,
+    FLINT_AND_STEEL,
+    WOOD_PLANK,
+]
+"""Items that can be obtained with crafting."""
 
 
 @dataclass
@@ -224,7 +243,7 @@ MC_ENDER_DRAGON_HEAD = McItem(
 )
 """ENDER_DRAGON_HEAD"""
 
-MC_ITEMS = [
+MC_FINDABLE_ITEMS = [
     MC_DIRT,
     MC_WOOD,
     MC_GRAVEL,
@@ -243,6 +262,7 @@ MC_ITEMS = [
     MC_ENDER_PEARL,
     MC_ENDER_DRAGON_HEAD,
 ]
+"""McItems that can be gathered with or without tools."""
 
 #: Buildings
 CLOSE_NETHER_PORTAL = Item("close_nether_portal")
@@ -256,3 +276,16 @@ CLOSE_ENDER_PORTAL = Item("close_ender_portal")
 
 OPEN_ENDER_PORTAL = Item("open_ender_portal")
 """OPEN_ENDER_PORTAL"""
+BUIDINGS = [
+    CLOSE_NETHER_PORTAL,
+    OPEN_NETHER_PORTAL,
+    CLOSE_ENDER_PORTAL,
+    OPEN_ENDER_PORTAL,
+]
+
+PLACABLE_ITEMS = [
+    CRAFTING_TABLE,
+    FURNACE,
+    ENCHANTING_TABLE,
+] + BUIDINGS
+"""Items that can be placed."""

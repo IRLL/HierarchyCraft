@@ -1,8 +1,10 @@
+from typing import List, Type, TypeVar
 import pytest
 import pytest_check as check
 
 
 from hcraft.examples.minecraft.env import MineHcraftEnv
+from hcraft.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
 
 gym = pytest.importorskip("gym")
 
@@ -42,9 +44,34 @@ def test_enchanting_table_gym_make():
 
 def test_all_items_gym_make():
     env: MineHcraftEnv = gym.make("MineHcraft-v1")
-    check.equal(
-        len(env.purpose.tasks),
-        env.world.n_items + env.world.n_zones + env.world.n_zones_items,
+
+    TaskOfType = TypeVar("TaskOfType")
+
+    def _task_names_of_type(
+        tasks: List[Task], task_type: Type[TaskOfType]
+    ) -> List[TaskOfType]:
+        return [task for task in tasks if isinstance(task, task_type)]
+
+    check.assert_equal(
+        set(
+            task.item_stack.item.name
+            for task in _task_names_of_type(env.purpose.tasks, GetItemTask)
+        ),
+        set(item.name for item in env.world.items),
+    )
+    check.assert_equal(
+        set(
+            task.zone.name
+            for task in _task_names_of_type(env.purpose.tasks, GoToZoneTask)
+        ),
+        set(zone.name for zone in env.world.zones),
+    )
+    check.assert_equal(
+        set(
+            task.item_stack.item.name
+            for task in _task_names_of_type(env.purpose.tasks, PlaceItemTask)
+        ),
+        set(item.name for item in env.world.zones_items),
     )
 
 

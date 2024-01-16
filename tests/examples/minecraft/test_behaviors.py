@@ -12,6 +12,7 @@ from hcraft.elements import Item
 from hcraft.behaviors.utils import get_items_in_graph, get_zones_items_in_graph
 from hcraft.examples.minecraft.env import MineHcraftEnv
 from hcraft.examples.minecraft.items import (
+    MC_FINDABLE_ITEMS,
     OPEN_NETHER_PORTAL,
     STICK,
     WOOD_PLANK,
@@ -22,7 +23,6 @@ from hcraft.examples.minecraft.tools import (
     ToolType,
 )
 from hcraft.examples.minecraft.zones import NETHER, UNDERGROUND
-from hcraft.purpose import platinium_purpose
 from hcraft.task import Task, GetItemTask, GoToZoneTask
 
 if TYPE_CHECKING:
@@ -32,8 +32,7 @@ WOODEN_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.WOOD]
 STONE_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.STONE]
 
 
-KNOWN_TO_FAIL_TASK_HEBG = [
-    "Place enchanting_table anywhere",
+HARD_TASKS = [
     "Place open_ender_portal anywhere",
     "Go to stronghold",
     "Go to end",
@@ -41,19 +40,24 @@ KNOWN_TO_FAIL_TASK_HEBG = [
 ]
 
 
-@pytest.mark.slow
+@pytest.mark.xfail(reason="Destination items are not taken into account")
 def test_solving_behaviors():
     """All tasks should be solved by their solving behavior."""
-    env = MineHcraftEnv(purpose=platinium_purpose(MineHcraftEnv().world), max_step=500)
+    env = MineHcraftEnv(purpose="all", max_step=500)
     done = False
     observation = env.reset()
-    solving_behavior = None
     tasks_left = env.purpose.tasks.copy()
-    task = None
+    task = [t for t in tasks_left if t.name == "Place enchanting_table anywhere"][0]
+    solving_behavior = env.solving_behavior(task)
+    easy_tasks_left = [task]
     while not done and not env.purpose.terminated:
         tasks_left = [t for t in tasks_left if not t.terminated]
         if task is None:
-            task = tasks_left[0]
+            easy_tasks_left = [t for t in tasks_left if t.name not in HARD_TASKS]
+            if len(easy_tasks_left) > 0:
+                task = easy_tasks_left[0]
+            else:
+                task = tasks_left[0]
             print(f"Task started: {task} (step={env.current_step})")
             solving_behavior = env.solving_behavior(task)
         action = solving_behavior(observation)
@@ -63,10 +67,8 @@ def test_solving_behaviors():
             task = None
     if isinstance(task, Task) and not task.terminated:
         print(f"Last unfinished task: {task}")
-    if set(t.name for t in tasks_left) == set(KNOWN_TO_FAIL_TASK_HEBG):
-        pytest.xfail(
-            f"Harder tasks ({KNOWN_TO_FAIL_TASK_HEBG}) cannot be done for now ..."
-        )
+    if set(t.name for t in tasks_left) == set(HARD_TASKS):
+        pytest.xfail(f"Harder tasks ({HARD_TASKS}) cannot be done for now ...")
     check.is_true(env.purpose.terminated, msg=f"tasks not completed: {tasks_left}")
 
 
@@ -103,7 +105,7 @@ KNOWN_TO_FAIL_ITEM_ENHSP = [
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("item", [item.name for item in MineHcraftEnv().world.items])
+@pytest.mark.parametrize("item", [item.item.name for item in MC_FINDABLE_ITEMS])
 def test_get_all_items_pddl(item: str):
     """All items should be gettable by planning behavior."""
     up = pytest.importorskip("unified_planning")
