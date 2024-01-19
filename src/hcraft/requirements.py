@@ -88,7 +88,7 @@ from matplotlib.legend_handler import HandlerPatch
 from hebg.graph import draw_networkx_nodes_images, get_nodes_by_level
 from hebg.layouts.metabased import leveled_layout_energy
 
-from hcraft.render.utils import load_or_create_image
+from hcraft.render.utils import load_or_create_image, obj_image_path
 
 if TYPE_CHECKING:
     from hcraft.elements import Item, Stack, Zone
@@ -224,6 +224,7 @@ class Requirements:
                 )
             _draw_html(
                 self.graph,
+                resources_path=self.world.resources_path,
                 filepath=save_path,
                 pos=pos,
                 depth=self.depth,
@@ -350,6 +351,7 @@ class Requirements:
             "in_zone_items": in_zone_items,
             "zones": zones,
             "index": transfo_index,
+            "transfo": transfo,
         }
 
         for out_item in out_items:
@@ -371,19 +373,20 @@ class Requirements:
         zones: Set["Zone"],
         out_node: str,
         index: int,
+        transfo: "Transformation",
     ) -> None:
         for zone in zones:
             edge_type = RequirementEdge.ZONE_REQUIRED
             node_type = RequirementNode.ZONE
-            self._add_obj_edge(out_node, edge_type, index, zone, node_type)
+            self._add_obj_edge(out_node, edge_type, index, zone, node_type, transfo)
         for item in in_items:
             node_type = RequirementNode.ITEM
             edge_type = RequirementEdge.ITEM_REQUIRED
-            self._add_obj_edge(out_node, edge_type, index, item, node_type)
+            self._add_obj_edge(out_node, edge_type, index, item, node_type, transfo)
         for item in in_zone_items:
             node_type = RequirementNode.ZONE_ITEM
             edge_type = RequirementEdge.ITEM_REQUIRED_IN_ZONE
-            self._add_obj_edge(out_node, edge_type, index, item, node_type)
+            self._add_obj_edge(out_node, edge_type, index, item, node_type, transfo)
 
     def _add_obj_edge(
         self,
@@ -392,14 +395,12 @@ class Requirements:
         index: int,
         start_obj: Optional[Union["Zone", "Item"]] = None,
         start_type: Optional[RequirementNode] = None,
+        edge_transformation: Optional["Transformation"] = None,
     ):
         start_name = req_node_name(start_obj, start_type)
         self._add_nodes([start_obj], start_type)
         self.graph.add_edge(
-            start_name,
-            end_node,
-            type=edge_type,
-            key=index,
+            start_name, end_node, type=edge_type, key=index, obj=edge_transformation
         )
 
     def _add_start_edges(self, world: "World") -> int:
@@ -570,12 +571,8 @@ def apply_color_theme(
 ):
     for node, node_type in graph.nodes(data="type"):
         graph.nodes[node]["color"] = theme.color_node(node_type)
-        incoming_edge_keys = []
         for pred, _, key in graph.in_edges(node, keys=True):
-            if key not in incoming_edge_keys:
-                incoming_edge_keys.append(key)
-            index = incoming_edge_keys.index(key)
-            graph.edges[pred, node, key]["color"] = theme.color_edges(index)
+            graph.edges[pred, node, key]["color"] = theme.color_edges(key)
 
 
 def compute_layout(
@@ -593,7 +590,7 @@ def _draw_on_plt_ax(
     ax: Axes,
     digraph: nx.DiGraph,
     theme: RequirementTheme,
-    resources_path: str,
+    resources_path: Path,
     pos: dict,
     level_legend: bool = False,
 ):
@@ -700,19 +697,56 @@ def _draw_on_plt_ax(
 def _draw_html(
     graph: Union[nx.DiGraph, nx.MultiDiGraph],
     filepath: Path,
+    resources_path: Path,
     pos: Dict[str, Tuple[float, float]],
     depth: int,
     width: int,
 ):
     from pyvis.network import Network
 
+    for node, node_obj in graph.nodes(data="obj"):
+        if node_obj is None:
+            continue
+        image_path = obj_image_path(node_obj, resources_path)
+        if image_path.exists():
+            graph.nodes[node]["shape"] = "image"
+            graph.nodes[node]["image"] = image_path.as_uri()
+
+    done_edges = []
+    for start, end, key, color in graph.edges(data="color", keys=True):
+        graph.edges[start, end, key]["hoverWidth"] = 0.1
+        graph.edges[start, end, key]["hoverWidth"] = 0.1
+        graph.edges[start, end, key]["arrows"] = {
+            "to": {"enabled": False},
+            "middle": {"enabled": True},
+        }
+        if graph.number_of_edges() > 100:
+            graph.edges[start, end, key]["color"] = {
+                "color": "#80808026",
+                "highlight": color,
+                "hover": color,
+            }
+        n_edges = graph.number_of_edges(start, end)
+        if n_edges > 1:
+            edge_id = done_edges.count((start, end))
+            graph.edges[start, end, key]["smooth"] = {
+                "enabled": True,
+                "roundness": np.linspace(0.1, 0.25, n_edges)[edge_id],
+                "type": "curvedCW",
+            }
+            done_edges.append((start, end))
+        elif graph.has_edge(end, start):
+            graph.edges[start, end, key]["smooth"] = {
+                "enabled": True,
+                "roundness": 0.15,
+                "type": "curvedCW",
+            }
+        else:
+            graph.edges[start, end, key]["smooth"] = {"enabled": False}
+
     resolution = [max(128 * width, 600), max(128 * depth, 1000)]
-    nt = Network(width=f"{resolution[0]}px", height=f"{resolution[1]}px", directed=True)
-    serializable_graph = serialize(
-        graph,
-        edge_data_map={"type": "title"},
-        node_data_map={"name": "label", "type": "title"},
-    )
+    nt = Network(height=f"{resolution[1]}px", directed=True)
+    serializable_graph = serialize(graph)
 
     poses = np.array(list(pos.values()))
     poses = np.flip(poses, axis=1)
@@ -727,7 +761,9 @@ def _draw_html(
     for node, (y, x) in pos.items():
         serializable_graph.nodes[node]["x"] = scale(x, 0)
         serializable_graph.nodes[node]["y"] = scale(y, 1)
+
     nt.from_nx(serializable_graph)
+    nt.options.interaction.hover = True
     nt.toggle_physics(False)
     nt.inherit_edge_colors(False)
     nt.show(str(filepath))
@@ -742,43 +778,42 @@ def _compute_edge_alpha(pred, _succ, graph: nx.DiGraph):
     return alpha
 
 
-def serialize(
-    graph: nx.MultiDiGraph,
-    node_data_map: Optional[Dict[str, str]] = None,
-    edge_data_map: Optional[Dict[str, str]] = None,
-):
+def serialize(graph: nx.MultiDiGraph):
     """Make a serializable copy of a requirements graph
     by converting objects in it to dicts."""
     serializable_graph = nx.MultiDiGraph()
-    if node_data_map is None:
-        node_data_map = {}
-    if edge_data_map is None:
-        edge_data_map = {}
 
     for node, node_data in graph.nodes(data=True):
-        node_type = node_data.pop("type")
-        flat_node_data = {
-            node_data_map.get("type", "type"): node_type.value,
-        }
+        node_type = node_data.pop("type").value
+        flat_node_data = {"title": node_type}
         obj: Optional[Union[Item, Zone]] = node_data.pop("obj")
         if obj is not None:
             name = obj.name
             if node_type is RequirementNode.ZONE_ITEM:
                 name += " in zone"
-            flat_node_data[node_data_map.get("name", "name")] = name
-        flat_node_data.update(_apply_keys_mapping(node_data, node_data_map))
+            flat_node_data["label"] = name
+        flat_node_data.update(node_data)
         serializable_graph.add_node(node, **flat_node_data)
 
     for start, end, key, edge_data in graph.edges(data=True, keys=True):
-        flat_edge_data = {
-            edge_data_map.get("type", "type"): edge_data.pop("type").value,
-            "group": key,
-        }
-        flat_edge_data.update(_apply_keys_mapping(edge_data, edge_data_map))
+        edge_obj: "Transformation" = edge_data.pop("obj")
+        edge_type = edge_data.pop("type").value
+        if edge_obj is None:
+            edge_title = edge_type
+        else:
+            conditions, effects = repr(edge_obj).split("=>")
+            conditions = conditions.strip()
+            effects = effects.strip()
+            edge_title = (
+                f"{edge_type} for {edge_obj.name} (transformation {key}):"
+                "\n"
+                "\nConditions:"
+                f"\n{conditions}"
+                "\nEffects:"
+                f"\n{effects}"
+            )
+        flat_edge_data = {"title": edge_title}
+        flat_edge_data.update(edge_data)
         serializable_graph.add_edge(start, end, **flat_edge_data)
 
     return serializable_graph
-
-
-def _apply_keys_mapping(original_dict: dict, keys_map: Dict[str, str]):
-    return {keys_map.get(key, key): val for key, val in original_dict.items()}

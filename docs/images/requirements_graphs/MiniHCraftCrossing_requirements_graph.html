@@ -32,7 +32,7 @@
         <style type="text/css">
 
              #mynetwork {
-                 width: 600px;
+                 width: 100%;
                  height: 1000px;
                  background-color: #ffffff;
                  border: 1px solid lightgray;
@@ -88,8 +88,8 @@
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([{"color": "blue", "id": "zone_item#goal in zone", "label": "goal in zone", "level": 2, "shape": "dot", "size": 10, "title": "zone_item", "x": 0.0, "y": 533.3333333333334}, {"color": "red", "id": "item#goal", "label": "goal", "level": 3, "shape": "dot", "size": 10, "title": "item", "x": 0.0, "y": 800.0}, {"color": "blue", "id": "zone_item#lava in zone", "label": "lava in zone", "level": 2, "shape": "dot", "size": 10, "title": "zone_item", "x": 480.0, "y": 533.3333333333334}, {"color": "red", "id": "item#lava", "label": "lava", "level": 3, "shape": "dot", "size": 10, "title": "item", "x": 480.0, "y": 800.0}, {"color": "green", "id": "zone#room", "label": "room", "level": 1, "shape": "dot", "size": 10, "title": "zone", "x": 0.0, "y": 266.6666666666667}, {"color": "black", "id": "START#", "label": "START#", "level": 0, "shape": "dot", "size": 10, "title": "start", "x": 0.0, "y": 0.0}]);
-                  edges = new vis.DataSet([{"arrows": "to", "color": "#E41A1C7F", "from": "zone_item#goal in zone", "group": 2, "title": "item_required_in_zone", "to": "item#goal", "width": 1}, {"arrows": "to", "color": "#E41A1C7F", "from": "zone_item#lava in zone", "group": 4, "title": "item_required_in_zone", "to": "item#lava", "width": 1}, {"arrows": "to", "color": "#E41A1C7F", "from": "zone#room", "group": 1, "title": "zone_required", "to": "zone_item#goal in zone", "width": 1}, {"arrows": "to", "color": "#E41A1C7F", "from": "zone#room", "group": 3, "title": "zone_required", "to": "zone_item#lava in zone", "width": 1}, {"arrows": "to", "color": "#E41A1C7F", "from": "START#", "group": 0, "title": "start_zone", "to": "zone#room", "width": 1}]);
+                  nodes = new vis.DataSet([{"color": "blue", "id": "zone_item#goal in zone", "image": "file:///c:/users/mwx1306333/documents/codebases/hierarchycraft/src/hcraft/examples/minicraft/resources/items/goal.png", "label": "goal", "level": 2, "shape": "image", "size": 10, "title": "zone_item", "x": 480.0, "y": 533.3333333333334}, {"color": "red", "id": "item#goal", "image": "file:///c:/users/mwx1306333/documents/codebases/hierarchycraft/src/hcraft/examples/minicraft/resources/items/goal.png", "label": "goal", "level": 3, "shape": "image", "size": 10, "title": "item", "x": 480.0, "y": 800.0}, {"color": "blue", "id": "zone_item#lava in zone", "image": "file:///c:/users/mwx1306333/documents/codebases/hierarchycraft/src/hcraft/examples/minicraft/resources/items/lava.png", "label": "lava", "level": 2, "shape": "image", "size": 10, "title": "zone_item", "x": 0.0, "y": 533.3333333333334}, {"color": "red", "id": "item#lava", "image": "file:///c:/users/mwx1306333/documents/codebases/hierarchycraft/src/hcraft/examples/minicraft/resources/items/lava.png", "label": "lava", "level": 3, "shape": "image", "size": 10, "title": "item", "x": 0.0, "y": 800.0}, {"color": "green", "id": "zone#room", "label": "room", "level": 1, "shape": "dot", "size": 10, "title": "zone", "x": 480.0, "y": 266.6666666666667}, {"color": "black", "id": "START#", "label": "START#", "level": 0, "shape": "dot", "size": 10, "title": "start", "x": 480.0, "y": 0.0}]);
+                  edges = new vis.DataSet([{"arrows": {"middle": {"enabled": true}, "to": {"enabled": false}}, "color": "#4DAF4A7F", "from": "zone_item#goal in zone", "hoverWidth": 0.1, "smooth": {"enabled": false}, "title": "item_required_in_zone for reach_goal (transformation 2):\n\nConditions:\nZone(goal\u003e1)\nEffects:\n+goal", "to": "item#goal", "width": 1}, {"arrows": {"middle": {"enabled": true}, "to": {"enabled": false}}, "color": "#FF7F007F", "from": "zone_item#lava in zone", "hoverWidth": 0.1, "smooth": {"enabled": false}, "title": "item_required_in_zone for reach_lava (transformation 4):\n\nConditions:\nZone(lava\u003e1)\nEffects:\n+lava", "to": "item#lava", "width": 1}, {"arrows": {"middle": {"enabled": true}, "to": {"enabled": false}}, "color": "#377EB87F", "from": "zone#room", "hoverWidth": 0.1, "smooth": {"enabled": false}, "title": "zone_required for find_goal (transformation 1):\n\nConditions:\nZone(goal\u003c0) | room\nEffects:\nZone(+goal)", "to": "zone_item#goal in zone", "width": 1}, {"arrows": {"middle": {"enabled": true}, "to": {"enabled": false}}, "color": "#984EA37F", "from": "zone#room", "hoverWidth": 0.1, "smooth": {"enabled": false}, "title": "zone_required for find_lava (transformation 3):\n\nConditions:\nZone(lava\u003c0) | room\nEffects:\nZone(+lava)", "to": "zone_item#lava in zone", "width": 1}, {"arrows": {"middle": {"enabled": true}, "to": {"enabled": false}}, "color": "#E41A1C7F", "from": "START#", "hoverWidth": 0.1, "smooth": {"enabled": false}, "title": "start_zone", "to": "zone#room", "width": 1}]);
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });
@@ -116,7 +116,8 @@
     "interaction": {
         "dragNodes": true,
         "hideEdgesOnDrag": false,
-        "hideNodesOnDrag": false
+        "hideNodesOnDrag": false,
+        "hover": true
     },
     "physics": {
         "enabled": false,

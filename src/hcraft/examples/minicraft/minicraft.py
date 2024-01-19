@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 from typing import Optional, List, Dict, Union
 from abc import abstractmethod
@@ -41,7 +41,7 @@ class MiniCraftEnv(HcraftEnv):
             start_items=start_items,
             start_zones_items=start_zones_items,
         )
-        world.resources_path = os.path.join(os.path.dirname(__file__), "resources")
+        world.resources_path = Path(__file__).parent / "resources"
         super().__init__(world, name=f"MiniHCraft{self.MINICRAFT_NAME}", **kwargs)
 
     @abstractmethod

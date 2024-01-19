@@ -34,9 +34,9 @@ world = world_from_transformations(
 
 """
 
-import os
 from dataclasses import dataclass, field
 from functools import partial
+from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 from hcraft.elements import Item, Stack, Zone
@@ -44,9 +44,9 @@ from hcraft.requirements import RequirementNode, Requirements, req_node_name
 from hcraft.transformation import Transformation, InventoryOwner
 
 
-def _default_resources_path() -> str:
-    current_dir = os.path.dirname(__file__)
-    return os.path.join(current_dir, "render", "default_resources")
+def _default_resources_path() -> Path:
+    current_dir = Path(__file__).parent
+    return current_dir.joinpath("render", "default_resources")
 
 
 @dataclass()
