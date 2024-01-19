@@ -25,11 +25,11 @@ from hcraft.transformation import (
 
 def build_minehcraft_transformations() -> List[Transformation]:
     transformations = []
-    transformations += _move_to_zones()
-    transformations += _zones_search()
     transformations += _building()
     transformations += _recipes()
     transformations += _tools_recipes()
+    transformations += _zones_search()
+    transformations += _move_to_zones()
     return transformations
 
 
@@ -49,7 +49,7 @@ def _move_to_zones() -> List[Transformation]:
             destination=zones.SWAMP,
             zones=[zone for zone in zones.OVERWORLD if zone != zones.SWAMP],
         ),
-        #: Move to zones.MEADOW
+        #: Move to MEADOW
         Transformation(
             name_prefix + zones.MEADOW.name,
             destination=zones.MEADOW,
@@ -112,8 +112,8 @@ def _move_to_zones() -> List[Transformation]:
         Transformation(
             name_prefix + zones.STRONGHOLD.name,
             destination=zones.STRONGHOLD,
-            zones=zones.OVERWORLD,
-            inventory_changes=[Use(CURRENT_ZONE, items.OPEN_NETHER_PORTAL, consume=2)],
+            zones=[zone for zone in zones.OVERWORLD if zone != zones.STRONGHOLD],
+            inventory_changes=[Use(PLAYER, items.ENDER_EYE)],
         ),
         #: Move to zones.END
         Transformation(
@@ -139,7 +139,7 @@ def _zones_search() -> List[Transformation]:
 
     name_prefix = "search-for-"
     search_item = []
-    for mc_item in items.MC_ITEMS:
+    for mc_item in items.MC_FINDABLE_ITEMS:
         item = mc_item.item
 
         if mc_item.required_tool_types is None:

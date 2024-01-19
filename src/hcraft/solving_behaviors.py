@@ -64,7 +64,6 @@ def build_all_solving_behaviors(world: "World") -> Dict[str, "Behavior"]:
     all_behaviors = {}
     all_behaviors = _reach_zones_behaviors(world, all_behaviors)
     all_behaviors = _get_item_behaviors(world, all_behaviors)
-    # all_behaviors = _drop_item_behaviors(world, all_behaviors)
     all_behaviors = _get_zone_item_behaviors(world, all_behaviors)
     all_behaviors = _do_transfo_behaviors(world, all_behaviors)
     return all_behaviors

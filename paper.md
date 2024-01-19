@@ -31,59 +31,63 @@ bibliography: paper.bib
 ---
 
 # Summary
-Hierarchical reasoning is a fundamental challenge in artificial intelligence. Current methods may fail in the face of hierachical tasks but there are few environments or environment builders designed to understand how the depth and width of hierarchices affect task difficulty. Our software was built as an important first tooling step towards research questions around AI and hierarchical reasoning.
+Hierarchical reasoning poses a fundamental challenge in the field of artificial intelligence. Existing methods may struggle when confronted with hierarchical tasks, yet there is a scarcity of suitable environments or benchmarks designed to comprehend how the structure of the underlying hierarchy influence a task difficulty. Our software represents a crucial initial step in the development of tools aimed at addressing research questions related to hierarchical reasoning.
 
-We introduce **HierarchyCraft**, lightweight environment builder for arbitrary hierarchical reasoning tasks that do not require feature extraction --- there are not pixel images, text, sound or anything requiring feature extraction or representation to be learned. HierarchyCraft both provides a set of environments for experimenting with hierarchical AI algorithms, but also and makes it easy to build custom hierarchical environments.
+We introduce **HierarchyCraft**, a lightweight environment builder designed for creating hierarchical reasoning tasks with arbitrary width and depth and that do not necessitate feature extraction. This includes tasks containing pixel images, text, sound, or any data requiring deep-learning based feature extraction.
+HierarchyCraft serves a dual purpose by offering a set of pre-defined hierarchical environments and simplifying the process of creating customized hierarchical environments.
 
-For example, Minecraft has been studied due to its popularity and its deep hierarchical structure, but the 3D environment requires complex feature extraction and pixel-level processing [@dreamerv3]. In contrast HierarchyCraft can recreate the hierarchical complex task without requiring a an agent to reason at the pixel level. A view of the graphical interface common to all HierarchyCraft environments is shown in \autoref{fig:MineHcraft-dragon}, but pictures and icons are only available on the human interface for illustration purpose and are not seen by the agent.
 
-![HierarchyCraft graphical user interface shown on the MineHcraft environment as example.\label{fig:MineHcraft-dragon}](docs/images/HCraftGUI_MineHCraft_Dragon.png)
+![HierarchyCraft is at the intersection of Reinforcement learning, Planning, Hierarchical reasoning and Program synthesis.\label{fig:HierachyCraft_domain_position}](docs/images/HierachyCraft_domain_position.png){ width=75% }
+
 
 # Statement of need
-HierarchyCraft is designed to be an easy to use Python library to build environments that can be used to study hierarchical reasoning in the contexts of reinforcement learning, classical planning, and program synthesis as displayed in \autoref{fig:HierachyCraft_domain_position}.
+HierarchyCraft is designed as a user-friendly Python library for constructing environments tailored to the study of hierarchical reasoning  in the contexts of reinforcement learning, classical planning, and program synthesis as displayed in \autoref{fig:HierachyCraft_domain_position}.
 
-![HierarchyCraft is at the intersection of Reinforcement learning, Planning, Hierarchical reasoning and Program synthesis.\label{fig:HierachyCraft_domain_position}](docs/images/HierachyCraft_domain_position.png){ width=80% }
+Analysis and quantification of the impacts of diverse hierarchical structures on learning agents is essential for advancing hierarchical reasoning.
+However, current hierarchical benchmarks often limit themselves to a single hierarchical structure per benchmark, and present challenges not only due to this inherent hierarchical structure but also because of the necessary representation learning to interpret the inputs.
 
-Studying and quantifying the effects of different hierarchical structures on learning agents should be a priority for hierarchical reasoning.
-Yet current hierarchical benchmarks mostly consider one single hierarchical structure per benchmark and are not only challenging because of this underlying hierarchical structure but also because of the required representation learning to make sense of the inputs.
-
-We argue that arbitrary hierarchical complexity can emerge from simple rules even without having to learn a representation.
-To our knowledge, no general frameworks for building environments exist to study the hierarchical structure itself, motivating the need for HierarchyCraft.
+We argue that arbitrary hierarchical complexity can emerge from simple rules without the need for learning a representation.
+To the best of our knowledge, no general frameworks currently exist for constructing environments dedicated to studying the hierarchical structure itself, underscoring the necessity for the development of tools like HierarchyCraft.
 We compare five particularly related benchmarks to HierarchyCraft.
 
-### PDDLGym
+### GridWorld
 
-PDDLGym [@PDDLgym] is a framework that automatically constructs Gym environments from Planning Domain Definition Language (PDDL) domains and problems. PDDL [@PDDL] is a problem specification language for easy comparison of various symbolic planners. However, building PDDL domains and problems with a hierarchical structure is difficult and time-consuming for researchers who are not familiar with PDDL-like languages. Moreover, PDDLGym is **only compatible with PDDL1** and does not support numeric-fluents introduced in PDDL 2.1 that are required to represent HierarchyCraft environments.
+GridWorld, a general class of 2D grid-based environments, is frequently utilized in hierarchical reinforcement learning research, notably within the options framework [@sutton1999between].
 
+Minigrid [@minigrid] is a user-friendly Python library that not only implements a GridWorld engine but also expands its capabilities. This allows researchers to create more intricate scenarios by introducing additional rooms, objectives, or obstacles, as illustrated in  \autoref{fig:MinigridHierarchies}. Unfortunately, GridWorld environments typically exhibit a **limited hierarchical structure** and primarily focus on navigation tasks.
+
+![Example of Minigrid environments hierarchical structures and their relationships. There is only a few possible sub-tasks and most of them are navigation tasks (in green).\label{fig:MinigridHierarchies}](docs/images/MinigridHierarchies.png){ width=100% }
 
 ### Minecraft
 
-One of the best examples of a hierarchical tasks is the collection of diamonds in the popular video game Minecraft as illustrated by the MineRL competition [@guss2021minerl2020] where hierarchical reinforcement learning agents have dominated the leaderboard [@milani2020minerl2019].
+An exemplary instance of a hierarchical task is the collection of diamonds in the popular video game Minecraft, as showcased in the MineRL competition [@guss2021minerl2020], where hierarchical reinforcement learning agents have dominated the leaderboard[@milani2020minerl2019].
 
-Due to the sparse rewards, exploration difficulty, and long time horizons in this procedurally generated sandbox environment, DreamerV3 [@dreamerv3] only recently became the first algorithm to successfully collect diamonds in Minecraft from scratch.
-Unfortunately, DreamerV3 needed to be trained on Nvidia V100 GPU for 17 days, gathering around 100 million environmental steps.
-Such **tremendous computational resources** are not accessible to most researchers, slowing the general progress of research on hierarchical reasoning.
+Due to the sparse rewards, exploration difficulty, and long time horizons in this procedurally generated sandbox environment, DreamerV3 [@dreamerv3] recently became the first algorithm to successfully collect diamonds in Minecraft without prior training or knowledge.
+Unfortunately, DreamerV3 required training on an Nvidia V100 GPU for 17 days, gathering around 100 million environmental steps.
+Such **substantial computational resources are inaccessible to most researchers**, impeding the overall progress of research on hierarchical reasoning.
 
-Moreover, even tought Minecraft has a undeniable complex hierarchical structure as shown in \autoref{fig:MinecraftRequirements}, those hierarchical structures are fixed and cannot be modified without modding the game which is complex for researchers to do.
+Moreover, although Minecraft has a undeniably complex hierarchical structure, **this underlying hierarchical structures is fixed** and cannot be modified without modding the game, a complex task for researchers.
 
-![Example of Minecraft tasks fixed hierarchical structure.[@guss2021minerl2020]\label{fig:MinecraftRequirements}](docs/images/MineRLCompetitionRequirementsGraph.png){ width=80% }
 
 
 
 ### Crafter
 
-Crafter [@hafner2022benchmarking] is a lightweight grid-based 2D environment, with similar game mechanics as Minecraft and poses substantial challenges including exploration, representation learning, rewards sparsity and long-term reasoning.
-Even tough Crafter provides 22 different tasks displayed in \autoref{fig:CrafterRequirements}, the relation between them and thus **the underlying hierarchical structure of the environment is fixed** limiting how researchers can study the effects of changes in this structure.
-Moreover, the 22 tasks considered by the authors do not contain navigation subtasks (Find water, look for a cow, wait for plant to grow, go back to a table, ...) or some optional subtasks (Swords makes killing skeletons easier) that causes sudden drops of success rates in the hierarchy instead of a more incremental difficulty.
+Crafter [@hafner2022benchmarking] presents a lightweight grid-based 2D environment, with game mechanics akin to Minecraft and poses similar challenges including exploration, representation learning, rewards sparsity and long-term reasoning.
+Although Crafter offers 22 different tasks displayed in \autoref{fig:CrafterRequirements}, the **fixed underlying hierarchical structure** restricts how researchers can investigate the impacts of changes in this structure.
+
+Furthermore, the tasks considered by the authors do not include navigation subtasks (e.g., Find water, look for a cow, wait for a plant to grow, go back to a table...) or certain optional but useful subtasks (e.g., Swords and the skill of dodging arrows contribute to making the task of killing skeletons easier.), leading to abrupt drops in success rates in the hierarchy instead of a more gradual increase in difficulty.
 
 ![Partial Hierarchical structure of the Crafter environment. Inspired from Figure 4 of [@hafner2022benchmarking]\label{fig:CrafterRequirements}](docs/images/CrafterRequirementsGraph.png){ width=80% }
 
 
-### GridWorld
 
-GridWorld is a general class of 2D grid-based environments. It is frequently facilitated in hierarchical reinforcement learning research, such as in the options framework [@sutton1999between]. Minigrid [@minigrid] allows researchers to build more complex cases and can be somewhat hierarchical by adding more rooms, objectives or obstacles as shown in \autoref{fig:MinigridHierarchies}. Unfortunately, GridWorld environments usually describe **shallow** hierarchical structure and are only focused on navigation tasks.
 
-![Example of Minigrid environments hierarchical structures and their relationships. There is only a few possible sub-tasks and most of them are navigation tasks (in green).\label{fig:MinigridHierarchies}](docs/images/MinigridHierarchies.png){ width=100% }
+### PDDLGym
+
+PDDLGym [@PDDLgym] is a Python library that automatically constructs Gym environments from Planning Domain Definition Language (PDDL) domains and problems. PDDL [@PDDL] functions as a problem specification language, facilitating the comparison of different symbolic planners. However, constructing PDDL domains and problems with a hierarchical structure is challenging and time-consuming, especially for researchers unfamiliar with PDDL-like languages.
+Additionally, PDDLGym is **compatible only with PDDL1** and does not support numeric-fluents introduced in PDDL 2.1 that are required to represent quantities in the inventories of HierarchyCraft environments.
+
 
 <!-- ### NetHack Learning Environment
 
@@ -92,46 +96,48 @@ Large numbers of items are randomly placed in each level, making NetHack extreme
 
 ### Arcade Learning Environment (Atari)
 
-The arcade learning environment [@ALE] is one of the standard benchmarks in RL and is composed of over 55 Atari games over but **only a few games of these games require hierarchical reasoning** (e.g., Montezuma's Revenge and Pitfall). Each Atari games has a fixed hierarchy that cannot be modified and agents **require powerful computational resources** to extract relevant features from pixels, which substantially slow down experiments.
+The arcade learning environment [@ALE] stands as a standard benchmark in reinforcement learning, encompassing over 55 Atari games. However, **only a few of these games, such as Montezuma's Revenge and Pitfall, necessitate hierarchical reasoning**. Each Atari games has a **fixed hierarchy that cannot be modified** and agents **demand substantial computational resources** to extract relevant features from pixels or memory, significantly slowing down experiments.
 
 
 ## Design goals
 
-HierarchyCraft aims to be a fruitful tool for studying hierarchical reasoning by focusing on the following four design goals.
+HierarchyCraft aims to be a fruitful tool for investigating hierarchical reasoning, focusing on achieving the following four design goals.
 
 ### 1. Hierarchical by design
-The action space can be composed of sub-tasks (i.e. _Transformations_) instead of detailed movements and controls. Any behaviour can be naturally decomposed into _Transformations_, rendering HierarchyCraft environments hierarchical by nature.
+The action space of HierarchyCraft environments consists of sub-tasks, referred to as _Transformations_, as opposed to detailed movements and controls. But each _Transformations_ has specific requirements to be valid (eg. have enought of an item, be in the right place), and these requirements may necessitate the execution of other _Transformations_ first, inherently creating a hierarchical structure in HierarchyCraft environments.
 
-This is further illustrated by the hierarchical structure of HierarchyCraft environments as a _requirements graph_ that can be directly built from the list of _Transformations_ composing the environement as shown in \autoref{fig:TransformationToRequirements}.
+This concept  is visually represented by the _Requirements graph_ depicting the hierarchical relationships within each HierarchyCraft environment.
+The _Requirements graph_ is directly constructed from the list of _Transformations_ composing the environement, as illustrated in \autoref{fig:TransformationToRequirements}.
 
-Requirements graphs are to be seen as a generalisation of graph pictures from related works such as \autoref{fig:MinecraftRequirements}, \autoref{fig:CrafterRequirements} and \autoref{fig:MinigridHierarchies}.
+Requirements graphs should be viewed as a generalization of previously observed graphical representations from related works, including  \autoref{fig:CrafterRequirements} and \autoref{fig:MinigridHierarchies}.
 
-![How sub-tasks build a hierarchical structure.\label{fig:TransformationToRequirements}](docs/images/TransformationToRequirementsLarge.png){ width=60% }
+![How sub-tasks build a hierarchical structure.\label{fig:TransformationToRequirements}](docs/images/TransformationToRequirementsLarge.png){ width=75% }
 
 ### 2. No feature extraction needed
-Compared to benchmarks that return grids, pixel arrays, text, or sound, HierarchyCraft directly return a low-dimensional latent representation that does not need to be learned as represented in \autoref{fig:HierarchyCraftState}.
-This saves compute time and allow researchers to focus on the hierarchical reasoning while also permitting the use of classical planning frameworks like PDDL [@PDDL] or ANML [@ANML].
+In contrast to benchmarks that yield grids, pixel arrays, text, or sound, HierarchyCraft directly provides a low-dimensional latent representation that does not require learning, as depicted in \autoref{fig:HierarchyCraftState}.
+This not only saves computational time but also enables researchers to concentrate on hierarchical reasoning while additionally  allowing for the utilization of classical planning frameworks such as PDDL [@PDDL] or ANML [@ANML].
 
 ![HierarchyCraft state is already a compact representation.\label{fig:HierarchyCraftState}](docs/images/HierarchyCraftStateLarge.png){ width=80% }
 
 ### 3. Easy to use and customize
-HierarchyCraft is a generic framework facilitating the creation of diverse hierarchical environments.
-The library is simple and flexible, enabling researchers to define their own hierarchical environments. A detailed creation of an environment is provided in the documentation.
-To showcase the diversity of environments that can be created within HierarchyCraft, multiple environments are provided as examples.
+HierarchyCraft is a versatile framework enabling the creation of diverse hierarchical environments.
+The library is designed to be simple and flexible, allowing researchers to define their own hierarchical environments with detailed guidance provided in the documentation.
+To showcase the range of environments possible within HierarchyCraft, multiple examples are provided.
 
 ### 4. Compatible with domains frameworks
-HierarchyCraft environments are directly compatible with both reinforcement learning through OpenAI Gym [@gym] and planning through the Unified Planning Framework [@UPF] (see \autoref{fig:HierarchyCraft-pipeline}). Compatibility with both frameworks makes it easy to be used by both the reinforcement learning and planning communities.
+HierarchyCraft environments are directly compatible with both reinforcement learning through OpenAI Gym [@gym] and planning through the Unified Planning Framework [@UPF] (see \autoref{fig:HierarchyCraft-pipeline}).
+This compatibility facilitates usage by both the reinforcement learning and planning communities.
 
-![HierarchyCraft pipeline into different representations.\label{fig:HierarchyCraft-pipeline}](docs/images/HierarchyCraft_pipeline.png){ width=100% }
+![HierarchyCraft pipeline into different representations.\label{fig:HierarchyCraft-pipeline}](docs/images/HierarchyCraft_pipeline.png){ width=80% }
 
 
 # Acknowledgements
 
 This work was made possible by the research program of the engineering cursus at CentraleSupelec, University of Paris-Saclay, France.
 
-This work has taken place in the Intelligent Robot Learning (IRL) Lab at the University of Alberta, which is supported in part by research grants from the Alberta Machine Intelligence Institute (Amii); a Canada CIFAR AI Chair, Amii; Compute Canada; Huawei; Mitacs; and NSERC.
+The research was conducted at the Intelligent Robot Learning (IRL) Lab, University of Alberta, which is supported in part by research grants from the Alberta Machine Intelligence Institute (Amii); a Canada CIFAR AI Chair, Amii; Compute Canada; Huawei; Mitacs; and NSERC.
 
-We would like to thank Shang Wang, Yuxuan Li and Laura Petrich from the IRL Lab for their help on finding and describing related works, for their critical thinking on the project and for revisions of the documentation and report.
+Special thanks to Shang Wang, Yuxuan Li, and Laura Petrich from the IRL Lab for their assistance in finding and describing related works, their critical thinking on the project, and their contributions to the revisions of the documentation and report.
 
 
 # References

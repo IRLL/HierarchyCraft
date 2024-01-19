@@ -9,18 +9,20 @@ A rather large and complex requirements graph:
 from typing import Optional
 
 import hcraft.examples.minecraft.items as items
-from hcraft.examples.minecraft.env import MineHcraftEnv
-from hcraft.purpose import Purpose, RewardShaping, platinium_purpose
+from hcraft.examples.minecraft.env import ALL_ITEMS, MineHcraftEnv
+
+from hcraft.purpose import Purpose, RewardShaping
 from hcraft.task import GetItemTask
 
 MINEHCRAFT_GYM_ENVS = []
+__all__ = ["MineHcraftEnv"]
+
 
 # gym is an optional dependency
 try:
     import gym
 
     ENV_PATH = "hcraft.examples.minecraft.env:MineHcraftEnv"
-    MC_WORLD = MineHcraftEnv().world
 
     # Simple MineHcraft with no reward, only penalty on illegal actions
     gym.register(
@@ -34,7 +36,7 @@ try:
     gym.register(
         id="MineHcraft-v1",
         entry_point=ENV_PATH,
-        kwargs={"purpose": platinium_purpose(MC_WORLD)},
+        kwargs={"purpose": "all"},
     )
     MINEHCRAFT_GYM_ENVS.append("MineHcraft-v1")
 
@@ -71,7 +73,7 @@ try:
         items.ENDER_DRAGON_HEAD: "Dragon",
     }
 
-    for item in MC_WORLD.items:
+    for item in ALL_ITEMS:
         cap_item_name = "".join([part.capitalize() for part in item.name.split("_")])
         item_id = replacement_names.get(item, cap_item_name)
         _register_minehcraft_single_item(item, name=item_id)
