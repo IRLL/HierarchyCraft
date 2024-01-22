@@ -1,6 +1,8 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
 import numpy as np
+
+from hcraft.transformation import InventoryOwner
 
 if TYPE_CHECKING:
     from hcraft.world import World
@@ -105,6 +107,22 @@ class HcraftState:
     def _current_zone_slot(self) -> int:
         return self.position.nonzero()[0]
 
+    @property
+    def player_inventory_dict(self) -> Dict["Item", int]:
+        """Current inventory of the player."""
+        return self._inv_as_dict(self.player_inventory, self.world.items)
+
+    @property
+    def zones_inventories_dict(self) -> Dict["Zone", Dict["Item", int]]:
+        """Current inventories of the current zone and each zone containing item."""
+        zones_invs = {}
+        for zone_slot, zone_inv in enumerate(self.zones_inventories):
+            zone = self.world.zones[zone_slot]
+            zone_inv = self._inv_as_dict(zone_inv, self.world.zones_items)
+            if zone_slot == self._current_zone_slot or zone_inv:
+                zones_invs[zone] = zone_inv
+        return zones_invs
+
     def apply(self, action: int) -> bool:
         """Apply the given action to update the state.
 
@@ -166,3 +184,19 @@ class HcraftState:
         self.discovered_zones = np.bitwise_or(self.discovered_zones, self.position > 0)
         if action is not None:
             self.discovered_transformations[action] = 1
+
+    @staticmethod
+    def _inv_as_dict(inventory_array: np.ndarray, obj_registry: list):
+        return {
+            obj_registry[index]: value
+            for index, value in enumerate(inventory_array)
+            if value > 0
+        }
+
+    def as_dict(self) -> dict:
+        state_dict = {
+            "pos": self.current_zone,
+            InventoryOwner.PLAYER.value: self.player_inventory_dict,
+        }
+        state_dict.update(self.zones_inventories_dict)
+        return state_dict

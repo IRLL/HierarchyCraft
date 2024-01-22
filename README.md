@@ -1,4 +1,4 @@
-# **HierarchyCraft - Environements builder for hierarchical ML research**
+# **HierarchyCraft - Environements builder for hierarchical reasoning research**
 
 [![Fury - PyPi stable version](https://badge.fury.io/py/hcraft.svg)](https://badge.fury.io/py/hcraft)
 [![PePy - Downloads](https://static.pepy.tech/badge/hcraft)](https://pepy.tech/project/hcraft)
@@ -17,8 +17,14 @@ HierarchyCraft (hcraft for short) is a Python library designed to create arbitra
 
 In environments built with HierarchyCraft the agent (player) has an inventory and can navigate into abstract zones that themselves have inventories.
 
-Available actions of the agent are defined by **transformations**.
-**Transformations** are the core element of every HierarchyCraft environment, they define the actions that an agent can perform in the environment. At their core, transformations are simply changes to the state of the environment that can be triggered by the agent if the transformation is allowed in the current state.
+The action space of HierarchyCraft environments consists of sub-tasks, referred to as _Transformations_, as opposed to detailed movements and controls. But each _Transformations_ has specific requirements to be valid (eg. have enought of an item, be in the right place), and these requirements may necessitate the execution of other _Transformations_ first, inherently creating a hierarchical structure in HierarchyCraft environments.
+
+This concept is visually represented by the _Requirements graph_ depicting the hierarchical relationships within each HierarchyCraft environment.
+The _Requirements graph_ is directly constructed from the list of _Transformations_ composing the environement.
+
+![](docs/images/TransformationToRequirementsLarge.png)
+
+More details about requirements graph can be found in the documentation at [`hcraft.requirements`](https://irll.github.io/HierarchyCraft/hcraft/requirements.html) and example of requirements graph for some HierarchyCraft environements can be found in [`hcraft.examples`](https://irll.github.io/HierarchyCraft/hcraft/examples.html).
 
 ## No feature extraction for fast research even with low compute
 
@@ -31,9 +37,7 @@ See [`hcraft.state`](https://irll.github.io/HierarchyCraft/hcraft/state.html) fo
 
 ## Create your own tailored HierarchyCraft environments
 
-You can use HierarchyCraft to create various custom hierarchical environments. As a showcase of the complexe possibilities, here is a replica of the underlying hierarchy of the popular game Minecraft, without the computationaly intensive 3D and without being a 2D grid version either.
-
-![A player knowing Minecraft will find MineHcraft easy.](./docs/images/minehcraft_human_demo.gif)
+You can use HierarchyCraft to create various custom hierarchical environments from a list of customized _Transformations_.
 
 See [`hcraft.env`](https://irll.github.io/HierarchyCraft/hcraft/env.html) for a complete tutorial on creating custom environments.
 
@@ -77,7 +81,9 @@ pip install hcraft[planning]
 
 ## Play yourself!
 
-Don't forget to install the GUI:
+![A player knowing Minecraft will find MineHcraft easy.](./docs/images/minehcraft_human_demo.gif)
+
+Install the graphical user interface optional dependencies:
 ```bash
 pip install hcraft[gui]
 ```

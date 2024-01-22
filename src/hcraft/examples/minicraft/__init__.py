@@ -47,8 +47,7 @@ try:
 
     ENV_PATH = "hcraft.examples.minicraft"
 
-    for env_class in MINICRAFT_ENVS:
-        env_name = env_class().name
+    for env_name, env_class in MINICRAFT_NAME_TO_ENV.items():
         submodule = Path(inspect.getfile(env_class)).name.split(".")[0]
         env_path = f"{ENV_PATH}.{submodule}:{env_class.__name__}"
         gym_name = f"{env_name}-v1"

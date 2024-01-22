@@ -103,9 +103,10 @@ import numpy as np
 
 from hcraft.requirements import RequirementNode, req_node_name
 from hcraft.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
+from hcraft.elements import Item, Zone
+
 
 if TYPE_CHECKING:
-    from hcraft.elements import Item, Zone
     from hcraft.env import HcraftEnv, HcraftState
     from hcraft.world import World
 
@@ -353,16 +354,18 @@ class Purpose:
 
 
 def platinium_purpose(
-    world: "World",
+    items: List[Item],
+    zones: List[Zone],
+    zones_items: List[Item],
     success_reward: float = 10.0,
     timestep_reward: float = -0.1,
 ):
     purpose = Purpose(timestep_reward=timestep_reward)
-    for item in world.items:
+    for item in items:
         purpose.add_task(GetItemTask(item, reward=success_reward))
-    for zone in world.zones:
+    for zone in zones:
         purpose.add_task(GoToZoneTask(zone, reward=success_reward))
-    for item in world.zones_items:
+    for item in zones_items:
         purpose.add_task(PlaceItemTask(item, reward=success_reward))
     return purpose
 
@@ -480,9 +483,9 @@ def _inputs_subtasks(task: Task, world: "World", shaping_reward: float) -> List[
 
 
 def _build_reward_shaping_subtasks(
-    items: Optional[Union[List["Item"], Set["Item"]]] = None,
-    zones: Optional[Union[List["Zone"], Set["Zone"]]] = None,
-    zone_items: Optional[Union[List["Item"], Set["Item"]]] = None,
+    items: Optional[Union[List[Item], Set[Item]]] = None,
+    zones: Optional[Union[List[Zone], Set[Zone]]] = None,
+    zone_items: Optional[Union[List[Item], Set[Item]]] = None,
     shaping_reward: float = 1.0,
 ) -> List[Task]:
     subtasks = []
