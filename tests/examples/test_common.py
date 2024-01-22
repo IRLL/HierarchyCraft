@@ -104,8 +104,6 @@ def test_requirements_graph(env_class: Type[HcraftEnv]):
     save = False
     env = env_class()
     requirements = env.world.requirements
-    apply_color_theme(requirements.graph)
-
     requirements_dir = Path("docs", "images", "requirements_graphs")
 
     if draw_plt:

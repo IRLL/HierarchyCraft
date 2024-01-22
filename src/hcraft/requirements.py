@@ -74,12 +74,15 @@ width="90%"/>
 
 from enum import Enum
 from pathlib import Path
+import random
+from PIL import Image, ImageDraw, ImageFont
+
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
 
 import networkx as nx
 import numpy as np
 
-from matplotlib import colormaps
+import seaborn as sns
 from matplotlib import pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.axes import Axes
@@ -89,6 +92,7 @@ from hebg.graph import draw_networkx_nodes_images, get_nodes_by_level
 from hebg.layouts.metabased import leveled_layout_energy
 
 from hcraft.render.utils import load_or_create_image, obj_image_path
+from hcraft.transformation import InventoryOperation, InventoryOwner
 
 if TYPE_CHECKING:
     from hcraft.elements import Item, Stack, Zone
@@ -135,7 +139,7 @@ class RequirementTheme:
     def __init__(
         self,
         default_color: Any = "black",
-        edge_colors=colormaps.get_cmap("Set1").colors,
+        edge_colors=None,
         **kwargs,
     ) -> None:
         self.colors = self.DEFAULT_COLORS.copy()
@@ -151,6 +155,9 @@ class RequirementTheme:
             )
             return f"#{hexes.upper()}"
 
+        if edge_colors is None:
+            edge_colors = sns.color_palette("colorblind")
+            random.shuffle(edge_colors)
         self.edges_colors = [rgba_to_hex(*color) for color in edge_colors]
 
     def color_node(self, node_type: RequirementNode) -> Any:
@@ -182,7 +189,7 @@ class Requirements:
     def draw(
         self,
         ax: Optional[Axes] = None,
-        theme: RequirementTheme = RequirementTheme(),
+        theme: Optional[RequirementTheme] = None,
         layout: "RequirementsGraphLayout" = "level",
         engine: DrawEngine = DrawEngine.PLT,
         save_path: Optional[Path] = None,
@@ -194,6 +201,11 @@ class Requirements:
             ax: Matplotlib Axes to draw on.
             layout: Drawing layout. Defaults to "level".
         """
+        if theme is None:
+            theme = RequirementTheme()
+
+        apply_color_theme(self.graph, theme)
+
         pos = compute_layout(self.digraph, layout=layout)
 
         if save_path:
@@ -566,9 +578,7 @@ class RequirementsGraphLayout(Enum):
     """Classic spring layout."""
 
 
-def apply_color_theme(
-    graph: nx.MultiDiGraph, theme: RequirementTheme = RequirementTheme()
-):
+def apply_color_theme(graph: nx.MultiDiGraph, theme: RequirementTheme):
     for node, node_type in graph.nodes(data="type"):
         graph.nodes[node]["color"] = theme.color_node(node_type)
         for pred, _, key in graph.in_edges(node, keys=True):
@@ -704,49 +714,9 @@ def _draw_html(
 ):
     from pyvis.network import Network
 
-    for node, node_obj in graph.nodes(data="obj"):
-        if node_obj is None:
-            continue
-        image_path = obj_image_path(node_obj, resources_path)
-        if image_path.exists():
-            graph.nodes[node]["shape"] = "image"
-            graph.nodes[node]["image"] = image_path.as_uri()
-
-    done_edges = []
-    for start, end, key, color in graph.edges(data="color", keys=True):
-        graph.edges[start, end, key]["hoverWidth"] = 0.1
-        graph.edges[start, end, key]["hoverWidth"] = 0.1
-        graph.edges[start, end, key]["arrows"] = {
-            "to": {"enabled": False},
-            "middle": {"enabled": True},
-        }
-        if graph.number_of_edges() > 100:
-            graph.edges[start, end, key]["color"] = {
-                "color": "#80808026",
-                "highlight": color,
-                "hover": color,
-            }
-        n_edges = graph.number_of_edges(start, end)
-        if n_edges > 1:
-            edge_id = done_edges.count((start, end))
-            graph.edges[start, end, key]["smooth"] = {
-                "enabled": True,
-                "roundness": np.linspace(0.1, 0.25, n_edges)[edge_id],
-                "type": "curvedCW",
-            }
-            done_edges.append((start, end))
-        elif graph.has_edge(end, start):
-            graph.edges[start, end, key]["smooth"] = {
-                "enabled": True,
-                "roundness": 0.15,
-                "type": "curvedCW",
-            }
-        else:
-            graph.edges[start, end, key]["smooth"] = {"enabled": False}
-
     resolution = [max(128 * width, 600), max(128 * depth, 1000)]
     nt = Network(height=f"{resolution[1]}px", directed=True)
-    serializable_graph = serialize(graph)
+    serializable_graph = _serialize_pyvis(graph, resources_path)
 
     poses = np.array(list(pos.values()))
     poses = np.flip(poses, axis=1)
@@ -766,7 +736,7 @@ def _draw_html(
     nt.options.interaction.hover = True
     nt.toggle_physics(False)
     nt.inherit_edge_colors(False)
-    nt.show(str(filepath))
+    nt.write_html(str(filepath))
 
 
 def _compute_edge_alpha(pred, _succ, graph: nx.DiGraph):
@@ -778,42 +748,243 @@ def _compute_edge_alpha(pred, _succ, graph: nx.DiGraph):
     return alpha
 
 
-def serialize(graph: nx.MultiDiGraph):
+def _serialize_pyvis(
+    graph: nx.MultiDiGraph, resources_path: Path, add_edge_numbers: bool = False
+):
     """Make a serializable copy of a requirements graph
     by converting objects in it to dicts."""
     serializable_graph = nx.MultiDiGraph()
 
     for node, node_data in graph.nodes(data=True):
-        node_type = node_data.pop("type").value
-        flat_node_data = {"title": node_type}
-        obj: Optional[Union[Item, Zone]] = node_data.pop("obj")
-        if obj is not None:
-            name = obj.name
-            if node_type is RequirementNode.ZONE_ITEM:
-                name += " in zone"
-            flat_node_data["label"] = name
+        node_type = node_data.get("type")
+        node_obj: Optional[Union[Item, Zone]] = node_data.get("obj")
+
+        flat_node_data = {}
+
+        if node_type is RequirementNode.ITEM:
+            title = f"{node_obj.name.capitalize()}"
+        elif node_type is RequirementNode.ZONE_ITEM:
+            title = f"{node_obj.name.capitalize()} in zone"
+        elif node_type is RequirementNode.ZONE:
+            title = f"{node_obj.name.capitalize()}"
+        elif node_type is RequirementNode.START:
+            title = f"{node_type.value.capitalize()}"
+
+        flat_node_data["title"] = title
+
+        label = ""
+        if node_obj is not None:
+            flat_node_data["name"] = node_obj.name
+            image_path = obj_image_path(node_obj, resources_path)
+            if image_path.exists():
+                flat_node_data["shape"] = "image"
+                flat_node_data["image"] = image_path.as_uri()
+            label = title
+
+        if not label:
+            flat_node_data["font"] = {
+                "color": "transparent",
+                "strokeColor": "transparent",
+            }
+
+        flat_node_data["label"] = label
+
         flat_node_data.update(node_data)
+        flat_node_data.pop("obj")
+        flat_node_data.pop("type")
+
         serializable_graph.add_node(node, **flat_node_data)
 
+    done_edges = []
     for start, end, key, edge_data in graph.edges(data=True, keys=True):
-        edge_obj: "Transformation" = edge_data.pop("obj")
-        edge_type = edge_data.pop("type").value
-        if edge_obj is None:
-            edge_title = edge_type
+        transfo: "Transformation" = edge_data.get("obj")
+        edge_type: RequirementEdge = edge_data.get("type")
+
+        flat_edge_data = {
+            "hoverWidth": 0.1,
+            "selectionWidth": 0.1,
+            "arrows": {"middle": {"enabled": True}},
+        }
+
+        if transfo is None:
+            edge_title = edge_type.value.capitalize()
         else:
-            conditions, effects = repr(edge_obj).split("=>")
+            conditions, effects = repr(transfo).split("=>")
             conditions = conditions.strip()
             effects = effects.strip()
             edge_title = (
-                f"{edge_type} for {edge_obj.name} (transformation {key}):"
+                f"{edge_type.value} for {transfo.name} (transformation {key}):"
                 "\n"
                 "\nConditions:"
                 f"\n{conditions}"
                 "\nEffects:"
                 f"\n{effects}"
             )
-        flat_edge_data = {"title": edge_title}
+
+            if add_edge_numbers:
+                flat_edge_data["arrows"] = {
+                    "from": _start_number_dict(
+                        transfo,
+                        edge_type,
+                        serializable_graph.nodes[start]["name"],
+                        resources_path,
+                    ),
+                    "to": _end_number_dict(
+                        transfo,
+                        graph.nodes[end]["type"],
+                        serializable_graph.nodes[end]["name"],
+                        resources_path,
+                    ),
+                }
+        flat_edge_data["title"] = edge_title
+
+        edge_color = edge_data.pop("color")
+        idle_edge_color = edge_color if graph.number_of_edges() < 100 else "#80808026"
+        flat_edge_data["color"] = {
+            "color": idle_edge_color,
+            "highlight": edge_color,
+            "hover": edge_color,
+        }
+
+        n_edges = graph.number_of_edges(start, end)
+        if n_edges > 1:
+            edge_id = done_edges.count((start, end))
+            flat_edge_data["smooth"] = {
+                "enabled": True,
+                "roundness": 0.05 + 0.08 * edge_id,
+                "type": "curvedCW",
+            }
+            done_edges.append((start, end))
+        elif graph.has_edge(end, start):
+            flat_edge_data["smooth"] = {
+                "enabled": True,
+                "roundness": 0.15,
+                "type": "curvedCW",
+            }
+        else:
+            flat_edge_data["smooth"] = {"enabled": False}
+
         flat_edge_data.update(edge_data)
+        flat_edge_data.pop("obj")
+        flat_edge_data.pop("type")
+
         serializable_graph.add_edge(start, end, **flat_edge_data)
 
     return serializable_graph
+
+
+def _start_number_dict(
+    transfo: "Transformation",
+    edge_type: RequirementEdge,
+    start_name: str,
+    resources_path: Path,
+):
+    if edge_type is RequirementEdge.ITEM_REQUIRED:
+        min_amount_of_start = [
+            stack.quantity
+            for stack in transfo.get_changes(
+                InventoryOwner.PLAYER, InventoryOperation.MIN
+            )
+            if stack.item.name == start_name
+        ][0]
+        from_text = f"≥{min_amount_of_start}"
+    elif edge_type is RequirementEdge.ITEM_REQUIRED_IN_ZONE:
+        min_amount_of_start = [
+            stack.quantity
+            for stack in transfo.get_changes(
+                InventoryOwner.CURRENT, InventoryOperation.MIN
+            )
+            if stack.item.name == start_name
+        ][0]
+        from_text = f"≥{min_amount_of_start}"
+    else:
+        return None
+
+    return _arrows_data_for_image_uri(_get_text_image_uri(from_text, resources_path))
+
+
+def _end_number_dict(
+    transfo: "Transformation",
+    end_type: RequirementNode,
+    end_name: str,
+    resources_path: Path,
+) -> Optional[dict]:
+    if end_type is RequirementNode.ITEM:
+        amount_of_end = [
+            stack.quantity
+            for stack in transfo.get_changes(
+                InventoryOwner.PLAYER, InventoryOperation.ADD
+            )
+            if stack.item.name == end_name
+        ][0]
+        to_text = f"+{amount_of_end}"
+    elif end_type is RequirementNode.ZONE_ITEM:
+        amount_of_end = [
+            stack.quantity
+            for stack in transfo.get_changes(
+                InventoryOwner.CURRENT, InventoryOperation.ADD
+            )
+            if stack.item.name == end_name
+        ][0]
+        to_text = f"+{amount_of_end}"
+    else:
+        return None
+
+    return {
+        "to": _arrows_data_for_image_uri(
+            _get_text_image_uri(to_text, resources_path, flipped=True)
+        )
+    }
+
+
+def _arrows_data_for_image_uri(number_uri: str):
+    return {
+        "enabled": True,
+        "src": number_uri,
+        "type": "image",
+        "imageWidth": 24,
+        "imageHeight": 12,
+    }
+
+
+def _get_text_image_uri(
+    text: str,
+    resources_path: Path,
+    flipped: bool = False,
+):
+    numbers_dir = Path(resources_path).joinpath("text_images")
+    numbers_dir.mkdir(exist_ok=True)
+    image = _create_text_image(text)
+    filename = text
+    if flipped:
+        filename = f"{text}_flipped"
+        image = image.transpose(Image.ROTATE_180)
+    number_path = numbers_dir / f"{filename}.png"
+    image.save(number_path)
+    return number_path.as_uri()
+
+
+def _create_text_image(
+    text: str,
+    fill_color=(130, 130, 130),
+    font_path: Optional[Path] = "arial.ttf",
+) -> "Image.Image":
+    """Create a PIL image for an Item or Zone.
+
+    Args:
+        obj: A HierarchyCraft Item, Zone, Recipe or property.
+        resources_path: Path to the resources folder.
+
+    Returns:
+        A PIL image corresponding to the given object.
+
+    """
+    image_size = (96, 48)
+    image = Image.new("RGBA", image_size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+
+    center_x, center_y = image_size[0] // 2, image_size[1] // 2
+
+    font = ImageFont.truetype(font_path, size=32)
+    draw.text((center_x, center_y), text, fill=fill_color, font=font, anchor="mm")
+    return image
