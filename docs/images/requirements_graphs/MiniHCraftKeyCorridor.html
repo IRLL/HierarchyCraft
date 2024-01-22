@@ -1,0 +1,156 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 1280px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "red", "id": "item#weight", "image": "file:///c:/users/mwx1306333/documents/codebases/hierarchycraft/src/hcraft/examples/minicraft/resources/items/weight.png", "label": "Weight", "level": 6, "name": "weight", "shape": "image", "size": 10, "title": "Weight", "x": 480.0, "y": 614.4}, {"color": "blue", "id": "zone_item#key in zone", "image": "file:///c:/users/mwx1306333/documents/codebases/hierarchycraft/src/hcraft/examples/minicraft/resources/items/key.png", "label": "Key in zone", "level": 5, "name": "key", "shape": "image", "size": 10, "title": "Key in zone", "x": 0.0, "y": 512.0}, {"color": "red", "id": "item#key", "image": "file:///c:/users/mwx1306333/documents/codebases/hierarchycraft/src/hcraft/examples/minicraft/resources/items/key.png", "label": "Key", "level": 6, "name": "key", "shape": "image", "size": 10, "title": "Key", "x": 0.0, "y": 614.4}, {"color": "blue", "id": "zone_item#open_door in zone", "image": "file:///c:/users/mwx1306333/documents/codebases/hierarchycraft/src/hcraft/examples/minicraft/resources/items/open_door.png", "label": "Open_door in zone", "level": 7, "name": "open_door", "shape": "image", "size": 10, "title": "Open_door in zone", "x": 0.0, "y": 716.8}, {"color": "blue", "id": "zone_item#blue_closed_door in zone", "image": "file:///c:/users/mwx1306333/documents/codebases/hierarchycraft/src/hcraft/examples/minicraft/resources/items/blue_closed_door.png", "label": "Blue_closed_door in zone", "level": 2, "name": "blue_closed_door", "shape": "image", "size": 10, "title": "Blue_closed_door in zone", "x": 0.0, "y": 204.80000000000004}, {"color": "blue", "id": "zone_item#blue_open_door in zone", "image": "file:///c:/users/mwx1306333/documents/codebases/hierarchycraft/src/hcraft/examples/minicraft/resources/items/blue_open_door.png", "label": "Blue_open_door in zone", "level": 3, "name": "blue_open_door", "shape": "image", "size": 10, "title": "Blue_open_door in zone", "x": 0.0, "y": 307.2}, {"color": "blue", "id": "zone_item#ball in zone", "image": "file:///c:/users/mwx1306333/documents/codebases/hierarchycraft/src/hcraft/examples/minicraft/resources/items/ball.png", "label": "Ball in zone", "level": 9, "name": "ball", "shape": "image", "size": 10, "title": "Ball in zone", "x": 0.0, "y": 921.6000000000001}, {"color": "red", "id": "item#ball", "image": "file:///c:/users/mwx1306333/documents/codebases/hierarchycraft/src/hcraft/examples/minicraft/resources/items/ball.png", "label": "Ball", "level": 10, "name": "ball", "shape": "image", "size": 10, "title": "Ball", "x": 0.0, "y": 1024.0}, {"color": "green", "id": "zone#locked_room", "label": "Locked_room", "level": 8, "name": "locked_room", "shape": "dot", "size": 10, "title": "Locked_room", "x": 0.0, "y": 819.2000000000002}, {"color": "green", "id": "zone#key_room", "label": "Key_room", "level": 4, "name": "key_room", "shape": "dot", "size": 10, "title": "Key_room", "x": 0.0, "y": 409.6000000000001}, {"color": "blue", "id": "zone_item#locked_door in zone", "image": "file:///c:/users/mwx1306333/documents/codebases/hierarchycraft/src/hcraft/examples/minicraft/resources/items/locked_door.png", "label": "Locked_door in zone", "level": 2, "name": "locked_door", "shape": "image", "size": 10, "title": "Locked_door in zone", "x": 480.0, "y": 204.80000000000004}, {"color": "green", "id": "zone#start_room", "label": "Start_room", "level": 1, "name": "start_room", "shape": "dot", "size": 10, "title": "Start_room", "x": 0.0, "y": 102.40000000000002}, {"color": "black", "font": {"color": "transparent", "strokeColor": "transparent"}, "id": "START#", "label": "START#", "level": 0, "shape": "dot", "size": 10, "title": "Start", "x": 0.0, "y": 0.0}]);
+                  edges = new vis.DataSet([{"arrows": {"middle": {"enabled": true}}, "color": {"color": "#CA91617F", "highlight": "#CA91617F", "hover": "#CA91617F"}, "from": "item#weight", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": true, "roundness": 0.15, "type": "curvedCW"}, "title": "item_required for put_down_key (transformation 6):\n\nConditions:\nkey\u003e1,weight\u003e1\nEffects:\n-key,-weight Zone(+key)", "to": "zone_item#key in zone", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#CA91617F", "highlight": "#CA91617F", "hover": "#CA91617F"}, "from": "item#key", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": true, "roundness": 0.15, "type": "curvedCW"}, "title": "item_required for put_down_key (transformation 6):\n\nConditions:\nkey\u003e1,weight\u003e1\nEffects:\n-key,-weight Zone(+key)", "to": "zone_item#key in zone", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#FBAFE47F", "highlight": "#FBAFE47F", "hover": "#FBAFE47F"}, "from": "item#key", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": false}, "title": "item_required for unlock_door (transformation 11):\n\nConditions:\nkey\u003e1 Zone(locked_door\u003e1)\nEffects:\nZone(-locked_door,+open_door)", "to": "zone_item#open_door in zone", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#9494947F", "highlight": "#9494947F", "hover": "#9494947F"}, "from": "zone_item#blue_closed_door in zone", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": false}, "title": "item_required_in_zone for open_door (transformation 7):\n\nConditions:\nZone(blue_closed_door\u003e1)\nEffects:\nZone(-blue_closed_door,+blue_open_door)", "to": "zone_item#blue_open_door in zone", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#CC78BC7F", "highlight": "#CC78BC7F", "hover": "#CC78BC7F"}, "from": "zone_item#ball in zone", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": false}, "title": "item_required_in_zone for pickup_ball (transformation 13):\n\nConditions:\nweight\u003c0 Zone(ball\u003e1)\nEffects:\n+ball,+weight Zone(-ball)", "to": "item#weight", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#CC78BC7F", "highlight": "#CC78BC7F", "hover": "#CC78BC7F"}, "from": "zone_item#ball in zone", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": false}, "title": "item_required_in_zone for pickup_ball (transformation 13):\n\nConditions:\nweight\u003c0 Zone(ball\u003e1)\nEffects:\n+ball,+weight Zone(-ball)", "to": "item#ball", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#0173B27F", "highlight": "#0173B27F", "hover": "#0173B27F"}, "from": "zone_item#open_door in zone", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": false}, "title": "item_required_in_zone for move_to_locked_room (transformation 12):\n\nConditions:\nZone(open_door\u003e1) | start_room\nEffects:\n| locked_room", "to": "zone#locked_room", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#ECE1337F", "highlight": "#ECE1337F", "hover": "#ECE1337F"}, "from": "zone_item#key in zone", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": true, "roundness": 0.15, "type": "curvedCW"}, "title": "item_required_in_zone for pickup_key (transformation 5):\n\nConditions:\nweight\u003c0 Zone(key\u003e1)\nEffects:\n+key,+weight Zone(-key)", "to": "item#weight", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#ECE1337F", "highlight": "#ECE1337F", "hover": "#ECE1337F"}, "from": "zone_item#key in zone", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": true, "roundness": 0.15, "type": "curvedCW"}, "title": "item_required_in_zone for pickup_key (transformation 5):\n\nConditions:\nweight\u003c0 Zone(key\u003e1)\nEffects:\n+key,+weight Zone(-key)", "to": "item#key", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#56B4E97F", "highlight": "#56B4E97F", "hover": "#56B4E97F"}, "from": "zone_item#blue_open_door in zone", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": false}, "title": "item_required_in_zone for move_to_key_room (transformation 8):\n\nConditions:\nZone(blue_open_door\u003e1) | start_room\nEffects:\n| key_room", "to": "zone#key_room", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#FBAFE47F", "highlight": "#FBAFE47F", "hover": "#FBAFE47F"}, "from": "zone_item#locked_door in zone", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": false}, "title": "item_required_in_zone for unlock_door (transformation 11):\n\nConditions:\nkey\u003e1 Zone(locked_door\u003e1)\nEffects:\nZone(-locked_door,+open_door)", "to": "zone_item#open_door in zone", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#FBAFE47F", "highlight": "#FBAFE47F", "hover": "#FBAFE47F"}, "from": "zone#start_room", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": false}, "title": "Start_item_in_zone", "to": "zone_item#blue_closed_door in zone", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#0173B27F", "highlight": "#0173B27F", "hover": "#0173B27F"}, "from": "zone#start_room", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": false}, "title": "Start_item_in_zone", "to": "zone_item#locked_door in zone", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#56B4E97F", "highlight": "#56B4E97F", "hover": "#56B4E97F"}, "from": "zone#start_room", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": true, "roundness": 0.15, "type": "curvedCW"}, "title": "zone_required for move_to_key_room (transformation 8):\n\nConditions:\nZone(blue_open_door\u003e1) | start_room\nEffects:\n| key_room", "to": "zone#key_room", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#0173B27F", "highlight": "#0173B27F", "hover": "#0173B27F"}, "from": "zone#start_room", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": true, "roundness": 0.15, "type": "curvedCW"}, "title": "zone_required for move_to_locked_room (transformation 12):\n\nConditions:\nZone(open_door\u003e1) | start_room\nEffects:\n| locked_room", "to": "zone#locked_room", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#DE8F057F", "highlight": "#DE8F057F", "hover": "#DE8F057F"}, "from": "zone#key_room", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": false}, "title": "zone_required for search_for_key (transformation 4):\n\nConditions:\nkey\u003c0 Zone(key\u003c0) start_room(key\u003c0) key_room(key\u003c0) locked_room(key\u003c0) | key_room\nEffects:\nZone(+key)", "to": "zone_item#key in zone", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#D55E007F", "highlight": "#D55E007F", "hover": "#D55E007F"}, "from": "zone#key_room", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": true, "roundness": 0.15, "type": "curvedCW"}, "title": "zone_required for move_to_start_room (transformation 9):\n\nConditions:\n| key_room,locked_room\nEffects:\n| start_room", "to": "zone#start_room", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#CC78BC7F", "highlight": "#CC78BC7F", "hover": "#CC78BC7F"}, "from": "zone#locked_room", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": false}, "title": "Start_item_in_zone", "to": "zone_item#ball in zone", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#029E737F", "highlight": "#029E737F", "hover": "#029E737F"}, "from": "zone#locked_room", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": true, "roundness": 0.15, "type": "curvedCW"}, "title": "zone_required for move_to_start_room (transformation 10):\n\nConditions:\n| key_room,locked_room\nEffects:\n| start_room", "to": "zone#start_room", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#029E737F", "highlight": "#029E737F", "hover": "#029E737F"}, "from": "START#", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": false}, "title": "Start_zone", "to": "zone#start_room", "width": 1}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": false
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false,
+        "hover": true
+    },
+    "physics": {
+        "enabled": false,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

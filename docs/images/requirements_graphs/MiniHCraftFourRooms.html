@@ -1,0 +1,156 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 1000px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "blue", "id": "zone_item#goal in zone", "image": "file:///c:/users/mwx1306333/documents/codebases/hierarchycraft/src/hcraft/examples/minicraft/resources/items/goal.png", "label": "Goal in zone", "level": 4, "name": "goal", "shape": "image", "size": 10, "title": "Goal in zone", "x": 0.0, "y": 640.0000000000001}, {"color": "red", "id": "item#goal", "image": "file:///c:/users/mwx1306333/documents/codebases/hierarchycraft/src/hcraft/examples/minicraft/resources/items/goal.png", "label": "Goal", "level": 5, "name": "goal", "shape": "image", "size": 10, "title": "Goal", "x": 0.0, "y": 800.0}, {"color": "green", "id": "zone#NW", "label": "Nw", "level": 2, "name": "NW", "shape": "dot", "size": 10, "title": "Nw", "x": 0.0, "y": 320.00000000000006}, {"color": "green", "id": "zone#NE", "label": "Ne", "level": 3, "name": "NE", "shape": "dot", "size": 10, "title": "Ne", "x": 0.0, "y": 480.0}, {"color": "green", "id": "zone#SW", "label": "Sw", "level": 1, "name": "SW", "shape": "dot", "size": 10, "title": "Sw", "x": 0.0, "y": 160.00000000000003}, {"color": "green", "id": "zone#SE", "label": "Se", "level": 2, "name": "SE", "shape": "dot", "size": 10, "title": "Se", "x": 480.0, "y": 320.00000000000006}, {"color": "black", "font": {"color": "transparent", "strokeColor": "transparent"}, "id": "START#", "label": "START#", "level": 0, "shape": "dot", "size": 10, "title": "Start", "x": 0.0, "y": 0.0}]);
+                  edges = new vis.DataSet([{"arrows": {"middle": {"enabled": true}}, "color": {"color": "#029E737F", "highlight": "#029E737F", "hover": "#029E737F"}, "from": "zone_item#goal in zone", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": false}, "title": "item_required_in_zone for reach_goal (transformation 2):\n\nConditions:\nZone(goal\u003e1)\nEffects:\n+goal Zone(-goal)", "to": "item#goal", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#56B4E97F", "highlight": "#56B4E97F", "hover": "#56B4E97F"}, "from": "zone#NW", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": true, "roundness": 0.15, "type": "curvedCW"}, "title": "zone_required for go_to_ne (transformation 4):\n\nConditions:\n| SE,NW\nEffects:\n| NE", "to": "zone#NE", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#D55E007F", "highlight": "#D55E007F", "hover": "#D55E007F"}, "from": "zone#NW", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": true, "roundness": 0.15, "type": "curvedCW"}, "title": "zone_required for go_to_sw (transformation 7):\n\nConditions:\n| NW,SE\nEffects:\n| SW", "to": "zone#SW", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#FBAFE47F", "highlight": "#FBAFE47F", "hover": "#FBAFE47F"}, "from": "zone#SE", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": true, "roundness": 0.15, "type": "curvedCW"}, "title": "zone_required for go_to_ne (transformation 3):\n\nConditions:\n| SE,NW\nEffects:\n| NE", "to": "zone#NE", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#0173B27F", "highlight": "#0173B27F", "hover": "#0173B27F"}, "from": "zone#SE", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": true, "roundness": 0.15, "type": "curvedCW"}, "title": "zone_required for go_to_sw (transformation 8):\n\nConditions:\n| NW,SE\nEffects:\n| SW", "to": "zone#SW", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#CA91617F", "highlight": "#CA91617F", "hover": "#CA91617F"}, "from": "zone#SW", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": true, "roundness": 0.15, "type": "curvedCW"}, "title": "zone_required for go_to_se (transformation 6):\n\nConditions:\n| NE,SW\nEffects:\n| SE", "to": "zone#SE", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#CC78BC7F", "highlight": "#CC78BC7F", "hover": "#CC78BC7F"}, "from": "zone#SW", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": true, "roundness": 0.15, "type": "curvedCW"}, "title": "zone_required for go_to_nw (transformation 10):\n\nConditions:\n| NE,SW\nEffects:\n| NW", "to": "zone#NW", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#9494947F", "highlight": "#9494947F", "hover": "#9494947F"}, "from": "zone#NE", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": false}, "title": "zone_required for find_goal (transformation 1):\n\nConditions:\nZone(goal\u003c0) | NE\nEffects:\nZone(+goal)", "to": "zone_item#goal in zone", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#ECE1337F", "highlight": "#ECE1337F", "hover": "#ECE1337F"}, "from": "zone#NE", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": true, "roundness": 0.15, "type": "curvedCW"}, "title": "zone_required for go_to_se (transformation 5):\n\nConditions:\n| NE,SW\nEffects:\n| SE", "to": "zone#SE", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#DE8F057F", "highlight": "#DE8F057F", "hover": "#DE8F057F"}, "from": "zone#NE", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": true, "roundness": 0.15, "type": "curvedCW"}, "title": "zone_required for go_to_nw (transformation 9):\n\nConditions:\n| NE,SW\nEffects:\n| NW", "to": "zone#NW", "width": 1}, {"arrows": {"middle": {"enabled": true}}, "color": {"color": "#CC78BC7F", "highlight": "#CC78BC7F", "hover": "#CC78BC7F"}, "from": "START#", "hoverWidth": 0.1, "selectionWidth": 0.1, "smooth": {"enabled": false}, "title": "Start_zone", "to": "zone#SW", "width": 1}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": false
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false,
+        "hover": true
+    },
+    "physics": {
+        "enabled": false,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

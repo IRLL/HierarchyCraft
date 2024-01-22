@@ -132,7 +132,7 @@ def test_requirements_graph(env_class: Type[HcraftEnv], mocker: MockerFixture):
         pytest.importorskip("pyvis")
         mocker.patch("pyvis.network.webbrowser.open")
         requirements_dir.mkdir(exist_ok=True)
-        filepath = requirements_dir / f"{env.name}_requirements_graph.html"
+        filepath = requirements_dir / f"{env.name}.html"
         if not save:
             mocker.patch("pyvis.network.Network.write_html")
         requirements.draw(engine="pyvis", save_path=filepath)
