@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Type
+from typing import TYPE_CHECKING, Type
 
 import pytest
 import pytest_check as check
@@ -17,7 +17,9 @@ from hcraft.examples.minicraft import (
     MiniHCraftUnlockPickup,
 )
 from hcraft.env import HcraftEnv
-from hcraft.requirements import apply_color_theme
+
+if TYPE_CHECKING:
+    import matplotlib.pyplot
 
 
 @pytest.mark.slow
@@ -108,7 +110,7 @@ def test_requirements_graph(env_class: Type[HcraftEnv], mocker: MockerFixture):
     requirements_dir = Path("docs", "images", "requirements_graphs")
 
     if draw_plt:
-        import matplotlib.pyplot as plt
+        plt: "matplotlib.pyplot" = pytest.importorskip("matplotlib.pyplot")
 
         width = max(requirements.depth, 10)
         height = max(9 / 16 * width, requirements.width / requirements.depth * width)
@@ -127,6 +129,7 @@ def test_requirements_graph(env_class: Type[HcraftEnv], mocker: MockerFixture):
         plt.close()
 
     if draw_html:
+        pytest.importorskip("pyvis")
         mocker.patch("pyvis.network.webbrowser.open")
         requirements_dir.mkdir(exist_ok=True)
         filepath = requirements_dir / f"{env.name}_requirements_graph.html"
