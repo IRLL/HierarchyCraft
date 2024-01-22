@@ -1,8 +1,9 @@
 from pathlib import Path
-from time import sleep
 from typing import Type
+
 import pytest
 import pytest_check as check
+from pytest_mock import MockerFixture
 
 import os
 
@@ -98,7 +99,7 @@ def test_gym_make(env_gym_id):
 
 @pytest.mark.slow
 @pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
-def test_requirements_graph(env_class: Type[HcraftEnv]):
+def test_requirements_graph(env_class: Type[HcraftEnv], mocker: MockerFixture):
     draw_plt = True
     draw_html = True
     save = False
@@ -126,10 +127,9 @@ def test_requirements_graph(env_class: Type[HcraftEnv]):
         plt.close()
 
     if draw_html:
+        mocker.patch("pyvis.network.webbrowser.open")
         requirements_dir.mkdir(exist_ok=True)
         filepath = requirements_dir / f"{env.name}_requirements_graph.html"
-        exists = filepath.exists()
+        if not save:
+            mocker.patch("pyvis.network.Network.write_html")
         requirements.draw(engine="pyvis", save_path=filepath)
-        if not save and not exists:
-            sleep(0.2)
-            os.remove(filepath)
