@@ -1,5 +1,3 @@
-"""# MiniCraft - UnlockPickup"""
-
 from typing import List
 
 from hcraft.elements import Item, Zone
@@ -10,8 +8,12 @@ from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZO
 from hcraft.examples.minicraft.minicraft import MiniCraftEnv
 
 
+MINICRAFT_NAME = "UnlockPickup"
+__doc__ = MiniCraftEnv.description(MINICRAFT_NAME, for_module_header=True)
+
+
 class MiniHCraftUnlockPickup(MiniCraftEnv):
-    MINICRAFT_NAME = "UnlockPickup"
+    MINICRAFT_NAME = MINICRAFT_NAME
     __doc__ = MiniCraftEnv.description(MINICRAFT_NAME)
 
     START = Zone("start_room")

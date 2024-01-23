@@ -1,4 +1,14 @@
-import os
+"""A simple environment used in for the env building tutorial:
+[`hcraft.env`](https://irll.github.io/HierarchyCraft/hcraft/env.html)
+
+Requirements graph:
+<div class="graph">
+.. include:: ../../../../docs/images/requirements_graphs/TreasureHcraft.html
+</div>
+
+"""
+
+from pathlib import Path
 from typing import List
 
 from hcraft.elements import Item, Zone
@@ -41,28 +51,28 @@ class TreasureEnv(HcraftEnv):
     """A key ... it can probably unlock things."""
 
     def __init__(self, **kwargs) -> None:
-        folder = os.path.dirname(__file__)
-        resources_path = os.path.join(folder, "resources")
         transformations = self._build_transformations()
         world = world_from_transformations(
             transformations=transformations,
             start_zone=self.START_ROOM,
             start_zones_items={self.TREASURE_ROOM: [self.LOCKED_CHEST]},
         )
-        world.resources_path = resources_path
+        world.resources_path = Path(__file__).parent / "resources"
         super().__init__(
             world, purpose=GetItemTask(self.GOLD), name="TreasureHcraft", **kwargs
         )
 
     def _build_transformations(self) -> List[Transformation]:
         TAKE_GOLD_FROM_CHEST = Transformation(
+            "take-gold-from-chest",
             inventory_changes=[
                 Use(CURRENT_ZONE, self.CHEST, consume=1),
                 Yield(PLAYER, self.GOLD),
-            ]
+            ],
         )
 
         SEARCH_KEY = Transformation(
+            "search-key",
             inventory_changes=[
                 Yield(PLAYER, self.KEY, max=1),
             ],
@@ -70,6 +80,7 @@ class TreasureEnv(HcraftEnv):
         )
 
         UNLOCK_CHEST = Transformation(
+            "unlock-chest",
             inventory_changes=[
                 Use(PLAYER, self.KEY, 2),
                 Use(CURRENT_ZONE, self.LOCKED_CHEST, consume=1),
@@ -78,14 +89,17 @@ class TreasureEnv(HcraftEnv):
         )
 
         MOVE_TO_KEY_ROOM = Transformation(
+            "move-to-key_room",
             destination=self.KEY_ROOM,
             zones=[self.START_ROOM],
         )
         MOVE_TO_TREASURE_ROOM = Transformation(
+            "move-to-treasure_room",
             destination=self.TREASURE_ROOM,
             zones=[self.START_ROOM],
         )
         MOVE_TO_START_ROOM = Transformation(
+            "move-to-start_room",
             destination=self.START_ROOM,
         )
 

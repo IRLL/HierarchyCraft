@@ -1,8 +1,9 @@
 import networkx as nx
 import pytest
 import pytest_check as check
+from hcraft.examples.light_recursive import LightRecursiveHcraftEnv
 
-from hcraft.examples.recursive import LightRecursiveHcraftEnv, RecursiveHcraftEnv
+from hcraft.examples.recursive import RecursiveHcraftEnv
 from tests.custom_checks import check_isomorphic
 
 

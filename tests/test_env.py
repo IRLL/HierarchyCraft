@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import List
 
 import numpy as np
@@ -374,7 +375,7 @@ def test_observation_one_zone_no_player_items():
 
 @pytest.mark.slow
 def test_treasure_env(mocker: MockerFixture):
-    """Ensure that the example environment from the documenation is working properly."""
+    """Ensure that the example for the documentation is working properly."""
     pytest.importorskip("pygame")
     pytest.importorskip("pygame_menu")
 
@@ -471,12 +472,11 @@ def test_treasure_env(mocker: MockerFixture):
     render_env_with_human(env)
     check.is_true(env.purpose.terminal_groups[0].terminated)
 
-    import os
-
     import hcraft
 
-    treasure_path = os.path.dirname(hcraft.__file__)
-    resources_path = os.path.join(treasure_path, "examples", "treasure", "resources")
+    resources_path = Path(hcraft.__file__).parent.joinpath(
+        "examples", "treasure", "resources"
+    )
     WORLD_2.resources_path = resources_path
     env = HcraftEnv(WORLD_2, purpose=get_gold_task, max_step=7)
     HUMAN_ACTIONS = [3, 1, 1, 5, 4, 2, 0]

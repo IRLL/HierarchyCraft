@@ -6,7 +6,7 @@ HierarchyCraft environment adapted to the Minecraft inventory
 
 """
 
-import os
+from pathlib import Path
 
 from hcraft.elements import Stack
 from hcraft.env import HcraftEnv
@@ -40,8 +40,6 @@ class MineHcraftEnv(HcraftEnv):
     """
 
     def __init__(self, **kwargs):
-        mc_dir = os.path.dirname(__file__)
-        resources_path = os.path.join(mc_dir, "resources")
         mc_transformations = build_minehcraft_transformations()
         start_zone = kwargs.pop("start_zone", FOREST)
         purpose = kwargs.pop("purpose", None)
@@ -55,7 +53,7 @@ class MineHcraftEnv(HcraftEnv):
                 STRONGHOLD: [Stack(CLOSE_ENDER_PORTAL)],
             },
         )
-        mc_world.resources_path = resources_path
+        mc_world.resources_path = Path(__file__).parent / "resources"
         super().__init__(world=mc_world, name="MineHcraft", purpose=purpose, **kwargs)
         self.metadata["video.frames_per_second"] = kwargs.pop("fps", 10)
 

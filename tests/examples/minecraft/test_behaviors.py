@@ -3,7 +3,6 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import matplotlib.pyplot as plt
 import pytest
 import pytest_check as check
 
@@ -26,6 +25,7 @@ from hcraft.task import Task, GetItemTask, GoToZoneTask
 
 if TYPE_CHECKING:
     from unified_planning.io import PDDLWriter
+    import matplotlib.pyplot
 
 WOODEN_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.WOOD]
 STONE_PICKAXE = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][Material.STONE]
@@ -158,6 +158,7 @@ class TestItemsInWoodenPickaxeGraph:
         )
 
     def test_graph_draw(self):
+        plt: "matplotlib.pyplot" = pytest.importorskip("matplotlib.pyplot")
         fig, ax = plt.subplots()
         self.pickaxe_behavior.graph.draw(ax)
         plt.close(fig)

@@ -32,7 +32,6 @@ class RandomHcraftEnv(HcraftEnv):
         Args:
             n_items_per_n_inputs: Mapping from the number of inputs to the number of items
                 with this number of inputs.
-        Kwargs:
             max_step: The maximum number of steps until done.
         """
         if n_items_per_n_inputs is None:

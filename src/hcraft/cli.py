@@ -4,9 +4,9 @@ from typing import List, Optional
 from hcraft.elements import Item
 from hcraft.env import HcraftEnv
 from hcraft.examples import (
-    LightRecursiveHcraftEnv,
     MineHcraftEnv,
     RandomHcraftEnv,
+    LightRecursiveHcraftEnv,
     RecursiveHcraftEnv,
     TowerHcraftEnv,
 )

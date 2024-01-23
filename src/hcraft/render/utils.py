@@ -30,6 +30,15 @@ logging.getLogger("PIL").setLevel(logging.INFO)
 logging.getLogger("matplotlib.font_manager").setLevel(logging.INFO)
 
 
+def obj_image_path(obj: Union[Item, Zone], resources_path: Path):
+    if isinstance(obj, Item):
+        return resources_path.joinpath("items", f"{obj.name}.png")
+    elif isinstance(obj, Zone):
+        return resources_path.joinpath(resources_path, "zones", f"{obj.name}.png")
+    else:
+        raise TypeError(f"Unsupported type for loading images: {type(obj)}")
+
+
 def load_image(resources_path: Path, obj: Union[Item, Zone]) -> Optional[Image.Image]:
     """Load a PIL image for and obj in a world.
 
@@ -44,12 +53,7 @@ def load_image(resources_path: Path, obj: Union[Item, Zone]) -> Optional[Image.I
     if obj is None:
         return None
 
-    if isinstance(obj, Item):
-        image_path = os.path.join(resources_path, "items", f"{obj.name}.png")
-    elif isinstance(obj, Zone):
-        image_path = os.path.join(resources_path, "zones", f"{obj.name}.png")
-    else:
-        raise TypeError(f"Unsupported type for loading images: {type(obj)}")
+    image_path = obj_image_path(obj, resources_path)
 
     try:
         image = Image.open(image_path).convert("RGBA")
@@ -213,7 +217,7 @@ def build_transformation_image(
     return transformation_image
 
 
-def load_or_create_image(obj: Union[Stack, Zone], resources_path: str, bg_color=None):
+def load_or_create_image(obj: Union[Stack, Zone], resources_path: Path, bg_color=None):
     """Load or create an image for an item or zone."""
 
     if isinstance(obj, Stack):

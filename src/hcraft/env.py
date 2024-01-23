@@ -233,8 +233,9 @@ To simplify our case, we can use the already built folder under the treasure exa
 import os
 import hcraft
 
-hcraft_path = os.path.dirname(hcraft.__file__)
-resources_path = os.path.join(hcraft_path, "examples", "treasure", "resources")
+resources_path = Path(hcraft.__file__).parent.joinpath(
+    "examples", "treasure", "resources"
+)
 env = HcraftEnv(
     WORLD_2, purpose=get_gold_task, resources_path=resources_path, max_step=7
 )
