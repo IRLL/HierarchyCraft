@@ -4,7 +4,7 @@
 
 A rather large and complex requirements graph:
 <div class="graph">
-.. include:: ../../../../docs/images/requirements_graphs/MineHCraft.html
+.. include:: ../../../../docs/images/requirements_graphs/MineHcraft.html
 </div>
 """
 from typing import Optional
