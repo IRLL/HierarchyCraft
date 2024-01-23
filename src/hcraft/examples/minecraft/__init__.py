@@ -1,6 +1,6 @@
 """# MineHcraft: Inspired from the popular game Minecraft.
 
-![MineHcraft demo](../../../../docs/images/MineHcraft_human_demo.gif)
+<img src="https://raw.githubusercontent.com/IRLL/HierarchyCraft/master/docs/images/minehcraft_human_demo.gif" width=100%/>
 
 A rather large and complex requirements graph:
 <div class="graph">
