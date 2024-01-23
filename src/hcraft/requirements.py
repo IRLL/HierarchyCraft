@@ -90,6 +90,7 @@ from matplotlib.legend_handler import HandlerPatch
 
 from hebg.graph import draw_networkx_nodes_images, get_nodes_by_level
 from hebg.layouts.metabased import leveled_layout_energy
+import hcraft
 
 from hcraft.render.utils import load_or_create_image, obj_image_path
 from hcraft.transformation import InventoryOperation, InventoryOwner
@@ -241,6 +242,7 @@ class Requirements:
                 pos=pos,
                 depth=self.depth,
                 width=self.width,
+                **kwargs,
             )
 
     @property
@@ -711,12 +713,18 @@ def _draw_html(
     pos: Dict[str, Tuple[float, float]],
     depth: int,
     width: int,
+    **kwargs,
 ):
     from pyvis.network import Network
 
-    resolution = [max(128 * width, 600), max(128 * depth, 1000)]
+    resolution = [max(96 * width, 600), max(64 * depth, 1000)]
     nt = Network(height=f"{resolution[1]}px", directed=True)
-    serializable_graph = _serialize_pyvis(graph, resources_path)
+    serializable_graph = _serialize_pyvis(
+        graph,
+        resources_path,
+        add_edge_numbers=kwargs.get("add_edge_numbers", False),
+        with_web_uri=kwargs.get("with_web_uri", False),
+    )
 
     poses = np.array(list(pos.values()))
     poses = np.flip(poses, axis=1)
@@ -726,7 +734,7 @@ def _draw_html(
     poses_range = np.where(poses_range == 0, 1.0, poses_range)
 
     def scale(val, axis: int):
-        return (val - poses_min[axis]) / poses_range[axis] * 0.8 * resolution[axis]
+        return (val - poses_min[axis]) / poses_range[axis] * resolution[axis]
 
     for node, (y, x) in pos.items():
         serializable_graph.nodes[node]["x"] = scale(x, 0)
@@ -749,7 +757,10 @@ def _compute_edge_alpha(pred, _succ, graph: nx.DiGraph):
 
 
 def _serialize_pyvis(
-    graph: nx.MultiDiGraph, resources_path: Path, add_edge_numbers: bool = False
+    graph: nx.MultiDiGraph,
+    resources_path: Path,
+    add_edge_numbers: bool,
+    with_web_uri: bool,
 ):
     """Make a serializable copy of a requirements graph
     by converting objects in it to dicts."""
@@ -778,7 +789,17 @@ def _serialize_pyvis(
             image_path = obj_image_path(node_obj, resources_path)
             if image_path.exists():
                 flat_node_data["shape"] = "image"
-                flat_node_data["image"] = image_path.as_uri()
+                if with_web_uri:
+                    relative_path = image_path.relative_to(
+                        Path(hcraft.__file__).parent.parent.parent
+                    )
+                    uri = (
+                        "https://raw.githubusercontent.com/IRLL/HierarchyCraft/master/"
+                        f"{relative_path.as_posix()}"
+                    )
+                else:
+                    uri = image_path.as_uri()
+                flat_node_data["image"] = uri
             label = title
 
         if not label:
