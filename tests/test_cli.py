@@ -3,9 +3,9 @@ import pytest_check as check
 
 from hcraft.cli import hcraft_cli
 from hcraft.examples import (
-    LightRecursiveHcraftEnv,
     MineHcraftEnv,
     RandomHcraftEnv,
+    LightRecursiveHcraftEnv,
     RecursiveHcraftEnv,
     TowerHcraftEnv,
 )

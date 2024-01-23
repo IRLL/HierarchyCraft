@@ -3,8 +3,9 @@
 ![MineHcraft demo](../../../../docs/images/MineHcraft_human_demo.gif)
 
 A rather large and complex requirements graph:
-![MineHcraft requirements graph](../../../../docs/images/requirements_graphs/MineHCraft.png)
-
+<div class="graph">
+.. include:: ../../../../docs/images/requirements_graphs/MineHCraft.html
+</div>
 """
 from typing import Optional
 

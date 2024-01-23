@@ -1,3 +1,13 @@
+"""A simple environment used in for the env building tutorial:
+[`hcraft.env`](https://irll.github.io/HierarchyCraft/hcraft/env.html)
+
+Requirements graph:
+<div class="graph">
+.. include:: ../../../../docs/images/requirements_graphs/TreasureHcraft.html
+</div>
+
+"""
+
 from pathlib import Path
 from typing import List
 

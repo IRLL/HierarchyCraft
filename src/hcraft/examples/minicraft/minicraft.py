@@ -26,7 +26,7 @@ class MiniCraftEnv(HcraftEnv):
         **kwargs,
     ) -> None:
         """
-        Kwargs:
+        Args:
             invalid_reward: Reward given to the agent for invalid actions.
                 Defaults to -1.0.
             max_step: Maximum number of steps before episode truncation.
@@ -50,7 +50,7 @@ class MiniCraftEnv(HcraftEnv):
         raise NotImplementedError
 
     @staticmethod
-    def description(name: str) -> str:
+    def description(name: str, for_module_header: bool = False) -> str:
         """Docstring description of the MiniCraft environment."""
 
         minigrid_link = (
@@ -58,22 +58,31 @@ class MiniCraftEnv(HcraftEnv):
         )
         minigrid_gif = "https://minigrid.farama.org/_images/<EnvName>Env.gif"
 
-        requirements_image = (
-            "https://raw.githubusercontent.com/IRLL/HierarchyCraft/master"
-            "/docs/images/requirements_graphs/MiniHCraft<EnvName>.png"
-        )
+        doc_lines = [
+            f"Reproduces the minigrid [<EnvName>]({minigrid_link})"
+            " gridworld environment as a HierarchyCraft environment.",
+        ]
 
-        template = "\n".join(
-            (
-                f"Reproduces the minigrid [<EnvName>]({minigrid_link})"
-                " gridworld environment as a HierarchyCraft environment.",
-                "",
-                "Minigrid representation:",
-                "",
-                f'<img src="{minigrid_gif}" width="40%"/>',
-                "",
-                "HierarchyCraft requirements graph:",
-                f'<img src="{requirements_image}" width="90%"/>',
+        if for_module_header:
+            requirements_image = (
+                "../../../../docs/images/requirements_graphs/MiniHCraft<EnvName>.html"
             )
-        )
+
+            doc_lines = (
+                ["# MiniCraft - <EnvName>", "", ""]
+                + doc_lines
+                + [
+                    "",
+                    "Minigrid representation:",
+                    "",
+                    f'<img src="{minigrid_gif}" width="40%"/>',
+                    "",
+                    "HierarchyCraft requirements graph:",
+                    '<div class="<EnvName>_graph">',
+                    f".. include:: {requirements_image}",
+                    "</div>",
+                ]
+            )
+
+        template = "\n".join(doc_lines)
         return template.replace("<EnvName>", name)

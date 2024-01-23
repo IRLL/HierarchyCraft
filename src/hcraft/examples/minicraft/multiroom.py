@@ -1,5 +1,3 @@
-"""# MiniCraft - MultiRoom"""
-
 from typing import List
 
 from hcraft.elements import Item, Zone
@@ -8,9 +6,12 @@ from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZO
 
 from hcraft.examples.minicraft.minicraft import MiniCraftEnv
 
+MINICRAFT_NAME = "MultiRoom"
+__doc__ = MiniCraftEnv.description(MINICRAFT_NAME, for_module_header=True)
+
 
 class MiniHCraftMultiRoom(MiniCraftEnv):
-    MINICRAFT_NAME = "MultiRoom"
+    MINICRAFT_NAME = MINICRAFT_NAME
     __doc__ = MiniCraftEnv.description(MINICRAFT_NAME)
 
     GOAL = Item("goal")
