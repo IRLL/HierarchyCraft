@@ -67,13 +67,6 @@ class MiniHCraftBlockedUnlockPickup(MiniCraftEnv):
             )
             transformations.append(search_for_item)
 
-            search_for_item = Transformation(
-                f"search_for_{item.name}",
-                inventory_changes=inventory_changes,
-                zone=zone,
-            )
-            transformations.append(search_for_item)
-
         for item in (self.KEY, self.BOX, self.BALL):
             pickup = Transformation(
                 f"pickup_{item.name}",
