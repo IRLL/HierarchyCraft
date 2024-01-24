@@ -155,18 +155,12 @@ def _zones_search() -> List[Transformation]:
         Material.DIAMOND: 8,
     }
 
-    def _search_name(item: Item, with_item: Optional[Item] = None):
-        basename = f"search-for-{item.name}"
-        if with_item is not None:
-            basename += f"-with-{tool.name}"
-        return basename
-
     search_item = []
     for mc_item in items.MC_FINDABLE_ITEMS:
         if mc_item.required_tool_types is None:
             quantity = max(1, round(1 / mc_item.hardness))
             search_item += _search_for_item_transformations(
-                name=_search_name(mc_item.item), mc_item=mc_item, quantity=quantity
+                mc_item=mc_item, quantity=quantity
             )
             continue
 
@@ -175,7 +169,7 @@ def _zones_search() -> List[Transformation]:
                 # Can still be gather by hand
                 quantity = max(1, round(1 / mc_item.hardness))
                 search_item += _search_for_item_transformations(
-                    name=_search_name(mc_item.item), mc_item=mc_item, quantity=quantity
+                    mc_item=mc_item, quantity=quantity
                 )
             else:
                 allowed_materials = mc_item.required_tool_material
@@ -190,26 +184,38 @@ def _zones_search() -> List[Transformation]:
                         tool = MC_TOOLS_BY_TYPE_AND_MATERIAL[tool_type][material]
                         inventory_changes = [Use(PLAYER, tool, consume=1)]
                     search_item += _search_for_item_transformations(
-                        name=_search_name(mc_item.item, with_item=tool),
                         mc_item=mc_item,
                         quantity=quantity,
+                        with_item=tool,
                         additional_inventory_changes=inventory_changes,
                     )
 
     return search_item
 
 
+def _search_name(item: Item, at_zone: Zone, with_item: Optional[Item] = None):
+    basename = f"search-for-{item.name}"
+    if with_item is not None:
+        basename += f"-with-{with_item.name}"
+    basename += f"-at-{at_zone.name}"
+    return basename
+
+
 def _search_for_item_transformations(
-    name: str,
     mc_item: items.McItem,
     quantity: int,
+    with_item: Optional[Item] = None,
     additional_inventory_changes: Optional[list] = None,
 ) -> List[Transformation]:
     inventory_changes = [Yield(PLAYER, mc_item.item, quantity)]
     if additional_inventory_changes is not None:
         inventory_changes += additional_inventory_changes
     return [
-        Transformation(name, zone=zone, inventory_changes=inventory_changes)
+        Transformation(
+            _search_name(mc_item.item, at_zone=zone, with_item=with_item),
+            zone=zone,
+            inventory_changes=inventory_changes,
+        )
         for zone in mc_item.zones
     ]
 
