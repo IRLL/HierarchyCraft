@@ -613,7 +613,7 @@ class Transformation:
         return self.name
 
     def __repr__(self) -> str:
-        return f"{self._preconditions_repr()}=>{self._effects_repr()}"
+        return f"{self._preconditions_repr()}⟹{self._effects_repr()}"
 
     def _preconditions_repr(self) -> str:
         preconditions_text = ""
@@ -630,11 +630,11 @@ class Transformation:
             owner_texts = []
             owner_texts += _stacks_precontions_str(
                 self.get_changes(owner, InventoryOperation.MIN),
-                symbol=">",
+                symbol="≥",
             )
             owner_texts += _stacks_precontions_str(
                 self.get_changes(owner, InventoryOperation.MAX),
-                symbol="<",
+                symbol="≤",
             )
             stacks_text = ",".join(owner_texts)
             if not owner_texts:
@@ -658,11 +658,11 @@ class Transformation:
             owner_texts = []
             owner_texts += _stacks_precontions_str(
                 operations.get(InventoryOperation.MIN, []),
-                symbol=">",
+                symbol="≥",
             )
             owner_texts += _stacks_precontions_str(
                 operations.get(InventoryOperation.MAX, []),
-                symbol="<",
+                symbol="≤",
             )
             stacks_text = ",".join(owner_texts)
             if not owner_texts:
@@ -675,7 +675,7 @@ class Transformation:
             if preconditions_text:
                 preconditions_text += " "
             zones_str = ",".join([zone.name for zone in self.zones])
-            preconditions_text += f"| {zones_str}"
+            preconditions_text += f"| at {zones_str}"
 
         if preconditions_text:
             preconditions_text += " "
@@ -737,7 +737,7 @@ class Transformation:
 
         if self.destination is not None:
             effects_text += " "
-            effects_text += f"| {self.destination.name}"
+            effects_text += f"| at {self.destination.name}"
 
         return effects_text
 

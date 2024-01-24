@@ -830,7 +830,7 @@ def _serialize_pyvis(
         if transfo is None:
             edge_title = edge_type.value.capitalize()
         else:
-            conditions, effects = repr(transfo).split("=>")
+            conditions, effects = repr(transfo).split("⟹")
             conditions = conditions.strip()
             effects = effects.strip()
             edge_title = (

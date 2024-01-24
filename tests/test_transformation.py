@@ -309,7 +309,7 @@ class TestRepr:
         )
         prefix = self.owner_expected_prefix[owner]
         suffix = self.owner_expected_suffix[owner]
-        check_equal_str(repr(tranfo), f"=> {prefix}+[2]wood{suffix}")
+        check_equal_str(repr(tranfo), f"⟹ {prefix}+[2]wood{suffix}")
 
     @pytest.mark.parametrize("owner", [PLAYER, CURRENT_ZONE, DESTINATION, ZONE_A])
     def test_max(self, owner):
@@ -318,7 +318,7 @@ class TestRepr:
         )
         prefix = self.owner_expected_prefix[owner]
         suffix = self.owner_expected_suffix[owner]
-        check_equal_str(repr(tranfo), f"{prefix}wood<2{suffix} =>")
+        check_equal_str(repr(tranfo), f"{prefix}wood≤2{suffix} ⟹")
 
     @pytest.mark.parametrize("owner", [PLAYER, CURRENT_ZONE, DESTINATION, ZONE_A])
     def test_remove(self, owner):
@@ -326,7 +326,7 @@ class TestRepr:
         prefix = self.owner_expected_prefix[owner]
         suffix = self.owner_expected_suffix[owner]
         check_equal_str(
-            repr(tranfo), f"{prefix}wood>3{suffix} => {prefix}-[3]wood{suffix}"
+            repr(tranfo), f"{prefix}wood≥3{suffix} ⟹ {prefix}-[3]wood{suffix}"
         )
 
     @pytest.mark.parametrize("owner", [PLAYER, CURRENT_ZONE, DESTINATION, ZONE_A])
@@ -336,15 +336,15 @@ class TestRepr:
         )
         prefix = self.owner_expected_prefix[owner]
         suffix = self.owner_expected_suffix[owner]
-        check_equal_str(repr(tranfo), f"{prefix}wood>2{suffix} =>")
+        check_equal_str(repr(tranfo), f"{prefix}wood≥2{suffix} ⟹")
 
     def test_destination(self):
         tranfo = Transformation(destination=Zone("other zone"))
-        check_equal_str(repr(tranfo), "=> | other zone")
+        check_equal_str(repr(tranfo), "⟹ | at other zone")
 
     def test_zones(self):
         tranfo = Transformation(zones=[Zone("A"), Zone("B")])
-        check_equal_str(repr(tranfo), "| A,B =>")
+        check_equal_str(repr(tranfo), "| at A,B ⟹")
 
     def test_full(self):
         tranfo = Transformation(
@@ -373,19 +373,19 @@ class TestRepr:
         )
         check_equal_str(
             repr(tranfo),
-            "P1>1,P2>1,P4<1 "
-            "Zone(Z1>-1,Z2<3) "
-            "Dest(D1>1,D2>1,D4<1) "
-            "A(A1>1,A2>1,A4<3) "
-            "B(B1>1,B2>1,B4<3) "
-            "| E,F "
-            "=> "
+            "P1≥1,P2≥1,P4≤1 "
+            "Zone(Z1≥-1,Z2≤3) "
+            "Dest(D1≥1,D2≥1,D4≤1) "
+            "A(A1≥1,A2≥1,A4≤3) "
+            "B(B1≥1,B2≥1,B4≤3) "
+            "| at E,F "
+            "⟹ "
             "-P1,+P3 "
             "Zone(-[2]Z1,+Z2) "
             "Dest(-D1,+D3) "
             "A(-A1,+A3) "
             "B(-B1,+B3) "
-            "| D",
+            "| at D",
         )
 
 
