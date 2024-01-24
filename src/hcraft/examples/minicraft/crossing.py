@@ -40,7 +40,7 @@ class MiniHCraftCrossing(MiniCraftEnv):
         find_goal = Transformation(
             "find_goal",
             inventory_changes=[Yield(CURRENT_ZONE, self.GOAL, max=0)],
-            zones=[self.ROOM],
+            zone=self.ROOM,
         )
 
         reach_goal = Transformation(
@@ -54,7 +54,7 @@ class MiniHCraftCrossing(MiniCraftEnv):
         find_lava = Transformation(
             "find_lava",
             inventory_changes=[Yield(CURRENT_ZONE, self.LAVA, max=0)],
-            zones=[self.ROOM],
+            zone=self.ROOM,
         )
 
         reach_lava = Transformation(

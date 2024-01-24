@@ -170,22 +170,24 @@ class TestPurposeRewardShaping:
         go_to_zones = []
         for zone in self.zones[:4]:
             go_to_zones.append(Transformation(destination=zone))
-        go_to_zones.append(
-            Transformation(
-                destination=self.zones[4],
-                inventory_changes=[
-                    Use(PLAYER, self.items[0], consume=1),
-                    Use(CURRENT_ZONE, self.items[0], consume=1),
-                    Use(DESTINATION, self.items[2], consume=1),
-                ],
-                zones=self.zones[:2],
+
+        for from_zone in self.zones[:2]:
+            go_to_zones.append(
+                Transformation(
+                    destination=self.zones[4],
+                    inventory_changes=[
+                        Use(PLAYER, self.items[0], consume=1),
+                        Use(CURRENT_ZONE, self.items[0], consume=1),
+                        Use(DESTINATION, self.items[2], consume=1),
+                    ],
+                    zone=from_zone,
+                )
             )
-        )
 
         # Item 0
         search_0 = Transformation(
             inventory_changes=[Yield(PLAYER, self.items[0])],
-            zones=[self.zones[0]],
+            zone=self.zones[0],
         )
         # Item 0 > Item 1
         craft_1 = Transformation(
@@ -200,7 +202,7 @@ class TestPurposeRewardShaping:
                 Use(PLAYER, self.items[1], consume=1),
                 Yield(PLAYER, self.items[2], create=1),
             ],
-            zones=[self.zones[1]],
+            zone=self.zones[1],
         )
         # Item 2 > 2 * Item 2
         craft_2_with_2 = Transformation(
@@ -212,7 +214,7 @@ class TestPurposeRewardShaping:
         # Item 3
         search_3 = Transformation(
             inventory_changes=[Yield(PLAYER, self.items[3], create=1)],
-            zones=[self.zones[2]],
+            zone=self.zones[2],
         )
 
         # Zone Item 0
@@ -234,7 +236,7 @@ class TestPurposeRewardShaping:
 
         self.get_item_2 = GetItemTask(self.items[2], reward=10.0)
         self.place_item_2_in_zone_0 = PlaceItemTask(
-            item_stack=self.items[2], zones=[self.zones[3]], reward=10.0
+            item_stack=self.items[2], zone=self.zones[3], reward=10.0
         )
 
         self.go_to_4 = GoToZoneTask(self.zones[4], reward=10.0)

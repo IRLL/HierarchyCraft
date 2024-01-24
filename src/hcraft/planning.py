@@ -299,9 +299,9 @@ class HcraftPlanningProblem:
             loc = action.parameter("loc")
             action.add_precondition(self.pos(loc))
 
-        if transformation.zones and len(self.zones_obj) > 1:
+        if transformation.zone and len(self.zones_obj) > 1:
             action.add_precondition(
-                OR(*[self.pos(self.zones_obj[zone]) for zone in transformation.zones])
+                OR(*[self.pos(self.zones_obj[zone]) for zone in transformation.zone])
             )
 
         if transformation.destination is not None:
@@ -369,8 +369,8 @@ class HcraftPlanningProblem:
         if isinstance(task, PlaceItemTask):
             item = self.zone_items_obj[task.item_stack.item]
             zones = self.zones_obj.keys()
-            if task.zones is not None:
-                zones = [zone for zone in task.zones]
+            if task.zone is not None:
+                zones = [zone for zone in task.zone]
             conditions = [
                 GE(self.amount_at(item, self.zones_obj[zone]), task.item_stack.quantity)
                 for zone in zones

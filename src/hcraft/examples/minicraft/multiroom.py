@@ -18,7 +18,7 @@ class MiniHCraftMultiRoom(MiniCraftEnv):
     """Goal to reach."""
 
     def __init__(self, n_rooms: int = 6, **kwargs) -> None:
-        self.rooms = [Zone(str(i + 1)) for i in range(n_rooms)]
+        self.rooms = [Zone(f"Room {i + 1}") for i in range(n_rooms)]
         self.task = GetItemTask(self.GOAL)
         super().__init__(
             self.MINICRAFT_NAME,
@@ -30,14 +30,14 @@ class MiniHCraftMultiRoom(MiniCraftEnv):
     def build_transformations(self) -> List[Transformation]:
         transformations = []
         find_goal = Transformation(
-            "find_goal",
+            "Find goal",
             inventory_changes=[Yield(CURRENT_ZONE, self.GOAL, max=0)],
-            zones=[self.rooms[-1]],
+            zone=self.rooms[-1],
         )
         transformations.append(find_goal)
 
         reach_goal = Transformation(
-            "reach_goal",
+            "Reach goal",
             inventory_changes=[
                 Use(CURRENT_ZONE, self.GOAL, consume=1),
                 Yield(PLAYER, self.GOAL),
@@ -46,16 +46,18 @@ class MiniHCraftMultiRoom(MiniCraftEnv):
         transformations.append(reach_goal)
 
         for i, room in enumerate(self.rooms):
-            connected_rooms = []
+            connected_rooms: List[Zone] = []
             if i > 0:
                 connected_rooms.append(self.rooms[i - 1])
             if i < len(self.rooms) - 1:
                 connected_rooms.append(self.rooms[i + 1])
-            go_to_room = Transformation(
-                f"go_to_{room}",
-                destination=room,
-                zones=connected_rooms,
-            )
-            transformations.append(go_to_room)
+            for connected_room in connected_rooms:
+                transformations.append(
+                    Transformation(
+                        f"Go to {room.name} from {connected_room.name}",
+                        destination=room,
+                        zone=connected_room,
+                    )
+                )
 
         return transformations

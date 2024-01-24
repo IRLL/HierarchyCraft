@@ -86,7 +86,7 @@ def task_to_behavior_name(task: Task) -> str:
     elif isinstance(task, GoToZoneTask):
         behavior_name = ReachZone.get_name(task.zone)
     elif isinstance(task, PlaceItemTask):
-        behavior_name = PlaceItem.get_name(task.item_stack.item, task.zones)
+        behavior_name = PlaceItem.get_name(task.item_stack.item, task.zone)
     else:
         raise NotImplementedError
     return behavior_name
@@ -116,7 +116,7 @@ def _drop_item_behaviors(env: "HcraftEnv", all_behaviors: Dict[str, "Behavior"])
 def _get_zone_item_behaviors(env: "HcraftEnv", all_behaviors: Dict[str, "Behavior"]):
     for zone in [None] + env.world.zones:  # Anywhere + in every specific zone
         for item in env.world.zones_items:
-            behavior = PlaceItem(item, env, all_behaviors=all_behaviors, zones=zone)
+            behavior = PlaceItem(item, env, all_behaviors=all_behaviors, zone=zone)
             all_behaviors[behavior.name] = behavior
     return all_behaviors
 

@@ -86,7 +86,7 @@ WORLD = world_from_transformations(
 )
 ```
 
-Note that the world also stores the initial state of the world.
+Note that the world stores the initial state of the environment.
 So we can add our `CHEST` in the `TREASURE_ROOM` here !
 
 ## Complete your first HierarchyCraft environment
@@ -141,7 +141,7 @@ SEARCH_KEY = Transformation(
     inventory_changes=[
         Yield(PLAYER, KEY, max=1),
     ],
-    zones=[KEY_ROOM],
+    zone=KEY_ROOM,
 )
 ```
 Note that `max=1` because max is the maximum *before* the transformation.
@@ -168,11 +168,11 @@ Let's make the `START_ROOM` the link between the two other rooms.
 START_ROOM = Zone("start_room")
 MOVE_TO_KEY_ROOM = Transformation(
     destination=KEY_ROOM,
-    zones=[START_ROOM],
+    zone=START_ROOM,
 )
 MOVE_TO_TREASURE_ROOM = Transformation(
     destination=TREASURE_ROOM,
-    zones=[START_ROOM],
+    zone=START_ROOM,
 )
 MOVE_TO_START_ROOM = Transformation(
     destination=START_ROOM,

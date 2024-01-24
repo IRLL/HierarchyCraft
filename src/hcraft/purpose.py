@@ -389,10 +389,12 @@ def _required_subtasks(
     elif isinstance(task, PlaceItemTask):
         goal_item = task.item_stack.item
         goal_requirement_nodes = [req_node_name(goal_item, RequirementNode.ZONE_ITEM)]
-        goal_zones = task.zones if task.zones else []
-        for zone in goal_zones:
-            relevant_zones.add(zone)
-            goal_requirement_nodes.append(req_node_name(zone, RequirementNode.ZONE))
+        goal_zones = task.zone
+        if goal_zones is not None:
+            relevant_zones.add(goal_zones)
+            goal_requirement_nodes.append(
+                req_node_name(goal_zones, RequirementNode.ZONE)
+            )
     elif isinstance(task, GoToZoneTask):
         goal_requirement_nodes = [req_node_name(task.zone, RequirementNode.ZONE)]
     else:
@@ -428,18 +430,18 @@ def _inputs_subtasks(task: Task, world: "World", shaping_reward: float) -> List[
     relevant_zones = set()
     relevant_zone_items = set()
 
-    goal_zones = []
+    goal_zone = []
     goal_item = None
     goal_zone_item = None
     if isinstance(task, GetItemTask):
         goal_item = task.item_stack.item
     elif isinstance(task, GoToZoneTask):
-        goal_zones = [task.zone]
+        goal_zone = task.zone
     elif isinstance(task, PlaceItemTask):
         goal_zone_item = task.item_stack.item
-        if task.zones:
-            goal_zones = task.zones
-            relevant_zones |= set(task.zones)
+        if task.zone:
+            goal_zone = task.zone
+            relevant_zones.add(task.zone)
     else:
         raise NotImplementedError(
             f"Unsupported reward shaping {RewardShaping.INPUTS_ACHIVEMENT}"
@@ -460,7 +462,7 @@ def _inputs_subtasks(task: Task, world: "World", shaping_reward: float) -> List[
     transfo_going_to_any_zones = [
         transfo
         for transfo in world.transformations
-        if transfo.destination is not None and transfo.destination in goal_zones
+        if transfo.destination is not None and transfo.destination == goal_zone
     ]
     relevant_transformations = (
         transfo_giving_item + transfo_placing_zone_item + transfo_going_to_any_zones
@@ -471,8 +473,8 @@ def _inputs_subtasks(task: Task, world: "World", shaping_reward: float) -> List[
         relevant_zone_items |= transfo.consumption("current_zone")
         relevant_zone_items |= transfo.consumption("destination")
         relevant_zone_items |= transfo.consumption("zones")
-        if transfo.zones:
-            relevant_zones |= set(transfo.zones)
+        if transfo.zone:
+            relevant_zones.add(transfo.zone)
 
     return _build_reward_shaping_subtasks(
         relevant_items,

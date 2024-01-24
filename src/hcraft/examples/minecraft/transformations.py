@@ -4,7 +4,9 @@ All used Minecraft recipies.
 
 """
 
-from typing import List
+from tkinter import W
+from typing import List, Optional
+from hcraft.elements import Item, Zone
 
 import hcraft.examples.minecraft.items as items
 from hcraft.examples.minecraft.tools import (
@@ -34,28 +36,31 @@ def build_minehcraft_transformations() -> List[Transformation]:
 
 
 def _move_to_zones() -> List[Transformation]:
-    name_prefix = "move-to-"
-    walk = [
-        #: Move to FOREST
-        Transformation(
-            name_prefix + zones.FOREST.name,
-            destination=zones.FOREST,
-            zones=[zone for zone in zones.OVERWORLD if zone != zones.FOREST]
-            + [zones.END],
-        ),
-        #: Move to SWAMP
-        Transformation(
-            name_prefix + zones.SWAMP.name,
-            destination=zones.SWAMP,
-            zones=[zone for zone in zones.OVERWORLD if zone != zones.SWAMP],
-        ),
-        #: Move to MEADOW
-        Transformation(
-            name_prefix + zones.MEADOW.name,
-            destination=zones.MEADOW,
-            zones=[zone for zone in zones.OVERWORLD if zone != zones.MEADOW],
-        ),
-    ]
+    def move_name(
+        destination: Zone,
+        from_zone: Optional[Zone] = None,
+        with_item: Optional[Item] = None,
+    ):
+        base_name = f"move-to-{destination.name}"
+        if from_zone is not None:
+            base_name += f"-from-{from_zone.name}"
+        if with_item is not None:
+            base_name += f"-with-{with_item.name}"
+        return base_name
+
+    #: Walk to surface zones of zones.OVERWORLD
+    walk = []
+    for destination in [zones.FOREST, zones.SWAMP, zones.MEADOW]:
+        for other_zone in zones.OVERWORLD:
+            if destination == other_zone:
+                continue
+            walk.append(
+                Transformation(
+                    move_name(destination, from_zone=other_zone),
+                    destination=destination,
+                    zone=other_zone,
+                )
+            )
 
     required_pickaxe_materials = {
         zones.UNDERGROUND: [Material.STONE, Material.IRON, Material.DIAMOND],
@@ -64,31 +69,31 @@ def _move_to_zones() -> List[Transformation]:
 
     #: Dig to zones.UNDERGROUND or zones.BEDROCK
     dig = []
-    for zone, materials in required_pickaxe_materials.items():
-        for material in materials:
-            pickaxe = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][material]
-            other_zones = [
-                other_zone for other_zone in zones.OVERWORLD if other_zone != zone
-            ]
-            dig.append(
-                Transformation(
-                    name_prefix + f"{zone.name}-with-{pickaxe.name}",
-                    destination=zone,
-                    zones=other_zones,
-                    inventory_changes=[Use(PLAYER, pickaxe, consume=1)],
+    for destination, materials in required_pickaxe_materials.items():
+        for other_zone in zones.OVERWORLD:
+            if other_zone == destination:
+                continue
+            for material in materials:
+                pickaxe = MC_TOOLS_BY_TYPE_AND_MATERIAL[ToolType.PICKAXE][material]
+                dig.append(
+                    Transformation(
+                        move_name(destination, from_zone=other_zone, with_item=pickaxe),
+                        destination=destination,
+                        zone=other_zone,
+                        inventory_changes=[Use(PLAYER, pickaxe, consume=1)],
+                    )
                 )
-            )
 
     nether = [
-        #: Move to NETHER
+        #: Move to NETHER through portal
         Transformation(
-            name_prefix + zones.NETHER.name,
+            move_name(zones.NETHER),
             destination=zones.NETHER,
             inventory_changes=[Use(CURRENT_ZONE, items.OPEN_NETHER_PORTAL)],
         )
     ]
     #: Move back to OVERWORLD
-    for zone in [
+    for destination in [
         zones.FOREST,
         zones.MEADOW,
         zones.SWAMP,
@@ -97,9 +102,9 @@ def _move_to_zones() -> List[Transformation]:
     ]:
         nether.append(
             Transformation(
-                name_prefix + zone.name + f"-from-{zones.NETHER.name}",
-                destination=zone,
-                zones=[zones.NETHER],
+                move_name(destination, from_zone=zones.NETHER),
+                destination=destination,
+                zone=zones.NETHER,
                 inventory_changes=[
                     Use(CURRENT_ZONE, items.OPEN_NETHER_PORTAL),
                     Use(DESTINATION, items.OPEN_NETHER_PORTAL),
@@ -107,23 +112,36 @@ def _move_to_zones() -> List[Transformation]:
             )
         )
 
+    #: Move to zones.STRONGHOLD
+    stronghold = []
+    for start_zone in zones.OVERWORLD:
+        if start_zone == zones.STRONGHOLD:
+            continue
+        stronghold.append(
+            Transformation(
+                move_name(zones.STRONGHOLD, from_zone=start_zone),
+                destination=zones.STRONGHOLD,
+                zone=start_zone,
+                inventory_changes=[Use(PLAYER, items.ENDER_EYE)],
+            )
+        )
+
     end = [
-        #: Move to STRONGHOLD
-        Transformation(
-            name_prefix + zones.STRONGHOLD.name,
-            destination=zones.STRONGHOLD,
-            zones=[zone for zone in zones.OVERWORLD if zone != zones.STRONGHOLD],
-            inventory_changes=[Use(PLAYER, items.ENDER_EYE)],
-        ),
         #: Move to zones.END
         Transformation(
-            name_prefix + zones.END.name,
+            move_name(zones.END),
             destination=zones.END,
             inventory_changes=[Use(CURRENT_ZONE, items.OPEN_ENDER_PORTAL)],
         ),
+        #: Move back to FOREST
+        Transformation(
+            move_name(zones.END, from_zone=zones.FOREST),
+            destination=zones.FOREST,
+            zone=zones.END,
+        ),
     ]
 
-    return walk + dig + nether + end
+    return walk + dig + nether + stronghold + end
 
 
 def _zones_search() -> List[Transformation]:
@@ -137,19 +155,18 @@ def _zones_search() -> List[Transformation]:
         Material.DIAMOND: 8,
     }
 
-    name_prefix = "search-for-"
+    def _search_name(item: Item, with_item: Optional[Item] = None):
+        basename = f"search-for-{item.name}"
+        if with_item is not None:
+            basename += f"-with-{tool.name}"
+        return basename
+
     search_item = []
     for mc_item in items.MC_FINDABLE_ITEMS:
-        item = mc_item.item
-
         if mc_item.required_tool_types is None:
             quantity = max(1, round(1 / mc_item.hardness))
-            search_item.append(
-                Transformation(
-                    name_prefix + item.name,
-                    zones=mc_item.zones,
-                    inventory_changes=[Yield(PLAYER, item, quantity)],
-                )
+            search_item += _search_for_item_transformations(
+                name=_search_name(mc_item.item), mc_item=mc_item, quantity=quantity
             )
             continue
 
@@ -157,12 +174,8 @@ def _zones_search() -> List[Transformation]:
             if tool_type is None:
                 # Can still be gather by hand
                 quantity = max(1, round(1 / mc_item.hardness))
-                search_item.append(
-                    Transformation(
-                        name_prefix + item.name,
-                        zones=mc_item.zones,
-                        inventory_changes=[Yield(PLAYER, item, quantity)],
-                    )
+                search_item += _search_for_item_transformations(
+                    name=_search_name(mc_item.item), mc_item=mc_item, quantity=quantity
                 )
             else:
                 allowed_materials = mc_item.required_tool_material
@@ -172,19 +185,33 @@ def _zones_search() -> List[Transformation]:
                     quantity = max(
                         1, round(material_speed[material] / mc_item.hardness)
                     )
-                    inventory_changes = [Yield(PLAYER, item, quantity)]
+                    inventory_changes = None
                     if material is not None:
                         tool = MC_TOOLS_BY_TYPE_AND_MATERIAL[tool_type][material]
-                        inventory_changes.append(Use(PLAYER, tool, consume=1))
-                    search_item.append(
-                        Transformation(
-                            name_prefix + item.name + f"-with-{tool.name}",
-                            zones=mc_item.zones,
-                            inventory_changes=inventory_changes,
-                        )
+                        inventory_changes = [Use(PLAYER, tool, consume=1)]
+                    search_item += _search_for_item_transformations(
+                        name=_search_name(mc_item.item, with_item=tool),
+                        mc_item=mc_item,
+                        quantity=quantity,
+                        additional_inventory_changes=inventory_changes,
                     )
 
     return search_item
+
+
+def _search_for_item_transformations(
+    name: str,
+    mc_item: items.McItem,
+    quantity: int,
+    additional_inventory_changes: Optional[list] = None,
+) -> List[Transformation]:
+    inventory_changes = [Yield(PLAYER, mc_item.item, quantity)]
+    if additional_inventory_changes is not None:
+        inventory_changes += additional_inventory_changes
+    return [
+        Transformation(name, zone=zone, inventory_changes=inventory_changes)
+        for zone in mc_item.zones
+    ]
 
 
 def _recipes() -> List[Transformation]:

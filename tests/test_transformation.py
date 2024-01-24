@@ -39,9 +39,7 @@ class TestTransformationIsValid:
         self.world = World(self.items, self.zones, self.zones_items, [])
 
     def test_position_is_valid(self):
-        transfo = Transformation(
-            destination=self.zones[0], zones=[self.zones[0], self.zones[2]]
-        )
+        transfo = Transformation(destination=self.zones[0], zone=self.zones[2])
         transfo.build(self.world)
 
         check.is_false(transfo.is_valid(DummyState(position=np.array([1, 0, 0]))))
@@ -269,19 +267,17 @@ class TestTransformationIsValid:
         transfo.build(self.world)
         check.is_none(transfo._destination)
 
-    def test_zones_requirement(self):
-        tranfo = Transformation(zones=[self.zones[0], self.zones[2]])
+    def test_zone_requirement(self):
+        tranfo = Transformation(zone=self.zones[1])
         tranfo.build(self.world)
 
-        expected_op = np.zeros(len(self.zones), dtype=np.int32)
-        expected_op[0] = 1
-        expected_op[2] = 1
-        check_np_equal(tranfo._zones, expected_op)
+        expected_op = np.array([0, 1, 0], dtype=np.int32)
+        check_np_equal(tranfo._zone, expected_op)
 
     def test_no_zones_requirement(self):
-        tranfo = Transformation(zones=None)
+        tranfo = Transformation()
         tranfo.build(self.world)
-        check.is_none(tranfo._zones)
+        check.is_none(tranfo._zone)
 
 
 ZONE_A = Zone("A")
@@ -343,8 +339,8 @@ class TestRepr:
         check_equal_str(repr(tranfo), "⟹ | at other zone")
 
     def test_zones(self):
-        tranfo = Transformation(zones=[Zone("A"), Zone("B")])
-        check_equal_str(repr(tranfo), "| at A,B ⟹")
+        tranfo = Transformation(zone=Zone("A"))
+        check_equal_str(repr(tranfo), "| at A ⟹")
 
     def test_full(self):
         tranfo = Transformation(
@@ -369,7 +365,7 @@ class TestRepr:
                 Yield(Zone("B"), Item("B4"), create=0, max=3),
             ],
             destination=Zone("D"),
-            zones=[Zone("E"), Zone("F")],
+            zone=Zone("E"),
         )
         check_equal_str(
             repr(tranfo),
@@ -378,7 +374,7 @@ class TestRepr:
             "Dest(D1≥1,D2≥1,D4≤1) "
             "A(A1≥1,A2≥1,A4≤3) "
             "B(B1≥1,B2≥1,B4≤3) "
-            "| at E,F "
+            "| at E "
             "⟹ "
             "-P1,+P3 "
             "Zone(-[2]Z1,+Z2) "
@@ -410,7 +406,7 @@ def test_docstring_examples():
     search_for_wood = Transformation(
         "search_for_wood",
         inventory_changes=[Yield(PLAYER, WOOD)],
-        zones=[FOREST],
+        zone=FOREST,
     )
     transformations.append(search_for_wood)
 
@@ -438,7 +434,7 @@ def test_docstring_examples():
         "climb_tree",
         destination=TREETOPS,
         inventory_changes=[Use(PLAYER, LADDER, consume=1)],
-        zones=[FOREST],
+        zone=FOREST,
     )
     transformations.append(climb_tree)
 
@@ -447,7 +443,7 @@ def test_docstring_examples():
         "jump_from_tree",
         destination=FOREST,
         inventory_changes=[Yield("destination", CRATER)],
-        zones=[TREETOPS],
+        zone=TREETOPS,
     )
     transformations.append(jump_from_tree)
 

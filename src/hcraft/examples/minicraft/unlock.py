@@ -44,7 +44,7 @@ class MiniHCraftUnlock(MiniCraftEnv):
                 Yield(CURRENT_ZONE, self.KEY, create=1, max=0),
                 Yield(PLAYER, self.KEY, create=0, max=0),
             ],
-            zones=[self.START],
+            zone=self.START,
         )
         transformations.append(search_for_key)
 
@@ -70,7 +70,7 @@ class MiniHCraftUnlock(MiniCraftEnv):
                 Yield(CURRENT_ZONE, self.LOCKED_DOOR, max=0),
                 Yield(CURRENT_ZONE, self.OPEN_DOOR, create=0, max=0),
             ],
-            zones=[self.START],
+            zone=self.START,
         )
         transformations.append(search_for_door)
 

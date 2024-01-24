@@ -14,7 +14,7 @@ from hcraft.behaviors.feature_conditions import (
 )
 from hcraft.elements import Item, Stack, Zone
 from hcraft.render.utils import load_or_create_image
-from hcraft.task import _ensure_zone_list, _zones_str
+from hcraft.task import _zones_str
 
 if TYPE_CHECKING:
     from hcraft.env import HcraftEnv
@@ -108,25 +108,26 @@ class PlaceItem(Behavior):
         item: Item,
         env: "HcraftEnv",
         all_behaviors: Dict[Union[int, str], Behavior],
-        zones: Optional[Union[Zone, List[Zone]]] = None,
+        zone: Optional[Zone] = None,
     ):
         self.item = item
-        self.zones = _ensure_zone_list(zones)
-        super().__init__(name=self.get_name(self.item, self.zones))
+        self.zone = zone
+        super().__init__(name=self.get_name(self.item, self.zone))
         self.env = env
         self.all_behaviors = all_behaviors
 
     @staticmethod
-    def get_name(item: Item, zones: Optional[List[Zone]] = None):
+    def get_name(item: Item, zone: Optional[Zone] = None):
         """Get the name of the behavior to reach a zone."""
-        zones_str = _zones_str(_ensure_zone_list(zones))
-        return f"Place {item.name}{zones_str}"
+        return f"Place {item.name}{_zones_str(zone)}"
 
     def build_graph(self) -> HEBGraph:
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
 
         # Go to any zone where the zone_item is from the start
         for zone, items_stacks in self.env.world.start_zones_items.items():
+            if self.zone is not None and zone != self.zone:
+                continue
             if self.item in [stack.item for stack in items_stacks]:
                 sub_behavior = Behavior(ReachZone.get_name(zone))
                 graph.add_node(sub_behavior)
@@ -147,7 +148,7 @@ class PlaceItem(Behavior):
             transformation.get_changes("current_zone", "add"),
             transformation.get_changes("destination", "add"),
             transformation.get_changes("zones", "add"),
-            transformation.zones,
+            transformation.zone,
             transformation.destination,
         )
 
@@ -156,7 +157,7 @@ class PlaceItem(Behavior):
             transformation.get_changes("current_zone", "min"),
             transformation.get_changes("destination", "min"),
             transformation.get_changes("zones", "min"),
-            transformation.zones,
+            transformation.zone,
             transformation.destination,
         )
 
@@ -165,18 +166,17 @@ class PlaceItem(Behavior):
         zone_items: Optional[List[Stack]],
         destination_items: Optional[List[Stack]],
         zones_items: Optional[Dict[Zone, List[Stack]]],
-        zones: Optional[List[Zone]],
+        zone: Optional[Zone],
         destination: Optional[Zone],
     ):
-        zone_is_valid = (
-            self.zones is None or zones is None or (set(self.zones) - set(zones))
-        )
-        destination_is_valid = self.zones is None or (
-            destination is not None and destination in self.zones
-        )
-        if self._item_is_in_stack(zone_items) and zone_is_valid:
+        zone_is_valid = self.zone is None or zone is None or zone == self.zone
+        if zone_is_valid and self._item_is_in_stack(zone_items):
             return True
-        if self._item_is_in_stack(destination_items) and destination_is_valid:
+
+        destination_is_valid = self.zone is None or (
+            destination is not None and destination == self.zone
+        )
+        if destination_is_valid and self._item_is_in_stack(destination_items):
             return True
         if self._zone_item_in_dict_of_stacks(zones_items):
             return True
@@ -187,7 +187,7 @@ class PlaceItem(Behavior):
     ):
         if dict_of_stack is None:
             return False
-        valid_zones = list(dict_of_stack.keys()) if self.zones is None else self.zones
+        valid_zones = list(dict_of_stack.keys()) if self.zone is None else [self.zone]
         stacks = []
         for zone in valid_zones:
             zone_stacks = dict_of_stack.get(zone, [])
@@ -270,42 +270,35 @@ class AbleAndPerformTransformation(Behavior):
                 graph.add_edge(last_node, has_item, index=int(True))
             last_node = has_item
 
-        # Be in any of the possible zones
-        prev_checks_zone = []
-        if self.env.world.n_zones > 1 and self.transformation.zones is not None:
-            for zone in self.transformation.zones:
-                is_in_zone = _add_zone_behavior(zone, graph, self.env)
-                prev_checks_zone.append(is_in_zone)
-                if last_node is not None:
-                    graph.add_edge(last_node, is_in_zone, index=int(True))
-
-        if len(prev_checks_zone) > 0:  # Required zones
-            last_nodes = prev_checks_zone
-        elif last_node is not None:  # No required zone, but required craft
-            last_nodes = [last_node]
-        else:  # Require nothing yet
-            last_nodes = []
-
-        # Required items from current zone
+        # Required items from current zone (or required zone)
         for stack in self.transformation.get_changes("current_zone", "min", []):
-            has_item_in_zone = _add_place_item(graph, self.env, stack)
-            for prev in last_nodes:
-                graph.add_edge(prev, has_item_in_zone, index=int(True))
-            last_nodes = [has_item_in_zone]
+            has_item_in_zone = _add_place_item(
+                graph, self.env, stack, zone=self.transformation.zone
+            )
+            if last_node is not None:
+                graph.add_edge(last_node, has_item_in_zone, index=int(True))
+            last_node = has_item_in_zone
+
+        # Be in required zone
+        if self.env.world.n_zones > 1 and self.transformation.zone is not None:
+            is_in_zone = _add_zone_behavior(self.transformation.zone, graph, self.env)
+            if last_node is not None:
+                graph.add_edge(last_node, is_in_zone, index=int(True))
+            last_node = is_in_zone
 
         # Drop all items that would go be over maximum in player inventory
         for stack in self.transformation.get_changes("player", "max", []):
             has_not_item = _add_drop_item(stack, graph, self.env)
-            for prev in last_nodes:
-                graph.add_edge(prev, has_not_item, index=int(True))
-            last_nodes = [has_not_item]
+            if last_node is not None:
+                graph.add_edge(last_node, has_not_item, index=int(True))
+            last_node = has_not_item
 
         # Add last action
         action = DoTransformation(self.transformation, self.env)
 
         graph.add_node(action)
-        for prev in last_nodes:
-            graph.add_edge(prev, action, index=int(True))
+        if last_node is not None:
+            graph.add_edge(last_node, action, index=int(True))
         return graph
 
 

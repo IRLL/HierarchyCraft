@@ -195,8 +195,8 @@ def _transformations_elements(
 ) -> Tuple[Set[Zone], Set[Item], Set[Item]]:
     if transfo.destination is not None:
         zones.add(transfo.destination)
-    if transfo.zones is not None:
-        zones |= set(transfo.zones)
+    if transfo.zone is not None:
+        zones.add(transfo.zone)
     for owner, changes in transfo.inventory_changes.items():
         if owner is InventoryOwner.ZONES:
             for _op, zones_stacks in changes.items():
