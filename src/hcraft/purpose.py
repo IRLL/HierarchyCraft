@@ -430,7 +430,7 @@ def _inputs_subtasks(task: Task, world: "World", shaping_reward: float) -> List[
     relevant_zones = set()
     relevant_zone_items = set()
 
-    goal_zone = []
+    goal_zone = None
     goal_item = None
     goal_zone_item = None
     if isinstance(task, GetItemTask):
@@ -459,13 +459,13 @@ def _inputs_subtasks(task: Task, world: "World", shaping_reward: float) -> List[
         if goal_zone_item in transfo.produced_zones_items
         and goal_zone_item not in transfo.min_required_zones_items
     ]
-    transfo_going_to_any_zones = [
+    transfo_going_to_goal_zone = [
         transfo
         for transfo in world.transformations
         if transfo.destination is not None and transfo.destination == goal_zone
     ]
     relevant_transformations = (
-        transfo_giving_item + transfo_placing_zone_item + transfo_going_to_any_zones
+        transfo_giving_item + transfo_placing_zone_item + transfo_going_to_goal_zone
     )
 
     for transfo in relevant_transformations:
