@@ -341,9 +341,7 @@ class Requirements:
                 ]
                 if len(alternative_transformations) == 1:
                     alt_transfo = alternative_transformations[0]
-                    if alt_transfo.zone is None or not (
-                        len(alt_transfo.zone) == 1 and alt_transfo.zone[0] == other_zone
-                    ):
+                    if alt_transfo.zone is None or not alt_transfo.zone == other_zone:
                         in_items |= alt_transfo.min_required("player")
                         in_zone_items |= alt_transfo.min_required_zones_items
                     else:
