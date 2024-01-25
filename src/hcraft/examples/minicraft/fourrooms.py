@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List, TypeVar
 
 from hcraft.elements import Item, Zone
 from hcraft.task import GetItemTask
@@ -62,12 +62,11 @@ class MiniHCraftFourRooms(MiniCraftEnv):
             ],
         )
 
+        neighbors = _get_rooms_connections(self.ROOMS)
+
         moves = []
-        for room_id, destination in enumerate(self.ROOMS):
-            for neighbor_room in [
-                self.ROOMS[room_id - 1],
-                self.ROOMS[room_id % len(self.ROOMS)],
-            ]:
+        for destination, neighbor_rooms in neighbors.items():
+            for neighbor_room in neighbor_rooms:
                 moves.append(
                     Transformation(
                         f"go-to-{destination.name}-from-{neighbor_room.name}",
@@ -77,3 +76,13 @@ class MiniHCraftFourRooms(MiniCraftEnv):
                 )
 
         return [find_goal, reach_goal] + moves
+
+
+Room = TypeVar("Room")
+
+
+def _get_rooms_connections(rooms: List[Room]) -> Dict[Room, List[Room]]:
+    neighbors = {}
+    for room_id, destination in enumerate(rooms):
+        neighbors[destination] = [rooms[room_id - 1], rooms[(room_id + 1) % len(rooms)]]
+    return neighbors
