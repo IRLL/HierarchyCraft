@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Type
 
 import pytest
 import pytest_check as check
@@ -12,27 +12,29 @@ from hcraft.examples.minicraft import (
     MiniHCraftBlockedUnlockPickup,
 )
 from hcraft.env import HcraftEnv
+from hcraft.examples.recursive import RecursiveHcraftEnv
 
 if TYPE_CHECKING:
     from unified_planning.io import PDDLWriter
 
 
-KNOWN_TO_FAIL_ENHSP = [
-    MineHcraftEnv,
-    MiniHCraftBlockedUnlockPickup,
-]
+KNOWN_TO_FAIL_FOR_PLANNER = {
+    "enhsp": [MiniHCraftBlockedUnlockPickup],
+    "aries": [RecursiveHcraftEnv],
+    "lpg": [],
+}
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
-def test_pddl_solve(env_class):
+@pytest.mark.parametrize(
+    "env_class", [env for env in EXAMPLE_ENVS if env != MineHcraftEnv]
+)
+@pytest.mark.parametrize("planner_name", ["enhsp", "aries", "lpg"])
+def test_solve_flat(env_class: Type[HcraftEnv], planner_name: str):
     up = pytest.importorskip("unified_planning")
     write = False
-    env: HcraftEnv = env_class(max_step=200)
-    problem = env.planning_problem(timeout=5)
-
-    if env_class in KNOWN_TO_FAIL_ENHSP:
-        pytest.xfail("ENHSP planner is known to fail on this environment")
+    env = env_class(max_step=200)
+    problem = env.planning_problem(timeout=10, planner_name=planner_name)
 
     if write:
         writer: "PDDLWriter" = up.io.PDDLWriter(problem.upf_problem)
@@ -41,10 +43,13 @@ def test_pddl_solve(env_class):
         writer.write_domain(os.path.join(pddl_dir, "domain.pddl"))
         writer.write_problem(os.path.join(pddl_dir, "problem.pddl"))
 
+    if env_class in KNOWN_TO_FAIL_FOR_PLANNER[planner_name]:
+        pytest.xfail(f"{planner_name} planner is known to fail on {env.name}")
+
     done = False
     _observation = env.reset()
     while not done:
         action = problem.action_from_plan(env.state)
         _observation, _reward, done, _ = env.step(action)
-    check.is_true(env.purpose.terminated, msg=f"Plan was :{problem.plans}")
-    check.equal(env.current_step, problem.stats[0]["Plan-Length"])
+    check.is_true(env.purpose.terminated, msg=f"Plans were :{problem.plans}")
+    check.equal(env.current_step, len(problem.plans[0].actions))
