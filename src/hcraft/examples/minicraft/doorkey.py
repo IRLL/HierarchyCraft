@@ -51,7 +51,7 @@ class MiniHCraftDoorKey(MiniCraftEnv):
                 Yield(self.START, self.KEY, create=0, max=0),
                 Yield(self.LOCKED_ROOM, self.KEY, create=0, max=0),
             ],
-            zones=[self.START],
+            zone=self.START,
         )
         transformations.append(search_for_key)
 
@@ -77,7 +77,7 @@ class MiniHCraftDoorKey(MiniCraftEnv):
                 Yield(CURRENT_ZONE, self.LOCKED_DOOR, max=0),
                 Yield(CURRENT_ZONE, self.OPEN_DOOR, create=0, max=0),
             ],
-            zones=[self.START],
+            zone=self.START,
         )
         transformations.append(search_for_door)
 
@@ -95,20 +95,20 @@ class MiniHCraftDoorKey(MiniCraftEnv):
             "move_to_locked_room",
             destination=self.LOCKED_ROOM,
             inventory_changes=[Use(CURRENT_ZONE, self.OPEN_DOOR)],
-            zones=[self.START],
+            zone=self.START,
         )
         transformations.append(move_to_locked_room)
 
         move_to_start_room = Transformation(
             destination=self.START,
-            zones=[self.LOCKED_ROOM],
+            zone=self.LOCKED_ROOM,
         )
         transformations.append(move_to_start_room)
 
         find_goal = Transformation(
             "find_goal",
             inventory_changes=[Yield(CURRENT_ZONE, self.GOAL, max=0)],
-            zones=[self.LOCKED_ROOM],
+            zone=self.LOCKED_ROOM,
         )
         transformations.append(find_goal)
 

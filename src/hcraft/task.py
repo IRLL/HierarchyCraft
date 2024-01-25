@@ -125,44 +125,44 @@ class GoToZoneTask(AchievementTask):
 class PlaceItemTask(AchievementTask):
     """Task to place a quantity of item in a given zone.
 
-    If no zone is given, consider any of zones.
+    If no zone is given, consider placing the item anywhere.
 
     """
 
     def __init__(
         self,
         item_stack: Union[Item, Stack],
-        zones: Optional[Union[Zone, List[Zone]]] = None,
+        zone: Optional[Union[Zone, List[Zone]]] = None,
         reward: float = 1.0,
     ):
         item_stack = _stack_item(item_stack)
         self.item_stack = item_stack
-        self.zones = _ensure_zone_list(zones)
-        super().__init__(name=self.get_name(item_stack, zones), reward=reward)
+        self.zone = zone
+        super().__init__(name=self.get_name(item_stack, zone), reward=reward)
 
     def build(self, world: "World"):
         super().build(world)
-        if self.zones is None:
+        if self.zone is None:
             zones_slots = np.arange(self._terminate_zones_items.shape[0])
         else:
-            zones_slots = np.array([world.slot_from_zone(zone) for zone in self.zones])
+            zones_slots = np.array([world.slot_from_zone(self.zone)])
         zone_item_slot = world.zones_items.index(self.item_stack.item)
         self._terminate_zones_items[
             zones_slots, zone_item_slot
         ] = self.item_stack.quantity
 
     def _is_terminal(self, state: "HcraftState") -> bool:
-        if self.zones is None:
+        if self.zone is None:
             return np.any(
                 np.all(state.zones_inventories >= self._terminate_zones_items, axis=1)
             )
         return np.all(state.zones_inventories >= self._terminate_zones_items)
 
     @staticmethod
-    def get_name(stack: Stack, zones: Optional[List[Zone]]):
+    def get_name(stack: Stack, zone: Optional[Zone]):
         """Name of the task for a given Stack and list of Zone"""
         quantity_str = _quantity_str(stack.quantity)
-        zones_str = _zones_str(_ensure_zone_list(zones))
+        zones_str = _zones_str(zone)
         return f"Place{quantity_str}{stack.item.name}{zones_str}"
 
 
@@ -176,15 +176,7 @@ def _quantity_str(quantity: int):
     return f" {quantity} " if quantity > 1 else " "
 
 
-def _ensure_zone_list(zones: Optional[Union[Zone, List[Zone]]]) -> Optional[List[Zone]]:
-    if isinstance(zones, Zone):
-        zones = [zones]
-    return zones
-
-
-def _zones_str(zones: Optional[List[Zone]]):
-    if zones is None:
+def _zones_str(zone: Optional[Zone]):
+    if zone is None:
         return " anywhere"
-    if len(zones) == 1:
-        return f" in {zones[0].name}"
-    return f" in any of {set(zones)}"
+    return f" in {zone.name}"

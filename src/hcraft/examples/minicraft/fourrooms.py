@@ -1,4 +1,4 @@
-from typing import List
+from typing import Dict, List, TypeVar
 
 from hcraft.elements import Item, Zone
 from hcraft.task import GetItemTask
@@ -15,16 +15,16 @@ class MiniHCraftFourRooms(MiniCraftEnv):
     MINICRAFT_NAME = MINICRAFT_NAME
     __doc__ = MiniCraftEnv.description(MINICRAFT_NAME)
 
-    SOUTH_WEST_ROOM = Zone("SW")
+    SOUTH_WEST_ROOM = Zone("South-West")
     """South west room."""
 
-    SOUTH_EAST_ROOM = Zone("SE")
+    SOUTH_EAST_ROOM = Zone("South-East")
     """South east room."""
 
-    NORTH_WEST_ROOM = Zone("NW")
+    NORTH_WEST_ROOM = Zone("North-West")
     """North west room."""
 
-    NORTH_EAST_ROOM = Zone("NE")
+    NORTH_EAST_ROOM = Zone("North-East")
     """North east room."""
 
     GOAL = Item("goal")
@@ -32,6 +32,14 @@ class MiniHCraftFourRooms(MiniCraftEnv):
 
     def __init__(self, **kwargs) -> None:
         self.task = GetItemTask(self.GOAL)
+
+        self.ROOMS = [
+            self.SOUTH_WEST_ROOM,
+            self.SOUTH_EAST_ROOM,
+            self.NORTH_EAST_ROOM,
+            self.NORTH_WEST_ROOM,
+        ]
+
         super().__init__(
             self.MINICRAFT_NAME,
             start_zone=self.SOUTH_WEST_ROOM,
@@ -41,41 +49,40 @@ class MiniHCraftFourRooms(MiniCraftEnv):
 
     def build_transformations(self) -> List[Transformation]:
         find_goal = Transformation(
-            "find_goal",
+            "find-goal",
             inventory_changes=[Yield(CURRENT_ZONE, self.GOAL, max=0)],
-            zones=[self.NORTH_EAST_ROOM],
+            zone=self.NORTH_EAST_ROOM,
         )
 
         reach_goal = Transformation(
-            "reach_goal",
+            "reach-goal",
             inventory_changes=[
                 Use(CURRENT_ZONE, self.GOAL, consume=1),
                 Yield(PLAYER, self.GOAL),
             ],
         )
 
-        go_to_se = Transformation(
-            "go_to_se",
-            destination=self.SOUTH_EAST_ROOM,
-            zones=[self.NORTH_EAST_ROOM, self.SOUTH_WEST_ROOM],
-        )
+        neighbors = _get_rooms_connections(self.ROOMS)
 
-        go_to_ne = Transformation(
-            "go_to_ne",
-            destination=self.NORTH_EAST_ROOM,
-            zones=[self.SOUTH_EAST_ROOM, self.NORTH_WEST_ROOM],
-        )
+        moves = []
+        for destination, neighbor_rooms in neighbors.items():
+            for neighbor_room in neighbor_rooms:
+                moves.append(
+                    Transformation(
+                        f"go-to-{destination.name}-from-{neighbor_room.name}",
+                        destination=destination,
+                        zone=neighbor_room,
+                    )
+                )
 
-        go_to_sw = Transformation(
-            "go_to_sw",
-            destination=self.SOUTH_WEST_ROOM,
-            zones=[self.NORTH_WEST_ROOM, self.SOUTH_EAST_ROOM],
-        )
+        return [find_goal, reach_goal] + moves
 
-        go_to_nw = Transformation(
-            "go_to_nw",
-            destination=self.NORTH_WEST_ROOM,
-            zones=[self.NORTH_EAST_ROOM, self.SOUTH_WEST_ROOM],
-        )
 
-        return [find_goal, reach_goal, go_to_ne, go_to_se, go_to_sw, go_to_nw]
+Room = TypeVar("Room")
+
+
+def _get_rooms_connections(rooms: List[Room]) -> Dict[Room, List[Room]]:
+    neighbors = {}
+    for room_id, destination in enumerate(rooms):
+        neighbors[destination] = [rooms[room_id - 1], rooms[(room_id + 1) % len(rooms)]]
+    return neighbors

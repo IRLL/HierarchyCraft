@@ -77,14 +77,20 @@ If multiple terminal groups exists in the purpose, the PDDL goal will be the hig
 
 from typing import TYPE_CHECKING, Dict, Optional, Union, List
 from copy import deepcopy
-import collections
 
+
+from hcraft.transformation import Transformation, InventoryOwner
+from hcraft.task import Task, GetItemTask, PlaceItemTask, GoToZoneTask
+from hcraft.purpose import Purpose
+from hcraft.elements import Zone, Item
 
 # unified_planning is an optional dependency.
+UPF_AVAILABLE = True
 try:
     import unified_planning.shortcuts as ups
     from unified_planning.plans import SequentialPlan
     from unified_planning.engines.results import PlanGenerationResult
+    from unified_planning.model.problem import Problem
 
     UserType = ups.UserType
     Object = ups.Object
@@ -92,39 +98,16 @@ try:
     IntType = ups.IntType
     Fluent = ups.Fluent
     InstantaneousAction = ups.InstantaneousAction
-    Problem = ups.Problem
     OneshotPlanner = ups.OneshotPlanner
     OR = ups.Or
     AND = ups.And
     GE = ups.GE
     LE = ups.LE
 
+
 except ImportError:
-    PlanGenerationResult = collections.namedtuple("PlanGenerationResult", "plan")
+    UPF_AVAILABLE = False
 
-    class Problem:
-        def __init__(self, name: str) -> None:
-            raise ImportError(
-                "Missing planning dependencies. Install with:\n"
-                "pip install hcraft[planning]"
-            )
-
-    UserType = collections.namedtuple("UserType", "")
-    Object = collections.namedtuple("Object", "")
-    BoolType = collections.namedtuple("BoolType", "")
-    IntType = collections.namedtuple("IntType", "")
-    Fluent = collections.namedtuple("Fluent", "")
-    InstantaneousAction = collections.namedtuple("InstantaneousAction", "")
-    OneshotPlanner = collections.namedtuple("OneshotPlanner", "")
-    OR = collections.namedtuple("Or", "")
-    AND = collections.namedtuple("And", "")
-    GE = collections.namedtuple("GE", "")
-    LE = collections.namedtuple("LE", "")
-
-from hcraft.transformation import Transformation, InventoryOwner
-from hcraft.task import Task, GetItemTask, PlaceItemTask, GoToZoneTask
-from hcraft.purpose import Purpose
-from hcraft.elements import Zone, Item
 
 if TYPE_CHECKING:
     from hcraft.state import HcraftState
@@ -141,6 +124,7 @@ class HcraftPlanningProblem:
         name: str,
         purpose: Optional["Purpose"],
         timeout: float = 60,
+        planner_name: Optional[str] = None,
     ) -> None:
         """Initialize a HierarchyCraft planning problem on the given state and purpose.
 
@@ -151,11 +135,17 @@ class HcraftPlanningProblem:
             timeout: Time budget (s) for the plan to be found before giving up.
                 Set to -1 for no limit. Defaults to 60.
         """
-        self.upf_problem: Optional[Problem] = self._init_problem(state, name, purpose)
-        self.plan: Optional[SequentialPlan] = None
-        self.plans: List[SequentialPlan] = []
-        self.stats: List[Statistics] = []
+        if not UPF_AVAILABLE:
+            raise ImportError(
+                "Missing planning dependencies. Install with:\n"
+                "pip install hcraft[planning]"
+            )
+        self.upf_problem: "Problem" = self._init_problem(state, name, purpose)
+        self.plan: Optional["SequentialPlan"] = None
+        self.plans: List["SequentialPlan"] = []
+        self.stats: List["Statistics"] = []
         self.timeout = timeout
+        self.planner_name = planner_name
 
     def action_from_plan(self, state: "HcraftState") -> Optional[int]:
         """Get the next gym action from a given state.
@@ -170,7 +160,7 @@ class HcraftPlanningProblem:
             int: Action to take according to the plan. Returns None if no action is required.
         """
         if self.plan is None:
-            self.update_problem_to_state(state)
+            self.update_problem_to_state(self.upf_problem, state)
             self.solve()
         if not self.plan.actions:  # Empty plan, nothing to do
             return None
@@ -180,7 +170,7 @@ class HcraftPlanningProblem:
         action = int(plan_action_name.split("_")[0])
         return action
 
-    def update_problem_to_state(self, state: "HcraftState"):
+    def update_problem_to_state(self, upf_problem: "Problem", state: "HcraftState"):
         """Update the planning problem initial state to the given state.
 
         Args:
@@ -191,33 +181,34 @@ class HcraftPlanningProblem:
         for zone in state.world.zones:
             discovered = state.has_discovered(zone)
             if current_pos is not None:
-                self.upf_problem.set_initial_value(
+                upf_problem.set_initial_value(
                     self.pos(self.zones_obj[zone]), zone == current_pos
                 )
-            self.upf_problem.set_initial_value(
+            upf_problem.set_initial_value(
                 self.visited(self.zones_obj[zone]), discovered
             )
 
         for item in state.world.items:
             quantity = state.amount_of(item)
-            self.upf_problem.set_initial_value(
-                self.amount(self.items_obj[item]), quantity
-            )
+            upf_problem.set_initial_value(self.amount(self.items_obj[item]), quantity)
 
         for zone in state.world.zones:
             for zone_item in state.world.zones_items:
                 quantity = state.amount_of(zone_item, zone)
-                self.upf_problem.set_initial_value(
+                upf_problem.set_initial_value(
                     self.amount_at(
                         self.zone_items_obj[zone_item], self.zones_obj[zone]
                     ),
                     quantity,
                 )
 
-    def solve(self) -> PlanGenerationResult:
+    def solve(self) -> "PlanGenerationResult":
         """Solve the current planning problem with a planner."""
-        with OneshotPlanner(problem_kind=self.upf_problem.kind) as planner:
-            results: PlanGenerationResult = planner.solve(
+        planner_kwargs = {"problem_kind": self.upf_problem.kind}
+        if self.planner_name is not None:
+            planner_kwargs.update(name=self.planner_name)
+        with OneshotPlanner(**planner_kwargs) as planner:
+            results: "PlanGenerationResult" = planner.solve(
                 self.upf_problem, timeout=self.timeout
             )
         if results.plan is None:
@@ -229,7 +220,7 @@ class HcraftPlanningProblem:
 
     def _init_problem(
         self, state: "HcraftState", name: str, purpose: Optional["Purpose"]
-    ) -> Problem:
+    ) -> "Problem":
         """Build a unified planning problem from the given world and purpose.
 
         Args:
@@ -241,28 +232,28 @@ class HcraftPlanningProblem:
         Returns:
             Problem: Unified planning problem.
         """
-        self.upf_problem = Problem(name)
+        upf_problem = Problem(name)
         self.zone_type = UserType("zone")
         self.player_item_type = UserType("player_item")
         self.zone_item_type = UserType("zone_item")
 
-        self.zones_obj: Dict[Zone, Object] = {}
+        self.zones_obj: Dict[Zone, "Object"] = {}
         for zone in state.world.zones:
             self.zones_obj[zone] = Object(zone.name, self.zone_type)
 
-        self.items_obj: Dict[Item, Object] = {}
+        self.items_obj: Dict[Item, "Object"] = {}
         for item in state.world.items:
             self.items_obj[item] = Object(item.name, self.player_item_type)
 
-        self.zone_items_obj: Dict[Item, Object] = {}
+        self.zone_items_obj: Dict[Item, "Object"] = {}
         for item in state.world.zones_items:
             self.zone_items_obj[item] = Object(
                 f"{item.name}_in_zone", self.zone_item_type
             )
 
-        self.upf_problem.add_objects(self.zones_obj.values())
-        self.upf_problem.add_objects(self.items_obj.values())
-        self.upf_problem.add_objects(self.zone_items_obj.values())
+        upf_problem.add_objects(self.zones_obj.values())
+        upf_problem.add_objects(self.items_obj.values())
+        upf_problem.add_objects(self.zone_items_obj.values())
 
         self.pos = Fluent("pos", BoolType(), zone=self.zone_type)
         self.visited = Fluent("visited", BoolType(), zone=self.zone_type)
@@ -271,26 +262,26 @@ class HcraftPlanningProblem:
             "amount_at", IntType(), item=self.zone_item_type, zone=self.zone_type
         )
 
-        self.upf_problem.add_fluent(self.pos, default_initial_value=False)
-        self.upf_problem.add_fluent(self.visited, default_initial_value=False)
-        self.upf_problem.add_fluent(self.amount, default_initial_value=0)
-        self.upf_problem.add_fluent(self.amount_at, default_initial_value=0)
+        upf_problem.add_fluent(self.pos, default_initial_value=False)
+        upf_problem.add_fluent(self.visited, default_initial_value=False)
+        upf_problem.add_fluent(self.amount, default_initial_value=0)
+        upf_problem.add_fluent(self.amount_at, default_initial_value=0)
 
         actions = []
         for t_id, transfo in enumerate(state.world.transformations):
             actions.append(self._action_from_transformation(transfo, t_id))
 
-        self.upf_problem.add_actions(actions)
+        upf_problem.add_actions(actions)
 
         if purpose is not None and purpose.terminal_groups:
-            self.upf_problem.add_goal(self._purpose_to_goal(purpose))
+            upf_problem.add_goal(self._purpose_to_goal(purpose))
 
-        self.update_problem_to_state(state)
-        return self.upf_problem
+        self.update_problem_to_state(upf_problem, state)
+        return upf_problem
 
     def _action_from_transformation(
         self, transformation: "Transformation", transformation_id: int
-    ) -> InstantaneousAction:
+    ) -> "InstantaneousAction":
         action_name = f"{transformation_id}_{transformation.name}"
         action = InstantaneousAction(action_name)
         loc = None
@@ -299,10 +290,8 @@ class HcraftPlanningProblem:
             loc = action.parameter("loc")
             action.add_precondition(self.pos(loc))
 
-        if transformation.zones and len(self.zones_obj) > 1:
-            action.add_precondition(
-                OR(*[self.pos(self.zones_obj[zone]) for zone in transformation.zones])
-            )
+        if transformation.zone and len(self.zones_obj) > 1:
+            action.add_precondition(self.pos(self.zones_obj[transformation.zone]))
 
         if transformation.destination is not None:
             action.add_effect(self.pos(loc), False)
@@ -319,7 +308,7 @@ class HcraftPlanningProblem:
 
     def _add_player_operation(
         self,
-        action: InstantaneousAction,
+        action: "InstantaneousAction",
         transfo: Transformation,
     ):
         player = InventoryOwner.PLAYER
@@ -341,7 +330,7 @@ class HcraftPlanningProblem:
 
     def _add_current_zone_operations(
         self,
-        action: InstantaneousAction,
+        action: "InstantaneousAction",
         transfo: Transformation,
         loc,
     ):
@@ -369,12 +358,17 @@ class HcraftPlanningProblem:
         if isinstance(task, PlaceItemTask):
             item = self.zone_items_obj[task.item_stack.item]
             zones = self.zones_obj.keys()
-            if task.zones is not None:
-                zones = [zone for zone in task.zones]
+            if task.zone is not None:
+                zones = [task.zone]
             conditions = [
-                GE(self.amount_at(item, self.zones_obj[zone]), task.item_stack.quantity)
+                GE(
+                    self.amount_at(item, self.zones_obj[zone]),
+                    task.item_stack.quantity,
+                )
                 for zone in zones
             ]
+            if len(conditions) == 1:
+                return conditions[0]
             return OR(*conditions)
         if isinstance(task, GoToZoneTask):
             return self.visited(self.zones_obj[task.zone])
@@ -390,7 +384,45 @@ class HcraftPlanningProblem:
         return AND(*[goals[task] for task in purpose.best_terminal_group.tasks])
 
 
-def _read_statistics(results: PlanGenerationResult) -> Statistics:
+def _read_statistics(results: "PlanGenerationResult") -> Statistics:
+    if results.engine_name == "SAT-enhsp":
+        return _read_enhsp_stats(results)
+    elif results.engine_name == "aries":
+        return _read_aries_stats(results)
+    elif results.engine_name == "lpg":
+        return _read_lpg_stats(results)
+    raise NotImplementedError(
+        "Cannot read statistics for engine %s", results.engine_name
+    )
+
+
+def _read_lpg_stats(results: "PlanGenerationResult"):
+    metric = results.metrics if results.metrics is not None else {}
+    statistic_logs = results.log_messages[0].message.split("\n\n")[-1].split("\r\n")
+
+    solution_metrics_paragraph = False
+    for stat_log in statistic_logs:
+        stat_log = stat_log.replace("\r", "")
+        name_and_value = stat_log.split(":")
+        if name_and_value[0].strip() == "Solution number":
+            solution_metrics_paragraph = True
+        elif not solution_metrics_paragraph:
+            continue
+        elif name_and_value[0].strip() == "Plan file":
+            solution_metrics_paragraph = False
+            continue
+        try:
+            metric[name_and_value[0]] = int(name_and_value[1])
+        except ValueError:
+            metric[name_and_value[0]] = float(name_and_value[1])
+    return metric
+
+
+def _read_aries_stats(results: "PlanGenerationResult"):
+    return results.metrics
+
+
+def _read_enhsp_stats(results: "PlanGenerationResult"):
     statistic_logs = results.log_messages[0].message.split("\n\n")[-1].split("\n")
     stats = {}
     for stat_log in statistic_logs:

@@ -273,15 +273,9 @@ class Requirements:
 
     def _build(self) -> None:
         self._add_requirements_nodes(self.world)
-        edge_index = self._add_start_edges(self.world)
-        for transfo in self.world.transformations:
-            if transfo.zones is not None:
-                for zone in transfo.zones:
-                    self._add_transformation_edges(transfo, edge_index, zone)
-                    edge_index += 1
-            else:
-                self._add_transformation_edges(transfo, edge_index)
-                edge_index += 1
+        self._add_start_edges(self.world)
+        for edge_index, transfo in enumerate(self.world.transformations):
+            self._add_transformation_edges(transfo, edge_index, transfo.zone)
         compute_levels(self.graph)
 
     def _add_requirements_nodes(self, world: "World") -> None:
@@ -347,10 +341,7 @@ class Requirements:
                 ]
                 if len(alternative_transformations) == 1:
                     alt_transfo = alternative_transformations[0]
-                    if alt_transfo.zones is None or not (
-                        len(alt_transfo.zones) == 1
-                        and alt_transfo.zones[0] == other_zone
-                    ):
+                    if alt_transfo.zone is None or not alt_transfo.zone == other_zone:
                         in_items |= alt_transfo.min_required("player")
                         in_zone_items |= alt_transfo.min_required_zones_items
                     else:
@@ -417,22 +408,22 @@ class Requirements:
             start_name, end_node, type=edge_type, key=index, obj=edge_transformation
         )
 
-    def _add_start_edges(self, world: "World") -> int:
-        start_index = 0
+    def _add_start_edges(self, world: "World"):
+        start_index = -1
         if world.start_zone is not None:
             edge_type = RequirementEdge.START_ZONE
             end_node = req_node_name(world.start_zone, RequirementNode.ZONE)
             self._add_obj_edge(
                 end_node, edge_type, start_index, start_type=RequirementNode.START
             )
-            start_index += 1
+            start_index -= 1
         for start_stack in world.start_items:
             edge_type = RequirementEdge.START_ITEM
             end_node = req_node_name(start_stack.item, RequirementNode.ZONE_ITEM)
             self._add_obj_edge(
                 end_node, edge_type, start_index, start_type=RequirementNode.START
             )
-            start_index += 1
+            start_index -= 1
         for zone, start_zone_items in world.start_zones_items.items():
             edge_type = RequirementEdge.START_ITEM_IN_ZONE
             start_type = RequirementNode.ZONE
@@ -441,8 +432,7 @@ class Requirements:
                     start_zone_stack.item, RequirementNode.ZONE_ITEM
                 )
                 self._add_obj_edge(end_node, edge_type, start_index, zone, start_type)
-                start_index += 1
-        return start_index
+                start_index -= 1
 
 
 def req_node_name(obj: Optional[Union["Item", "Zone"]], node_type: RequirementNode):
@@ -830,7 +820,7 @@ def _serialize_pyvis(
         if transfo is None:
             edge_title = edge_type.value.capitalize()
         else:
-            conditions, effects = repr(transfo).split("=>")
+            conditions, effects = repr(transfo).split("⟹")
             conditions = conditions.strip()
             effects = effects.strip()
             edge_title = (

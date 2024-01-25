@@ -42,13 +42,13 @@ move_to_forest = Transformation(
 )
 ```
 
-### Restrict a transformation to a set of zones
+### Restrict a transformation to a zone
 ```python
 WOOD = Item("wood")
 search_for_wood = Transformation(
     "search_for_wood",
     inventory_changes=[Yield(PLAYER, WOOD)],
-    zones=[FOREST],
+    zone=FOREST,
 )
 ```
 
@@ -86,7 +86,7 @@ climb_tree = Transformation(
     "climb_tree",
     destination=TREETOPS,
     inventory_changes=[Use(PLAYER, LADDER, consume=1)],
-    zones=[FOREST],
+    zone=FOREST,
 )
 ```
 
@@ -98,7 +98,7 @@ jump_from_tree = Transformation(
     "jump_from_tree",
     destination=FOREST,
     inventory_changes=[Yield("destination", CRATER)],
-    zones=[TREETOPS],
+    zone=TREETOPS,
 )
 ```
 
@@ -296,23 +296,25 @@ class Transformation:
         name: Optional[str] = None,
         destination: Optional[Zone] = None,
         inventory_changes: Optional[List[InventoryChange]] = None,
-        zones: Optional[List[Zone]] = None,
+        zone: Optional[Zone] = None,
     ) -> None:
         """The building blocks of every HierarchyCraft environment.
 
         Args:
+            name: Name given to the Transformation. If None use repr instead.
+                Defaults to None.
             destination: Destination zone.
                 Defaults to None.
             inventory_changes: List of inventory changes done by this transformation.
                 Defaults to None.
-            zones: List of valid zones, if None all zones are valid.
+            zone: Zone to which Transformation is restricted. Unrestricted if None.
                 Defaults to None.
         """
         self.destination = destination
         self._destination = None
 
-        self.zones = zones
-        self._zones = None
+        self.zone = zone
+        self._zone = None
 
         self._changes_list = inventory_changes
         self.inventory_changes = _format_inventory_changes(inventory_changes)
@@ -447,7 +449,7 @@ class Transformation:
         return items
 
     def _is_valid_position(self, position: np.ndarray):
-        if self._zones is not None and not np.any(np.multiply(self._zones, position)):
+        if self._zone is not None and not np.any(np.multiply(self._zone, position)):
             return False
         if self._destination is not None and np.all(self._destination == position):
             return False
@@ -536,11 +538,10 @@ class Transformation:
         self._destination[world.slot_from_zone(self.destination)] = 1
 
     def _build_zones_op(self, world: "World") -> None:
-        if self.zones is None:
+        if self.zone is None:
             return
-        self._zones = np.zeros(world.n_zones, dtype=np.int32)
-        for zone in self.zones:
-            self._zones[world.slot_from_zone(zone)] = 1
+        self._zone = np.zeros(world.n_zones, dtype=np.int32)
+        self._zone[world.slot_from_zone(self.zone)] = 1
 
     def _build_inventory_ops(self, world: "World"):
         self._inventory_operations = {}
@@ -613,7 +614,7 @@ class Transformation:
         return self.name
 
     def __repr__(self) -> str:
-        return f"{self._preconditions_repr()}=>{self._effects_repr()}"
+        return f"{self._preconditions_repr()}⟹{self._effects_repr()}"
 
     def _preconditions_repr(self) -> str:
         preconditions_text = ""
@@ -630,11 +631,11 @@ class Transformation:
             owner_texts = []
             owner_texts += _stacks_precontions_str(
                 self.get_changes(owner, InventoryOperation.MIN),
-                symbol=">",
+                symbol="≥",
             )
             owner_texts += _stacks_precontions_str(
                 self.get_changes(owner, InventoryOperation.MAX),
-                symbol="<",
+                symbol="≤",
             )
             stacks_text = ",".join(owner_texts)
             if not owner_texts:
@@ -658,11 +659,11 @@ class Transformation:
             owner_texts = []
             owner_texts += _stacks_precontions_str(
                 operations.get(InventoryOperation.MIN, []),
-                symbol=">",
+                symbol="≥",
             )
             owner_texts += _stacks_precontions_str(
                 operations.get(InventoryOperation.MAX, []),
-                symbol="<",
+                symbol="≤",
             )
             stacks_text = ",".join(owner_texts)
             if not owner_texts:
@@ -671,11 +672,10 @@ class Transformation:
                 preconditions_text += " "
             preconditions_text += f"{zone.name}({stacks_text})"
 
-        if self.zones is not None:
+        if self.zone is not None:
             if preconditions_text:
                 preconditions_text += " "
-            zones_str = ",".join([zone.name for zone in self.zones])
-            preconditions_text += f"| {zones_str}"
+            preconditions_text += f"| at {self.zone.name}"
 
         if preconditions_text:
             preconditions_text += " "
@@ -737,7 +737,7 @@ class Transformation:
 
         if self.destination is not None:
             effects_text += " "
-            effects_text += f"| {self.destination.name}"
+            effects_text += f"| at {self.destination.name}"
 
         return effects_text
 

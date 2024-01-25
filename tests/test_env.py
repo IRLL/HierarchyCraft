@@ -430,7 +430,7 @@ def test_treasure_env(mocker: MockerFixture):
         inventory_changes=[
             Yield(PLAYER, KEY, max=1),
         ],
-        zones=[KEY_ROOM],
+        zone=KEY_ROOM,
     )
 
     LOCKED_CHEST = Item("locked_chest")
@@ -444,11 +444,11 @@ def test_treasure_env(mocker: MockerFixture):
 
     MOVE_TO_KEY_ROOM = Transformation(
         destination=KEY_ROOM,
-        zones=[START_ROOM],
+        zone=START_ROOM,
     )
     MOVE_TO_TREASURE_ROOM = Transformation(
         destination=TREASURE_ROOM,
-        zones=[START_ROOM],
+        zone=START_ROOM,
     )
     MOVE_TO_START_ROOM = Transformation(
         destination=START_ROOM,

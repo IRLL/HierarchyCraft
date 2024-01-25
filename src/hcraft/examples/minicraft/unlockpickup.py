@@ -59,7 +59,7 @@ class MiniHCraftUnlockPickup(MiniCraftEnv):
             search_for_item = Transformation(
                 f"search_for_{item.name}",
                 inventory_changes=inventory_changes,
-                zones=[zone],
+                zone=zone,
             )
             transformations.append(search_for_item)
 
@@ -89,7 +89,7 @@ class MiniHCraftUnlockPickup(MiniCraftEnv):
                 Yield(CURRENT_ZONE, self.LOCKED_DOOR, max=0),
                 Yield(CURRENT_ZONE, self.OPEN_DOOR, create=0, max=0),
             ],
-            zones=[self.START],
+            zone=self.START,
         )
         transformations.append(search_for_door)
 
@@ -107,14 +107,14 @@ class MiniHCraftUnlockPickup(MiniCraftEnv):
             "move_to_box_room",
             destination=self.BOX_ROOM,
             inventory_changes=[Use(CURRENT_ZONE, self.OPEN_DOOR)],
-            zones=[self.START],
+            zone=self.START,
         )
         transformations.append(move_to_box_room)
 
         move_to_start_room = Transformation(
             "move_to_start_room",
             destination=self.START,
-            zones=[self.BOX_ROOM],
+            zone=self.BOX_ROOM,
         )
         transformations.append(move_to_start_room)
 

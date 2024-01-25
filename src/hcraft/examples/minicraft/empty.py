@@ -34,7 +34,7 @@ class MiniHCraftEmpty(MiniCraftEnv):
         find_goal = Transformation(
             "find_goal",
             inventory_changes=[Yield(CURRENT_ZONE, self.GOAL, max=0)],
-            zones=[self.ROOM],
+            zone=self.ROOM,
         )
 
         reach_goal = Transformation(

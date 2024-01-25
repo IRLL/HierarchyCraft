@@ -63,7 +63,7 @@ class MiniHCraftKeyCorridor(MiniCraftEnv):
                 Yield(self.KEY_ROOM, self.KEY, create=0, max=0),
                 Yield(self.LOCKED_ROOM, self.KEY, create=0, max=0),
             ],
-            zones=[self.KEY_ROOM],
+            zone=self.KEY_ROOM,
         )
         transformations.append(search_for_key)
 
@@ -98,16 +98,17 @@ class MiniHCraftKeyCorridor(MiniCraftEnv):
             "move_to_key_room",
             destination=self.KEY_ROOM,
             inventory_changes=[Use(CURRENT_ZONE, self.OPEN_KEY_DOOR)],
-            zones=[self.START],
+            zone=self.START,
         )
         transformations.append(move_to_key_room)
 
-        move_to_start_room = Transformation(
-            "move_to_start_room",
-            destination=self.START,
-            zones=[self.KEY_ROOM, self.LOCKED_ROOM],
-        )
-        transformations.append(move_to_start_room)
+        for from_zone in [self.KEY_ROOM, self.LOCKED_ROOM]:
+            move_to_start_room = Transformation(
+                f"move_to_start_room_from_{from_zone.name}",
+                destination=self.START,
+                zone=from_zone,
+            )
+            transformations.append(move_to_start_room)
 
         unlock_door = Transformation(
             "unlock_door",
@@ -123,7 +124,7 @@ class MiniHCraftKeyCorridor(MiniCraftEnv):
             "move_to_locked_room",
             destination=self.LOCKED_ROOM,
             inventory_changes=[Use(CURRENT_ZONE, self.OPEN_DOOR)],
-            zones=[self.START],
+            zone=self.START,
         )
         transformations.append(move_to_locked_room)
 

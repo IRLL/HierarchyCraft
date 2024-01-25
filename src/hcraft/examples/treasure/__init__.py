@@ -76,7 +76,7 @@ class TreasureEnv(HcraftEnv):
             inventory_changes=[
                 Yield(PLAYER, self.KEY, max=1),
             ],
-            zones=[self.KEY_ROOM],
+            zone=self.KEY_ROOM,
         )
 
         UNLOCK_CHEST = Transformation(
@@ -91,12 +91,12 @@ class TreasureEnv(HcraftEnv):
         MOVE_TO_KEY_ROOM = Transformation(
             "move-to-key_room",
             destination=self.KEY_ROOM,
-            zones=[self.START_ROOM],
+            zone=self.START_ROOM,
         )
         MOVE_TO_TREASURE_ROOM = Transformation(
             "move-to-treasure_room",
             destination=self.TREASURE_ROOM,
-            zones=[self.START_ROOM],
+            zone=self.START_ROOM,
         )
         MOVE_TO_START_ROOM = Transformation(
             "move-to-start_room",

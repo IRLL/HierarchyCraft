@@ -16,7 +16,7 @@ def classic_env(player=PLAYER, current_zone=CURRENT_ZONE, include_move=True):
         move_to_other_zone = Transformation(
             "move_to_other_zone",
             destination=other_zone,
-            zones=[start_zone],
+            zone=start_zone,
         )
         transformations.append(move_to_other_zone)
 
