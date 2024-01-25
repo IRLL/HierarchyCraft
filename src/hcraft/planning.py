@@ -141,9 +141,9 @@ class HcraftPlanningProblem:
                 "pip install hcraft[planning]"
             )
         self.upf_problem: "Problem" = self._init_problem(state, name, purpose)
-        self.plan: Optional[SequentialPlan] = None
-        self.plans: List[SequentialPlan] = []
-        self.stats: List[Statistics] = []
+        self.plan: Optional["SequentialPlan"] = None
+        self.plans: List["SequentialPlan"] = []
+        self.stats: List["Statistics"] = []
         self.timeout = timeout
         self.planner_name = planner_name
 
@@ -202,13 +202,13 @@ class HcraftPlanningProblem:
                     quantity,
                 )
 
-    def solve(self) -> PlanGenerationResult:
+    def solve(self) -> "PlanGenerationResult":
         """Solve the current planning problem with a planner."""
         planner_kwargs = {"problem_kind": self.upf_problem.kind}
         if self.planner_name is not None:
             planner_kwargs.update(name=self.planner_name)
         with OneshotPlanner(**planner_kwargs) as planner:
-            results: PlanGenerationResult = planner.solve(
+            results: "PlanGenerationResult" = planner.solve(
                 self.upf_problem, timeout=self.timeout
             )
         if results.plan is None:
@@ -237,15 +237,15 @@ class HcraftPlanningProblem:
         self.player_item_type = UserType("player_item")
         self.zone_item_type = UserType("zone_item")
 
-        self.zones_obj: Dict[Zone, Object] = {}
+        self.zones_obj: Dict[Zone, "Object"] = {}
         for zone in state.world.zones:
             self.zones_obj[zone] = Object(zone.name, self.zone_type)
 
-        self.items_obj: Dict[Item, Object] = {}
+        self.items_obj: Dict[Item, "Object"] = {}
         for item in state.world.items:
             self.items_obj[item] = Object(item.name, self.player_item_type)
 
-        self.zone_items_obj: Dict[Item, Object] = {}
+        self.zone_items_obj: Dict[Item, "Object"] = {}
         for item in state.world.zones_items:
             self.zone_items_obj[item] = Object(
                 f"{item.name}_in_zone", self.zone_item_type
@@ -281,7 +281,7 @@ class HcraftPlanningProblem:
 
     def _action_from_transformation(
         self, transformation: "Transformation", transformation_id: int
-    ) -> InstantaneousAction:
+    ) -> "InstantaneousAction":
         action_name = f"{transformation_id}_{transformation.name}"
         action = InstantaneousAction(action_name)
         loc = None
