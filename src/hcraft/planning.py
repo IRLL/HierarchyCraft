@@ -220,7 +220,7 @@ class HcraftPlanningProblem:
 
     def _init_problem(
         self, state: "HcraftState", name: str, purpose: Optional["Purpose"]
-    ) -> Problem:
+    ) -> "Problem":
         """Build a unified planning problem from the given world and purpose.
 
         Args:

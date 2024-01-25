@@ -13,6 +13,7 @@ HARD_TASKS = [
 ]
 
 
+@pytest.mark.slow
 @pytest.mark.xfail(reason="Destination items are not taken into account")
 def test_solving_behaviors():
     """All tasks should be solved by their solving behavior."""
