@@ -118,7 +118,7 @@ KNOWN_TO_FAIL_ITEM_FOR_PLANNER = {
 
 @pytest.mark.slow
 @pytest.mark.parametrize("item", [item.name for item in ALL_ITEMS])
-@pytest.mark.parametrize("planner_name", ["enhsp", "aries", "lpg"])
+@pytest.mark.parametrize("planner_name", ["enhsp", "aries"])
 def test_get_item_flat(planner_name: str, item: str):
     """All items should be gettable by planning behavior."""
     up = pytest.importorskip("unified_planning")

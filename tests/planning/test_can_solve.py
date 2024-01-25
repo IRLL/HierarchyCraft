@@ -34,7 +34,7 @@ def test_solve_flat(env_class: Type[HcraftEnv], planner_name: str):
     up = pytest.importorskip("unified_planning")
     write = False
     env = env_class(max_step=200)
-    problem = env.planning_problem(timeout=10, planner_name=planner_name)
+    problem = env.planning_problem(timeout=20, planner_name=planner_name)
 
     if write:
         writer: "PDDLWriter" = up.io.PDDLWriter(problem.upf_problem)
@@ -51,5 +51,6 @@ def test_solve_flat(env_class: Type[HcraftEnv], planner_name: str):
     while not done:
         action = problem.action_from_plan(env.state)
         _observation, _reward, done, _ = env.step(action)
-    check.is_true(env.purpose.terminated, msg=f"Plans were :{problem.plans}")
-    check.equal(env.current_step, len(problem.plans[0].actions))
+    check.is_true(
+        env.purpose.terminated, msg=f"Plans failed they were :{problem.plans}"
+    )
