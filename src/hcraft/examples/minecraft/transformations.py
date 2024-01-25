@@ -4,7 +4,6 @@ All used Minecraft recipies.
 
 """
 
-from tkinter import W
 from typing import List, Optional
 from hcraft.elements import Item, Zone
 
