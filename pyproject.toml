@@ -25,9 +25,9 @@ keywords = [
 [project.optional-dependencies]
 gym = ["gym >= 0.26"]
 gui = ["pygame >= 2.1.0", "pygame-menu >= 4.3.8"]
-planning = ["unified_planning[aries,enhsp,lpg] >= 0.6.0"]
+planning = ["unified_planning[aries,enhsp] >= 0.6.0"]
 htmlvis = ["pyvis<=0.3.1"]
-all = ["gym >= 0.26", "pygame >= 2.1.0", "pygame-menu >= 4.3.8", "unified_planning[aries,enhsp,lpg] >= 0.6.0", "pyvis<=0.3.1"]
+all = ["gym >= 0.26", "pygame >= 2.1.0", "pygame-menu >= 4.3.8", "unified_planning[aries,enhsp] >= 0.6.0", "pyvis<=0.3.1"]
 dev = ["pytest", "pytest-cov", "pytest-mock", "pytest-check", "pytest-xdist", "pre-commit", "ruff"]
 
 [project.urls]
