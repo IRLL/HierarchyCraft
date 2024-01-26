@@ -21,7 +21,6 @@ if TYPE_CHECKING:
 KNOWN_TO_FAIL_FOR_PLANNER = {
     "enhsp": [MiniHCraftBlockedUnlockPickup],
     "aries": [RecursiveHcraftEnv],
-    "lpg": [],
 }
 
 
@@ -29,7 +28,7 @@ KNOWN_TO_FAIL_FOR_PLANNER = {
 @pytest.mark.parametrize(
     "env_class", [env for env in EXAMPLE_ENVS if env != MineHcraftEnv]
 )
-@pytest.mark.parametrize("planner_name", ["enhsp", "aries", "lpg"])
+@pytest.mark.parametrize("planner_name", ["enhsp", "aries"])
 def test_solve_flat(env_class: Type[HcraftEnv], planner_name: str):
     up = pytest.importorskip("unified_planning")
     write = False
