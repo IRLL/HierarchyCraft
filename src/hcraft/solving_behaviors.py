@@ -64,6 +64,7 @@ def build_all_solving_behaviors(world: "World") -> Dict[str, "Behavior"]:
     all_behaviors = {}
     all_behaviors = _reach_zones_behaviors(world, all_behaviors)
     all_behaviors = _get_item_behaviors(world, all_behaviors)
+    all_behaviors = _drop_item_behaviors(world, all_behaviors)
     all_behaviors = _get_zone_item_behaviors(world, all_behaviors)
     all_behaviors = _do_transfo_behaviors(world, all_behaviors)
     return all_behaviors
@@ -108,8 +109,11 @@ def _get_item_behaviors(env: "HcraftEnv", all_behaviors: Dict[str, "Behavior"]):
 
 def _drop_item_behaviors(env: "HcraftEnv", all_behaviors: Dict[str, "Behavior"]):
     for item in env.world.items:
-        behavior = DropItem(item, env, all_behaviors=all_behaviors)
-        all_behaviors[behavior.name] = behavior
+        try:
+            behavior = DropItem(item, env, all_behaviors=all_behaviors)
+            all_behaviors[behavior.name] = behavior
+        except ValueError:
+            continue
     return all_behaviors
 
 

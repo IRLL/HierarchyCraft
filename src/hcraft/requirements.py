@@ -349,6 +349,7 @@ class Requirements:
                 elif not alternative_transformations:
                     zones.add(other_zone)
                 else:
+                    continue
                     raise NotImplementedError("A complex case, raise issue if needed")
 
         transfo_params = {
