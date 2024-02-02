@@ -3,7 +3,6 @@ import pytest_check as check
 
 
 @pytest.mark.slow
-@pytest.mark.xfail(reason="Hebg needs to handle breadth first search")
 def test_doc_example():
     from hcraft.examples import MineHcraftEnv
     from hcraft.examples.minecraft.items import DIAMOND

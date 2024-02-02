@@ -16,6 +16,9 @@ def test_can_solve(env_class):
     env: HcraftEnv = env_class(max_step=50)
     draw_call_graph = False
 
+    if draw_call_graph:
+        _fig, ax = plt.subplots()
+
     done = False
     observation = env.reset()
     for task in env.purpose.best_terminal_group.tasks:
@@ -24,11 +27,16 @@ def test_can_solve(env_class):
         while not task_done and not done:
             action = solving_behavior(observation)
             if draw_call_graph:
-                _fig, ax = plt.subplots()
+                plt.cla()
                 solving_behavior.graph.call_graph.draw(ax)
-                plt.show()
+                plt.show(block=False)
+
             if action == "Impossible":
                 raise ValueError("Solving behavior could not find a solution.")
             observation, _reward, done, _ = env.step(action)
             task_done = task.terminated
+
+    if draw_call_graph:
+        plt.show()
+
     check.is_true(env.purpose.terminated)
