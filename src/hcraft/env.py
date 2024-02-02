@@ -327,7 +327,6 @@ class HcraftEnv(Env):
         self.invalid_reward = invalid_reward
         self.max_step = max_step
         self.name = name
-        self._requirements = None
         self._all_behaviors = None
 
         self.render_window = render_window
