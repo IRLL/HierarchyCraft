@@ -9,7 +9,7 @@ def test_doc_example():
     from hcraft.examples.minecraft.items import DIAMOND
     from hcraft.task import GetItemTask
 
-    draw_call_graph = True
+    draw_call_graph = False
 
     if draw_call_graph:
         _fig, ax = plt.subplots()
