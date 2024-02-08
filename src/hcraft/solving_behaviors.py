@@ -70,14 +70,14 @@ def build_all_solving_behaviors(env: "HcraftEnv") -> Dict[str, "Behavior"]:
     all_behaviors = _get_zone_item_behaviors(env, all_behaviors)
     all_behaviors = _do_transfo_behaviors(env, all_behaviors)
 
-    # empty_behaviors = []
-    # for name, behavior in all_behaviors.items():
-    #     try:
-    #         behavior.graph
-    #     except ValueError:
-    #         empty_behaviors.append(name)
-    # for name in empty_behaviors:
-    #     all_behaviors.pop(name)
+    empty_behaviors = []
+    for name, behavior in all_behaviors.items():
+        try:
+            behavior.graph
+        except ValueError:
+            empty_behaviors.append(name)
+    for name in empty_behaviors:
+        all_behaviors.pop(name)
 
     # TODO: Use learning complexity instead for more generality
     requirements_graph = env.world.requirements.graph
