@@ -10,6 +10,7 @@ def test_doc_example():
     from hcraft.task import GetItemTask
 
     draw_call_graph = False
+    render = False
 
     if draw_call_graph:
         _fig, ax = plt.subplots()
@@ -20,7 +21,8 @@ def test_doc_example():
 
     done = False
     observation = env.reset()
-    env.render()
+    if render:
+        env.render()
     while not done:
         action = solving_behavior(observation)
 
@@ -30,6 +32,7 @@ def test_doc_example():
             plt.show(block=False)
 
         observation, _reward, done, _info = env.step(action)
-        env.render()
+        if render:
+            env.render()
 
     check.is_true(get_diamond.terminated)  # DIAMOND has been obtained !

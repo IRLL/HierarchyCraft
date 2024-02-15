@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 KNOWN_TO_FAIL_FOR_PLANNER = {
     "enhsp": [MiniHCraftBlockedUnlockPickup],
-    "aries": [RecursiveHcraftEnv],
+    "aries": [MiniHCraftBlockedUnlockPickup, RecursiveHcraftEnv],
 }
 
 
@@ -41,6 +41,9 @@ def test_solve_flat(env_class: Type[HcraftEnv], planner_name: str):
         os.makedirs(pddl_dir, exist_ok=True)
         writer.write_domain(os.path.join(pddl_dir, "domain.pddl"))
         writer.write_problem(os.path.join(pddl_dir, "problem.pddl"))
+
+    optional_requirements = {"enhsp": "up_enhsp", "aries": "up_aries"}
+    pytest.importorskip(optional_requirements[planner_name])
 
     if env_class in KNOWN_TO_FAIL_FOR_PLANNER[planner_name]:
         pytest.xfail(f"{planner_name} planner is known to fail on {env.name}")

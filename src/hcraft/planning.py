@@ -385,7 +385,7 @@ class HcraftPlanningProblem:
 
 
 def _read_statistics(results: "PlanGenerationResult") -> Statistics:
-    if results.engine_name == "SAT-enhsp":
+    if results.engine_name == "enhsp":
         return _read_enhsp_stats(results)
     elif results.engine_name == "aries":
         return _read_aries_stats(results)

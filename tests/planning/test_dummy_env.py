@@ -13,7 +13,7 @@ def test_hcraft_classic():
     task = PlaceItemTask(Stack(Item("table"), 1), Zone("other_zone"))
     env.purpose = Purpose(task)
 
-    problem = env.planning_problem()
+    problem = env.planning_problem(planner_name="aries")
     print(problem.upf_problem)
 
     problem.solve()

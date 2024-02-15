@@ -334,6 +334,7 @@ def test_discovered_transformations():
         env.state.discovered_transformations, expected_discovered_transformations
     )
 
+    # When success at the transformation, it should be discovered
     action = env.world.transformations.index(
         named_transformations.get("move_to_other_zone")
     )
@@ -343,13 +344,14 @@ def test_discovered_transformations():
         env.state.discovered_transformations, expected_discovered_transformations
     )
 
+    # When failing the transformation, it should not be discovered
     action = env.world.transformations.index(named_transformations.get("search_wood"))
     _, _, _, _ = env.step(action)
-    expected_discovered_transformations[action] = 1
     check_np_equal(
         env.state.discovered_transformations, expected_discovered_transformations
     )
 
+    # When the env resets, discoveries should reset too
     env.reset()
     expected_discovered_transformations = np.zeros(len(env.world.transformations))
     check_np_equal(
