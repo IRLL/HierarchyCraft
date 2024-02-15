@@ -23,8 +23,8 @@ def test_classic_flat():
     problem.solve()
 
     expected_plan = [
+        "1_search_wood(start)",
         "0_move_to_other_zone(start)",
-        "1_search_wood",
         "3_craft_plank",
         "4_craft_table(other_zone)",
     ]

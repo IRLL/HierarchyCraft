@@ -79,7 +79,7 @@ from typing import TYPE_CHECKING, Dict, Optional, Union, List
 from copy import deepcopy
 
 
-from hcraft.transformation import Transformation, InventoryOwner
+from hcraft.transformation import InventoryOperation, Transformation, InventoryOwner
 from hcraft.task import Task, GetItemTask, PlaceItemTask, GoToZoneTask
 from hcraft.purpose import Purpose
 from hcraft.elements import Stack, Zone, Item
@@ -417,9 +417,14 @@ class HcraftPlanningProblem:
         action = InstantaneousAction(action_name)
         loc = None
 
+        min_current = transformation.get_changes(
+            InventoryOwner.CURRENT, InventoryOperation.MIN
+        )
+
         if (
             len(transformation.produced_zones_items) > 0
             or len(transformation.consumed_zones_items) > 0
+            or (min_current and len(min_current) > 0)
             or transformation.zone is not None
             or transformation.destination is not None
         ):
