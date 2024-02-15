@@ -106,6 +106,7 @@ try:
     AND = ups.And
     GE = ups.GE
     LE = ups.LE
+    LT = ups.LT
 
 
 except ImportError:
@@ -266,9 +267,8 @@ class HcraftPlanningProblem:
         self._add_base_flat_problem(upf_problem, state.world)
         self.update_problem_to_state(upf_problem, state)
         self._add_tasks_to_hierarchical_problem(upf_problem, state.world)
-        # if purpose is not None and purpose.terminal_groups:
-        #     upf_problem.add_goal(self._purpose_to_goal(purpose))
-        self._add_init_task_network_from_purpose(upf_problem, purpose)
+        if purpose is not None and purpose.terminal_groups:
+            self._add_init_task_network_from_purpose(upf_problem, purpose)
         return upf_problem
 
     def _add_init_task_network_from_purpose(
@@ -312,6 +312,10 @@ class HcraftPlanningProblem:
                     execute_method = self._add_execute_transformation_method(
                         transfo_action, task, stack, transfo.name
                     )
+                    execute_method.add_precondition(
+                        LT(self.amount(self.items_obj[item]), execute_method.quantity)
+                    )
+                    execute_method.set_task(task, execute_method.quantity)
                     hproblem.add_method(execute_method)
 
     def _add_execute_transformation_method(
@@ -320,7 +324,7 @@ class HcraftPlanningProblem:
         task: "UpfHTask",
         stack: "Stack",
         transformation_name: str,
-    ) -> List["Method"]:
+    ) -> "Method":
         need_loc = "loc" in [param.name for param in transfo_action.parameters]
 
         # Execute
@@ -339,9 +343,8 @@ class HcraftPlanningProblem:
 
         transfo_args = [method.loc] if need_loc else []
         execute = method.add_subtask(transfo_action, *transfo_args)
-        method.set_ordered([get_nearly_enough, execute])
-        method.set_task(task, method.quantity)
 
+        method.set_ordered(get_nearly_enough, execute)
         return method
 
     def _add_base_flat_problem(

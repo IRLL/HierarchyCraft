@@ -60,14 +60,15 @@ class TestClassicHierarchical:
         problem.solve()
 
         expected_plan = [
-            "1_search_wood",
-            "1_search_wood",
-            "1_search_wood",
+            "1_search_wood(start)",
+            "1_search_wood(start)",
+            "1_search_wood(start)",
         ]
 
-        assert str(expected_plan).replace("'", "") in repr(problem.plan.actions)
+        expected_plan_str = str(expected_plan).replace("'", "")
+        assert repr(problem.plan.action_plan.actions) == expected_plan_str
 
-    # def test_place_item_in_zone(self):
+    # def test_place_item_in_other_zone(self):
     #     task = PlaceItemTask(Stack(Item("table"), 1), Zone("other_zone"))
     #     self.env.purpose = Purpose(task)
 
@@ -86,5 +87,5 @@ class TestClassicHierarchical:
     #         "3_craft_plank(other_zone)",
     #         "4_craft_table(other_zone)",
     #     ]
-
-    #     assert str(expected_plan).replace("'", "") in repr(problem.plan.actions)
+    #     expected_plan_str = str(expected_plan).replace("'", "")
+    #     assert repr(problem.plan.actions) == expected_plan_str
