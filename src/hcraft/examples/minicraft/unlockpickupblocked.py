@@ -91,10 +91,10 @@ class MiniHCraftBlockedUnlockPickup(MiniCraftEnv):
         search_for_door = Transformation(
             "search_for_door",
             inventory_changes=[
-                Yield(CURRENT_ZONE, self.BLOCKED_LOCKED_DOOR, create=1, max=0),
-                Yield(CURRENT_ZONE, self.BLOCKED_DOOR, create=0, max=0),
-                Yield(CURRENT_ZONE, self.LOCKED_DOOR, create=0, max=0),
-                Yield(CURRENT_ZONE, self.OPEN_DOOR, create=0, max=0),
+                Yield(self.START, self.BLOCKED_LOCKED_DOOR, create=1, max=0),
+                Yield(self.START, self.BLOCKED_DOOR, create=0, max=0),
+                Yield(self.START, self.LOCKED_DOOR, create=0, max=0),
+                Yield(self.START, self.OPEN_DOOR, create=0, max=0),
             ],
             zone=self.START,
         )
@@ -103,10 +103,10 @@ class MiniHCraftBlockedUnlockPickup(MiniCraftEnv):
         unblock_locked_door = Transformation(
             "unblock_locked_door",
             inventory_changes=[
-                Use(CURRENT_ZONE, self.BLOCKED_LOCKED_DOOR, consume=1),
-                Yield(CURRENT_ZONE, self.LOCKED_DOOR, create=1),
                 Yield(PLAYER, self.BALL, create=1),
                 Yield(PLAYER, self.WEIGHT, create=1, max=0),
+                Use(self.START, self.BLOCKED_LOCKED_DOOR, consume=1),
+                Yield(self.START, self.LOCKED_DOOR, create=1),
             ],
         )
         transformations.append(unblock_locked_door)
@@ -114,10 +114,10 @@ class MiniHCraftBlockedUnlockPickup(MiniCraftEnv):
         block_locked_door = Transformation(
             "block_locked_door",
             inventory_changes=[
-                Use(CURRENT_ZONE, self.LOCKED_DOOR, consume=1),
                 Use(PLAYER, self.BALL, consume=1),
                 Use(PLAYER, self.WEIGHT, consume=1),
-                Yield(CURRENT_ZONE, self.BLOCKED_LOCKED_DOOR, create=1),
+                Use(self.START, self.LOCKED_DOOR, consume=1),
+                Yield(self.START, self.BLOCKED_LOCKED_DOOR, create=1),
             ],
         )
         transformations.append(block_locked_door)
@@ -126,8 +126,8 @@ class MiniHCraftBlockedUnlockPickup(MiniCraftEnv):
             "unlock_door",
             inventory_changes=[
                 Use(PLAYER, self.KEY),
-                Use(CURRENT_ZONE, self.LOCKED_DOOR, consume=1),
-                Yield(CURRENT_ZONE, self.OPEN_DOOR, create=1),
+                Use(self.START, self.LOCKED_DOOR, consume=1),
+                Yield(self.START, self.OPEN_DOOR, create=1),
             ],
         )
         transformations.append(unlock_door)
@@ -135,10 +135,10 @@ class MiniHCraftBlockedUnlockPickup(MiniCraftEnv):
         block_door = Transformation(
             "block_door",
             inventory_changes=[
-                Use(CURRENT_ZONE, self.OPEN_DOOR, consume=1),
                 Use(PLAYER, self.BALL, consume=1),
                 Use(PLAYER, self.WEIGHT, consume=1),
-                Yield(CURRENT_ZONE, self.BLOCKED_DOOR, create=1),
+                Use(self.START, self.OPEN_DOOR, consume=1),
+                Yield(self.START, self.BLOCKED_DOOR, create=1),
             ],
         )
         transformations.append(block_door)
@@ -146,10 +146,10 @@ class MiniHCraftBlockedUnlockPickup(MiniCraftEnv):
         unblock_door = Transformation(
             "unblock_door",
             inventory_changes=[
-                Use(CURRENT_ZONE, self.BLOCKED_DOOR, consume=1),
-                Yield(CURRENT_ZONE, self.OPEN_DOOR, create=1),
                 Yield(PLAYER, self.BALL, create=1),
                 Yield(PLAYER, self.WEIGHT, create=1, max=0),
+                Use(self.START, self.BLOCKED_DOOR, consume=1),
+                Yield(self.START, self.OPEN_DOOR, create=1),
             ],
         )
         transformations.append(unblock_door)

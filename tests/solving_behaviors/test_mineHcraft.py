@@ -1,3 +1,4 @@
+from matplotlib import pyplot as plt
 from hcraft.examples.minecraft.env import MineHcraftEnv
 from hcraft.task import Task
 
@@ -14,9 +15,13 @@ HARD_TASKS = [
 
 
 @pytest.mark.slow
-@pytest.mark.xfail(reason="Destination items are not taken into account")
 def test_solving_behaviors():
     """All tasks should be solved by their solving behavior."""
+    draw_call_graph = False
+
+    if draw_call_graph:
+        _fig, ax = plt.subplots()
+
     env = MineHcraftEnv(purpose="all", max_step=500)
     done = False
     observation = env.reset()
@@ -35,10 +40,17 @@ def test_solving_behaviors():
             print(f"Task started: {task} (step={env.current_step})")
             solving_behavior = env.solving_behavior(task)
         action = solving_behavior(observation)
+        if draw_call_graph:
+            plt.cla()
+            solving_behavior.graph.call_graph.draw(ax)
+            plt.show(block=False)
         observation, _rew, done, _infos = env.step(action)
         if task.terminated:
             print(f"Task finished: {task}, tasks_left: {tasks_left}")
             task = None
+
+    if draw_call_graph:
+        plt.show()
     if isinstance(task, Task) and not task.terminated:
         print(f"Last unfinished task: {task}")
     if set(t.name for t in tasks_left) == set(HARD_TASKS):

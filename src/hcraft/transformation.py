@@ -13,7 +13,7 @@ Each **transformation** is composed of three optional elements:
     the destination zone, or any specific zones.
 -   **Destination**: If specified the agent will move to the destination zone
     when performing the transformation.
--   **Zones**: Zones to which the transformation is restricted.
+-   **Zone**: Zone to which the transformation is restricted.
     If not specified, the transformation can be done anywhere.
 
 

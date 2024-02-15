@@ -21,9 +21,12 @@ def classic_env(player=PLAYER, current_zone=CURRENT_ZONE, include_move=True):
         transformations.append(move_to_other_zone)
 
     wood = Item("wood")
+
+    search_wood_restriction = {"zone": start_zone} if include_move else {}
     search_wood = Transformation(
         "search_wood",
         inventory_changes=[Yield(player, wood)],
+        **search_wood_restriction,
     )
     transformations.append(search_wood)
 

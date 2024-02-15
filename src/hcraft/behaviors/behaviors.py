@@ -249,7 +249,7 @@ class AbleAndPerformTransformation(Behavior):
     @staticmethod
     def get_name(transformation: "Transformation"):
         """Name of the behavior to able the transformation."""
-        return f"Able and perform: {transformation.name}"
+        return f"Able and do {transformation.name}"
 
     def build_graph(self) -> HEBGraph:
         graph = HEBGraph(behavior=self, all_behaviors=self.all_behaviors)
@@ -269,6 +269,15 @@ class AbleAndPerformTransformation(Behavior):
             if last_node is not None:
                 graph.add_edge(last_node, has_item, index=int(True))
             last_node = has_item
+
+        # Required items from destination
+        for stack in self.transformation.get_changes("destination", "min", []):
+            has_item_in_dest = _add_place_item(
+                graph, self.env, stack, zone=self.transformation.destination
+            )
+            if last_node is not None:
+                graph.add_edge(last_node, has_item_in_dest, index=int(True))
+            last_node = has_item_in_dest
 
         # Required items from current zone (or required zone)
         for stack in self.transformation.get_changes("current_zone", "min", []):

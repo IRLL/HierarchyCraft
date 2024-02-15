@@ -105,14 +105,6 @@ KNOWN_TO_FAIL_ITEM_FOR_PLANNER = {
     + GOLD_TIER_ITEMS
     + NETHER_LEVEL_ITEMS
     + END_LEVEL_ITEMS,
-    "lpg": WOOD_LEVEL_ITEMS
-    + STONE_LEVEL_ITEMS
-    + LEATHER_TIER_ITEMS
-    + IRON_TIER_ITEMS
-    + DIAMOND_TIER_ITEMS
-    + GOLD_TIER_ITEMS
-    + NETHER_LEVEL_ITEMS
-    + END_LEVEL_ITEMS,
 }
 
 
@@ -134,6 +126,8 @@ def test_get_item_flat(planner_name: str, item: str):
         writer.write_domain(pddl_dir / "MineHCraftDomain.pddl")
         writer.write_problem(pddl_dir / f"Get{item.capitalize()}Problem.pddl")
 
+    optional_requirements = {"enhsp": "up_enhsp", "aries": "up_aries"}
+    pytest.importorskip(optional_requirements[planner_name])
     if item in KNOWN_TO_FAIL_ITEM_FOR_PLANNER[planner_name]:
         pytest.xfail(f"{planner_name} planner is known to fail to get {item}")
 

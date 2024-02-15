@@ -52,20 +52,55 @@ from hcraft.behaviors.behaviors import (
     PlaceItem,
     ReachZone,
 )
+from hcraft.requirements import RequirementNode, req_node_name
 from hcraft.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
+
+from hebg.unrolling import unroll_graph
 
 if TYPE_CHECKING:
     from hcraft.env import HcraftEnv
-    from hcraft.world import World
 
 
-def build_all_solving_behaviors(world: "World") -> Dict[str, "Behavior"]:
+def build_all_solving_behaviors(env: "HcraftEnv") -> Dict[str, "Behavior"]:
     """Return a dictionary of handcrafted behaviors to get each item, zone and property."""
     all_behaviors = {}
-    all_behaviors = _reach_zones_behaviors(world, all_behaviors)
-    all_behaviors = _get_item_behaviors(world, all_behaviors)
-    all_behaviors = _get_zone_item_behaviors(world, all_behaviors)
-    all_behaviors = _do_transfo_behaviors(world, all_behaviors)
+    all_behaviors = _reach_zones_behaviors(env, all_behaviors)
+    all_behaviors = _get_item_behaviors(env, all_behaviors)
+    all_behaviors = _drop_item_behaviors(env, all_behaviors)
+    all_behaviors = _get_zone_item_behaviors(env, all_behaviors)
+    all_behaviors = _do_transfo_behaviors(env, all_behaviors)
+
+    empty_behaviors = []
+    for name, behavior in all_behaviors.items():
+        try:
+            behavior.graph
+        except ValueError:
+            empty_behaviors.append(name)
+    for name in empty_behaviors:
+        all_behaviors.pop(name)
+
+    # TODO: Use learning complexity instead for more generality
+    requirements_graph = env.world.requirements.graph
+
+    for behavior in all_behaviors.values():
+        if isinstance(behavior, AbleAndPerformTransformation):
+            behavior.complexity = 1
+            continue
+        if isinstance(behavior, GetItem):
+            req_node = req_node_name(behavior.item, RequirementNode.ITEM)
+        elif isinstance(behavior, DropItem):
+            # TODO: this clearly is not general enough,
+            # it would need requirements for non-accumulative to be fine
+            req_node = req_node_name(behavior.item, RequirementNode.ITEM)
+        elif isinstance(behavior, ReachZone):
+            req_node = req_node_name(behavior.zone, RequirementNode.ZONE)
+        elif isinstance(behavior, PlaceItem):
+            req_node = req_node_name(behavior.item, RequirementNode.ZONE_ITEM)
+        else:
+            raise NotImplementedError
+        behavior.complexity = requirements_graph.nodes[req_node]["level"]
+        continue
+
     return all_behaviors
 
 
