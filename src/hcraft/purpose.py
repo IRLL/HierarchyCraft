@@ -96,7 +96,7 @@ Just like this last task, reward shaping subtasks are always optional.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, List, Optional, Set, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Set, Union
 
 import networkx as nx
 import numpy as np
@@ -107,7 +107,8 @@ from hcraft.elements import Item, Zone
 
 
 if TYPE_CHECKING:
-    from hcraft.env import HcraftEnv, HcraftState
+    from hcraft.env import HcraftEnv
+    from hcraft.state import HcraftState
     from hcraft.world import World
 
 
@@ -141,7 +142,7 @@ class TerminalGroup:
         """True if all tasks of the terminal group are terminated."""
         return all(task.terminated for task in self.tasks)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Union[str, "TerminalGroup", Any]) -> bool:
         if isinstance(other, str):
             return self.name == other
         if isinstance(other, TerminalGroup):
@@ -189,14 +190,14 @@ class Purpose:
         for task in tasks:
             self.add_task(task, reward_shaping=default_reward_shaping)
 
-        self._best_terminal_group = None
+        self._best_terminal_group: Optional[TerminalGroup] = None
 
     def add_task(
         self,
         task: Task,
         reward_shaping: Optional[RewardShaping] = None,
         terminal_groups: Optional[Union[str, List[str]]] = "default",
-    ):
+    ) -> None:
         """Add a new task to the purpose.
 
         Args:
@@ -225,7 +226,7 @@ class Purpose:
         self.reward_shaping[task] = reward_shaping
         self.tasks.append(task)
 
-    def build(self, env: "HcraftEnv"):
+    def build(self, env: "HcraftEnv") -> None:
         """
         Builds the purpose of the player relative to the given environment.
 
@@ -304,10 +305,15 @@ class Purpose:
 
         best_terminal_group, best_terminal_value = None, -np.inf
         for terminal_group in self.terminal_groups:
-            terminal_value = sum(task._reward for task in terminal_group.tasks)
+            terminal_value = sum(
+                getattr(task, "_reward") for task in terminal_group.tasks
+            )
             if terminal_value > best_terminal_value:
                 best_terminal_value = terminal_value
                 best_terminal_group = terminal_group
+
+        if best_terminal_group is None:
+            raise TypeError("No best terminal group was found")
 
         self._best_terminal_group = best_terminal_group
         return best_terminal_group
@@ -315,7 +321,7 @@ class Purpose:
     def _terminal_group_from_name(self, name: str) -> Optional[TerminalGroup]:
         if name not in self.terminal_groups:
             return None
-        group_id = self.terminal_groups.index(name)
+        group_id = [group.name for group in self.terminal_groups].index(name)
         return self.terminal_groups[group_id]
 
     def _add_reward_shaping_subtasks(
@@ -359,7 +365,7 @@ def platinium_purpose(
     zones_items: List[Item],
     success_reward: float = 10.0,
     timestep_reward: float = -0.1,
-):
+) -> "Purpose":
     purpose = Purpose(timestep_reward=timestep_reward)
     for item in items:
         purpose.add_task(GetItemTask(item, reward=success_reward))
@@ -379,9 +385,9 @@ def _all_subtasks(world: "World", shaping_reward: float) -> List[Task]:
 def _required_subtasks(
     task: Task, env: "HcraftEnv", shaping_reward: float
 ) -> List[Task]:
-    relevant_items = set()
-    relevant_zones = set()
-    relevant_zone_items = set()
+    relevant_items: Set[Item] = set()
+    relevant_zones: Set[Zone] = set()
+    relevant_zone_items: Set[Item] = set()
 
     if isinstance(task, GetItemTask):
         goal_item = task.item_stack.item
@@ -412,15 +418,21 @@ def _required_subtasks(
             item_or_zone: Union["Item", "Zone"] = ancestor_node["obj"]
             ancestor_type = RequirementNode(ancestor_node["type"])
             if ancestor_type is RequirementNode.ITEM:
+                if not isinstance(item_or_zone, Item):
+                    raise TypeError("Expected an Item but got %s", type(item_or_zone))
                 relevant_items.add(item_or_zone)
             if ancestor_type is RequirementNode.ZONE:
+                if not isinstance(item_or_zone, Zone):
+                    raise TypeError("Expected a Zone but got %s", type(item_or_zone))
                 relevant_zones.add(item_or_zone)
             if ancestor_type is RequirementNode.ZONE_ITEM:
+                if not isinstance(item_or_zone, Item):
+                    raise TypeError("Expected an Item but got %s", type(item_or_zone))
                 relevant_zone_items.add(item_or_zone)
     return _build_reward_shaping_subtasks(
-        relevant_items,
-        relevant_zones,
-        relevant_zone_items,
+        list(relevant_items),
+        list(relevant_zones),
+        list(relevant_zone_items),
         shaping_reward,
     )
 
@@ -477,20 +489,20 @@ def _inputs_subtasks(task: Task, world: "World", shaping_reward: float) -> List[
             relevant_zones.add(transfo.zone)
 
     return _build_reward_shaping_subtasks(
-        relevant_items,
-        relevant_zones,
-        relevant_zone_items,
+        list(relevant_items),
+        list(relevant_zones),
+        list(relevant_zone_items),
         shaping_reward,
     )
 
 
 def _build_reward_shaping_subtasks(
-    items: Optional[Union[List[Item], Set[Item]]] = None,
-    zones: Optional[Union[List[Zone], Set[Zone]]] = None,
-    zone_items: Optional[Union[List[Item], Set[Item]]] = None,
+    items: Optional[Sequence[Item]] = None,
+    zones: Optional[Sequence[Zone]] = None,
+    zone_items: Optional[Sequence[Item]] = None,
     shaping_reward: float = 1.0,
 ) -> List[Task]:
-    subtasks = []
+    subtasks: List[Task] = []
     if items:
         subtasks += [GetItemTask(item, reward=shaping_reward) for item in items]
     if zones:

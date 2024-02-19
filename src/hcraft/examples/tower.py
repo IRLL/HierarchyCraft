@@ -32,7 +32,7 @@ Requirements graph for H2-W3:
 
 """
 
-from typing import List
+from typing import Any, List, Union
 
 from hcraft.elements import Item
 from hcraft.env import HcraftEnv
@@ -61,7 +61,7 @@ class TowerHcraftEnv(HcraftEnv):
 
     """
 
-    def __init__(self, height: int = 2, width: int = 3, **kwargs):
+    def __init__(self, height: int = 2, width: int = 3, **kwargs: Any):
         """
         Args:
             height (int): Number of layers of the tower (ignoring goal item).
@@ -110,7 +110,7 @@ class TowerHcraftEnv(HcraftEnv):
                 item_id = layer * self.width + item_layer_id
                 item = items[item_id]
 
-                inventory_changes = [Yield(PLAYER, item)]
+                inventory_changes: List[Union[Use, Yield]] = [Yield(PLAYER, item)]
 
                 prev_layer_id = (layer - 1) * self.width
                 for prev_item_id in range(self.width):

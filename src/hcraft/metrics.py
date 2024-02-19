@@ -1,14 +1,15 @@
-from typing import Dict, List, Union
+from typing import Dict, Sequence, Union
 
-from hcraft.purpose import Task, TerminalGroup
+from hcraft.task import Task
+from hcraft.purpose import TerminalGroup
 
 
 class SuccessCounter:
     """Counter of success rates of tasks or terminal groups."""
 
-    def __init__(self, elements: List[Union[Task, TerminalGroup]]) -> None:
+    def __init__(self, elements: Sequence[Union[Task, TerminalGroup]]) -> None:
         self.elements = elements
-        self.step_states = {}
+        self.step_states: Dict[Union[Task, TerminalGroup], bool] = {}
         self.successes: Dict[Union[Task, TerminalGroup], Dict[int, bool]] = {
             element: {} for element in self.elements
         }
@@ -17,14 +18,14 @@ class SuccessCounter:
         """Set the state of elements."""
         self.step_states = {element: element.terminated for element in self.elements}
 
-    def new_episode(self, episode: int):
+    def new_episode(self, episode: int) -> None:
         """Add a new episode successes."""
         for element in self.elements:
             self.successes[element][episode] = False
             if len(self.successes[element]) > 10:
                 self.successes[element].pop(episode - 10)
 
-    def update(self, episode: int):
+    def update(self, episode: int) -> None:
         """Update the success state of the given element for the given episode."""
         for element in self.elements:
             # Just terminated
@@ -46,14 +47,14 @@ class SuccessCounter:
         }
 
     @staticmethod
-    def _success_str(name: str):
+    def _success_str(name: str) -> str:
         return f"{name} success rate"
 
     @staticmethod
-    def _is_done_str(name: str):
+    def _is_done_str(name: str) -> str:
         return f"{name} is done"
 
-    def _name(self, element: Union[Task, TerminalGroup]):
+    def _name(self, element: Union[Task, TerminalGroup]) -> str:
         if isinstance(element, Task):
             return element.name
         group_name = "Purpose"

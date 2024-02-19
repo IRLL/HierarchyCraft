@@ -6,7 +6,7 @@ import numpy as np
 from hcraft.elements import Item, Stack, Zone
 
 if TYPE_CHECKING:
-    from hcraft.env import HcraftState
+    from hcraft.state import HcraftState
     from hcraft.world import World
 
 
@@ -16,9 +16,9 @@ class Task:
     def __init__(self, name: str) -> None:
         self.name = name
         self.terminated = False
-        self._terminate_player_items = None
-        self._terminate_position = None
-        self._terminate_zones_items = None
+        self._terminate_player_items: Optional[np.ndarray] = None
+        self._terminate_position: Optional[np.ndarray] = None
+        self._terminate_zones_items: Optional[np.ndarray] = None
 
     def build(self, world: "World") -> None:
         """Build the task operation arrays based on the given world."""
@@ -89,13 +89,17 @@ class GetItemTask(AchievementTask):
     def build(self, world: "World") -> None:
         super().build(world)
         item_slot = world.items.index(self.item_stack.item)
+        if self._terminate_player_items is None:
+            raise ValueError("terminate_player_items was not built")
         self._terminate_player_items[item_slot] = self.item_stack.quantity
 
     def _is_terminal(self, state: "HcraftState") -> bool:
-        return np.all(state.player_inventory >= self._terminate_player_items)
+        if self._terminate_player_items is None:
+            raise ValueError("terminate_player_items was not built")
+        return bool(np.all(state.player_inventory >= self._terminate_player_items))
 
     @staticmethod
-    def get_name(stack: Stack):
+    def get_name(stack: Stack) -> str:
         """Name of the task for a given Stack"""
         quantity_str = _quantity_str(stack.quantity)
         return f"Get{quantity_str}{stack.item.name}"
@@ -108,16 +112,18 @@ class GoToZoneTask(AchievementTask):
         super().__init__(name=self.get_name(zone), reward=reward)
         self.zone = zone
 
-    def build(self, world: "World"):
+    def build(self, world: "World") -> None:
         super().build(world)
         zone_slot = world.zones.index(self.zone)
+        if self._terminate_position is None:
+            raise ValueError("terminate_position was not built")
         self._terminate_position[zone_slot] = 1
 
     def _is_terminal(self, state: "HcraftState") -> bool:
-        return np.all(state.position == self._terminate_position)
+        return bool(np.all(state.position == self._terminate_position))
 
     @staticmethod
-    def get_name(zone: Zone):
+    def get_name(zone: Zone) -> str:
         """Name of the task for a given Stack"""
         return f"Go to {zone.name}"
 
@@ -132,7 +138,7 @@ class PlaceItemTask(AchievementTask):
     def __init__(
         self,
         item_stack: Union[Item, Stack],
-        zone: Optional[Union[Zone, List[Zone]]] = None,
+        zone: Optional[Zone] = None,
         reward: float = 1.0,
     ):
         item_stack = _stack_item(item_stack)
@@ -140,8 +146,10 @@ class PlaceItemTask(AchievementTask):
         self.zone = zone
         super().__init__(name=self.get_name(item_stack, zone), reward=reward)
 
-    def build(self, world: "World"):
+    def build(self, world: "World") -> None:
         super().build(world)
+        if self._terminate_zones_items is None:
+            raise ValueError("terminate_zones_items was not built")
         if self.zone is None:
             zones_slots = np.arange(self._terminate_zones_items.shape[0])
         else:
@@ -152,14 +160,20 @@ class PlaceItemTask(AchievementTask):
         ] = self.item_stack.quantity
 
     def _is_terminal(self, state: "HcraftState") -> bool:
+        if self._terminate_zones_items is None:
+            raise ValueError("terminate_zones_items was not built")
         if self.zone is None:
-            return np.any(
+            _is_terminal = np.any(
                 np.all(state.zones_inventories >= self._terminate_zones_items, axis=1)
             )
-        return np.all(state.zones_inventories >= self._terminate_zones_items)
+        else:
+            _is_terminal = np.all(
+                state.zones_inventories >= self._terminate_zones_items
+            )
+        return bool(_is_terminal)
 
     @staticmethod
-    def get_name(stack: Stack, zone: Optional[Zone]):
+    def get_name(stack: Stack, zone: Optional[Zone]) -> str:
         """Name of the task for a given Stack and list of Zone"""
         quantity_str = _quantity_str(stack.quantity)
         zones_str = _zones_str(zone)
@@ -172,11 +186,11 @@ def _stack_item(item_or_stack: Union[Item, Stack]) -> Stack:
     return item_or_stack
 
 
-def _quantity_str(quantity: int):
+def _quantity_str(quantity: int) -> str:
     return f" {quantity} " if quantity > 1 else " "
 
 
-def _zones_str(zone: Optional[Zone]):
+def _zones_str(zone: Optional[Zone]) -> str:
     if zone is None:
         return " anywhere"
     return f" in {zone.name}"

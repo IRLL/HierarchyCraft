@@ -72,7 +72,7 @@ class TestCratingEnv:
         world = world_from_transformations(
             self.transformations,
             start_zone=self.start_zone,
-            start_items=[Stack(start_item, 2), Stack(Item("wood"), 3)],
+            start_items_or_stacks=[Stack(start_item, 2), Stack(Item("wood"), 3)],
         )
         env = HcraftEnv(world)
         expected_items = np.zeros(env.world.n_items, np.int32)
@@ -88,7 +88,7 @@ class TestCratingEnv:
         world = world_from_transformations(
             self.transformations,
             start_zone=self.start_zone,
-            start_zones_items={
+            start_zones_items_or_stack={
                 new_zone: [Stack(new_zone_item, 2), Stack(Item("wood"), 3)],
             },
         )
@@ -376,7 +376,7 @@ def test_observation_one_zone_no_player_items():
 
 
 @pytest.mark.slow
-def test_treasure_env(mocker: MockerFixture):
+def test_treasure_env(mocker: MockerFixture) -> None:
     """Ensure that the example for the documentation is working properly."""
     pytest.importorskip("pygame")
     pytest.importorskip("pygame_menu")
@@ -411,7 +411,7 @@ def test_treasure_env(mocker: MockerFixture):
     WORLD = world_from_transformations(
         transformations=[TAKE_GOLD_FROM_CHEST],
         start_zone=TREASURE_ROOM,
-        start_zones_items={TREASURE_ROOM: [CHEST]},
+        start_zones_items_or_stack={TREASURE_ROOM: [CHEST]},
     )
 
     from hcraft.env import HcraftEnv
@@ -466,7 +466,7 @@ def test_treasure_env(mocker: MockerFixture):
             MOVE_TO_START_ROOM,
         ],
         start_zone=START_ROOM,
-        start_zones_items={TREASURE_ROOM: [LOCKED_CHEST]},
+        start_zones_items_or_stack={TREASURE_ROOM: [LOCKED_CHEST]},
     )
     env = HcraftEnv(WORLD_2, purpose=get_gold_task, max_step=7)
 

@@ -29,7 +29,7 @@ KNOWN_TO_FAIL_FOR_PLANNER = {
     "env_class", [env for env in EXAMPLE_ENVS if env != MineHcraftEnv]
 )
 @pytest.mark.parametrize("planner_name", ["enhsp", "aries"])
-def test_solve_flat(env_class: Type[HcraftEnv], planner_name: str):
+def test_solve_flat(env_class: Type[HcraftEnv], planner_name: str) -> None:
     up = pytest.importorskip("unified_planning")
     write = False
     env = env_class(max_step=200)
@@ -52,6 +52,8 @@ def test_solve_flat(env_class: Type[HcraftEnv], planner_name: str):
     _observation = env.reset()
     while not done:
         action = problem.action_from_plan(env.state)
+        if action is None:
+            raise ValueError("Action was None")
         _observation, _reward, done, _ = env.step(action)
     check.is_true(
         env.purpose.terminated, msg=f"Plans failed they were :{problem.plans}"

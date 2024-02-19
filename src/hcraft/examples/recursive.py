@@ -19,7 +19,7 @@ Requirements graph (n_items=6):
 </div>
 """
 
-from typing import List
+from typing import Any, List, Union
 
 from hcraft.elements import Item
 from hcraft.env import HcraftEnv
@@ -44,7 +44,7 @@ class RecursiveHcraftEnv(HcraftEnv):
 
     """RecursiveHcraft Environment"""
 
-    def __init__(self, n_items: int = 6, **kwargs):
+    def __init__(self, n_items: int = 6, **kwargs: Any):
         items = [Item(str(i)) for i in range(n_items)]
         self.n_items = n_items
         transformations = self.build_transformations(items)
@@ -70,7 +70,7 @@ class RecursiveHcraftEnv(HcraftEnv):
         transformation = []
 
         for index, item in enumerate(items):
-            inventory_changes = [Yield(PLAYER, item)]
+            inventory_changes: List[Union[Use, Yield]] = [Yield(PLAYER, item)]
             if index > 0:
                 inventory_changes += [
                     Use(PLAYER, items[item_id], consume=1) for item_id in range(index)

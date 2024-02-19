@@ -142,11 +142,11 @@ class TestPlaceItem:
         task.build(self.world)
 
         state = DummyState(zones_inventories=np.array([[10, 10, 0], [10, 10, 0]]))
-        check.is_false(task.is_terminal(state))
+        assert not task.is_terminal(state)
         state = DummyState(zones_inventories=np.array([[0, 0, 0], [0, 0, 2]]))
-        check.is_true(task.is_terminal(state))
+        assert task.is_terminal(state)
         state = DummyState(zones_inventories=np.array([[0, 0, 2], [0, 0, 0]]))
-        check.is_true(task.is_terminal(state))
+        assert task.is_terminal(state)
 
     def test_reward(self):
         """should reward only the first time the task terminates."""

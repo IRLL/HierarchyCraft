@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List
 
 from hcraft.elements import Item, Zone
 from hcraft.task import GetItemTask
@@ -37,10 +37,9 @@ class MiniHCraftKeyCorridor(MiniCraftEnv):
     LOCKED_DOOR = Item("locked_door")
     """Locked door, can be unlocked with a key."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         self.task = GetItemTask(self.BALL)
         super().__init__(
-            self.MINICRAFT_NAME,
             start_zone=self.START,
             start_zones_items={
                 self.START: [self.CLOSED_KEY_DOOR, self.LOCKED_DOOR],

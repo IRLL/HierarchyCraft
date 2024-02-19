@@ -77,7 +77,7 @@ from pathlib import Path
 import random
 from PIL import Image, ImageDraw, ImageFont
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Set, Tuple, Union
 
 import networkx as nx
 import numpy as np
@@ -140,8 +140,8 @@ class RequirementTheme:
     def __init__(
         self,
         default_color: Any = "black",
-        edge_colors=None,
-        **kwargs,
+        edge_colors: Optional[List[Union[str, Tuple[int, int, int]]]] = None,
+        **kwargs: Any,
     ) -> None:
         self.colors = self.DEFAULT_COLORS.copy()
         self.colors.update(kwargs)
@@ -167,7 +167,7 @@ class RequirementTheme:
             return self.default_color
         return self.colors.get(node_type.value, self.default_color)
 
-    def color_edges(self, edge_index: int):
+    def color_edges(self, edge_index: int) -> Union[str, Tuple[int, int, int]]:
         """Returns the themed color of the given edge depending on his type."""
         edge_color_index = edge_index % len(self.edges_colors)
         edge_color = self.edges_colors[edge_color_index]
@@ -191,10 +191,10 @@ class Requirements:
         self,
         ax: Optional[Axes] = None,
         theme: Optional[RequirementTheme] = None,
-        layout: "RequirementsGraphLayout" = "level",
+        layout: Union[str, "RequirementsGraphLayout"] = "level",
         engine: DrawEngine = DrawEngine.PLT,
         save_path: Optional[Path] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """Draw the requirements graph on the given Axes.
 
@@ -285,7 +285,7 @@ class Requirements:
             self._add_nodes(world.zones, RequirementNode.ZONE)
 
     def _add_nodes(
-        self, objs: List[Union["Item", "Zone"]], node_type: RequirementNode
+        self, objs: Sequence[Union["Item", "Zone"]], node_type: RequirementNode
     ) -> None:
         """Add colored nodes to the graph"""
         for obj in objs:
@@ -317,6 +317,8 @@ class Requirements:
 
         required_zones_stacks = transfo.get_changes("zones", "min")
         if required_zones_stacks is not None:
+            if not isinstance(required_zones_stacks, dict):
+                raise TypeError()
             for other_zone, consumed_stacks in required_zones_stacks.items():
                 other_zones_items[other_zone] = consumed_stacks
 
@@ -402,14 +404,14 @@ class Requirements:
         start_obj: Optional[Union["Zone", "Item"]] = None,
         start_type: Optional[RequirementNode] = None,
         edge_transformation: Optional["Transformation"] = None,
-    ):
+    ) -> None:
         start_name = req_node_name(start_obj, start_type)
         self._add_nodes([start_obj], start_type)
         self.graph.add_edge(
             start_name, end_node, type=edge_type, key=index, obj=edge_transformation
         )
 
-    def _add_start_edges(self, world: "World"):
+    def _add_start_edges(self, world: "World") -> None:
         start_index = -1
         if world.start_zone is not None:
             edge_type = RequirementEdge.START_ZONE
@@ -436,9 +438,11 @@ class Requirements:
                 start_index -= 1
 
 
-def req_node_name(obj: Optional[Union["Item", "Zone"]], node_type: RequirementNode):
+def req_node_name(
+    obj: Optional[Union["Item", "Zone"]], node_type: Optional[RequirementNode]
+) -> str:
     """Get a unique node name for the requirements graph"""
-    if node_type == RequirementNode.START:
+    if node_type == RequirementNode.START or obj is None or node_type is None:
         return "START#"
     name = obj.name
     if node_type == RequirementNode.ZONE_ITEM:
@@ -446,7 +450,7 @@ def req_node_name(obj: Optional[Union["Item", "Zone"]], node_type: RequirementNo
     return node_type.value + "#" + name
 
 
-def compute_levels(graph: Requirements):
+def compute_levels(graph: Requirements) -> Dict[int, List[RequirementNode]]:
     """Compute the hierachical levels of a RequirementsGraph.
 
     Adds the attribute 'level' to each node in the given graph.
@@ -462,7 +466,9 @@ def compute_levels(graph: Requirements):
 
     """
 
-    def _compute_level_dependencies(graph: nx.MultiDiGraph, node):
+    def _compute_level_dependencies(
+        graph: nx.MultiDiGraph, node: RequirementNode
+    ) -> bool:
         predecessors = list(graph.predecessors(node))
         if len(predecessors) == 0:
             graph.nodes[node]["level"] = 0
@@ -470,9 +476,9 @@ def compute_levels(graph: Requirements):
         if "level" in graph.nodes[node]:
             return True
 
-        pred_level_by_key = {}
+        pred_level_by_key: Dict[int, List[Optional[int]]] = {}
         for pred, _node, key in graph.in_edges(node, keys=True):
-            pred_level = graph.nodes[pred].get("level", None)
+            pred_level: int = graph.nodes[pred].get("level", None)
             if key not in pred_level_by_key:
                 pred_level_by_key[key] = []
             pred_level_by_key[key].append(pred_level)
@@ -512,7 +518,7 @@ def compute_levels(graph: Requirements):
     return nodes_by_level
 
 
-def break_cycles_through_level(digraph: nx.DiGraph):
+def break_cycles_through_level(digraph: nx.DiGraph) -> nx.DiGraph:
     """Break cycles in a leveled multidigraph by cutting edges from high to low levels."""
     acygraph = digraph.copy()
     nodes_level = acygraph.nodes(data="level", default=0)
@@ -571,7 +577,7 @@ class RequirementsGraphLayout(Enum):
     """Classic spring layout."""
 
 
-def apply_color_theme(graph: nx.MultiDiGraph, theme: RequirementTheme):
+def apply_color_theme(graph: nx.MultiDiGraph, theme: RequirementTheme) -> None:
     for node, node_type in graph.nodes(data="type"):
         graph.nodes[node]["color"] = theme.color_node(node_type)
         for pred, _, key in graph.in_edges(node, keys=True):
@@ -580,7 +586,7 @@ def apply_color_theme(graph: nx.MultiDiGraph, theme: RequirementTheme):
 
 def compute_layout(
     digraph: nx.DiGraph, layout: Union[str, RequirementsGraphLayout] = "level"
-):
+) -> Dict[str, Tuple[float, float]]:
     layout = RequirementsGraphLayout(layout)
     if layout == RequirementsGraphLayout.LEVEL:
         pos = leveled_layout_energy(digraph)
@@ -596,7 +602,7 @@ def _draw_on_plt_ax(
     resources_path: Path,
     pos: dict,
     level_legend: bool = False,
-):
+) -> Axes:
     """Draw the requirement graph on a given Axes.
 
     Args:
@@ -610,7 +616,9 @@ def _draw_on_plt_ax(
         theme.color_edges([et for et in RequirementEdge].index(edge_type))
         for _, _, edge_type in digraph.edges(data="type")
     ]
-    edges_alphas = [_compute_edge_alpha(*edge, digraph) for edge in digraph.edges()]
+    edges_alphas = [
+        _compute_edge_alpha(pred, succ, digraph) for (pred, succ) in digraph.edges()
+    ]
     # Plain edges
     nx.draw_networkx_edges(
         digraph,
@@ -704,8 +712,8 @@ def _draw_html(
     pos: Dict[str, Tuple[float, float]],
     depth: int,
     width: int,
-    **kwargs,
-):
+    **kwargs: Any,
+) -> None:
     from pyvis.network import Network
 
     resolution = [max(96 * width, 600), max(64 * depth, 1000)]
@@ -724,7 +732,7 @@ def _draw_html(
     poses_range = poses_max - poses_min
     poses_range = np.where(poses_range == 0, 1.0, poses_range)
 
-    def scale(val, axis: int):
+    def scale(val: float, axis: int) -> float:
         return (val - poses_min[axis]) / poses_range[axis] * resolution[axis]
 
     for node, (y, x) in pos.items():
@@ -738,7 +746,7 @@ def _draw_html(
     nt.write_html(str(filepath))
 
 
-def _compute_edge_alpha(pred, _succ, graph: nx.DiGraph):
+def _compute_edge_alpha(pred: Any, _succ: Any, graph: nx.DiGraph) -> float:
     alphas = [1, 1, 1, 1, 1, 0.5, 0.5, 0.5, 0.2, 0.2, 0.2]
     n_successors = len(list(graph.successors(pred)))
     alpha = 0.1
@@ -752,7 +760,7 @@ def _serialize_pyvis(
     resources_path: Path,
     add_edge_numbers: bool,
     with_web_uri: bool,
-):
+) -> nx.MultiDiGraph:
     """Make a serializable copy of a requirements graph
     by converting objects in it to dicts."""
     serializable_graph = nx.MultiDiGraph()
@@ -761,7 +769,7 @@ def _serialize_pyvis(
         node_type = node_data.get("type")
         node_obj: Optional[Union[Item, Zone]] = node_data.get("obj")
 
-        flat_node_data = {}
+        flat_node_data: Dict[str, Any] = {}
 
         if node_type is RequirementNode.ITEM:
             title = f"{node_obj.name.capitalize()}"
@@ -807,7 +815,7 @@ def _serialize_pyvis(
 
         serializable_graph.add_node(node, **flat_node_data)
 
-    done_edges = []
+    done_edges: List[tuple] = []
     for start, end, key, edge_data in graph.edges(data=True, keys=True):
         transfo: "Transformation" = edge_data.get("obj")
         edge_type: RequirementEdge = edge_data.get("type")
@@ -890,7 +898,7 @@ def _start_number_dict(
     edge_type: RequirementEdge,
     start_name: str,
     resources_path: Path,
-):
+) -> Optional[Dict[str, Union[bool, int, str]]]:
     if edge_type is RequirementEdge.ITEM_REQUIRED:
         min_amount_of_start = [
             stack.quantity
@@ -949,7 +957,7 @@ def _end_number_dict(
     }
 
 
-def _arrows_data_for_image_uri(number_uri: str):
+def _arrows_data_for_image_uri(number_uri: str) -> Dict[str, Union[bool, int, str]]:
     return {
         "enabled": True,
         "src": number_uri,
@@ -963,7 +971,7 @@ def _get_text_image_uri(
     text: str,
     resources_path: Path,
     flipped: bool = False,
-):
+) -> str:
     numbers_dir = Path(resources_path).joinpath("text_images")
     numbers_dir.mkdir(exist_ok=True)
     image = _create_text_image(text)
@@ -978,8 +986,8 @@ def _get_text_image_uri(
 
 def _create_text_image(
     text: str,
-    fill_color=(130, 130, 130),
-    font_path: Optional[Path] = "arial.ttf",
+    fill_color: Tuple[int, int, int] = (130, 130, 130),
+    font_path: Optional[Union[Path, str]] = "arial.ttf",
 ) -> "Image.Image":
     """Create a PIL image for an Item or Zone.
 

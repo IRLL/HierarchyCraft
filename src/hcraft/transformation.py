@@ -139,7 +139,7 @@ because the player only observe the current zone items.
 """
 
 
-from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union, Any
+from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Set, Union, Any
 from enum import Enum
 from dataclasses import dataclass
 
@@ -148,7 +148,7 @@ import numpy as np
 from hcraft.elements import Item, Stack, Zone
 
 if TYPE_CHECKING:
-    from hcraft.env import HcraftState
+    from hcraft.state import HcraftState
     from hcraft.world import World
 
 
@@ -169,6 +169,8 @@ PLAYER = InventoryOwner.PLAYER
 CURRENT_ZONE = InventoryOwner.CURRENT
 DESTINATION = InventoryOwner.DESTINATION
 
+NP_INT32_INF = np.iinfo(np.int32).max
+
 
 @dataclass()
 class Use:
@@ -186,7 +188,7 @@ class Use:
     By default, min is 1 if consume is 0, else min=consume.
 
     """
-    max: int = np.inf
+    max: int = NP_INT32_INF
     """Maximum amout of the item *before* the transformation to be valid. Defaults to inf."""
 
     def __post_init__(self):
@@ -206,9 +208,9 @@ class Yield:
     """Item to yield."""
     create: int = 1
     """Amout of the item to create in the inventory. Defaults to 1."""
-    min: int = -np.inf
+    min: int = -NP_INT32_INF
     """Minimum amout of the item *before* the transformation to be valid. Defaults to -inf."""
-    max: int = np.inf
+    max: int = NP_INT32_INF
     """Maximum amout of the item *before* the transformation to be valid. Defaults to inf."""
 
     def __post_init__(self):
@@ -232,10 +234,7 @@ class InventoryOperation(Enum):
 
 
 InventoryChange = Union[Use, Yield]
-InventoryChanges = Dict[
-    InventoryOperation,
-    Union[List[Union[Item, Stack]], Dict[Zone, List[Union[Item, Stack]]]],
-]
+InventoryChanges = Dict[InventoryOperation, Union[List[Stack], Dict[Zone, List[Stack]]]]
 InventoryOperations = Dict[InventoryOperation, np.ndarray]
 
 
@@ -295,7 +294,7 @@ class Transformation:
         self,
         name: Optional[str] = None,
         destination: Optional[Zone] = None,
-        inventory_changes: Optional[List[InventoryChange]] = None,
+        inventory_changes: Optional[Sequence[InventoryChange]] = None,
         zone: Optional[Zone] = None,
     ) -> None:
         """The building blocks of every HierarchyCraft environment.
@@ -311,16 +310,14 @@ class Transformation:
                 Defaults to None.
         """
         self.destination = destination
-        self._destination = None
+        self._destination: Optional[np.ndarray] = None
 
         self.zone = zone
-        self._zone = None
+        self._zone: Optional[np.ndarray] = None
 
         self._changes_list = inventory_changes
         self.inventory_changes = _format_inventory_changes(inventory_changes)
-        self._inventory_operations: Optional[
-            Dict[InventoryOwner, InventoryOperations]
-        ] = None
+        self._inventory_operations: Dict[InventoryOwner, InventoryOperations] = {}
 
         self.name = name if name is not None else self.__repr__()
 
@@ -329,7 +326,7 @@ class Transformation:
         player_inventory: np.ndarray,
         position: np.ndarray,
         zones_inventories: np.ndarray,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> None:
         """Apply the transformation in place on the given state."""
 
         for owner, operations in self._inventory_operations.items():
@@ -363,7 +360,10 @@ class Transformation:
         self._build_zones_op(world)
 
     def get_changes(
-        self, owner: InventoryOwner, operation: InventoryOperation, default: Any = None
+        self,
+        owner: Union[InventoryOwner, str],
+        operation: Union[InventoryOperation, str],
+        default: Any = None,
     ) -> Optional[Union[List[Stack], Dict[Zone, List[Stack]]]]:
         """Get individual changes for a given owner and a given operation.
 
@@ -379,20 +379,20 @@ class Transformation:
         operations = self.inventory_changes.get(owner, {})
         return operations.get(operation, default)
 
-    def production(self, owner: InventoryOwner) -> Set["Item"]:
+    def production(self, owner: Union[InventoryOwner, str]) -> Set["Item"]:
         """Set of produced items for the given owner by this transformation."""
         return self._relevant_items_changed(owner, InventoryOperation.ADD)
 
-    def consumption(self, owner: InventoryOwner) -> Set["Item"]:
+    def consumption(self, owner: Union[InventoryOwner, str]) -> Set["Item"]:
         """Set of consumed items for the given owner by this transformation."""
         return self._relevant_items_changed(owner, InventoryOperation.REMOVE)
 
-    def min_required(self, owner: InventoryOwner) -> Set["Item"]:
+    def min_required(self, owner: Union[InventoryOwner, str]) -> Set["Item"]:
         """Set of items for which a minimum is required by this transformation
         for the given owner."""
         return self._relevant_items_changed(owner, InventoryOperation.MIN)
 
-    def max_required(self, owner: InventoryOwner) -> Set["Item"]:
+    def max_required(self, owner: Union[InventoryOwner, str]) -> Set["Item"]:
         """Set of items for which a maximum is required by this transformation
         for the given owner."""
         return self._relevant_items_changed(owner, InventoryOperation.MAX)
@@ -434,13 +434,13 @@ class Transformation:
         )
 
     def _relevant_items_changed(
-        self, owner: InventoryOwner, operation: InventoryOperation
-    ):
+        self, owner: Union[InventoryOwner, str], operation: InventoryOperation
+    ) -> Set["Item"]:
         added_stacks = self.get_changes(owner, operation)
         items = set()
 
         if added_stacks:
-            if owner is not InventoryOwner.ZONES:
+            if not isinstance(added_stacks, dict):
                 return _items_from_stack_list(added_stacks)
 
             for _zone, stacks in added_stacks.items():
@@ -448,7 +448,7 @@ class Transformation:
 
         return items
 
-    def _is_valid_position(self, position: np.ndarray):
+    def _is_valid_position(self, position: np.ndarray) -> bool:
         if self._zone is not None and not np.any(np.multiply(self._zone, position)):
             return False
         if self._destination is not None and np.all(self._destination == position):
@@ -458,32 +458,24 @@ class Transformation:
     def _is_valid_inventory(
         self,
         inventory: np.ndarray,
-        added: Optional[np.ndarray],
-        removed: Optional[np.ndarray],
         max_items: Optional[np.ndarray],
         min_items: Optional[np.ndarray],
-    ):
-        added = 0 if added is None else added
-        removed = 0 if removed is None else removed
+    ) -> bool:
         if max_items is not None and np.any(inventory > max_items):
             return False
         if min_items is not None and np.any(inventory < min_items):
             return False
         return True
 
-    def _is_valid_player_inventory(self, player_inventory: np.ndarray):
+    def _is_valid_player_inventory(self, player_inventory: np.ndarray) -> bool:
         items_changes = self._inventory_operations.get(InventoryOwner.PLAYER, {})
-        added = items_changes.get(InventoryOperation.ADD, 0)
-        removed = items_changes.get(InventoryOperation.REMOVE)
         max_items = items_changes.get(InventoryOperation.MAX)
         min_items = items_changes.get(InventoryOperation.MIN)
-        return self._is_valid_inventory(
-            player_inventory, added, removed, max_items, min_items
-        )
+        return self._is_valid_inventory(player_inventory, max_items, min_items)
 
     def _is_valid_zones_inventory(
         self, zones_inventories: np.ndarray, position: np.ndarray
-    ):
+    ) -> bool:
         if zones_inventories.size == 0:
             return True
 
@@ -503,11 +495,11 @@ class Transformation:
         removed[current_slot] += current_changes.get(InventoryOperation.REMOVE, 0)
         max_items[current_slot] = np.minimum(
             max_items[current_slot],
-            current_changes.get(InventoryOperation.MAX, np.inf),
+            current_changes.get(InventoryOperation.MAX, NP_INT32_INF),
         )
         min_items[current_slot] = np.maximum(
             min_items[current_slot],
-            current_changes.get(InventoryOperation.MIN, -np.inf),
+            current_changes.get(InventoryOperation.MIN, -NP_INT32_INF),
         )
 
         # Destination
@@ -527,15 +519,14 @@ class Transformation:
                 dest_changes.get(InventoryOperation.MIN, -np.inf),
             )
 
-        return self._is_valid_inventory(
-            zones_inventories, added, removed, max_items, min_items
-        )
+        return self._is_valid_inventory(zones_inventories, max_items, min_items)
 
     def _build_destination_op(self, world: "World") -> None:
         if self.destination is None:
             return
         self._destination = np.zeros(world.n_zones, dtype=np.int32)
-        self._destination[world.slot_from_zone(self.destination)] = 1
+        destination_slot = world.slot_from_zone(self.destination)
+        self._destination[destination_slot] = 1
 
     def _build_zones_op(self, world: "World") -> None:
         if self.zone is None:
@@ -543,7 +534,7 @@ class Transformation:
         self._zone = np.zeros(world.n_zones, dtype=np.int32)
         self._zone[world.slot_from_zone(self.zone)] = 1
 
-    def _build_inventory_ops(self, world: "World"):
+    def _build_inventory_ops(self, world: "World") -> None:
         self._inventory_operations = {}
         for owner, operations in self.inventory_changes.items():
             self._build_inventory_operation(owner, operations, world)
@@ -551,7 +542,7 @@ class Transformation:
 
     def _build_inventory_operation(
         self, owner: InventoryOwner, operations: InventoryChanges, world: "World"
-    ):
+    ) -> None:
         owner = InventoryOwner(owner)
         if owner is InventoryOwner.PLAYER:
             world_items_list = world.items
@@ -562,8 +553,8 @@ class Transformation:
             operation = InventoryOperation(operation)
             default_value = 0
             if operation is InventoryOperation.MAX:
-                default_value = np.inf
-            if owner is InventoryOwner.ZONES:
+                default_value = NP_INT32_INF
+            if isinstance(stacks, dict):
                 operation_arr = self._build_zones_items_op(
                     stacks, world.zones, world.zones_items, default_value
                 )
@@ -648,6 +639,8 @@ class Transformation:
         for op, zones_stacks in self.inventory_changes.get(
             InventoryOwner.ZONES, {}
         ).items():
+            if not isinstance(zones_stacks, dict):
+                raise TypeError()
             for zone, stacks in zones_stacks.items():
                 if zone not in zones_specific_ops:
                     zones_specific_ops[zone] = {}
@@ -712,6 +705,8 @@ class Transformation:
         for op, zones_stacks in self.inventory_changes.get(
             InventoryOwner.ZONES, {}
         ).items():
+            if not isinstance(zones_stacks, dict):
+                raise TypeError()
             for zone, stacks in zones_stacks.items():
                 if zone not in zones_specific_ops:
                     zones_specific_ops[zone] = {}
@@ -747,17 +742,19 @@ def _update_inventory(
     player_inventory: np.ndarray,
     position: np.ndarray,
     zones_inventories: np.ndarray,
-    destination: np.ndarray,
+    destination: Optional[np.ndarray],
     operation_arr: np.ndarray,
-):
-    position_slot: int = position.nonzero()[0]
+) -> None:
     if owner is PLAYER:
         player_inventory[...] += operation_arr
     elif owner is CURRENT_ZONE:
-        zones_inventories[position_slot, :] += operation_arr
+        zones_inventories[position.nonzero()[0], :] += operation_arr
     elif owner is DESTINATION:
-        destination_slot: int = destination.nonzero()[0]
-        zones_inventories[destination_slot, :] += operation_arr
+        if destination is None:
+            raise ValueError(
+                "Cannot update destination inventory if destination is None."
+            )
+        zones_inventories[destination.nonzero()[0], :] += operation_arr
     elif owner is InventoryOwner.ZONES:
         zones_inventories[...] += operation_arr
     else:
@@ -787,7 +784,7 @@ def _stacks_effects_str(
     suffix: str = "",
     stack_prefix: str = "",
 ) -> List[str]:
-    strings = []
+    strings: List[str] = []
     if not stacks:
         return strings
     strings.append(_unstacked_str(stacks, prefix, suffix, stack_prefix))
@@ -800,7 +797,7 @@ def _stacks_precontions_str(
     suffix: str = "",
     symbol: str = "",
 ) -> List[str]:
-    strings = []
+    strings: List[str] = []
     if not stacks:
         return strings
     strings.append(_unstacked_condition_str(stacks, prefix, suffix, symbol))
@@ -809,7 +806,7 @@ def _stacks_precontions_str(
 
 def _unstacked_condition_str(
     stacks: List["Stack"], prefix: str = "", suffix: str = "", symbol: str = ""
-):
+) -> str:
     items_text = ",".join(
         [f"{stack.item.name}{symbol}{stack.quantity}" for stack in stacks]
     )
@@ -818,16 +815,16 @@ def _unstacked_condition_str(
 
 def _unstacked_str(
     stacks: List["Stack"], prefix: str = "", suffix: str = "", stack_prefix: str = ""
-):
+) -> str:
     items_text = ",".join([f"{stack_prefix}{stack}" for stack in stacks])
     return f"{prefix}{items_text}{suffix}"
 
 
 def _append_changes(
-    dict_of_changes: Dict[InventoryOwner, InventoryChanges],
+    dict_of_changes: Dict[Union[InventoryOwner, Zone], InventoryChanges],
     change: InventoryChange,
     zone: Optional[Zone] = None,
-):
+) -> None:
     owner = change.owner
     if zone is not None:
         owner = InventoryOwner.ZONES
@@ -835,26 +832,31 @@ def _append_changes(
     if owner not in dict_of_changes:
         dict_of_changes[owner] = {}
 
-    def _append_stack(operation: InventoryOperation, stack: Stack):
+    def _append_stack(operation: InventoryOperation, stack: Stack) -> None:
         if operation not in dict_of_changes[owner]:
             dict_of_changes[owner][operation] = []
             if zone is not None:
                 dict_of_changes[owner][operation] = {}
 
+        zone_changes = dict_of_changes[owner][operation]
         if zone is None:
-            dict_of_changes[owner][operation].append(stack)
+            if isinstance(zone_changes, dict):
+                raise TypeError()
+            zone_changes.append(stack)
             return
 
+        if not isinstance(zone_changes, dict):
+            raise TypeError()
         if zone not in dict_of_changes[owner][operation]:
-            dict_of_changes[owner][operation][zone] = []
-        dict_of_changes[owner][operation][zone].append(stack)
+            zone_changes[zone] = []
+        zone_changes[zone].append(stack)
 
-    if change.min > -np.inf:
-        min_stack = Stack(change.item, change.min)
+    if change.min is not None and change.min > -NP_INT32_INF:
+        min_stack = Stack(change.item, int(change.min))
         _append_stack(InventoryOperation.MIN, min_stack)
 
-    if change.max < np.inf:
-        max_stack = Stack(change.item, change.max)
+    if change.max is not None and change.max < NP_INT32_INF:
+        max_stack = Stack(change.item, int(change.max))
         _append_stack(InventoryOperation.MAX, max_stack)
 
     if isinstance(change, Use):
@@ -871,7 +873,7 @@ def _append_changes(
 def _format_inventory_changes(
     list_of_changes: Optional[List[InventoryChange]],
 ) -> Dict[InventoryOwner, InventoryChanges]:
-    dict_of_stacks = {}
+    dict_of_stacks: Dict[InventoryOwner, InventoryChanges] = {}
     if list_of_changes is None:
         return dict_of_stacks
 

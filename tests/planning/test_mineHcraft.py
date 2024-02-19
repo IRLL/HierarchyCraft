@@ -111,7 +111,7 @@ KNOWN_TO_FAIL_ITEM_FOR_PLANNER = {
 @pytest.mark.slow
 @pytest.mark.parametrize("item", [item.name for item in ALL_ITEMS])
 @pytest.mark.parametrize("planner_name", ["enhsp", "aries"])
-def test_get_item_flat(planner_name: str, item: str):
+def test_get_item_flat(planner_name: str, item: str) -> None:
     """All items should be gettable by planning behavior."""
     up = pytest.importorskip("unified_planning")
     task = GetItemTask(Item(item))
@@ -135,6 +135,8 @@ def test_get_item_flat(planner_name: str, item: str):
     _observation = env.reset()
     while not done:
         action = problem.action_from_plan(env.state)
+        if action is None:
+            raise TypeError("Action is None")
         _observation, _reward, done, _ = env.step(action)
     check.is_true(env.purpose.terminated, msg=f"Plan failed :{problem.plans}")
     check.equal(env.current_step, len(problem.plans[0].actions))

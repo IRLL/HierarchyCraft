@@ -49,7 +49,7 @@ class TestNoPurpose:
 
 
 class DummyPosEqualTask(Task):
-    def __init__(self, reward, goal_position) -> None:
+    def __init__(self, reward: float, goal_position: str) -> None:
         self.is_built = False
         self._reward = reward
         self.goal_position = goal_position
@@ -254,7 +254,7 @@ class TestPurposeRewardShaping:
         self.env = HcraftEnv(
             world_from_transformations(
                 transformations,
-                start_zones_items={self.zones[4]: [Stack(self.items[2], 2)]},
+                start_zones_items_or_stack={self.zones[4]: [Stack(self.items[2], 2)]},
             )
         )
         self.zone_items = self.env.world.zones_items

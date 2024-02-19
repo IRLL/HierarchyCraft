@@ -48,7 +48,7 @@ class MineHcraftEnv(HcraftEnv):
         mc_world = world_from_transformations(
             mc_transformations,
             start_zone=start_zone,
-            start_zones_items={
+            start_zones_items_or_stack={
                 NETHER: [Stack(OPEN_NETHER_PORTAL)],
                 STRONGHOLD: [Stack(CLOSE_ENDER_PORTAL)],
             },

@@ -66,7 +66,7 @@ class World:
     start_items: List[Stack] = field(default_factory=list)
     start_zones_items: Dict[Zone, List[Stack]] = field(default_factory=dict)
 
-    resources_path: str = field(default_factory=_default_resources_path)
+    resources_path: Path = field(default_factory=_default_resources_path)
     order_world: bool = False
 
     def __post_init__(self):
@@ -125,32 +125,42 @@ class World:
         """Zone's slot in the world"""
         return self.zones.index(zone)
 
-    def slot_from_zoneitem(self, zone: Zone) -> int:
+    def slot_from_zoneitem(self, item: Item) -> int:
         """Item's slot in the world as a zone item."""
-        return self.zones_items.index(zone)
+        return self.zones_items.index(item)
 
 
 def world_from_transformations(
     transformations: List["Transformation"],
     start_zone: Optional[Zone] = None,
-    start_items: Optional[List[Union[Stack, Item]]] = None,
-    start_zones_items: Optional[Dict[Zone, List[Union[Stack, Item]]]] = None,
+    start_items_or_stacks: Optional[List[Union[Stack, Item]]] = None,
+    start_zones_items_or_stack: Optional[Dict[Zone, List[Union[Stack, Item]]]] = None,
     order_world: bool = True,
 ) -> World:
     """Reads the transformation to build the list of items, zones and zones_items
     composing the world."""
-    start_items = start_items if start_items is not None else []
-    for i, stack in enumerate(start_items):
-        if not isinstance(stack, Stack):
-            start_items[i] = Stack(stack)
-    start_zones_items = start_zones_items if start_zones_items is not None else {}
-    for zone, items in start_zones_items.items():
-        for i, stack in enumerate(items):
-            if not isinstance(stack, Stack):
-                start_zones_items[zone][i] = Stack(stack)
+    start_stacks: List[Stack] = []
+    if start_items_or_stacks is None:
+        start_items_or_stacks = []
+    for stack_or_item in start_items_or_stacks:
+        start_stacks.append(
+            stack_or_item if isinstance(stack_or_item, Stack) else Stack(stack_or_item)
+        )
 
+    start_zones_stacks: Dict[Zone, List[Stack]] = {}
+    if start_zones_items_or_stack is None:
+        start_zones_items_or_stack = {}
+    for zone, zone_items_or_stacks in start_zones_items_or_stack.items():
+        for stack_or_item in zone_items_or_stacks:
+            if zone not in start_zones_stacks:
+                start_zones_stacks[zone] = []
+            start_zones_stacks[zone].append(
+                stack_or_item
+                if isinstance(stack_or_item, Stack)
+                else Stack(stack_or_item)
+            )
     zones, items, zones_items = _start_elements(
-        start_zone, start_items, start_zones_items
+        start_zone, start_stacks, start_zones_stacks
     )
 
     for transfo in transformations:
@@ -164,26 +174,26 @@ def world_from_transformations(
         zones_items=list(zones_items),
         transformations=transformations,
         start_zone=start_zone,
-        start_items=start_items,
-        start_zones_items=start_zones_items,
+        start_items=start_stacks,
+        start_zones_items=start_zones_stacks,
         order_world=order_world,
     )
 
 
 def _start_elements(
     start_zone: Optional[Zone],
-    start_items: List[Union[Stack, Item]],
-    start_zones_items: Dict[Zone, List[Union[Stack, Item]]],
+    start_stacks: List[Stack],
+    start_zones_stacks: Dict[Zone, List[Stack]],
 ) -> Tuple[Set[Zone], Set[Item], Set[Item]]:
     zones = set()
     if start_zone is not None:
         zones.add(start_zone)
 
-    items = set(stack.item for stack in start_items)
+    items = set(stack.item for stack in start_stacks)
     zones_items = set()
-    for zone, zone_items in start_zones_items.items():
+    for zone, zone_stacks in start_zones_stacks.items():
         zones.add(zone)
-        zones_items |= set(stack.item for stack in zone_items)
+        zones_items |= set(stack.item for stack in zone_stacks)
     return zones, items, zones_items
 
 
@@ -200,40 +210,42 @@ def _transformations_elements(
     for owner, changes in transfo.inventory_changes.items():
         if owner is InventoryOwner.ZONES:
             for _op, zones_stacks in changes.items():
-                for zone, stacks in zones_stacks.items():
+                if not isinstance(zones_stacks, dict):
+                    raise TypeError()
+                for zone, zone_stacks in zones_stacks.items():
                     zones.add(zone)
-                    zones_items = _add_items_to(stacks, zones_items)
+                    _add_items_to(zone_stacks, zones_items)
             continue
         for _op, stacks in changes.items():
+            if not isinstance(stacks, list):
+                raise TypeError()
             if owner is InventoryOwner.PLAYER:
-                items = _add_items_to(stacks, items)
+                _add_items_to(stacks, items)
                 continue
-            zones_items = _add_items_to(stacks, zones_items)
+            _add_items_to(stacks, zones_items)
 
     return zones, items, zones_items
 
 
 def _get_node_level(
     requirements: Requirements, obj: Union[Item, Zone], node_type: RequirementNode
-):
+) -> Tuple[int, str]:
     node_name = req_node_name(obj, node_type=node_type)
     return (requirements.graph.nodes[node_name].get("level", 1000), node_name)
 
 
-def _add_items_to(stacks: Optional[List[Stack]], items_set: Set[Item]):
+def _add_items_to(stacks: Optional[List[Stack]], items_set: Set[Item]) -> None:
     if stacks is not None:
         for stack in stacks:
             items_set.add(stack.item)
-    return items_set
 
 
 def _add_dict_items_to(
     dict_of_stacks: Optional[Dict[Zone, List[Stack]]],
     items_set: Set[Item],
     zones_set: Set[Zone],
-):
+) -> None:
     if dict_of_stacks is not None:
         for zone, stacks in dict_of_stacks.items():
             zones_set.add(zone)
-            items_set = _add_items_to(stacks, items_set)
-    return items_set, zones_set
+            _add_items_to(stacks, items_set)

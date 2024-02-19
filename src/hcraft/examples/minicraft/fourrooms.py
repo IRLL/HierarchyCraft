@@ -1,4 +1,4 @@
-from typing import Dict, List, TypeVar
+from typing import Any, Dict, List, TypeVar
 
 from hcraft.elements import Item, Zone
 from hcraft.task import GetItemTask
@@ -30,7 +30,7 @@ class MiniHCraftFourRooms(MiniCraftEnv):
     GOAL = Item("goal")
     """Goal to reach."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         self.task = GetItemTask(self.GOAL)
 
         self.ROOMS = [
@@ -40,12 +40,7 @@ class MiniHCraftFourRooms(MiniCraftEnv):
             self.NORTH_WEST_ROOM,
         ]
 
-        super().__init__(
-            self.MINICRAFT_NAME,
-            start_zone=self.SOUTH_WEST_ROOM,
-            purpose=self.task,
-            **kwargs,
-        )
+        super().__init__(start_zone=self.SOUTH_WEST_ROOM, purpose=self.task, **kwargs)
 
     def build_transformations(self) -> List[Transformation]:
         find_goal = Transformation(

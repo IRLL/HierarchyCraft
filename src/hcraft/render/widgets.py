@@ -1,7 +1,8 @@
 """ Widgets for rendering of the HierarchyCraft environments """
 
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -10,11 +11,11 @@ try:
     from pygame_menu.locals import ALIGN_LEFT
     from pygame_menu.menu import Menu
     from pygame_menu.themes import THEME_DEFAULT, Theme
-    from pygame_menu.widgets import Button
-    from pygame_menu.widgets import Image as PyImage
+    from pygame_menu.widgets.widget.button import Button
+    from pygame_menu.widgets.widget.image import Image as PyImage
 except ImportError:
-    Menu = object
-    THEME_DEFAULT = None
+    Menu = object  # type: ignore
+    THEME_DEFAULT = None  # type: ignore
 
 from PIL.Image import Image
 
@@ -64,13 +65,13 @@ class InventoryWidget(Menu):
         title: str,
         height: int,
         width: int,
-        position,
+        position: Tuple[int, int, bool],
         items: List[Item],
-        resources_path: str,
+        resources_path: Path,
         display_mode: DisplayMode,
         rows: int = 7,
         theme: "Theme" = THEME_DEFAULT,
-        **kwargs,
+        **kwargs: Any,
     ):
         theme.title_font_size = 24
         super().__init__(
@@ -91,8 +92,8 @@ class InventoryWidget(Menu):
         self.display_mode = DisplayMode(display_mode)
         self.base_images = _load_base_images(items, resources_path)
 
-        self.button_id_to_item = {}
-        self.old_quantity = {}
+        self.button_id_to_item: Dict[str, Item] = {}
+        self.old_quantity: Dict[Item, int] = {}
         for item in self.items:
             self._build_button(item)
 
@@ -100,7 +101,7 @@ class InventoryWidget(Menu):
         self,
         inventory: np.ndarray,
         discovered: np.ndarray,
-        events,
+        events: Any,
         title: Optional[str] = None,
     ) -> bool:
         items_buttons = [
@@ -116,11 +117,12 @@ class InventoryWidget(Menu):
 
     def _build_button(self, item: Item) -> None:
         image = self.base_images[item]
+        button: Union["PyImage", "Button"]
         if image is not None:
             image = draw_text_on_image(image, "0", self.resources_path)
-            button: "PyImage" = self.add.image(_to_menu_image(image, 0.5))
+            button = self.add.image(_to_menu_image(image, 0.5))
         else:
-            button: "Button" = self.add.button(str(item))
+            button = self.add.button(str(item))
         button.is_selectable = False
         self.button_id_to_item[button.get_id()] = item
 
@@ -129,7 +131,7 @@ class InventoryWidget(Menu):
         button: Union["Button", "PyImage"],
         inventory: np.ndarray,
         discovered: np.ndarray,
-    ):
+    ) -> None:
         item = self.button_id_to_item[button.get_id()]
         item_slot = self.items.index(item)
         quantity = inventory[item_slot]
@@ -153,8 +155,8 @@ class InventoryWidget(Menu):
 
     @staticmethod
     def _update_button_image(
-        button: "PyImage", image: "Image", quantity: int, resources_path: str
-    ):
+        button: "PyImage", image: "Image", quantity: int, resources_path: Path
+    ) -> None:
         if quantity == 0:
             # Grayscale
             image = image.convert("LA").convert("RGBA")
@@ -169,7 +171,7 @@ class InventoryWidget(Menu):
 
 
 def _load_base_images(
-    objs: List[Union[Item, Zone]], resources_path: str
+    objs: Sequence[Union[Item, Zone]], resources_path: Path
 ) -> Dict[Union[Item, Zone], "Image"]:
     base_images = {}
     for obj in objs:
@@ -183,13 +185,13 @@ class TransformationsWidget(Menu):
         title: str,
         height: int,
         width: int,
-        position,
+        position: Tuple[int, int],
         transformations: List[Transformation],
-        resources_path: str,
+        resources_path: Path,
         display_mode: DisplayMode,
         content_display_mode: ContentMode,
         theme: "Theme" = THEME_DEFAULT,
-        **kwargs,
+        **kwargs: Any,
     ):
         theme.title_font_size = 24
         super().__init__(
@@ -210,8 +212,8 @@ class TransformationsWidget(Menu):
         self.display_mode = DisplayMode(display_mode)
         self.content_display_mode = ContentMode(content_display_mode)
         self.button_id_to_transfo = {}
-        self.old_display = {}
-        self.old_legal = {}
+        self.old_display: Dict[str, bool] = {}
+        self.old_legal: Dict[str, bool] = {}
         self.buttons_base_image: Dict[str, "Image"] = {}
         self.buttons_hidden_image: Dict[str, "Image"] = {}
         for index, transfo in enumerate(self.transformations):
@@ -234,12 +236,13 @@ class TransformationsWidget(Menu):
             self.buttons_hidden_image[button.get_id()] = create_text_image(
                 text=str(action_id),
                 resources_path=self.resources_path,
-                image_size=image.size,
+                width=image.size[0],
+                height=image.size[1],
             )
             self._add_button_image(button, image)
         return button
 
-    def update_transformations(self, env: "HcraftEnv", events) -> bool:
+    def update_transformations(self, env: "HcraftEnv", events: Any) -> bool:
         action_is_legal = env.action_masks()
         action_buttons = [
             widget for widget in self.get_widgets() if isinstance(widget, Button)
@@ -251,12 +254,12 @@ class TransformationsWidget(Menu):
         return super().update(events)
 
     @staticmethod
-    def _remaining_text(actions_remaining: int):
+    def _remaining_text(actions_remaining: int) -> str:
         return f"Actions ({actions_remaining} remaining)"
 
     def _update_button(
         self, button: "Button", env: "HcraftEnv", action_is_legal: np.ndarray
-    ):
+    ) -> None:
         transfo = self.button_id_to_transfo[button.get_id()]
         action = env.world.transformations.index(transfo)
         discovered = env.state.discovered_transformations[action]
@@ -315,9 +318,9 @@ class PostitionWidget(Menu):
         title: str,
         height: int,
         width: int,
-        position,
+        position: Tuple[int, int, bool],
         zones: List[Zone],
-        resources_path: str,
+        resources_path: Path,
         display_mode: DisplayMode,
     ):
         super().__init__(
@@ -347,13 +350,13 @@ class PostitionWidget(Menu):
         self.base_images = _load_base_images(zones, resources_path)
         self.resources_path = resources_path
         self.display_mode = DisplayMode(display_mode)
-        self.button_id_to_zone = {}
-        self.old_quantity = {}
+        self.button_id_to_zone: Dict[str, Zone] = {}
+        self.old_quantity: Dict[str, int] = {}
         for zone in self.zones:
             self._build_button(zone)
 
     def update_position(
-        self, position: np.ndarray, discovered: np.ndarray, events
+        self, position: np.ndarray, discovered: np.ndarray, events: Any
     ) -> bool:
         buttons = [
             widget for widget in self.get_widgets() if isinstance(widget, Button)
@@ -371,7 +374,7 @@ class PostitionWidget(Menu):
 
     def _build_button(self, zone: Zone) -> None:
         image = self.base_images[zone]
-        font = _font_path(self.resources_path)
+        font = _font_path(str(self.resources_path))
         button: "Button" = self.add.button("", border_width=0)
         if image is not None:
             decorator = button.get_decorator()

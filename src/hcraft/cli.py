@@ -11,6 +11,7 @@ from hcraft.examples import (
     TowerHcraftEnv,
 )
 from hcraft.examples.minicraft import MINICRAFT_NAME_TO_ENV
+from hcraft.examples.minicraft.minicraft import MiniCraftEnv
 from hcraft.examples.treasure import TreasureEnv
 from hcraft.purpose import Purpose
 from hcraft.render.render import HcraftWindow
@@ -105,16 +106,16 @@ def hcraft_cli(args: Optional[List[str]] = None) -> HcraftEnv:
         choices=[mode.value for mode in ContentMode],
         help="When to display transformation's content.",
     )
-    args = parser.parse_args(args)
-    if "func" in args:
-        env: "HcraftEnv" = args.func(args)
+    namespace = parser.parse_args(args)
+    if "func" in namespace:
+        env: "HcraftEnv" = namespace.func(namespace)
         return env
     raise ValueError(
         "No environment choosen. See available environments using 'hcraft --help'"
     )
 
 
-def _window_from_cli(args: Namespace):
+def _window_from_cli(args: Namespace) -> HcraftWindow:
     return HcraftWindow(
         window_shape=args.window_shape,
         player_inventory_display=args.player_inventory_display,
@@ -125,7 +126,7 @@ def _window_from_cli(args: Namespace):
     )
 
 
-def _purpose_from_cli(args: Namespace):
+def _purpose_from_cli(args: Namespace) -> Purpose:
     purpose = Purpose()
     for item_name in args.get_item:
         task = GetItemTask(Item(item_name), reward=args.goal_reward)
@@ -133,7 +134,7 @@ def _purpose_from_cli(args: Namespace):
     return purpose
 
 
-def _minecraft_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
+def _minecraft_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]") -> None:
     subparser = subparsers.add_parser(
         "minecraft",
         help="MineHcraft: Inspired from the popular game Minecraft.",
@@ -141,7 +142,7 @@ def _minecraft_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
     subparser.set_defaults(func=_minehcraft_from_cli)
 
 
-def _minehcraft_from_cli(args: Namespace):
+def _minehcraft_from_cli(args: Namespace) -> MineHcraftEnv:
     window = _window_from_cli(args)
     purpose = _purpose_from_cli(args)
     env = MineHcraftEnv(
@@ -152,7 +153,7 @@ def _minehcraft_from_cli(args: Namespace):
     return env
 
 
-def _minicraft_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
+def _minicraft_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]") -> None:
     subparser = subparsers.add_parser(
         "minicraft",
         help="MiniHcraft: Bunch of environments inspired from MiniGrid environments.",
@@ -166,7 +167,7 @@ def _minicraft_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
     subparser.set_defaults(func=_minicraft_from_cli)
 
 
-def _minicraft_from_cli(args: Namespace):
+def _minicraft_from_cli(args: Namespace) -> MiniCraftEnv:
     window = _window_from_cli(args)
     return MINICRAFT_NAME_TO_ENV[args.name](
         render_window=window,
@@ -174,7 +175,7 @@ def _minicraft_from_cli(args: Namespace):
     )
 
 
-def _tower_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
+def _tower_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]") -> None:
     subparser = subparsers.add_parser(
         "tower",
         help="TowerHcraft: Evaluate sub-behaviors reusability.",
@@ -193,7 +194,7 @@ def _tower_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
     )
 
 
-def _towerhcraft_from_cli(args: Namespace):
+def _towerhcraft_from_cli(args: Namespace) -> TowerHcraftEnv:
     window = _window_from_cli(args)
     env = TowerHcraftEnv(
         height=args.height,
@@ -204,7 +205,7 @@ def _towerhcraft_from_cli(args: Namespace):
     return env
 
 
-def _treasure_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
+def _treasure_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]") -> None:
     subparser = subparsers.add_parser(
         "treasure",
         help="Treasure: A simple environment for testing.",
@@ -213,7 +214,7 @@ def _treasure_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
     subparser.set_defaults(func=_treasure_from_cli)
 
 
-def _treasure_from_cli(args: Namespace):
+def _treasure_from_cli(args: Namespace) -> TreasureEnv:
     window = _window_from_cli(args)
     env = TreasureEnv(
         render_window=window,
@@ -222,7 +223,7 @@ def _treasure_from_cli(args: Namespace):
     return env
 
 
-def _recursive_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
+def _recursive_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]") -> None:
     subparser = subparsers.add_parser(
         "recursive",
         help="RecursiveHcraft: naive worst case if not using reusability.",
@@ -231,7 +232,7 @@ def _recursive_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
     subparser.add_argument("--n-items", "-n", type=int, default=6)
 
 
-def _recursivehcraft_from_cli(args: Namespace):
+def _recursivehcraft_from_cli(args: Namespace) -> RecursiveHcraftEnv:
     window = _window_from_cli(args)
     env = RecursiveHcraftEnv(
         n_items=args.n_items,
@@ -241,7 +242,9 @@ def _recursivehcraft_from_cli(args: Namespace):
     return env
 
 
-def _light_recursive_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
+def _light_recursive_sub_parser(
+    subparsers: "_SubParsersAction[ArgumentParser]",
+) -> None:
     subparser = subparsers.add_parser(
         "light-recursive",
         help="LightRecursiveHcraft: Lighter naive worst case if not using reusability.",
@@ -251,7 +254,7 @@ def _light_recursive_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]")
     subparser.add_argument("--n-required-previous", "-p", type=int, default=2)
 
 
-def _light_recursivehcraft_from_cli(args: Namespace):
+def _light_recursivehcraft_from_cli(args: Namespace) -> LightRecursiveHcraftEnv:
     window = _window_from_cli(args)
     return LightRecursiveHcraftEnv(
         n_items=args.n_items,
@@ -261,7 +264,7 @@ def _light_recursivehcraft_from_cli(args: Namespace):
     )
 
 
-def _random_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
+def _random_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]") -> None:
     subparser = subparsers.add_parser(
         "random",
         help="RandomHcraft: Random simple hierarchical structures.",
@@ -284,12 +287,12 @@ def _random_sub_parser(subparsers: "_SubParsersAction[ArgumentParser]"):
         )
 
 
-def _randomhcraft_from_cli(args: Namespace):
+def _randomhcraft_from_cli(args: Namespace) -> RandomHcraftEnv:
     window = _window_from_cli(args)
-    n_items_per_n_inputs = {
+    n_items_per_n_inputs: Optional[dict] = {
         n_inputs: getattr(args, f"n_items_{n_inputs}") for n_inputs in range(5)
     }
-    if sum(n_items_per_n_inputs.values()) == 1:
+    if n_items_per_n_inputs is not None and sum(n_items_per_n_inputs.values()) == 1:
         n_items_per_n_inputs = None
     return RandomHcraftEnv(
         n_items_per_n_inputs=n_items_per_n_inputs,

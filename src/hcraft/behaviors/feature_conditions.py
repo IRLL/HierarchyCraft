@@ -26,12 +26,12 @@ class HasStack(FeatureCondition):
         self.slot = env.world.items.index(stack.item)
 
     @staticmethod
-    def get_name(stack: Stack):
+    def get_name(stack: Stack) -> str:
         """Name of the HasStack feature condition given the stack."""
         quantity_str = _quantity_str(stack.quantity)
         return f"Has{quantity_str}{stack.item.name}?"
 
-    def __call__(self, observation) -> int:
+    def __call__(self, observation: np.ndarray) -> int:
         inventory_content = observation[: self.n_items]
         return inventory_content[self.slot] >= self.stack.quantity
 
@@ -49,11 +49,11 @@ class HasLessStack(FeatureCondition):
         self.slot = env.world.items.index(stack.item)
 
     @staticmethod
-    def get_name(stack: Stack):
+    def get_name(stack: Stack) -> str:
         """Name of the HasStack feature condition given the stack."""
         return f"Has less than {stack.quantity} {stack.item.name}?"
 
-    def __call__(self, observation) -> int:
+    def __call__(self, observation: np.ndarray) -> int:
         inventory_content = observation[: self.n_items]
         return inventory_content[self.slot] <= self.stack.quantity
 
@@ -72,11 +72,11 @@ class IsInZone(FeatureCondition):
         self.slot = env.world.slot_from_zone(zone)
 
     @staticmethod
-    def get_name(zone: Zone):
+    def get_name(zone: Zone) -> str:
         """Name of the IsInZone feature condition given the zone."""
         return f"Is in {zone.name}?"
 
-    def __call__(self, observation) -> int:
+    def __call__(self, observation: np.ndarray) -> int:
         position = observation[self.n_items : self.n_items + self.n_zones]
         return position[self.slot] == 1
 
@@ -101,13 +101,13 @@ class HasZoneItem(FeatureCondition):
         self.state = env.state
 
     @staticmethod
-    def get_name(stack: Stack, zone: Optional[Zone] = None):
+    def get_name(stack: Stack, zone: Optional[Zone] = None) -> str:
         """Name of the HasZoneItem feature condition given stack and optional zone."""
         zone_str = "Current zone" if zone is None else zone.name.capitalize()
         quantity_str = _quantity_str(stack.quantity)
         return f"{zone_str} has{quantity_str}{stack.item.name}?"
 
-    def __call__(self, observation) -> int:
+    def __call__(self, observation: np.ndarray) -> int:
         if self.zone_slot is None:
             zone_items = observation[self.n_items + self.n_zones :]
             return zone_items[self.item_slot] >= self.stack.quantity

@@ -262,19 +262,17 @@ That's it for this small customized env if you want more, be sure to check Trans
 """
 
 import collections
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
+
+from hebg import Behavior
 
 from hcraft.metrics import SuccessCounter
 from hcraft.purpose import Purpose
 from hcraft.render.render import HcraftWindow
 from hcraft.render.utils import surface_to_rgb_array
-from hcraft.solving_behaviors import (
-    Behavior,
-    build_all_solving_behaviors,
-    task_to_behavior_name,
-)
+from hcraft.solving_behaviors import build_all_solving_behaviors, task_to_behavior_name
 from hcraft.planning import HcraftPlanningProblem
 from hcraft.state import HcraftState
 
@@ -292,11 +290,11 @@ try:
     MultiBinarySpace = gym.spaces.MultiBinary
     Env = gym.Env
 except ImportError:
-    DiscreteSpace = collections.namedtuple("DiscreteSpace", "n")
-    BoxSpace = collections.namedtuple("BoxSpace", "low, high, shape, dtype")
-    TupleSpace = collections.namedtuple("TupleSpace", "spaces")
-    MultiBinarySpace = collections.namedtuple("MultiBinary", "n")
-    Env = object
+    DiscreteSpace = collections.namedtuple("DiscreteSpace", "n")  # type: ignore [no-redef, misc]
+    BoxSpace = collections.namedtuple("BoxSpace", "low, high, shape, dtype")  # type: ignore [no-redef, misc]
+    TupleSpace = collections.namedtuple("TupleSpace", "spaces")  # type: ignore [no-redef, misc]
+    MultiBinarySpace = collections.namedtuple("MultiBinarySpace", "n")  # type: ignore [no-redef, misc]
+    Env = object  # type: ignore [misc, assignment]
 
 
 class HcraftEnv(Env):
@@ -327,15 +325,15 @@ class HcraftEnv(Env):
         self.invalid_reward = invalid_reward
         self.max_step = max_step
         self.name = name
-        self._all_behaviors = None
+        self._all_behaviors: Optional[Dict[str, Behavior]] = None
 
         self.render_window = render_window
         self.render_mode = "rgb_array"
 
         self.state = HcraftState(self.world)
         self.current_step = 0
-        self.current_score = 0
-        self.cumulated_score = 0
+        self.current_score = 0.0
+        self.cumulated_score = 0.0
         self.episodes = 0
         self.task_successes: Optional[SuccessCounter] = None
         self.terminal_successes: Optional[SuccessCounter] = None
@@ -360,7 +358,7 @@ class HcraftEnv(Env):
         return self.purpose.is_terminal(self.state)
 
     @property
-    def observation_space(self) -> Union[BoxSpace, TupleSpace]:
+    def observation_space(self) -> Union[BoxSpace, TupleSpace]:  # type: ignore [override]
         """Observation space for the Agent."""
         obs_space = BoxSpace(
             low=np.array(
@@ -378,7 +376,7 @@ class HcraftEnv(Env):
         return obs_space
 
     @property
-    def action_space(self) -> DiscreteSpace:
+    def action_space(self) -> DiscreteSpace:  # type: ignore [override]
         """Action space for the Agent.
 
         Actions are expected to often be invalid.
@@ -389,7 +387,7 @@ class HcraftEnv(Env):
         """Return boolean mask of valid actions."""
         return np.array([t.is_valid(self.state) for t in self.world.transformations])
 
-    def step(self, action: int):
+    def step(self, action: int) -> Tuple[Any, float, bool, dict]:  # type: ignore [override]
         """Perform one step in the environment given the index of a wanted transformation.
 
         If the selected transformation can be performed, the state is updated and
@@ -406,6 +404,9 @@ class HcraftEnv(Env):
             ) from e
 
         self.current_step += 1
+
+        if self.task_successes is None or self.terminal_successes is None:
+            raise ValueError("Purpose was not built")
 
         self.task_successes.step_reset()
         self.terminal_successes.step_reset()
@@ -426,7 +427,9 @@ class HcraftEnv(Env):
         self.cumulated_score += reward
         return self._step_output(reward, terminated, truncated)
 
-    def render(self, mode: Optional[str] = None, **_kwargs) -> Union[str, np.ndarray]:
+    def render(  # type: ignore [override]
+        self, mode: Optional[str] = None, **_kwargs: dict
+    ) -> Union[str, np.ndarray]:
         """Render the observation of the agent in a format depending on `render_mode`."""
         if mode is not None:
             self.render_mode = mode
@@ -437,7 +440,7 @@ class HcraftEnv(Env):
             raise NotImplementedError
         raise NotImplementedError
 
-    def reset(
+    def reset(  # type: ignore [override]
         self,
         *,
         seed: Optional[int] = None,
@@ -449,13 +452,17 @@ class HcraftEnv(Env):
             (np.ndarray): The first observation.
         """
 
-        if not self.purpose.built:
+        if (
+            not self.purpose.built
+            or self.task_successes is None
+            or self.terminal_successes is None
+        ):
             self.purpose.build(self)
             self.task_successes = SuccessCounter(self.purpose.tasks)
             self.terminal_successes = SuccessCounter(self.purpose.terminal_groups)
 
         self.current_step = 0
-        self.current_score = 0
+        self.current_score = 0.0
         self.episodes += 1
 
         self.task_successes.new_episode(self.episodes)
@@ -504,7 +511,7 @@ class HcraftEnv(Env):
     def planning_problem(
         self,
         hierarchical: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> HcraftPlanningProblem:
         """Build this hcraft environment planning problem.
 
@@ -541,7 +548,9 @@ class HcraftEnv(Env):
             **kwargs,
         )
 
-    def _step_output(self, reward: float, terminated: bool, truncated: bool):
+    def _step_output(
+        self, reward: float, terminated: bool, truncated: bool
+    ) -> Tuple[Any, float, bool, dict]:
         infos = {
             "action_is_legal": self.action_masks(),
             "score": self.current_score,
@@ -574,4 +583,6 @@ class HcraftEnv(Env):
             self.render_window.build(self)
         fps = self.metadata.get("video.frames_per_second")
         self.render_window.update_rendering(fps=fps)
+        if self.render_window.screen is None:
+            raise ValueError("render window surface was not built")
         return surface_to_rgb_array(self.render_window.screen)

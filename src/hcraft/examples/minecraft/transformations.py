@@ -39,7 +39,7 @@ def _move_to_zones() -> List[Transformation]:
         destination: Zone,
         from_zone: Optional[Zone] = None,
         with_item: Optional[Item] = None,
-    ):
+    ) -> str:
         base_name = f"move-to-{destination.name}"
         if from_zone is not None:
             base_name += f"-from-{from_zone.name}"
@@ -192,7 +192,7 @@ def _zones_search() -> List[Transformation]:
     return search_item
 
 
-def _search_name(item: Item, at_zone: Zone, with_item: Optional[Item] = None):
+def _search_name(item: Item, at_zone: Zone, with_item: Optional[Item] = None) -> str:
     basename = f"search-for-{item.name}"
     if with_item is not None:
         basename += f"-with-{with_item.name}"

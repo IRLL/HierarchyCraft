@@ -6,7 +6,7 @@ Generate a random HierarchyCraft environment using basic constructor rules.
 
 """
 
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 import numpy as np
 
@@ -14,7 +14,8 @@ from hcraft.elements import Item
 from hcraft.env import HcraftEnv
 from hcraft.transformation import Transformation, Use, Yield, PLAYER
 from hcraft.world import world_from_transformations
-from hcraft.purpose import GetItemTask, Purpose
+from hcraft.purpose import Purpose
+from hcraft.task import GetItemTask
 
 
 class RandomHcraftEnv(HcraftEnv):
@@ -25,7 +26,7 @@ class RandomHcraftEnv(HcraftEnv):
         self,
         n_items_per_n_inputs: Optional[Dict[int, int]] = None,
         seed: int = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         """Random HierarchyCraft Environment.
 
@@ -38,7 +39,7 @@ class RandomHcraftEnv(HcraftEnv):
             n_items_per_n_inputs = {0: 5, 1: 5, 2: 10, 3: 5}
 
         self.seed = seed
-        self.np_random = np.random.RandomState(seed)
+        self.np_random = np.random.RandomState(seed)  # type: ignore
         self.n_items = sum(n_items_per_n_inputs.values())
         env_characteristics = "".join(
             [
@@ -88,18 +89,20 @@ class RandomHcraftEnv(HcraftEnv):
         unaccessible_items = [
             item for item in self.items if item not in accessible_items
         ]
-        self.np_random.shuffle(unaccessible_items)
+        self.np_random.shuffle(unaccessible_items)  # type: ignore
 
         while len(accessible_items) < len(self.items):
             new_accessible_item = unaccessible_items.pop()
-            inventory_changes = [Yield(PLAYER, new_accessible_item)]
+            inventory_changes: List[Union[Use, Yield]] = [
+                Yield(PLAYER, new_accessible_item)
+            ]
 
             n_inputs = int(new_accessible_item.name.split("_")[0])
             n_inputs = min(n_inputs, len(accessible_items))
 
             # Chooses randomly accessible items
             input_items = list(
-                self.np_random.choice(accessible_items, size=n_inputs, replace=False)
+                self.np_random.choice(accessible_items, size=n_inputs, replace=False)  # type: ignore
             )
             inventory_changes += [Use(PLAYER, item, consume=1) for item in input_items]
 

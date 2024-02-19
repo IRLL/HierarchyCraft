@@ -8,6 +8,7 @@ A rather large and complex requirements graph:
 </div>
 """
 from typing import Optional
+from hcraft.elements import Item
 
 import hcraft.examples.minecraft.items as items
 from hcraft.examples.minecraft.env import ALL_ITEMS, MineHcraftEnv
@@ -41,17 +42,17 @@ try:
     )
     MINEHCRAFT_GYM_ENVS.append("MineHcraft-v1")
 
-    def _to_camel_case(name: str):
+    def _to_camel_case(name: str) -> str:
         return "".join([subname.capitalize() for subname in name.split("_")])
 
     def _register_minehcraft_single_item(
-        item: items.Item,
+        item: Item,
         name: Optional[str] = None,
         success_reward: float = 10.0,
         timestep_reward: float = -0.1,
         reward_shaping: RewardShaping = RewardShaping.REQUIREMENTS_ACHIVEMENTS,
         version: int = 1,
-    ):
+    ) -> None:
         purpose = Purpose(timestep_reward=timestep_reward)
         purpose.add_task(
             GetItemTask(item, reward=success_reward),

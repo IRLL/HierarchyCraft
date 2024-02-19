@@ -474,8 +474,8 @@ def test_docstring_examples():
     world = world_from_transformations(
         transformations,
         start_zone=FOREST,
-        start_items=[Stack(DIRT, 4)],
-        start_zones_items={FOREST: [HOUSE]},
+        start_items_or_stacks=[Stack(DIRT, 4)],
+        start_zones_items_or_stack={FOREST: [HOUSE]},
     )
 
     world = world

@@ -6,6 +6,7 @@ import os
 import sys
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
+
 try:
     import pygame
     from pygame.time import Clock
@@ -25,6 +26,7 @@ from hcraft.render.widgets import (
 
 if TYPE_CHECKING:
     from pygame.event import Event
+    from pygame import Surface
 
     from hcraft.env import HcraftEnv
 
@@ -67,10 +69,12 @@ class HcraftWindow:
                 "Install using 'pip install hcraft[gui]'."
             ) from error
 
-        self.env = None
-        self.clock = None
-        self.screen = None
-        self.menus = {}
+        self.env: Optional["HcraftEnv"] = None
+        self.clock: Optional[Clock] = None
+        self.screen: Optional[Surface] = None
+        self.menus: Dict[
+            str, Union[TransformationsWidget, InventoryWidget, PostitionWidget]
+        ] = {}
         self.window_shape = window_shape
 
         self.player_inventory_display = player_inventory_display
@@ -84,7 +88,7 @@ class HcraftWindow:
         """True only if the render window has been built on a specific HierarchyCraft environement."""
         return self.env is not None
 
-    def build(self, env: "HcraftEnv"):
+    def build(self, env: "HcraftEnv") -> None:
         """Build the render window on the given environement.
 
         Args:
@@ -124,7 +128,12 @@ class HcraftWindow:
 
         """
 
-        if not self.built:
+        if (
+            not self.built
+            or self.clock is None
+            or self.screen is None
+            or self.env is None
+        ):
             raise RuntimeError("Render window tried to update before being built.")
 
         # Tick
@@ -144,7 +153,7 @@ class HcraftWindow:
 
         # Update inventories
         state = self.env.state
-        if self.menus["player_inventory"]:
+        if "player_inventory" is self.menus and self.menus["player_inventory"]:
             title = "Inventory"
             if self.env.purpose.tasks:
                 title = f"Inventory | SCORE: {self.env.current_score}"
@@ -154,14 +163,14 @@ class HcraftWindow:
             self.menus["player_inventory"].draw(self.screen)
 
         # Update position
-        if self.menus["position"]:
+        if "position" in self.menus and self.menus["position"]:
             self.menus["position"].update_position(
                 state.position, state.discovered_zones, events
             )
             self.menus["position"].draw(self.screen)
 
         # Update zone inventory
-        if self.menus["zone_inventory"]:
+        if "zone_inventory" in self.menus and self.menus["zone_inventory"]:
             self.menus["zone_inventory"].update_inventory(
                 state.current_zone_inventory, state.discovered_zones_items, events
             )
@@ -172,10 +181,10 @@ class HcraftWindow:
         self.menus["actions"].draw(self.screen)
 
         # Gather action taken if any
-        action_taken = None
+        action_taken: Optional[int] = None
         selected_widget = self.menus["actions"].get_selected_widget()
         if selected_widget is not None and selected_widget.update(events):
-            action_taken: int = selected_widget.apply()
+            action_taken = selected_widget.apply()
 
         # Update surface
         pygame.display.update()
@@ -197,6 +206,9 @@ class HcraftWindow:
 
         """
 
+        if self.env is None:
+            raise ValueError("Env was not built")
+
         # Transformations (Actions)
         menus_shapes = menus_sizes(
             self.env.world.n_items,
@@ -205,13 +217,15 @@ class HcraftWindow:
             self.window_shape,
         )
 
+        ressources_path = self.env.world.resources_path
+
         actions_menu = TransformationsWidget(
             title="Actions",
             height=menus_shapes["actions"][1],
             width=menus_shapes["actions"][0],
             transformations=self.env.world.transformations,
             position=(0, 0),
-            resources_path=self.env.world.resources_path,
+            resources_path=ressources_path,
             display_mode=transformation_display_mode,
             content_display_mode=transformation_content_mode,
             theme=THEME_DARK,
@@ -226,7 +240,7 @@ class HcraftWindow:
                 width=menus_shapes["player"][0],
                 position=(menus_shapes["actions"][0], 0, False),
                 items=self.env.world.items,
-                resources_path=self.env.world.resources_path,
+                resources_path=ressources_path,
                 rows=3,
                 display_mode=player_inventory_display,
                 theme=Theme(
@@ -249,7 +263,7 @@ class HcraftWindow:
                 width=menus_shapes["position"][0],
                 position=zone_position,
                 zones=self.env.world.zones,
-                resources_path=self.env.world.resources_path,
+                resources_path=ressources_path,
                 display_mode=position_display,
             )
 
@@ -262,7 +276,7 @@ class HcraftWindow:
                 width=menus_shapes["zone"][0],
                 position=zone_position,
                 items=self.env.world.zones_items,
-                resources_path=self.env.world.resources_path,
+                resources_path=ressources_path,
                 display_mode=zone_inventory_display,
                 rows=5,
                 theme=Theme(
@@ -276,12 +290,17 @@ class HcraftWindow:
                 ),
             )
 
-        return {
-            "actions": actions_menu,
-            "player_inventory": player_inventory,
-            "zone_inventory": zone_inventory,
-            "position": position,
-        }
+        menus: Dict[
+            str, Union[TransformationsWidget, InventoryWidget, PostitionWidget]
+        ] = {"actions": actions_menu}
+        if player_inventory is not None:
+            menus["player_inventory"] = player_inventory
+        if zone_inventory is not None:
+            menus["zone_inventory"] = zone_inventory
+        if position is not None:
+            menus["position"] = position
+
+        return menus
 
     def close(self):
         """Closes the pygame window."""

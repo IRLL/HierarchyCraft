@@ -49,7 +49,8 @@ import hcraft.planning as planning
 
 from hcraft.elements import Item, Stack, Zone
 from hcraft.transformation import Transformation
-from hcraft.env import HcraftEnv, HcraftState
+from hcraft.env import HcraftEnv
+from hcraft.state import HcraftState
 from hcraft.purpose import Purpose
 from hcraft.render.human import get_human_action, render_env_with_human
 from hcraft.task import GetItemTask, GoToZoneTask, PlaceItemTask

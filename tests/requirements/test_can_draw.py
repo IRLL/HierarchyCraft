@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 @pytest.mark.slow
 @pytest.mark.parametrize("env_class", EXAMPLE_ENVS)
-def test_can_draw(env_class: Type[HcraftEnv], mocker: MockerFixture):
+def test_can_draw(env_class: Type[HcraftEnv], mocker: MockerFixture) -> None:
     draw_plt = True
     draw_html = True
     save = False

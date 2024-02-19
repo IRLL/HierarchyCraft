@@ -1,12 +1,12 @@
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Dict, Optional, Union
 
 import numpy as np
 
 from hcraft.transformation import InventoryOwner
+from hcraft.elements import Zone, Item
 
 if TYPE_CHECKING:
     from hcraft.world import World
-    from hcraft.elements import Zone, Item
 
 
 class HcraftState:
@@ -46,7 +46,7 @@ class HcraftState:
         """Inventory of the zone where the player is."""
         if self.position.shape[0] == 0:
             return np.array([])  # No Zone
-        return self.zones_inventories[self._current_zone_slot, :][0]
+        return self.zones_inventories[self._current_zone_slot, :]
 
     @property
     def observation(self) -> np.ndarray:
@@ -65,7 +65,11 @@ class HcraftState:
             )
         )
 
-    def amount_of(self, item: "Item", owner: Optional["Zone"] = "player") -> int:
+    def amount_of(
+        self,
+        item: "Item",
+        owner: Optional[Union[str, "Zone", InventoryOwner]] = "player",
+    ) -> int:
         """Current amount of the given item owned by owner.
 
         Args:
@@ -76,7 +80,7 @@ class HcraftState:
             int: Amount of the item in the owner's inventory.
         """
 
-        if owner in self.world.zones:
+        if isinstance(owner, Zone) and owner in self.world.zones:
             zone_index = self.world.zones.index(owner)
             zone_item_index = self.world.zones_items.index(item)
             return int(self.zones_inventories[zone_index, zone_item_index])
@@ -101,11 +105,11 @@ class HcraftState:
         """Current position of the player."""
         if self.world.n_zones == 0:
             return None
-        return self.world.zones[self._current_zone_slot[0]]
+        return self.world.zones[self._current_zone_slot]
 
     @property
     def _current_zone_slot(self) -> int:
-        return self.position.nonzero()[0]
+        return int(self.position.nonzero()[0])
 
     @property
     def player_inventory_dict(self) -> Dict["Item", int]:
@@ -186,7 +190,7 @@ class HcraftState:
             self.discovered_transformations[action] = 1
 
     @staticmethod
-    def _inv_as_dict(inventory_array: np.ndarray, obj_registry: list):
+    def _inv_as_dict(inventory_array: np.ndarray, obj_registry: list) -> dict:
         return {
             obj_registry[index]: value
             for index, value in enumerate(inventory_array)
@@ -194,7 +198,7 @@ class HcraftState:
         }
 
     def as_dict(self) -> dict:
-        state_dict = {
+        state_dict: dict = {
             "pos": self.current_zone,
             InventoryOwner.PLAYER.value: self.player_inventory_dict,
         }

@@ -43,7 +43,7 @@ def test_purposed_minehcraft_cli():
 
 
 @pytest.mark.parametrize("env_name", ENV_NAMES)
-def test_maxstep_cli(env_name: str):
+def test_maxstep_cli(env_name: str) -> None:
     env = hcraft_cli(["--max-step", "100", env_name])
     check.equal(env.max_step, 100)
 

@@ -29,7 +29,7 @@ class GetItem(Behavior):
         self,
         item: Item,
         env: "HcraftEnv",
-        all_behaviors: Dict[Union[int, str], Behavior],
+        all_behaviors: Dict[str, Behavior],
     ):
         super().__init__(name=self.get_name(item))
         self.env = env
@@ -37,7 +37,7 @@ class GetItem(Behavior):
         self.all_behaviors = all_behaviors
 
     @staticmethod
-    def get_name(item: Item):
+    def get_name(item: Item) -> str:
         """Get the name of the behavior."""
         return f"Get {item.name}"
 
@@ -66,7 +66,7 @@ class DropItem(Behavior):
         self,
         item: Item,
         env: "HcraftEnv",
-        all_behaviors: Dict[Union[int, str], Behavior],
+        all_behaviors: Dict[str, Behavior],
     ):
         super().__init__(name=self.get_name(item))
         self.env = env
@@ -74,7 +74,7 @@ class DropItem(Behavior):
         self.all_behaviors = all_behaviors
 
     @staticmethod
-    def get_name(item: Item):
+    def get_name(item: Item) -> str:
         """Get the name of the behavior."""
         return f"Drop {item.name}"
 
@@ -107,7 +107,7 @@ class PlaceItem(Behavior):
         self,
         item: Item,
         env: "HcraftEnv",
-        all_behaviors: Dict[Union[int, str], Behavior],
+        all_behaviors: Dict[str, Behavior],
         zone: Optional[Zone] = None,
     ):
         self.item = item
@@ -117,7 +117,7 @@ class PlaceItem(Behavior):
         self.all_behaviors = all_behaviors
 
     @staticmethod
-    def get_name(item: Item, zone: Optional[Zone] = None):
+    def get_name(item: Item, zone: Optional[Zone] = None) -> str:
         """Get the name of the behavior to reach a zone."""
         return f"Place {item.name}{_zones_str(zone)}"
 
@@ -168,7 +168,7 @@ class PlaceItem(Behavior):
         zones_items: Optional[Dict[Zone, List[Stack]]],
         zone: Optional[Zone],
         destination: Optional[Zone],
-    ):
+    ) -> bool:
         zone_is_valid = self.zone is None or zone is None or zone == self.zone
         if zone_is_valid and self._item_is_in_stack(zone_items):
             return True
@@ -184,7 +184,7 @@ class PlaceItem(Behavior):
 
     def _zone_item_in_dict_of_stacks(
         self, dict_of_stack: Optional[Dict["Zone", List["Stack"]]]
-    ):
+    ) -> bool:
         if dict_of_stack is None:
             return False
         valid_zones = list(dict_of_stack.keys()) if self.zone is None else [self.zone]
@@ -206,7 +206,7 @@ class ReachZone(Behavior):
         self,
         zone: Zone,
         env: "HcraftEnv",
-        all_behaviors: Dict[Union[int, str], Behavior],
+        all_behaviors: Dict[str, Behavior],
     ):
         super().__init__(name=self.get_name(zone))
         self.env = env
@@ -214,7 +214,7 @@ class ReachZone(Behavior):
         self.all_behaviors = all_behaviors
 
     @staticmethod
-    def get_name(zone: Zone):
+    def get_name(zone: Zone) -> str:
         """Get the name of the behavior to reach a zone."""
         return f"Reach {zone.name}"
 
@@ -239,7 +239,7 @@ class AbleAndPerformTransformation(Behavior):
         self,
         env: "HcraftEnv",
         transformation: "Transformation",
-        all_behaviors: Dict[Union[int, str], Behavior],
+        all_behaviors: Dict[str, Behavior],
     ):
         super().__init__(name=self.get_name(transformation))
         self.env = env
@@ -247,7 +247,7 @@ class AbleAndPerformTransformation(Behavior):
         self.all_behaviors = all_behaviors
 
     @staticmethod
-    def get_name(transformation: "Transformation"):
+    def get_name(transformation: "Transformation") -> str:
         """Name of the behavior to able the transformation."""
         return f"Able and do {transformation.name}"
 

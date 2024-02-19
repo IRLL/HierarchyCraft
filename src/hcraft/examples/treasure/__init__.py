@@ -9,11 +9,11 @@ Requirements graph:
 """
 
 from pathlib import Path
-from typing import List
+from typing import Any, List
 
 from hcraft.elements import Item, Zone
 from hcraft.env import HcraftEnv
-from hcraft.purpose import GetItemTask
+from hcraft.task import GetItemTask
 from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZONE
 from hcraft.world import world_from_transformations
 
@@ -50,12 +50,12 @@ class TreasureEnv(HcraftEnv):
     KEY = Item("key")
     """A key ... it can probably unlock things."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         transformations = self._build_transformations()
         world = world_from_transformations(
             transformations=transformations,
             start_zone=self.START_ROOM,
-            start_zones_items={self.TREASURE_ROOM: [self.LOCKED_CHEST]},
+            start_zones_items_or_stack={self.TREASURE_ROOM: [self.LOCKED_CHEST]},
         )
         world.resources_path = Path(__file__).parent / "resources"
         super().__init__(

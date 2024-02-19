@@ -55,20 +55,18 @@ from hcraft.behaviors.behaviors import (
 from hcraft.requirements import RequirementNode, req_node_name
 from hcraft.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
 
-from hebg.unrolling import unroll_graph
-
 if TYPE_CHECKING:
     from hcraft.env import HcraftEnv
 
 
 def build_all_solving_behaviors(env: "HcraftEnv") -> Dict[str, "Behavior"]:
     """Return a dictionary of handcrafted behaviors to get each item, zone and property."""
-    all_behaviors = {}
-    all_behaviors = _reach_zones_behaviors(env, all_behaviors)
-    all_behaviors = _get_item_behaviors(env, all_behaviors)
-    all_behaviors = _drop_item_behaviors(env, all_behaviors)
-    all_behaviors = _get_zone_item_behaviors(env, all_behaviors)
-    all_behaviors = _do_transfo_behaviors(env, all_behaviors)
+    all_behaviors: Dict[str, Behavior] = {}
+    _reach_zones_behaviors(env, all_behaviors)
+    _get_item_behaviors(env, all_behaviors)
+    _drop_item_behaviors(env, all_behaviors)
+    _get_zone_item_behaviors(env, all_behaviors)
+    _do_transfo_behaviors(env, all_behaviors)
 
     empty_behaviors = []
     for name, behavior in all_behaviors.items():
@@ -127,39 +125,42 @@ def task_to_behavior_name(task: Task) -> str:
     return behavior_name
 
 
-def _reach_zones_behaviors(env: "HcraftEnv", all_behaviors: Dict[str, "Behavior"]):
+def _reach_zones_behaviors(
+    env: "HcraftEnv", all_behaviors: Dict[str, "Behavior"]
+) -> None:
     for zone in env.world.zones:
         behavior = ReachZone(zone, env, all_behaviors=all_behaviors)
         all_behaviors[behavior.name] = behavior
-    return all_behaviors
 
 
-def _get_item_behaviors(env: "HcraftEnv", all_behaviors: Dict[str, "Behavior"]):
+def _get_item_behaviors(env: "HcraftEnv", all_behaviors: Dict[str, "Behavior"]) -> None:
     for item in env.world.items:
         behavior = GetItem(item, env, all_behaviors=all_behaviors)
         all_behaviors[behavior.name] = behavior
-    return all_behaviors
 
 
-def _drop_item_behaviors(env: "HcraftEnv", all_behaviors: Dict[str, "Behavior"]):
+def _drop_item_behaviors(
+    env: "HcraftEnv", all_behaviors: Dict[str, "Behavior"]
+) -> None:
     for item in env.world.items:
         behavior = DropItem(item, env, all_behaviors=all_behaviors)
         all_behaviors[behavior.name] = behavior
-    return all_behaviors
 
 
-def _get_zone_item_behaviors(env: "HcraftEnv", all_behaviors: Dict[str, "Behavior"]):
+def _get_zone_item_behaviors(
+    env: "HcraftEnv", all_behaviors: Dict[str, "Behavior"]
+) -> None:
     for zone in [None] + env.world.zones:  # Anywhere + in every specific zone
         for item in env.world.zones_items:
             behavior = PlaceItem(item, env, all_behaviors=all_behaviors, zone=zone)
             all_behaviors[behavior.name] = behavior
-    return all_behaviors
 
 
-def _do_transfo_behaviors(env: "HcraftEnv", all_behaviors: Dict[str, "Behavior"]):
+def _do_transfo_behaviors(
+    env: "HcraftEnv", all_behaviors: Dict[str, "Behavior"]
+) -> None:
     for transfo in env.world.transformations:
         behavior = AbleAndPerformTransformation(
             env, transfo, all_behaviors=all_behaviors
         )
         all_behaviors[behavior.name] = behavior
-    return all_behaviors

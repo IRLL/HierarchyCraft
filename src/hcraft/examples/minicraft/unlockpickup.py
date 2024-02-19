@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List
 
 from hcraft.elements import Item, Zone
 from hcraft.task import GetItemTask
@@ -33,14 +33,9 @@ class MiniHCraftUnlockPickup(MiniCraftEnv):
     LOCKED_DOOR = Item("locked_door")
     """Locked door between the two rooms, can be unlocked with a key."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         self.task = GetItemTask(self.BOX)
-        super().__init__(
-            self.MINICRAFT_NAME,
-            purpose=self.task,
-            start_zone=self.START,
-            **kwargs,
-        )
+        super().__init__(purpose=self.task, start_zone=self.START, **kwargs)
 
     def build_transformations(self) -> List[Transformation]:
         transformations = []

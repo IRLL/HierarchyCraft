@@ -11,7 +11,7 @@ def get_human_action(
     additional_events: List["Event"] = None,
     can_be_none: bool = False,
     fps: Optional[float] = None,
-):
+) -> Optional[int]:
     """Update the environment rendering and gather potential action given by the UI.
 
     Args:
@@ -24,6 +24,10 @@ def get_human_action(
         The action found using the UI.
 
     """
+
+    if env.render_window is None:
+        raise ValueError("Render window was not built")
+
     action_chosen = False
     while not action_chosen:
         action = env.render_window.update_rendering(additional_events, fps)
@@ -31,7 +35,7 @@ def get_human_action(
     return action
 
 
-def render_env_with_human(env: "HcraftEnv", n_episodes: int = 1):
+def render_env_with_human(env: "HcraftEnv", n_episodes: int = 1) -> None:
     """Render the given environment with human iteractions.
 
     Args:
@@ -43,10 +47,12 @@ def render_env_with_human(env: "HcraftEnv", n_episodes: int = 1):
     for _ in range(n_episodes):
         env.reset()
         done = False
-        total_reward = 0
+        total_reward = 0.0
         while not done:
             env.render()
             action = get_human_action(env)
+            if action is None:
+                raise ValueError("Action is None")
             print(f"Human did: {env.world.transformations[action]}")
 
             _observation, reward, done, _info = env.step(action)

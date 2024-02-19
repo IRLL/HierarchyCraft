@@ -3,7 +3,8 @@ import pytest_check as check
 
 from hcraft.elements import Item
 from hcraft.env import HcraftEnv
-from hcraft.purpose import GetItemTask, PlaceItemTask, Purpose
+from hcraft.purpose import Purpose
+from hcraft.task import GetItemTask, PlaceItemTask
 from tests.envs import classic_env
 
 

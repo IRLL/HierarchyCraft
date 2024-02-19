@@ -75,7 +75,7 @@ If multiple terminal groups exists in the purpose, the PDDL goal will be the hig
 
 """
 
-from typing import TYPE_CHECKING, Dict, Optional, Union, List
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union, List
 from copy import deepcopy
 
 
@@ -116,8 +116,9 @@ except ImportError:
 if TYPE_CHECKING:
     from hcraft.state import HcraftState
     from hcraft.world import World
+    from unified_planning.model.fnode import FNode
 
-Statistics = Dict[str, Union[int, float]]
+Statistics = Dict[str, Union[str, float, int]]
 
 
 class HcraftPlanningProblem:
@@ -175,15 +176,18 @@ class HcraftPlanningProblem:
         if self.plan is None:
             self.update_problem_to_state(self.upf_problem, state)
             self.solve()
-        if not self.plan.actions:  # Empty plan, nothing to do
+        actions: Optional[list] = self.plan.actions  # type: ignore
+        if not actions:  # Empty plan, nothing to do
             return None
-        plan_action_name = str(self.plan.actions.pop(0))
-        if not self.plan.actions:
+        plan_action_name = str(actions.pop(0))
+        if not actions:
             self.plan = None
         action = int(plan_action_name.split("_")[0])
         return action
 
-    def update_problem_to_state(self, upf_problem: "Problem", state: "HcraftState"):
+    def update_problem_to_state(
+        self, upf_problem: "Problem", state: "HcraftState"
+    ) -> None:
         """Update the planning problem initial state to the given state.
 
         Args:
@@ -262,7 +266,7 @@ class HcraftPlanningProblem:
         state: "HcraftState",
         name: str,
         purpose: Optional["Purpose"],
-    ):
+    ) -> HierarchicalProblem:
         upf_problem = HierarchicalProblem(name)
         self._add_base_flat_problem(upf_problem, state.world)
         self.update_problem_to_state(upf_problem, state)
@@ -273,7 +277,7 @@ class HcraftPlanningProblem:
 
     def _add_init_task_network_from_purpose(
         self, hproblem: "HierarchicalProblem", purpose: "Purpose"
-    ):
+    ) -> None:
         for task in purpose.best_terminal_group.tasks:
             if isinstance(task, GetItemTask):
                 stack = task.item_stack
@@ -287,7 +291,7 @@ class HcraftPlanningProblem:
 
     def _add_tasks_to_hierarchical_problem(
         self, hproblem: "HierarchicalProblem", world: "World"
-    ):
+    ) -> None:
         # Get enough of item tasks
         self.get_enough_of_item_task: Dict[Item, "UpfHTask"] = {}
         for item in world.items:
@@ -349,7 +353,7 @@ class HcraftPlanningProblem:
 
     def _add_base_flat_problem(
         self, upf_problem: Union["Problem", "HierarchicalProblem"], world: "World"
-    ):
+    ) -> None:
         self._add_objects_to_problem(
             upf_problem, world.zones, world.items, world.zones_items
         )
@@ -360,7 +364,7 @@ class HcraftPlanningProblem:
         self,
         upf_problem: Union["Problem", "HierarchicalProblem"],
         transformations: List["Transformation"],
-    ):
+    ) -> None:
         self.transformation_action: Dict[int, "InstantaneousAction"] = {}
         for t_id, transfo in enumerate(transformations):
             self.transformation_action[t_id] = self._action_from_transformation(
@@ -371,7 +375,7 @@ class HcraftPlanningProblem:
 
     def _add_fluents_to_problem(
         self, upf_problem: Union["Problem", "HierarchicalProblem"]
-    ):
+    ) -> None:
         self.pos = Fluent("pos", BoolType(), zone=self.zone_type)
         self.visited = Fluent("visited", BoolType(), zone=self.zone_type)
         self.amount = Fluent("amount", IntType(), item=self.player_item_type)
@@ -390,7 +394,7 @@ class HcraftPlanningProblem:
         zones: List[Zone],
         items: List[Item],
         zones_items: List[Item],
-    ):
+    ) -> None:
         self.zone_type = UserType("zone")
         self.player_item_type = UserType("player_item")
         self.zone_item_type = UserType("zone_item")
@@ -454,14 +458,14 @@ class HcraftPlanningProblem:
     @staticmethod
     def _name_from_transformation(
         transformation: "Transformation", transformation_id: int
-    ):
+    ) -> str:
         return f"{transformation_id}_{transformation.name}"
 
     def _add_player_operation(
         self,
         action: "InstantaneousAction",
         transfo: Transformation,
-    ):
+    ) -> None:
         player = InventoryOwner.PLAYER
         for stack in transfo.get_changes(player, "add", []):
             stack_amount = self.amount(self.items_obj[stack.item])
@@ -483,8 +487,8 @@ class HcraftPlanningProblem:
         self,
         action: "InstantaneousAction",
         transfo: Transformation,
-        loc,
-    ):
+        loc: Optional[Any],
+    ) -> None:
         current = InventoryOwner.CURRENT
         for stack in transfo.get_changes(current, "add", []):
             amount_at_loc = self.amount_at(self.zone_items_obj[stack.item], loc)
@@ -502,7 +506,7 @@ class HcraftPlanningProblem:
             stack_amount = self.amount_at(self.zone_items_obj[min_stack.item], loc)
             action.add_precondition(GE(stack_amount, min_stack.quantity))
 
-    def _task_to_goal(self, task: "Task"):
+    def _task_to_goal(self, task: "Task") -> Any:
         if isinstance(task, GetItemTask):
             item = self.items_obj[task.item_stack.item]
             return GE(self.amount(item), task.item_stack.quantity)
@@ -525,7 +529,7 @@ class HcraftPlanningProblem:
             return self.visited(self.zones_obj[task.zone])
         raise NotImplementedError
 
-    def _purpose_to_goal(self, purpose: "Purpose"):
+    def _purpose_to_goal(self, purpose: "Purpose") -> "FNode":
         # Individual tasks goals
         goals = {}
         for task in purpose.tasks:
@@ -547,7 +551,7 @@ def _read_statistics(results: "PlanGenerationResult") -> Statistics:
     )
 
 
-def _read_lpg_stats(results: "PlanGenerationResult"):
+def _read_lpg_stats(results: "PlanGenerationResult") -> Statistics:
     metric = results.metrics if results.metrics is not None else {}
     statistic_logs = results.log_messages[0].message.split("\n\n")[-1].split("\r\n")
 
@@ -569,13 +573,13 @@ def _read_lpg_stats(results: "PlanGenerationResult"):
     return metric
 
 
-def _read_aries_stats(results: "PlanGenerationResult"):
+def _read_aries_stats(results: "PlanGenerationResult") -> Statistics:
     return results.metrics
 
 
-def _read_enhsp_stats(results: "PlanGenerationResult"):
+def _read_enhsp_stats(results: "PlanGenerationResult") -> Statistics:
     statistic_logs = results.log_messages[0].message.split("\n\n")[-1].split("\n")
-    stats = {}
+    stats: Statistics = {}
     for stat_log in statistic_logs:
         stat_log = stat_log.replace("\r", "")
         name_and_value = stat_log.split(":")

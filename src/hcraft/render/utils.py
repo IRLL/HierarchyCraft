@@ -4,7 +4,7 @@ import logging
 import os
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -30,7 +30,7 @@ logging.getLogger("PIL").setLevel(logging.INFO)
 logging.getLogger("matplotlib.font_manager").setLevel(logging.INFO)
 
 
-def obj_image_path(obj: Union[Item, Zone], resources_path: Path):
+def obj_image_path(obj: Union[Item, Zone], resources_path: Path) -> Path:
     if isinstance(obj, Item):
         return resources_path.joinpath("items", f"{obj.name}.png")
     elif isinstance(obj, Zone):
@@ -80,7 +80,7 @@ def load_image(resources_path: Path, obj: Union[Item, Zone]) -> Optional[Image.I
 def draw_text_on_image(
     image: "Image.Image",
     text: str,
-    resources_path: str,
+    resources_path: Path,
     text_relative_size: float = 0.3,
 ) -> Optional["BaseImage"]:
     """Draw on top of an image, converting it to Pygame image.
@@ -95,7 +95,7 @@ def draw_text_on_image(
         A BaseImage corresponding with the given text.
 
     """
-    font_path = _font_path(resources_path)
+    font_path = _font_path(str(resources_path))
     image = image.copy()
     image_draw = ImageDraw.Draw(image)
     text_px_size = int(3 * text_relative_size * min(image.size))
@@ -114,7 +114,7 @@ def _to_menu_image(image: "Image.Image", scaling: float) -> "BaseImage":
 
 
 def create_text_image(
-    text: str, resources_path: str, image_size=(None, 120)
+    text: str, resources_path: Path, width: Optional[int] = None, height: int = 120
 ) -> "Image.Image":
     """Create a PIL image for an Item or Zone.
 
@@ -126,17 +126,15 @@ def create_text_image(
         A PIL image corresponding to the given object.
 
     """
-    if image_size[0] is None:
-        image_size = (image_size[1] * len(text) // 4, image_size[1])
+    if width is None:
+        width = height * len(text) // 4
 
-    image = Image.new("RGBA", image_size, (0, 0, 0, 0))
+    image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
 
-    center_x, center_y = image_size[0] // 2, image_size[1] // 2
-    font_path = _font_path(resources_path)
-    text_pt_size = min(
-        int(0.60 * image_size[1]), int(4 * 0.60 * image_size[0] / len(text))
-    )
+    center_x, center_y = width // 2, height // 2
+    font_path = _font_path(str(resources_path))
+    text_pt_size = min(int(0.60 * height), int(4 * 0.60 * width / len(text)))
     font = ImageFont.truetype(font_path, size=text_pt_size)
     draw.text((center_x, center_y), text, fill=(200, 200, 200), font=font, anchor="mm")
     return image
@@ -144,28 +142,37 @@ def create_text_image(
 
 def build_transformation_image(
     transformation: "Transformation",
-    resources_path: str,
-    zone_bg_color=(185, 215, 115),
-    dest_bg_color=(220, 200, 175),
-):
+    resources_path: Path,
+    zone_bg_color: Tuple[int, int, int] = (185, 215, 115),
+    dest_bg_color: Tuple[int, int, int] = (220, 200, 175),
+) -> "Image.Image":
     """Build a transformation image from items and zones images."""
     added_images: List[Image.Image] = []
 
     added_player_items = transformation.get_changes("player", "add")
+
     if added_player_items is not None:
+        if isinstance(added_player_items, dict):
+            raise TypeError()
         added_images += load_or_create_images(added_player_items, resources_path)
     added_zone_items = transformation.get_changes("current_zone", "add")
     if added_zone_items is not None:
+        if isinstance(added_zone_items, dict):
+            raise TypeError()
         added_images += load_or_create_images(
             added_zone_items, resources_path, bg_color=zone_bg_color
         )
     added_destination_items = transformation.get_changes("destination", "add")
     if added_destination_items is not None:
+        if isinstance(added_destination_items, dict):
+            raise TypeError()
         added_images += load_or_create_images(
             added_destination_items, resources_path, bg_color=dest_bg_color
         )
     added_zones_items = transformation.get_changes("zones", "add")
     if added_zones_items is not None:
+        if not isinstance(added_zones_items, dict):
+            raise TypeError()
         for _zone, zones_items in added_zones_items.items():
             added_images += load_or_create_images(
                 zones_items, resources_path, bg_color=dest_bg_color
@@ -176,14 +183,20 @@ def build_transformation_image(
     removed_images: List["Image.Image"] = []
     removed_player_items = transformation.get_changes("player", "remove")
     if removed_player_items is not None:
+        if isinstance(removed_player_items, dict):
+            raise TypeError()
         removed_images += load_or_create_images(removed_player_items, resources_path)
     removed_zone_items = transformation.get_changes("current_zone", "remove")
     if removed_zone_items is not None:
+        if isinstance(removed_zone_items, dict):
+            raise TypeError()
         removed_images += load_or_create_images(
             removed_zone_items, resources_path, bg_color=zone_bg_color
         )
     removed_destination_items = transformation.get_changes("destination", "remove")
     if removed_destination_items is not None:
+        if isinstance(removed_destination_items, dict):
+            raise TypeError()
         removed_images += load_or_create_images(
             removed_destination_items,
             resources_path,
@@ -192,6 +205,8 @@ def build_transformation_image(
 
     removed_zones_items = transformation.get_changes("zones", "remove")
     if removed_zones_items is not None:
+        if not isinstance(removed_zones_items, dict):
+            raise TypeError()
         for _zone, zones_items in removed_zones_items.items():
             added_images += load_or_create_images(
                 zones_items, resources_path, bg_color=dest_bg_color
@@ -217,23 +232,33 @@ def build_transformation_image(
     return transformation_image
 
 
-def load_or_create_image(obj: Union[Stack, Zone], resources_path: Path, bg_color=None):
+def load_or_create_image(
+    stack_or_zone: Union[Item, Stack, Zone],
+    resources_path: Path,
+    bg_color: Optional[Tuple[int, int, int]] = None,
+) -> "Image":
     """Load or create an image for an item or zone."""
 
-    if isinstance(obj, Stack):
-        obj_name = str(obj)
-        quantity = obj.quantity
-        obj = obj.item
-    else:
-        obj_name = obj.name
+    item_or_zone: Union[Item, Zone]
+    if isinstance(stack_or_zone, (Zone, Item)):
+        obj_name = stack_or_zone.name
         quantity = 0
+        item_or_zone = stack_or_zone
+    elif isinstance(stack_or_zone, Stack):
+        obj_name = str(stack_or_zone)
+        quantity = stack_or_zone.quantity
+        item_or_zone = stack_or_zone.item
+    else:
+        raise TypeError("Unexpeted type for stack_or_zone: %s", type(stack_or_zone))
 
-    image = load_image(obj=obj, resources_path=resources_path)
+    image = load_image(obj=item_or_zone, resources_path=resources_path)
     if image is None:
-        image_size = (None, 120)
-        if isinstance(obj, Zone):
+        image_size: Tuple[Optional[int], int] = (None, 120)
+        if isinstance(item_or_zone, Zone):
             image_size = (699, 394)
-        image = create_text_image(obj_name, resources_path, image_size=image_size)
+        image = create_text_image(
+            obj_name, resources_path, width=image_size[0], height=image_size[1]
+        )
     elif quantity > 1:
         image = draw_text_on_image(image, str(quantity), resources_path)
     if bg_color is not None:
@@ -243,7 +268,9 @@ def load_or_create_image(obj: Union[Stack, Zone], resources_path: Path, bg_color
 
 
 def load_or_create_images(
-    objs: List[Union[Stack, Zone]], resources_path: str, bg_color=None
+    objs: Sequence[Union[Stack, Zone]],
+    resources_path: Path,
+    bg_color: Optional[Tuple[int, int, int]] = None,
 ) -> List["Image.Image"]:
     """Load or create images for the given objects."""
     return [load_or_create_image(obj, resources_path, bg_color) for obj in objs]
@@ -272,7 +299,7 @@ def surface_to_rgb_array(surface: "Surface") -> np.ndarray:
     return pygame.surfarray.array3d(surface).swapaxes(0, 1)
 
 
-def _font_path(resources_path: str):
+def _font_path(resources_path: str) -> str:
     from hcraft.world import _default_resources_path
 
     font_path = os.path.join(resources_path, "font.ttf")
@@ -281,7 +308,9 @@ def _font_path(resources_path: str):
     return font_path
 
 
-def _get_scale_ratio(initial_shape, wanted_shape) -> float:
+def _get_scale_ratio(
+    initial_shape: Tuple[int, int], wanted_shape: Tuple[int, int]
+) -> float:
     if wanted_shape[0] == initial_shape[0] or wanted_shape[1] == initial_shape[1]:
         return 1
     if wanted_shape[0] > initial_shape[0]:

@@ -24,7 +24,7 @@ from hcraft.transformation import PLAYER, Transformation, Use, Yield
 from hcraft.world import world_from_transformations
 
 
-from typing import List
+from typing import Any, List, Union
 
 
 # gym is an optional dependency
@@ -44,7 +44,7 @@ class LightRecursiveHcraftEnv(HcraftEnv):
 
     """LightRecursive environment."""
 
-    def __init__(self, n_items: int = 6, n_required_previous: int = 2, **kwargs):
+    def __init__(self, n_items: int = 6, n_required_previous: int = 2, **kwargs: Any):
         self.n_items = n_items
         self.n_required_previous = n_required_previous
         if n_required_previous == 1:
@@ -72,7 +72,7 @@ class LightRecursiveHcraftEnv(HcraftEnv):
 
         for index, item in enumerate(items):
             low_id = max(0, index - self.n_required_previous)
-            inventory_changes = [Yield(PLAYER, item)]
+            inventory_changes: List[Union[Use, Yield]] = [Yield(PLAYER, item)]
             if index > 0:
                 inventory_changes += [
                     Use(PLAYER, items[item_id], consume=1)

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from typing import Optional, List, Dict, Union
+from typing import Any, Optional, List, Dict, Union
 from abc import abstractmethod
 
 from hcraft.elements import Item, Stack, Zone
@@ -15,15 +15,14 @@ class MiniCraftEnv(HcraftEnv):
     [minigrid environments](https://minigrid.farama.org/environments/minigrid/).
     """
 
-    MINICRAFT_NAME = None
+    MINICRAFT_NAME: Optional[str] = None
 
     def __init__(
         self,
-        minicraft_name: str,
         start_zone: Optional[Zone] = None,
         start_items: Optional[List[Union[Stack, Item]]] = None,
         start_zones_items: Optional[Dict[Zone, List[Union[Stack, Item]]]] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """
         Args:
@@ -33,13 +32,12 @@ class MiniCraftEnv(HcraftEnv):
                 If None, never truncates the episode. Defaults to None.
             render_window: Window using to render the environment with pygame.
         """
-        self.MINICRAFT_NAME = minicraft_name
         transformations = self.build_transformations()
         world = world_from_transformations(
             transformations=transformations,
             start_zone=start_zone,
-            start_items=start_items,
-            start_zones_items=start_zones_items,
+            start_items_or_stacks=start_items,
+            start_zones_items_or_stack=start_zones_items,
         )
         world.resources_path = Path(__file__).parent / "resources"
         super().__init__(world, name=f"MiniHCraft{self.MINICRAFT_NAME}", **kwargs)

@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List
 
 from hcraft.elements import Item, Zone
 from hcraft.task import GetItemTask
@@ -17,15 +17,10 @@ class MiniHCraftMultiRoom(MiniCraftEnv):
     GOAL = Item("goal")
     """Goal to reach."""
 
-    def __init__(self, n_rooms: int = 6, **kwargs) -> None:
+    def __init__(self, n_rooms: int = 6, **kwargs: Any) -> None:
         self.rooms = [Zone(f"Room {i + 1}") for i in range(n_rooms)]
         self.task = GetItemTask(self.GOAL)
-        super().__init__(
-            self.MINICRAFT_NAME,
-            purpose=self.task,
-            start_zone=self.rooms[0],
-            **kwargs,
-        )
+        super().__init__(purpose=self.task, start_zone=self.rooms[0], **kwargs)
 
     def build_transformations(self) -> List[Transformation]:
         transformations = []
