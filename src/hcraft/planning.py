@@ -266,7 +266,7 @@ class HcraftPlanningProblem:
         state: "HcraftState",
         name: str,
         purpose: Optional["Purpose"],
-    ) -> HierarchicalProblem:
+    ) -> "HierarchicalProblem":
         upf_problem = HierarchicalProblem(name)
         self._add_base_flat_problem(upf_problem, state.world)
         self.update_problem_to_state(upf_problem, state)
