@@ -19,6 +19,7 @@ jobs:
         git submodule update --init --recursive
         python -m pip install --upgrade pip
         pip install -e .[all,dev]
+        pip install --force https://github.com/plaans/aries/releases/download/latest/up_aries.tar.gz
     - name: Setup java for ENHSP
       uses: actions/setup-java@v2
       with:
