@@ -185,3 +185,8 @@ See [`hcraft.planning`](https://irll.github.io/HierarchyCraft/hcraft/planning.ht
 ## Online documentation
 
 Learn more in the [DOCUMENTATION](https://irll.github.io/HierarchyCraft/hcraft.html)
+
+## Contributing
+
+You want to contribute to HierarchyCraft ? See our [contributions guidelines](CONTRIBUTING.md) and join us !
+
