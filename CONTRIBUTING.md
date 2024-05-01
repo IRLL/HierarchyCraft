@@ -4,7 +4,7 @@ Whenever you encounter a :bug: **bug** or have :tada: **feature request**,
 report this via `Github issues <https://github.com/IRLL/HierarchyCraft/issues>`_.
 
 We are happy to receive contributions in the form of **pull requests** via Github.
-Feel free to fork the repository, implement your changes and create a merge request to the `dev` branch.
+Feel free to fork the repository, implement your changes and create a merge request to the `master` branch.
 
 ## Build from source (for contributions)
 
@@ -12,14 +12,9 @@ Feel free to fork the repository, implement your changes and create a merge requ
 git clone https://github.com/IRLL/HierarchyCraft.git
 ```
 
-Install hcraft as an editable package
+Install hcraft as an editable package with  dev requirements and all other optional requirements
 ```bash
-pip install -e .[all]
-```
-
-Install dev requirements
-```bash
-pip install -r requirements-dev.txt
+pip install -e .[dev,all]
 ```
 
 Check installation by running tests
