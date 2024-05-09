@@ -15,6 +15,12 @@ authors:
   - name: Mathis Fédérico
     orcid: 0009-0002-2624-3417
     affiliation: "1, 2"
+  - name: Shang Wang
+    orcid: 0009-0000-0130-0468
+    affiliation: "1"
+  - name: Yuxuan Li
+    orcid: 0000-0001-5522-312X
+    affiliation: "1,3"
   - name: Matthew E. Taylor
     orcid: 0000-0001-8946-0211
     affiliation: "1, 3"
@@ -25,7 +31,7 @@ affiliations:
    index: 2
  - name: Alberta Machine Intelligence Institute (Amii), Canada
    index: 3
-date: 07 September 2023
+date: 06 May 2024
 bibliography: paper.bib
 
 ---
@@ -137,7 +143,7 @@ This work was made possible by the research program of the engineering cursus at
 
 The research was conducted at the Intelligent Robot Learning (IRL) Lab, University of Alberta, which is supported in part by research grants from the Alberta Machine Intelligence Institute (Amii); a Canada CIFAR AI Chair, Amii; Compute Canada; Huawei; Mitacs; and NSERC.
 
-Special thanks to Shang Wang, Yuxuan Li, and Laura Petrich from the IRL Lab for their assistance in finding and describing related works, their critical thinking on the project, and their contributions to the revisions of the documentation and report.
+Special thanks to Laura Petrich and other members of the IRL Lab for there assistance in finding and describing related works, their critical thinking on the project, and their contributions to the revisions of the documentation and report.
 
 
 # References
