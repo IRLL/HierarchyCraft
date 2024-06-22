@@ -147,13 +147,13 @@ while not done:
 
 ```python
 # Other examples of HierarchyCraft environments
-from hcraft.examples import TowerHcraft, RecursiveHcraft, RandomHcraft
+from hcraft.examples import  TowerHcraftEnv, RecursiveHcraftEnv, RandomHcraftEnv
 
-tower_env = TowerHcraft(height=3, width=2)
+tower_env = TowerHcraftEnv(height=3, width=2)
 # or tower_env = gym.make("TowerHcraft-v1", height=3, width=2)
-recursive_env = RecursiveHcraft(n_items=6)
+recursive_env = RecursiveHcraftEnv(n_items=6)
 # or recursive_env = gym.make("RecursiveHcraft-v1", n_items=6)
-random_env = RandomHcraft(n_items_per_n_inputs={0:2, 1:5, 2:10}, seed=42)
+random_env = RandomHcraftEnv(n_items_per_n_inputs={0:2, 1:5, 2:10}, seed=42)
 # or random_env = gym.make("RandomHcraft-v1", n_items_per_n_inputs={0:2, 1:5, 2:10}, seed=42)
 ```
 <!-- Run MineHcraft with MaskablePPO from sb3 agent [code] -->
