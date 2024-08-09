@@ -25,7 +25,7 @@ jobs:
       run: |
         git submodule update --init --recursive
         python -m pip install --upgrade pip
-        pip install .[all,dev]
+        pip install .[gym,gui,planning,htmlvis,dev]
     - name: Setup java for ENHSP
       uses: actions/setup-java@v2
       with:

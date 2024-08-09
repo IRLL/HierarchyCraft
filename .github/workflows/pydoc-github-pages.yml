@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: pip install -e .[all]
+      - run: pip install -e .[gym,gui,planning,htmlvis]
       - run: pip install -r docs/requirements.txt
       - run: pdoc -d google -t docs/template --logo https://irll.net/irll-logo.png --logo-link https://irll.github.io/HierarchyCraft/hcraft.html -o docs/build --math --no-search hcraft
 

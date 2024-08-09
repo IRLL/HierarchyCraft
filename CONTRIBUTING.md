@@ -14,7 +14,7 @@ git clone https://github.com/IRLL/HierarchyCraft.git
 
 Install hcraft as an editable package with  dev requirements and all other optional requirements
 ```bash
-pip install -e .[dev,all]
+pip install -e .[dev,gym,planning,gui,htmlvis]
 ```
 
 Check installation by running tests

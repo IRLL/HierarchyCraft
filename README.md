@@ -52,29 +52,28 @@ Without optional dependencies:
 pip install hcraft
 ```
 
-With all optional dependencies:
-
-```bash
-pip install hcraft[all]
-```
-
-All hcraft environments can use a common graphical user interface.
-With gui requirements:
+All hcraft environments can use a common graphical user interface that can be used with gui requirements:
 
 ```bash
 pip install hcraft[gui]
 ```
 
-Gym environment can be obtained throught the with gym requirements:
+Gym environment can be obtained with gym requirements:
 
 ```bash
 pip install hcraft[gym]
 ```
 
-Planning problems can be obtained throught the upf interface:
+Planning problems can be obtained throught the upf interface with planning requirements:
 
 ```bash
 pip install hcraft[planning]
+```
+
+Some complex graph can be represented in html interactive visualisation:
+
+```bash
+pip install hcraft[htmlvis]
 ```
 
 # Quickstart
