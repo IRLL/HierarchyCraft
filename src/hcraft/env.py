@@ -30,7 +30,7 @@ First, we need to represent the items we want to be able to manipulate.
 For now, we only have two items we can simply build using the Item class from `hcraft.world`:
 
 ```python
-from hcraft.elements import Item
+from hcraft import Item
 
 CHEST = Item("treasure_chest")
 GOLD = Item("gold")
@@ -47,7 +47,7 @@ from hcraft.transformation import Transformation, Use, Yield, PLAYER, CURRENT_ZO
 
 TAKE_GOLD_FROM_CHEST = Transformation(
     inventory_changes=[
-        Use(CURRENT_ZONE, CHEST),
+        Use(CURRENT_ZONE, CHEST, consume=1),
         Yield(PLAYER, GOLD),
     ]
 )
@@ -62,7 +62,7 @@ Let's create a zone where we want our `CHEST` to be.
 Like items, zones are created with a Zone object from `hcraft.world`:
 
 ```python
-from hcraft.elements import Zone
+from hcraft import Zone
 
 TREASURE_ROOM = Zone("treasure_room")
 ```
@@ -77,12 +77,12 @@ to be stored in the environment state. (See `hcraft.state` for more details)
 We can simply build a world from a list of transformations:
 
 ```python
-from hcraft.elements import world_from_transformations
+from hcraft.world import world_from_transformations
 
 WORLD = world_from_transformations(
     transformations=[TAKE_GOLD_FROM_CHEST],
     start_zone=TREASURE_ROOM,
-    start_zones_items={TREASURE_ROOM: [CHEST]}
+    start_zones_items={TREASURE_ROOM: [CHEST]},
 )
 ```
 
@@ -95,7 +95,7 @@ To build a complete hcraft environment,
 we simply need to pass our `WORLD` to HcraftEnv from `hcraft.env`:
 
 ```python
-from hcraftnv import HcraftEnv
+from hcraft import HcraftEnv
 
 env = HcraftEnv(WORLD)
 ```
@@ -103,7 +103,7 @@ env = HcraftEnv(WORLD)
 We can already render it in the GUI:
 
 ```python
-from hcraft.render.human import render_env_with_human
+from hcraft import render_env_with_human
 
 render_env_with_human(env)
 ```
@@ -188,7 +188,7 @@ and our player start in `START_ROOM`.
 Also, let's add a time limit to spice things up.
 
 ```python
-from hcraft.elements import world_from_transformations
+from hcraft.world import world_from_transformations
 
 WORLD_2 = world_from_transformations(
     transformations=[
@@ -211,11 +211,28 @@ render_env_with_human(env)
 For now, our environment is a bit ... ugly.
 Text is cool, but images are better !
 
-For example, we can use cool
-[2D assets from Pixel_Poem on itch.io](https://pixel-poem.itch.io/dungeon-assetpuck)
+For that, we need to give our world a ressource path where images are located.
 
-We simply have to put them into a folder like so:
+To simplify our case, we can use the already built folder under the treasure example:
+
+```python
+from pathlib import Path
+import hcraft
+
+WORLD_2.resources_path = Path(hcraft.__file__).parent.joinpath(
+    "examples", "treasure", "resources"
+)
+render_env_with_human(env)
+```
+And we now have cool images for items !
+
+Under the hood, this can simply be replicated by getting some assets.
+(Like those previous [2D assets from Pixel_Poem on itch.io](https://pixel-poem.itch.io/dungeon-assetpuck)
+)
+
+We then simply put them into a folder like so, with matching names for items and zones:
 ```bash
+cwd
 ├───myscript.py
 ├───resources
 │   ├───items
@@ -227,21 +244,13 @@ We simply have to put them into a folder like so:
 │   └───font.ttf
 ```
 
-To simplify our case, we can use the already built folder under the treasure example:
+And setting that path as the world's ressources_path:
 
 ```python
-import os
-import hcraft
-
-resources_path = Path(hcraft.__file__).parent.joinpath(
-    "examples", "treasure", "resources"
-)
-env = HcraftEnv(
-    WORLD_2, purpose=get_gold_task, resources_path=resources_path, max_step=7
-)
+WORLD_2.resources_path = Path("resources")
 render_env_with_human(env)
 ```
-And we now have cool images for items !
+
 Try to do the same with zones and change the font aswell!
 
 ![](../../docs/images/TreasureEnvV2.png)
@@ -252,7 +261,7 @@ If you wish to have someone else use your enviroment,
 you should pack it up into a class and inherit HcraftEnv directly like so:
 
 ```python
-.. include:: examples/treasure/__init__.py
+.. include:: examples/treasure/env.py
 ```
 
 That's it for this small customized env if you want more, be sure to check Transformation

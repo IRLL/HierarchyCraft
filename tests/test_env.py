@@ -15,7 +15,7 @@ from tests.custom_checks import check_np_equal
 from tests.envs import classic_env, player_only_env, zone_only_env
 
 
-class TestCratingEnv:
+class TestCreatingEnv:
     @pytest.fixture(autouse=True)
     def setup_method(self):
         (
