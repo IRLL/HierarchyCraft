@@ -22,7 +22,12 @@ done = False
 _observation = env.reset()
 while not done:
     action = problem.action_from_plan(env.state)
+    if action is None:
+        # Plan is empty, nothing to do, thus terminates
+        done = True
+        continue
     _observation, _reward, done, _ = env.step(action)
+
 
 print(f"Plans were :{problem.plans}")
 
@@ -75,6 +80,7 @@ If multiple terminal groups exists in the purpose, the PDDL goal will be the hig
 
 """
 
+from warnings import warn
 from typing import TYPE_CHECKING, Dict, Optional, Union, List
 from copy import deepcopy
 
@@ -275,6 +281,8 @@ class HcraftPlanningProblem:
 
         if purpose is not None and purpose.terminal_groups:
             upf_problem.add_goal(self._purpose_to_goal(purpose))
+        else:
+            warn("No purpose was given, thus all plans will be empty.")
 
         self.update_problem_to_state(upf_problem, state)
         return upf_problem
