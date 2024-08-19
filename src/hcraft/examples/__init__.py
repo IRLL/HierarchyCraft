@@ -1,30 +1,61 @@
 """#HierarchyCraft environement examples.
 
-Here is the table of available HierarchyCraft environments examples.
+Here is the list of available HierarchyCraft environments examples.
 
 If you built one of your own, send us a pull request so we can add it to the list!
 
+##Minecraft inspired
+
+See `hcraft.examples.minecraft` for more details.
+[CLI keyword: `minecraft`]
+
+| Gym name                         | Task description                                                       |
+|:---------------------------------|:-----------------------------------------------------------------------|
+| MineHcraft-NoReward-v1           | No task (Sandbox)                                                      |
+| MineHcraft-Stone-v1              | Get the cobblestone item mining it with a wooden pickaxe               |
+| MineHcraft-Iron-v1               | Get the iron-ingot item smelting raw ore gathered with a stone pickage |
+| MineHcraft-Diamond-v1            | Get the diamond item mining it with an iron pickaxe                    |
+| MineHcraft-EnchantingTable-v1    | Craft the enchanting table from a book, obsidian and diamonds          |
+| MineHcraft-Dragon-v1             | Get the ender-dragon-head by killing it in the ender                   |
+| MineHcraft-[name]-v1             | Get one of the Item of given `name` where Item is in env.world.items   |
+| MineHcraft-v1                    | Get all items at least once                                            |
+
+
+##Minigrid inspired
+
+[CLI keyword: `minicraft`]
+
+| Gym name                         | Documentation reference                         |
+|:---------------------------------|:------------------------------------------------|
+| MiniHCraftEmpty-v1               | `hcraft.examples.minicraft.empty`               |
+| MiniHCraftFourRooms-v1           | `hcraft.examples.minicraft.fourrooms`           |
+| MiniHCraftMultiRoom-v1           | `hcraft.examples.minicraft.multiroom`           |
+| MiniHCraftCrossing-v1            | `hcraft.examples.minicraft.crossing`            |
+| MiniHCraftKeyCorridor-v1         | `hcraft.examples.minicraft.keycorridor`         |
+| MiniHCraftDoorKey-v1             | `hcraft.examples.minicraft.doorkey`             |
+| MiniHCraftUnlock-v1              | `hcraft.examples.minicraft.unlock`              |
+| MiniHCraftUnlockPickup-v1        | `hcraft.examples.minicraft.unlockpickup`        |
+| MiniHCraftBlockedUnlockPickup-v1 | `hcraft.examples.minicraft.unlockpickupblocked` |
+
+##Parametrised toy structures
 | Gym name                         | CLI name          | Reference                                       |
 |:---------------------------------|:------------------|:------------------------------------------------|
-| MineHcraft-v1                    | `minecraft`       | `hcraft.examples.minecraft`                     |
-| MiniHCraftEmpty-v1               | `minicraft`       | `hcraft.examples.minicraft.empty`               |
-| MiniHCraftFourRooms-v1           | `minicraft`       | `hcraft.examples.minicraft.fourrooms`           |
-| MiniHCraftMultiRoom-v1           | `minicraft`       | `hcraft.examples.minicraft.multiroom`           |
-| MiniHCraftCrossing-v1            | `minicraft`       | `hcraft.examples.minicraft.crossing`            |
-| MiniHCraftKeyCorridor-v1         | `minicraft`       | `hcraft.examples.minicraft.keycorridor`         |
-| MiniHCraftDoorKey-v1             | `minicraft`       | `hcraft.examples.minicraft.doorkey`             |
-| MiniHCraftUnlock-v1              | `minicraft`       | `hcraft.examples.minicraft.unlock`              |
-| MiniHCraftUnlockPickup-v1        | `minicraft`       | `hcraft.examples.minicraft.unlockpickup`        |
-| MiniHCraftBlockedUnlockPickup-v1 | `minicraft`       | `hcraft.examples.minicraft.unlockpickupblocked` |
 | TowerHcraft-v1                   | `tower`           | `hcraft.examples.tower`                         |
 | RecursiveHcraft-v1               | `recursive`       | `hcraft.examples.recursive`                     |
 | LightRecursiveHcraft-v1          | `light-recursive` | `hcraft.examples.light_recursive`               |
-| Treasure-v1                      | `treasure`        | `hcraft.examples.treasure`                      |
+
+##Stochastic parametrised toy structures
+| Gym name                         | CLI name          | Reference                                       |
+|:---------------------------------|:------------------|:------------------------------------------------|
 | RandomHcraft-v1                  | `random`          | `hcraft.examples.random_simple`                 |
+
+##Other examples
+| Gym name                         | CLI name          | Reference                                       |
+|:---------------------------------|:------------------|:------------------------------------------------|
+| Treasure-v1                      | `treasure`        | `hcraft.examples.treasure`                      |
 
 
 """
-
 
 import hcraft.examples.minecraft as minecraft
 import hcraft.examples.minicraft as minicraft

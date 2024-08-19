@@ -1,4 +1,4 @@
-from typing import List, Type, TypeVar
+from typing import TYPE_CHECKING, List, Type, TypeVar
 import pytest
 import pytest_check as check
 
@@ -6,44 +6,47 @@ import pytest_check as check
 from hcraft.examples.minecraft.env import MineHcraftEnv
 from hcraft.task import GetItemTask, GoToZoneTask, PlaceItemTask, Task
 
-gym = pytest.importorskip("gym")
+if TYPE_CHECKING:
+    import gym
+
+gym_module: "gym" = pytest.importorskip("gym")
 
 
 def test_no_reward_gym_make():
-    env: MineHcraftEnv = gym.make("MineHcraft-NoReward-v1")
+    env: MineHcraftEnv = gym_module.make("MineHcraft-NoReward-v1")
     check.equal(env.purpose.tasks, [])
 
 
 def test_stone_gym_make():
-    env: MineHcraftEnv = gym.make("MineHcraft-Stone-v1")
+    env: MineHcraftEnv = gym_module.make("MineHcraft-Stone-v1")
     check.equal(len(env.purpose.tasks), 1)
     task = env.purpose.tasks[0]
     check.equal(task.name, "Get cobblestone")
 
 
 def test_iron_gym_make():
-    env: MineHcraftEnv = gym.make("MineHcraft-Iron-v1")
+    env: MineHcraftEnv = gym_module.make("MineHcraft-Iron-v1")
     check.equal(len(env.purpose.tasks), 1)
     task = env.purpose.tasks[0]
     check.equal(task.name, "Get iron_ingot")
 
 
 def test_diamond_gym_make():
-    env: MineHcraftEnv = gym.make("MineHcraft-Diamond-v1")
+    env: MineHcraftEnv = gym_module.make("MineHcraft-Diamond-v1")
     check.equal(len(env.purpose.tasks), 1)
     task = env.purpose.tasks[0]
     check.equal(task.name, "Get diamond")
 
 
 def test_enchanting_table_gym_make():
-    env: MineHcraftEnv = gym.make("MineHcraft-EnchantingTable-v1")
+    env: MineHcraftEnv = gym_module.make("MineHcraft-EnchantingTable-v1")
     check.equal(len(env.purpose.tasks), 1)
     task = env.purpose.tasks[0]
     check.equal(task.name, "Get enchanting_table")
 
 
 def test_all_items_gym_make():
-    env: MineHcraftEnv = gym.make("MineHcraft-v1")
+    env: MineHcraftEnv = gym_module.make("MineHcraft-v1")
 
     TaskOfType = TypeVar("TaskOfType")
 
@@ -76,7 +79,7 @@ def test_all_items_gym_make():
 
 
 def test_dragon_gym_make():
-    env: MineHcraftEnv = gym.make("MineHcraft-Dragon-v1")
+    env: MineHcraftEnv = gym_module.make("MineHcraft-Dragon-v1")
     env.reset()
     expected_tasknames = {
         "Go to meadow",
