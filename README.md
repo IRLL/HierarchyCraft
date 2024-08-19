@@ -165,15 +165,38 @@ HierarchyCraft environments can be converted to planning problem in one line
 thanks to the Unified Planning Framework (UPF):
 
 ```python
-problem = env.planning_problem()
-print(problem.upf_problem)
+# Example env
+env = TowerHcraftEnv(height=3, width=2)
+
+# Make it into a unified planning problem
+planning_problem = env.planning_problem()
+print(planning_problem.upf_problem)
 ```
 
-Then they can be solved with any compatible planner (default is enhsp):
+Then they can be solved with any compatible planner for UPF:
 
 ```python
-problem.solve()
-print(problem.plan)
+# Solve the planning problem and show the plan
+planning_problem.solve()
+print(planning_problem.plan)
+```
+
+The planning_problem can also give actions to do in the environment, triggering replaning if necessary:
+
+```python
+# Automatically replan at the end of each plan until env termination
+done = False
+_observation = env.reset()
+while not done:
+    action = planning_problem.action_from_plan(env.state)
+    if action is None:
+        # Plan is empty, nothing to do, thus terminates
+        done = True
+        continue
+    _observation, _reward, done, _ = env.step(action)
+
+# Goal is achieved == env is terminated
+print(env.terminated)
 ```
 
 See [`hcraft.planning`](https://irll.github.io/HierarchyCraft/hcraft/planning.html) for a more complete description.
@@ -188,4 +211,3 @@ Learn more in the [DOCUMENTATION](https://irll.github.io/HierarchyCraft/hcraft.h
 ## Contributing
 
 You want to contribute to HierarchyCraft ? See our [contributions guidelines](CONTRIBUTING.md) and join us !
-
