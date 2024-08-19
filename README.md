@@ -195,8 +195,12 @@ while not done:
         continue
     _observation, _reward, done, _ = env.step(action)
 
-# Goal is achieved == env is terminated
-print(env.terminated)
+# Goal is achieved == purpose is terminated
+if env.purpose.terminated:
+    print("Success ! The plan worked in the actual environment !")
+else:
+    print("Failed ... Something went wrong with the plan.")
+
 ```
 
 See [`hcraft.planning`](https://irll.github.io/HierarchyCraft/hcraft/planning.html) for a more complete description.

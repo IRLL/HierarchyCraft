@@ -32,7 +32,10 @@ while not done:
 print(f"Plans were :{problem.plans}")
 
 # If the plan is a success, purpose should be terminated.
-assert env.purpose.terminated
+if env.purpose.terminated:
+    print("Success ! The plan worked in the actual environment !")
+else:
+    print("Failed ... Something went wrong with the plan.")
 ```
 
 ## HierarchyCraft as PDDL2.1 domain & problem
