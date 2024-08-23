@@ -39,7 +39,7 @@ bibliography: paper.bib
 # Summary
 Hierarchical reasoning poses a fundamental challenge in the field of artificial intelligence [@botvinick2014model]. Existing methods may struggle when confronted with hierarchical tasks [@bacon2017option,@heess2016learning,@nachum2018data], yet there is a scarcity of suitable environments or benchmarks designed to comprehend how the structure of the underlying hierarchy influence a task difficulty. Our software represents a crucial initial step in the development of tools aimed at addressing research questions related to hierarchical reasoning.
 
-We introduce **HierarchyCraft**, a lightweight environment builder designed for creating hierarchical reasoning tasks that do not necessitate feature extraction. This includes tasks containing pixel images, text, sound, or any data requiring deep-learning based feature extraction.
+We introduce **HierarchyCraft**, a lightweight environment builder designed for creating hierarchical reasoning tasks that do not necessitate feature extraction. This includes tasks involving pixel images, text, sound, or other data types where deep learning-based feature extraction is commonly employed.
 HierarchyCraft serves a dual purpose by offering a set of pre-defined hierarchical environments and simplifying the process of creating customized hierarchical environments.
 
 
@@ -120,7 +120,7 @@ Requirements graphs should be viewed as a generalization of previously observed 
 ![How sub-tasks build a hierarchical structure.\label{fig:TransformationToRequirements}](docs/images/TransformationToRequirementsLarge.png){ width=75% }
 
 ### 2. No feature extraction needed
-In contrast to benchmarks that yield grids, pixel arrays, text, or sound, HierarchyCraft directly provides a low-dimensional latent representation that does not require learning, as depicted in \autoref{fig:HierarchyCraftState}.
+In contrast to benchmarks that yield grids, pixel arrays, text, or sound, HierarchyCraft directly provides a low-dimensional representation that does not require the further features extraction, as depicted in Figure \autoref{fig:HierarchyCraftState}.
 This not only saves computational time but also enables researchers to concentrate on hierarchical reasoning while additionally  allowing for the utilization of classical planning frameworks such as PDDL [@PDDL] or ANML [@ANML].
 
 ![HierarchyCraft state is already a compact representation.\label{fig:HierarchyCraftState}](docs/images/HierarchyCraftStateLarge.png){ width=80% }
