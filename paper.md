@@ -37,7 +37,7 @@ bibliography: paper.bib
 ---
 
 # Summary
-Hierarchical reasoning poses a fundamental challenge in the field of artificial intelligence. Existing methods may struggle when confronted with hierarchical tasks, yet there is a scarcity of suitable environments or benchmarks designed to comprehend how the structure of the underlying hierarchy influence a task difficulty. Our software represents a crucial initial step in the development of tools aimed at addressing research questions related to hierarchical reasoning.
+Hierarchical reasoning poses a fundamental challenge in the field of artificial intelligence [@botvinick2014model]. Existing methods may struggle when confronted with hierarchical tasks [@bacon2017option,@heess2016learning,@nachum2018data], yet there is a scarcity of suitable environments or benchmarks designed to comprehend how the structure of the underlying hierarchy influence a task difficulty. Our software represents a crucial initial step in the development of tools aimed at addressing research questions related to hierarchical reasoning.
 
 We introduce **HierarchyCraft**, a lightweight environment builder designed for creating hierarchical reasoning tasks that do not necessitate feature extraction. This includes tasks containing pixel images, text, sound, or any data requiring deep-learning based feature extraction.
 HierarchyCraft serves a dual purpose by offering a set of pre-defined hierarchical environments and simplifying the process of creating customized hierarchical environments.
@@ -72,7 +72,7 @@ Due to the sparse rewards, exploration difficulty, and long time horizons in thi
 Unfortunately, DreamerV3 required training on an Nvidia V100 GPU for 17 days, gathering around 100 million environmental steps.
 Such **substantial computational resources are inaccessible to most researchers**, impeding the overall progress of research on hierarchical reasoning.
 
-Moreover, although Minecraft has a undeniably complex hierarchical structure, **this underlying hierarchical structures is fixed** and cannot be modified without modding the game, a complex task for researchers.
+Moreover, although Minecraft has an undeniably complex hierarchical structure, **this underlying hierarchical structure is fixed** and cannot be modified without modding the game, a complex task for researchers.
 
 
 
@@ -82,7 +82,7 @@ Moreover, although Minecraft has a undeniably complex hierarchical structure, **
 Crafter [@hafner2022benchmarking] presents a lightweight grid-based 2D environment, with game mechanics akin to Minecraft and poses similar challenges including exploration, representation learning, rewards sparsity and long-term reasoning.
 Although Crafter offers 22 different tasks displayed in \autoref{fig:CrafterRequirements}, the **fixed underlying hierarchical structure** restricts how researchers can investigate the impacts of changes in this structure.
 
-Furthermore, the tasks considered by the authors do not include navigation subtasks (e.g., Find water, look for a cow, wait for a plant to grow, go back to a table...) or certain optional but useful subtasks (e.g., Swords and the skill of dodging arrows contribute to making the task of killing skeletons easier.), leading to abrupt drops in success rates in the hierarchy instead of a more gradual increase in difficulty.
+Furthermore, the tasks considered by the authors do not include navigation subtasks (e.g., find water, look for a cow, wait for a plant to grow, go back to a table...) or certain optional but useful subtasks (e.g., swords and the skill of dodging arrows contribute to making the task of killing skeletons easier), leading to abrupt drops in success rates in the hierarchy instead of a more gradual increase in difficulty.
 
 ![Partial Hierarchical structure of the Crafter environment. Inspired from Figure 4 of [@hafner2022benchmarking]\label{fig:CrafterRequirements}](docs/images/CrafterRequirementsGraph.png){ width=80% }
 
@@ -110,7 +110,7 @@ The arcade learning environment [@ALE] stands as a standard benchmark in reinfor
 HierarchyCraft aims to be a fruitful tool for investigating hierarchical reasoning, focusing on achieving the following four design goals.
 
 ### 1. Hierarchical by design
-The action space of HierarchyCraft environments consists of sub-tasks, referred to as *Transformations*, as opposed to detailed movements and controls. But each *Transformations* has specific requirements to be valid (eg. have enought of an item, be in the right place), and these requirements may necessitate the execution of other *Transformations* first, inherently creating a hierarchical structure in HierarchyCraft environments.
+The action space of HierarchyCraft environments consists of sub-tasks, referred to as *Transformations*, as opposed to detailed movements and controls. But each of *Transformations* has specific requirements to be valid (e.g. have enough of an item, be in the right place), and these requirements may necessitate the execution of other *Transformations* first, inherently creating a hierarchical structure in HierarchyCraft environments.
 
 This concept  is visually represented by the *Requirements graph* depicting the hierarchical relationships within each HierarchyCraft environment.
 The *Requirements graph* is directly constructed from the list of *Transformations* composing the environement, as illustrated in \autoref{fig:TransformationToRequirements}.
