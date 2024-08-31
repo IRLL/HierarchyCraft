@@ -23,6 +23,9 @@ def planning_fixture() -> "PlanningFixture":
 
 
 class PlanningFixture:
+    def __init__(self) -> None:
+        pytest.importorskip("unified_planning")
+
     def given_env(self, env: HcraftEnv) -> None:
         self.env = env
 
