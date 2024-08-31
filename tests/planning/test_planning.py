@@ -1,4 +1,4 @@
-from typing import Optional, Type
+from typing import Optional, Type, List
 import warnings
 import pytest
 from hcraft.env import HcraftEnv
@@ -41,7 +41,7 @@ class PlanningFixture:
 
 
 def _warning_in_records(
-    warning_records: list[warnings.WarningMessage],
+    warning_records: List[warnings.WarningMessage],
     warning_type: Type[Warning],
     match: Optional[str],
 ) -> bool:
