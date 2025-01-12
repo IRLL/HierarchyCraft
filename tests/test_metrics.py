@@ -26,7 +26,7 @@ class TestMetricsPurposeLess:
             for action in actions:
                 transfo = self.named_transformations.get(action)
                 action_id = self.env.world.transformations.index(transfo)
-                _, _, _, infos = self.env.step(action_id)
+                _, _, _, _, infos = self.env.step(action_id)
                 check.equal(len(infos), 3)
 
 
@@ -48,16 +48,19 @@ class TestMetricsSinglePurpose:
             for action in actions:
                 transfo = self.named_transformations.get(action)
                 action_id = self.env.world.transformations.index(transfo)
-                _, _, done, infos = self.env.step(action_id)
+                _, _, terminated, _truncated, infos = self.env.step(action_id)
                 if episode == 0:
                     check.equal(infos[f"{self.get_wood_task.name} is done"], True)
-                    check.equal(infos[f"{self.place_table_task.name} is done"], done)
+                    check.equal(
+                        infos[f"{self.place_table_task.name} is done"], terminated
+                    )
                     check.equal(infos[f"{self.get_wood_task.name} success rate"], 1.0)
                     check.equal(
-                        infos[f"{self.place_table_task.name} success rate"], float(done)
+                        infos[f"{self.place_table_task.name} success rate"],
+                        float(terminated),
                     )
-                    check.equal(infos["Purpose is done"], done)
-                    check.equal(infos["Purpose success rate"], float(done))
+                    check.equal(infos["Purpose is done"], terminated)
+                    check.equal(infos["Purpose success rate"], float(terminated))
                 if episode == 1:
                     check.equal(infos[f"{self.get_wood_task.name} is done"], True)
                     check.equal(infos[f"{self.place_table_task.name} is done"], False)
@@ -88,19 +91,22 @@ class TestMetricsMultiPurpose:
             for action in actions:
                 transfo = self.named_transformations.get(action)
                 action_id = self.env.world.transformations.index(transfo)
-                _, _, done, infos = self.env.step(action_id)
+                _, _, terminated, _truncated, infos = self.env.step(action_id)
                 if episode == 0:
                     check.equal(infos[f"{self.get_wood_task.name} is done"], True)
-                    check.equal(infos[f"{self.place_table_task.name} is done"], done)
+                    check.equal(
+                        infos[f"{self.place_table_task.name} is done"], terminated
+                    )
                     check.equal(infos[f"{self.get_wood_task.name} success rate"], 1.0)
                     check.equal(
-                        infos[f"{self.place_table_task.name} success rate"], float(done)
+                        infos[f"{self.place_table_task.name} success rate"],
+                        float(terminated),
                     )
                     check.equal(infos["Terminal group 'stone' is done"], False)
-                    check.equal(infos["Terminal group 'table' is done"], done)
+                    check.equal(infos["Terminal group 'table' is done"], terminated)
                     check.equal(infos["Terminal group 'stone' success rate"], 0.0)
                     check.equal(
-                        infos["Terminal group 'table' success rate"], float(done)
+                        infos["Terminal group 'table' success rate"], float(terminated)
                     )
                 if episode == 1:
                     check.equal(infos[f"{self.get_wood_task.name} is done"], True)
@@ -111,7 +117,7 @@ class TestMetricsMultiPurpose:
                     )
                     check.equal(infos["Terminal group 'table' is done"], False)
                     check.equal(infos["Terminal group 'table' success rate"], 0.5)
-                    if done:
+                    if terminated:
                         check.equal(infos[f"{self.get_stone_task.name} is done"], True)
                         check.equal(
                             infos[f"{self.get_stone_task.name} success rate"], 0.5
@@ -129,7 +135,7 @@ class TestMetricsMultiPurpose:
             for action in actions:
                 transfo = self.named_transformations.get(action)
                 action_id = self.env.world.transformations.index(transfo)
-                _, _, _, infos = self.env.step(action_id)
+                _, _, _, _, infos = self.env.step(action_id)
                 check.equal(infos[wood_info], 1.0, msg=f"episode={episode}")
                 check.equal(infos[stone_info], 0.0, msg=f"episode={episode}")
         for episode, actions in enumerate(actions_per_stone_10_episodes, start=1):
@@ -137,7 +143,7 @@ class TestMetricsMultiPurpose:
             for action in actions:
                 transfo = self.named_transformations.get(action)
                 action_id = self.env.world.transformations.index(transfo)
-                _, _, _, infos = self.env.step(action_id)
+                _, _, _, _, infos = self.env.step(action_id)
                 check.almost_equal(
                     infos[wood_info],
                     1 - episode / 10,
@@ -161,15 +167,15 @@ class TestMetricsMultiPurpose:
             for action in actions:
                 transfo = self.named_transformations.get(action)
                 action_id = self.env.world.transformations.index(transfo)
-                _, reward, done, infos = self.env.step(action_id)
+                _, reward, terminated, _truncated, infos = self.env.step(action_id)
                 score += reward
                 if episode == 0:
                     check.equal(infos["score"], score)
                     check.equal(infos["score_average"], score)
-                    if done:
+                    if terminated:
                         check.equal(infos["score"], 16)
                         check.equal(infos["score_average"], 16)
-                if episode == 1 and done:
+                if episode == 1 and terminated:
                     check.equal(reward, 10)
                     check.equal(infos["score"], 1 + 10)
                     check.equal(

@@ -184,7 +184,7 @@ class TestCreatingEnv:
         self.env.state.zones_inventories[0, 0] = 3
         self.env.state.zones_inventories[1, 1] = 4
 
-        observation = self.env.reset()
+        observation, _info = self.env.reset()
         check.greater(observation.shape[0], 0)
         expected_player_inventory = np.zeros(len(self.env.world.items), np.int32)
         check_np_equal(self.env.state.player_inventory, expected_player_inventory)
@@ -206,9 +206,9 @@ class TestCreatingEnv:
         action = env.world.transformations.index(
             self.named_transformations.get("search_wood")
         )
-        _, reward, done, _ = env.step(action)
+        _, reward, terminated, _truncated, _ = env.step(action)
         check.equal(reward, 5)
-        check.is_true(done)
+        check.is_true(terminated)
 
     def test_purpose(self):
         """multi tasks should be converted to purpose."""
@@ -221,21 +221,20 @@ class TestCreatingEnv:
         action = env.world.transformations.index(
             self.named_transformations.get("search_wood")
         )
-        _, reward, done, _ = env.step(action)
+        _, reward, terminated, _truncated, _ = env.step(action)
         check.equal(reward, 5)
-        check.is_false(done)
+        check.is_false(terminated)
 
         action = env.world.transformations.index(
             self.named_transformations.get("search_stone")
         )
-        _, reward, done, _ = env.step(action)
+        _, reward, terminated, _truncated, _ = env.step(action)
         check.equal(reward, 10)
-        check.is_true(done)
+        check.is_true(terminated)
 
     def test_actions_mask(self):
         check_np_equal(self.env.action_masks(), np.array([1, 1, 1, 0, 0, 0]))
-
-        _, _, _, infos = self.env.step(
+        _, _, _, _, infos = self.env.step(
             self.env.world.transformations.index(
                 self.named_transformations.get("search_wood")
             )
@@ -247,15 +246,15 @@ class TestCreatingEnv:
         """max_step should truncate the episode after desired number of steps."""
         env = HcraftEnv(self.world, max_step=3)
         env.reset()
-        _, _, done, _ = env.step(0)
-        check.is_false(done)
-        check.is_false(env.truncated)
-        _, _, done, _ = env.step(0)
-        check.is_false(done)
-        check.is_false(env.truncated)
-        _, _, done, _ = env.step(0)
-        check.is_true(done)
-        check.is_true(env.truncated)
+        _, _, terminated, truncated, _ = env.step(0)
+        check.is_false(terminated)
+        check.is_false(truncated)
+        _, _, terminated, truncated, _ = env.step(0)
+        check.is_false(terminated)
+        check.is_false(truncated)
+        _, _, terminated, truncated, _ = env.step(0)
+        check.is_false(terminated)
+        check.is_true(truncated)
 
 
 def test_discovered_items():
@@ -266,12 +265,12 @@ def test_discovered_items():
     expected_discovered_items = np.zeros(env.world.n_items)
     check_np_equal(env.state.discovered_items, expected_discovered_items)
     action = env.world.transformations.index(named_transformations.get("search_wood"))
-    _, _, _, _ = env.step(action)
+    env.step(action)
     expected_discovered_items[env.world.items.index(Item("wood"))] = 1
     check_np_equal(env.state.discovered_items, expected_discovered_items)
 
     action = env.world.transformations.index(named_transformations.get("craft_plank"))
-    _, _, _, _ = env.step(action)
+    env.step(action)
     expected_discovered_items[env.world.items.index(Item("plank"))] = 1
     check_np_equal(env.state.discovered_items, expected_discovered_items)
 
@@ -288,12 +287,12 @@ def test_discovered_zones_items():
     expected_discovered_zones_items = np.zeros(env.world.n_zones_items)
     check_np_equal(env.state.discovered_zones_items, expected_discovered_zones_items)
     action = env.world.transformations.index(named_transformations.get("search_wood"))
-    _, _, _, _ = env.step(action)
+    env.step(action)
     expected_discovered_zones_items[env.world.zones_items.index(Item("wood"))] = 1
     check_np_equal(env.state.discovered_zones_items, expected_discovered_zones_items)
 
     action = env.world.transformations.index(named_transformations.get("craft_plank"))
-    _, _, _, _ = env.step(action)
+    env.step(action)
     expected_discovered_zones_items[env.world.zones_items.index(Item("plank"))] = 1
     check_np_equal(env.state.discovered_zones_items, expected_discovered_zones_items)
 
@@ -314,7 +313,7 @@ def test_discovered_zones():
     action = env.world.transformations.index(
         named_transformations.get("move_to_other_zone")
     )
-    _, _, _, _ = env.step(action)
+    env.step(action)
     expected_discovered_zones[env.world.zones.index(Zone("other_zone"))] = 1
     check_np_equal(env.state.discovered_zones, expected_discovered_zones)
 
@@ -338,7 +337,7 @@ def test_discovered_transformations():
     action = env.world.transformations.index(
         named_transformations.get("move_to_other_zone")
     )
-    _, _, _, _ = env.step(action)
+    env.step(action)
     expected_discovered_transformations[action] = 1
     check_np_equal(
         env.state.discovered_transformations, expected_discovered_transformations
@@ -346,7 +345,7 @@ def test_discovered_transformations():
 
     # When failing the transformation, it should not be discovered
     action = env.world.transformations.index(named_transformations.get("search_wood"))
-    _, _, _, _ = env.step(action)
+    env.step(action)
     check_np_equal(
         env.state.discovered_transformations, expected_discovered_transformations
     )

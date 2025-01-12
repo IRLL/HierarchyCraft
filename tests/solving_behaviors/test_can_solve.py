@@ -20,7 +20,7 @@ def test_can_solve(env_class):
         _fig, ax = plt.subplots()
 
     done = False
-    observation = env.reset()
+    observation, _infos = env.reset()
     for task in env.purpose.best_terminal_group.tasks:
         solving_behavior = env.solving_behavior(task)
         task_done = task.terminated
@@ -33,7 +33,8 @@ def test_can_solve(env_class):
 
             if action == "Impossible":
                 raise ValueError("Solving behavior could not find a solution.")
-            observation, _reward, done, _ = env.step(action)
+            observation, _reward, terminated, truncated, _ = env.step(action)
+            done = terminated or truncated
             task_done = task.terminated
 
     if draw_call_graph:

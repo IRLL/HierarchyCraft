@@ -23,8 +23,8 @@ gym_module: "gym" = pytest.importorskip("gymnasium")
 def test_gym_make(env_gym_id: str):
     """Ensure all hcraft envs follow the gymnasium interface."""
     env: HcraftEnv = gym_module.make(env_gym_id)
-    observation, infos = env.reset()
-    observation, reward, terminated, truncated, infos = env.step(0)
+    _observation, _info = env.reset()
+    _observation, _reward, _terminated, _truncated, _info = env.step(0)
 
 
 def test_gym_make_TowerHcraft():

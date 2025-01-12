@@ -49,10 +49,11 @@ def test_solve_flat(env_class: Type[HcraftEnv], planner_name: str):
         pytest.xfail(f"{planner_name} planner is known to fail on {env.name}")
 
     done = False
-    _observation = env.reset()
+    _observation, _info = env.reset()
     while not done:
         action = problem.action_from_plan(env.state)
-        _observation, _reward, done, _ = env.step(action)
+        _observation, _reward, terminated, truncated, _info = env.step(action)
+        done = terminated or truncated
     check.is_true(
         env.purpose.terminated, msg=f"Plans failed they were :{problem.plans}"
     )

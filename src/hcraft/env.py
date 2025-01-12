@@ -364,11 +364,6 @@ class HcraftEnv(Env):
         return self.current_step >= self.max_step
 
     @property
-    def terminated(self) -> bool:
-        """Whether the environment tasks are all done (if any)"""
-        return self.purpose.is_terminal(self.state)
-
-    @property
     def observation_space(self) -> Union[BoxSpace, TupleSpace]:
         """Observation space for the Agent."""
         obs_space = BoxSpace(
@@ -434,8 +429,7 @@ class HcraftEnv(Env):
         else:
             reward = self.invalid_reward
 
-        terminated = self.terminated
-        truncated = self.truncated
+        terminated = self.purpose.is_terminal(self.state)
 
         self.task_successes.update(self.episodes)
         self.terminal_successes.update(self.episodes)
@@ -446,7 +440,7 @@ class HcraftEnv(Env):
             self.state.observation,
             reward,
             terminated,
-            truncated,
+            self.truncated,
             self.infos(),
         )
 
@@ -515,11 +509,13 @@ class HcraftEnv(Env):
             solving_behavior = env.solving_behavior(task)
 
             done = False
-            observation = env.reset()
+            observation, _info = env.reset()
             while not done:
                 action = solving_behavior(observation)
-                observation, _reward, done, _info = env.step(action)
+                observation, _reward, terminated, truncated, _info = env.step(action)
+                done = terminated or truncated
 
+            assert terminated  # Env is successfuly terminated
             assert task.is_terminated # Task is successfuly terminated
             ```
         """
@@ -546,10 +542,14 @@ class HcraftEnv(Env):
             hcraft_problem = env.planning_problem()
 
             done = False
-            _observation = env.reset()
+
+            _observation, _info = env.reset()
             while not done:
+                # Observations are not used when blindly following a plan
+                # But the state in required in order to replan if there is no plan left
                 action = hcraft_problem.action_from_plan(env.state)
-                _observation, _reward, done, _ = env.step(action)
+                _observation, _reward, terminated, truncated, _info = env.step(action)
+                done = terminated or truncated
             assert env.purpose.is_terminated # Purpose is achieved
             ```
         """

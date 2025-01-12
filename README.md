@@ -136,11 +136,11 @@ def random_legal_agent(observation, action_is_legal):
 
 env = MineHcraftEnv(max_step=10)
 done = False
-observation = env.reset()
+observation, _info = env.reset()
 while not done:
     action_is_legal = env.action_masks()
     action = random_legal_agent(observation, action_is_legal)
-    _observation, _reward, done, _info = env.step(action)
+    _observation, _reward, terminated, truncated, _info = env.step(action)
 ```
 
 
@@ -184,22 +184,25 @@ print(planning_problem.plan)
 The planning_problem can also give actions to do in the environment, triggering replaning if necessary:
 
 ```python
-# Automatically replan at the end of each plan until env termination
 done = False
-_observation = env.reset()
+_observation, _info = env.reset()
 while not done:
+    # Automatically replan at the end of each plan until env termination
+
+    # Observations are not used when blindly following a current plan
+    # But the state in required in order to replan if there is no plan left
     action = planning_problem.action_from_plan(env.state)
     if action is None:
-        # Plan is empty, nothing to do, thus terminates
+        # Plan is existing but empty, thus nothing to do, thus terminates
         done = True
         continue
-    _observation, _reward, done, _ = env.step(action)
+    _observation, _reward, terminated, truncated, _info = env.step(action)
+    done = terminated or truncated
 
-# Goal is achieved == purpose is terminated
-if env.purpose.terminated:
+if terminated:
     print("Success ! The plan worked in the actual environment !")
 else:
-    print("Failed ... Something went wrong with the plan.")
+    print("Failed ... Something went wrong with the plan or the episode was truncated.")
 
 ```
 

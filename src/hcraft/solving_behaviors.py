@@ -29,11 +29,13 @@ env = MineHcraftEnv(purpose=get_diamond)
 solving_behavior = env.solving_behavior(get_diamond)
 
 done = False
-observation = env.reset()
+observation, _info = env.reset()
 while not done:
     action = solving_behavior(observation)
-    observation, _reward, done, _info = env.step(action)
+    observation, _reward, terminated, truncated, _info = env.step(action)
+    done = terminated or truncated
 
+assert terminated  # Env is successfuly terminated
 assert get_diamond.is_terminated # DIAMOND has been obtained !
 ```
 

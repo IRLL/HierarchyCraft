@@ -29,17 +29,18 @@ def test_solve_recursive():
         2,  # 2 < 0 + 1
         0,  # 0
         1,  # 1
+        0,  # 0
         3,  # 3 < 0 + 1 + 2
     ]
 
     env = RecursiveHcraftEnv(n_items=n_items)
     env.reset()
     for action in actions:
-        observation, done, _reward, _info = env.step(action)
+        observation, _reward, terminated, _truncated, _info = env.step(action)
         # Should only see items because no zones
         check.equal(observation.shape, (n_items,))
 
-    check.is_true(done)
+    check.is_true(terminated)
 
 
 def test_light_recursive_requirements_graph():
@@ -83,6 +84,7 @@ def test_solve_light_recursive():
         3,  # 3 < 1 + 2
         0,  # 0
         1,  # 1
+        0,  # 0
         2,  # 2 < 0 + 1
         4,  # 4 < 2 + 3
     ]
@@ -93,8 +95,8 @@ def test_solve_light_recursive():
     )
     env.reset()
     for action in actions:
-        observation, done, _reward, _info = env.step(action)
+        observation, _reward, terminated, _truncated, _info = env.step(action)
         # Should only see items because no zones
         check.equal(observation.shape, (n_items,))
 
-    check.is_true(done)
+    check.is_true(terminated)
