@@ -20,20 +20,6 @@ jobs:
       with:
         distribution: "microsoft"
         java-version: "17"
-    - name: Test with pytest
-      run: |
-        pytest
-
-    - name: Setup java for ENHSP
-      uses: actions/setup-java@v2
-      with:
-        distribution: "microsoft"
-        java-version: "17"
-    - name: Download and install ENHSP
-      run: |
-        git clone https://gitlab.com/enricos83/ENHSP-Public.git
-        cd ENHSP-Public; git checkout enhsp20-0.9.7; bash ./compile; cd ..
-        bash -c "mkdir .planners; mv ENHSP-Public/enhsp-dist .planners/enhsp-20; rm -rf ENHSP-Public"
     - name: Build coverage using pytest-cov
       run: |
         uv run pytest --cov=hcraft --cov-report=xml tests
