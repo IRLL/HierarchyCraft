@@ -131,7 +131,7 @@ The library is designed to be simple and flexible, allowing researchers to defin
 To showcase the range of environments possible within HierarchyCraft, multiple examples are provided.
 
 ### 4. Compatible with domains frameworks
-HierarchyCraft environments are directly compatible with both reinforcement learning through OpenAI Gym [@gym] and planning through the Unified Planning Framework [@UPF] (see \autoref{fig:HierarchyCraft-pipeline}).
+HierarchyCraft environments are directly compatible with both reinforcement learning through Gymnasium [@gymnasium] and planning through the Unified Planning Framework [@UPF] (see \autoref{fig:HierarchyCraft-pipeline}).
 This compatibility facilitates usage by both the reinforcement learning and planning communities.
 
 ![HierarchyCraft pipeline into different representations.\label{fig:HierarchyCraft-pipeline}](docs/images/HierarchyCraft_pipeline.png){ width=80% }
