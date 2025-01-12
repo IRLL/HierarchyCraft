@@ -6,6 +6,7 @@ from tests.envs import classic_env
 import pytest
 
 
+@pytest.mark.slow
 def test_hcraft_classic():
     pytest.importorskip("unified_planning")
     env, _, named_transformations, start_zone, items, zones, zones_items = classic_env()

@@ -10,15 +10,20 @@ jobs:
       SDL_VIDEODRIVER: "dummy" # for PyGame render https://stackoverflow.com/questions/15933493/pygame-error-no-available-video-device
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v1
-      with:
-        python-version: '3.10'
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
     - name: Install dependencies
       run: |
-        git submodule update --init --recursive
-        python -m pip install --upgrade pip
-        pip install -e .[gym,gui,planning,htmlvis,dev]
+        uv sync --extra gym --extra gui --extra planning --extra htmlvis
+    - name: Setup java for ENHSP
+      uses: actions/setup-java@v2
+      with:
+        distribution: "microsoft"
+        java-version: "17"
+    - name: Test with pytest
+      run: |
+        pytest
+
     - name: Setup java for ENHSP
       uses: actions/setup-java@v2
       with:

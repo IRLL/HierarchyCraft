@@ -12,12 +12,17 @@ Feel free to fork the repository, implement your changes and create a merge requ
 git clone https://github.com/IRLL/HierarchyCraft.git
 ```
 
-Install hcraft as an editable package with  dev requirements and all other optional requirements
+Install `uv` the [rust-based extremely fast package management tool](https://docs.astral.sh/uv/getting-started/installation/).
+
+
+Install hcraft as an editable package with 
+dev requirements and all other extra requirements using uv:
 ```bash
-pip install -e .[dev,gym,planning,gui,htmlvis]
+uv sync --extra gym --extra gui --extra planning --extra htmlvis
 ```
 
-Check installation by running tests
+Check installation by running (fast) tests,
+remove the marker flag to run even slow tests:
 ```bash
-pytest
+pytest -m "not slow"
 ```
