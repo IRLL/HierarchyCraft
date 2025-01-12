@@ -1,6 +1,6 @@
 """# MiniHCraft environments
 
-List of environments representing abstractions from 
+List of environments representing abstractions from
 [minigrid environments](https://minigrid.farama.org/environments/minigrid/).
 
 See submodules for each individual environement:
@@ -77,7 +77,7 @@ __all__ = [
 MINICRAFT_GYM_ENVS = []
 
 try:
-    import gym
+    import gymnasium as gym
 
     ENV_PATH = "hcraft.examples.minicraft"
 

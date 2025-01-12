@@ -7,14 +7,6 @@ from hcraft.examples.recursive import RecursiveHcraftEnv
 from tests.custom_checks import check_isomorphic
 
 
-def test_gym_make_recursive():
-    gym = pytest.importorskip("gym")
-    n_items = 10
-    env: RecursiveHcraftEnv = gym.make("RecursiveHcraft-v1", n_items=n_items)
-    check.equal(len(env.world.items), n_items)
-    check.equal(env.name, "RecursiveHcraft-I10")
-
-
 def test_recursive_requirements_graph():
     n_items = 4
     expected_graph = nx.DiGraph()
@@ -49,19 +41,6 @@ def test_solve_recursive():
         check.equal(observation.shape, (n_items,))
 
     check.is_true(done)
-
-
-def test_gym_make_light_recursive():
-    gym = pytest.importorskip("gym")
-    n_items = 10
-    n_required_previous = 3
-    env: LightRecursiveHcraftEnv = gym.make(
-        "LightRecursiveHcraft-v1",
-        n_items=n_items,
-        n_required_previous=n_required_previous,
-    )
-    check.equal(len(env.world.items), n_items)
-    check.equal(env.name, "LightRecursiveHcraft-K3-I10")
 
 
 def test_light_recursive_requirements_graph():

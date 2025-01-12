@@ -29,7 +29,7 @@ from typing import List
 
 # gym is an optional dependency
 try:
-    import gym
+    import gymnasium as gym
 
     gym.register(
         id="LightRecursiveHcraft-v1",
@@ -41,7 +41,6 @@ except ImportError:
 
 
 class LightRecursiveHcraftEnv(HcraftEnv):
-
     """LightRecursive environment."""
 
     def __init__(self, n_items: int = 6, n_required_previous: int = 2, **kwargs):

@@ -41,7 +41,7 @@ from hcraft.world import world_from_transformations
 from hcraft.task import GetItemTask
 
 try:
-    import gym
+    import gymnasium as gym
 
     gym.register(
         id="TowerHcraft-v1",
@@ -53,7 +53,6 @@ except ImportError:
 
 
 class TowerHcraftEnv(HcraftEnv):
-
     """Tower, a tower-structured hierarchical Environment.
 
     Item of given layer requires all items of the previous.

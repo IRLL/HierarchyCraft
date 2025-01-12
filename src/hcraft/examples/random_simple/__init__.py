@@ -4,7 +4,7 @@ __all__ = ["RandomHcraftEnv"]
 
 # gym is an optional dependency
 try:
-    import gym
+    import gymnasium as gym
 
     gym.register(
         id="RandomHcraft-v1",

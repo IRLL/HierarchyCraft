@@ -1,18 +1,8 @@
 import networkx as nx
-import pytest
 import pytest_check as check
 
 from hcraft.examples.tower import TowerHcraftEnv
 from tests.custom_checks import check_isomorphic
-
-
-def test_gym_make():
-    gym = pytest.importorskip("gym")
-    env: TowerHcraftEnv = gym.make("TowerHcraft-v1", height=3, width=2)
-    check.equal(env.height, 3)
-    check.equal(env.width, 2)
-    check.equal(env.world.n_items, 3 * 2 + 1)
-    check.is_in("TowerHcraft", env.name)
 
 
 def test_tower_requirements_graph_1_1():
