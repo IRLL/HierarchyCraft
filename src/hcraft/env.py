@@ -399,7 +399,7 @@ class HcraftEnv(Env):
         return np.array([t.is_valid(self.state) for t in self.world.transformations])
 
     def step(
-        self, action: int | str | np.ndarray
+        self, action: Union[int, str, np.ndarray]
     ) -> Tuple[np.ndarray, float, bool, bool, dict]:
         """Perform one step in the environment given the index of a wanted transformation.
 
