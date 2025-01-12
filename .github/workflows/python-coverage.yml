@@ -36,7 +36,7 @@ jobs:
         bash -c "mkdir .planners; mv ENHSP-Public/enhsp-dist .planners/enhsp-20; rm -rf ENHSP-Public"
     - name: Build coverage using pytest-cov
       run: |
-        pytest --cov=hcraft --cov-report=xml tests
+        uv run pytest --cov=hcraft --cov-report=xml tests
     - name: Codacy Coverage Reporter
       uses: codacy/codacy-coverage-reporter-action@v1.3.0
       with:
