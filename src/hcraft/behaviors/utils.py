@@ -1,4 +1,4 @@
-""" Module for utility functions to apply on handcrafted Behavior. """
+"""Module for utility functions to apply on handcrafted Behavior."""
 
 from typing import Dict, Set, Union
 

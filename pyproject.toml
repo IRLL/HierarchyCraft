@@ -7,7 +7,7 @@ description = "Lightweight environments to study hierarchical reasoning"
 
 dynamic = ["version", "readme", "dependencies"]
 license = { text = "GNU General Public License v3 or later (GPLv3+)" }
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 authors = [
     { name = "Mathïs Fédérico" },
     { name = "Mathïs Fédérico", email = "mathfederico@gmail.com" },
@@ -23,11 +23,26 @@ keywords = [
 
 
 [project.optional-dependencies]
-gym = ["gym >= 0.26"]
+gym = [
+    "gymnasium>=1.0.0",
+]
 gui = ["pygame >= 2.1.0", "pygame-menu >= 4.3.8"]
 planning = ["unified_planning[aries,enhsp] >= 1.1.0", "up-enhsp>=0.0.25"]
 htmlvis = ["pyvis<=0.3.1"]
-dev = ["pytest", "pytest-cov", "pytest-mock", "pytest-check", "pytest-xdist", "pre-commit", "ruff"]
+docs = [
+    "pdoc>=14.7.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-check",
+    "pytest-xdist",
+    "pre-commit",
+    "ruff"
+]
 
 [project.urls]
 Source = "https://github.com/IRLL/HierarchyCraft"
@@ -50,6 +65,9 @@ markers = [
 ]
 testpaths = ["tests"]
 log_level = "DEBUG"
+filterwarnings = [ 
+    'ignore:pkg_resources is deprecated as an API:DeprecationWarning'
+]
 
 [tool.coverage.run]
 source = ["src"]

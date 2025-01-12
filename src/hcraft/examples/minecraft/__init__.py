@@ -7,6 +7,7 @@ A rather large and complex requirements graph:
 .. include:: ../../../../docs/images/requirements_graphs/MineHcraft.html
 </div>
 """
+
 from typing import Optional
 
 import hcraft.examples.minecraft.items as items
@@ -21,7 +22,7 @@ __all__ = ["MineHcraftEnv"]
 
 # gym is an optional dependency
 try:
-    import gym
+    import gymnasium as gym
 
     ENV_PATH = "hcraft.examples.minecraft.env:MineHcraftEnv"
 

@@ -6,6 +6,7 @@ from tests.envs import classic_env
 import pytest
 
 
+@pytest.mark.slow
 def test_hcraft_classic():
     pytest.importorskip("unified_planning")
     env, _, named_transformations, start_zone, items, zones, zones_items = classic_env()
@@ -24,5 +25,4 @@ def test_hcraft_classic():
         "3_craft_plank(other_zone)",
         "4_craft_table(other_zone)",
     ]
-
-    assert str(expected_plan).replace("'", "") in repr(problem.plan)
+    assert expected_plan == [str(action) for action in problem.plan.actions]

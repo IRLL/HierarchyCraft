@@ -1,6 +1,6 @@
 # pylint: disable=no-member
 
-""" Random HierarchyCraft Environment
+"""Random HierarchyCraft Environment
 
 Generate a random HierarchyCraft environment using basic constructor rules.
 
@@ -18,7 +18,6 @@ from hcraft.purpose import GetItemTask, Purpose
 
 
 class RandomHcraftEnv(HcraftEnv):
-
     """Random HierarchyCraft Environment"""
 
     def __init__(

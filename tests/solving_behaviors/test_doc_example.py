@@ -20,7 +20,7 @@ def test_doc_example():
     solving_behavior = env.solving_behavior(get_diamond)
 
     done = False
-    observation = env.reset()
+    observation, _info = env.reset()
     if render:
         env.render()
     while not done:
@@ -31,8 +31,10 @@ def test_doc_example():
             solving_behavior.graph.call_graph.draw(ax)
             plt.show(block=False)
 
-        observation, _reward, done, _info = env.step(action)
+        observation, _reward, terminated, truncated, _info = env.step(action)
+        done = terminated or truncated
         if render:
             env.render()
 
+    check.is_true(terminated)  # Env is successfuly terminated
     check.is_true(get_diamond.terminated)  # DIAMOND has been obtained !

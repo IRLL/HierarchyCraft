@@ -138,7 +138,6 @@ because the player only observe the current zone items.
 
 """
 
-
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union, Any
 from enum import Enum
 from dataclasses import dataclass

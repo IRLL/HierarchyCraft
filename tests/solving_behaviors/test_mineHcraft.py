@@ -24,7 +24,7 @@ def test_solving_behaviors():
 
     env = MineHcraftEnv(purpose="all", max_step=500)
     done = False
-    observation = env.reset()
+    observation, _info = env.reset()
     tasks_left = env.purpose.tasks.copy()
     task = [t for t in tasks_left if t.name == "Place enchanting_table anywhere"][0]
     solving_behavior = env.solving_behavior(task)
@@ -44,7 +44,8 @@ def test_solving_behaviors():
             plt.cla()
             solving_behavior.graph.call_graph.draw(ax)
             plt.show(block=False)
-        observation, _rew, done, _infos = env.step(action)
+        observation, _reward, terminated, truncated, _info = env.step(action)
+        done = terminated or truncated
         if task.terminated:
             print(f"Task finished: {task}, tasks_left: {tasks_left}")
             task = None

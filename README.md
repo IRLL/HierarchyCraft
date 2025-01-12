@@ -17,10 +17,10 @@ HierarchyCraft (hcraft for short) is a Python library designed to create arbitra
 
 In environments built with HierarchyCraft the agent (player) has an inventory and can navigate into abstract zones that themselves have inventories.
 
-The action space of HierarchyCraft environments consists of sub-tasks, referred to as _Transformations_, as opposed to detailed movements and controls. But each _Transformations_ has specific requirements to be valid (eg. have enought of an item, be in the right place), and these requirements may necessitate the execution of other _Transformations_ first, inherently creating a hierarchical structure in HierarchyCraft environments.
+The action space of HierarchyCraft environments consists of sub-tasks, referred to as *Transformations*, as opposed to detailed movements and controls. But each *Transformations* has specific requirements to be valid (eg. have enought of an item, be in the right place), and these requirements may necessitate the execution of other *Transformations* first, inherently creating a hierarchical structure in HierarchyCraft environments.
 
-This concept is visually represented by the _Requirements graph_ depicting the hierarchical relationships within each HierarchyCraft environment.
-The _Requirements graph_ is directly constructed from the list of _Transformations_ composing the environement.
+This concept is visually represented by the *Requirements graph* depicting the hierarchical relationships within each HierarchyCraft environment.
+The *Requirements graph* is directly constructed from the list of *Transformations* composing the environement.
 
 ![](docs/images/TransformationToRequirementsLarge.png)
 
@@ -37,7 +37,7 @@ See [`hcraft.state`](https://irll.github.io/HierarchyCraft/hcraft/state.html) fo
 
 ## Create your own tailored HierarchyCraft environments
 
-You can use HierarchyCraft to create various custom hierarchical environments from a list of customized _Transformations_.
+You can use HierarchyCraft to create various custom hierarchical environments from a list of customized *Transformations*.
 
 See [`hcraft.env`](https://irll.github.io/HierarchyCraft/hcraft/env.html) for a complete tutorial on creating custom environments.
 
@@ -136,11 +136,11 @@ def random_legal_agent(observation, action_is_legal):
 
 env = MineHcraftEnv(max_step=10)
 done = False
-observation = env.reset()
+observation, _info = env.reset()
 while not done:
     action_is_legal = env.action_masks()
     action = random_legal_agent(observation, action_is_legal)
-    _observation, _reward, done, _info = env.step(action)
+    _observation, _reward, terminated, truncated, _info = env.step(action)
 ```
 
 
@@ -184,22 +184,25 @@ print(planning_problem.plan)
 The planning_problem can also give actions to do in the environment, triggering replaning if necessary:
 
 ```python
-# Automatically replan at the end of each plan until env termination
 done = False
-_observation = env.reset()
+_observation, _info = env.reset()
 while not done:
+    # Automatically replan at the end of each plan until env termination
+
+    # Observations are not used when blindly following a current plan
+    # But the state in required in order to replan if there is no plan left
     action = planning_problem.action_from_plan(env.state)
     if action is None:
-        # Plan is empty, nothing to do, thus terminates
+        # Plan is existing but empty, thus nothing to do, thus terminates
         done = True
         continue
-    _observation, _reward, done, _ = env.step(action)
+    _observation, _reward, terminated, truncated, _info = env.step(action)
+    done = terminated or truncated
 
-# Goal is achieved == purpose is terminated
-if env.purpose.terminated:
+if terminated:
     print("Success ! The plan worked in the actual environment !")
 else:
-    print("Failed ... Something went wrong with the plan.")
+    print("Failed ... Something went wrong with the plan or the episode was truncated.")
 
 ```
 

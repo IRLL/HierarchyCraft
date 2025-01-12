@@ -49,7 +49,8 @@ def render_env_with_human(env: "HcraftEnv", n_episodes: int = 1):
             action = get_human_action(env)
             print(f"Human did: {env.world.transformations[action]}")
 
-            _observation, reward, done, _info = env.step(action)
+            _observation, reward, terminated, truncated, _info = env.step(action)
+            done = terminated or truncated
             total_reward += reward
 
         print("SCORE: ", total_reward)

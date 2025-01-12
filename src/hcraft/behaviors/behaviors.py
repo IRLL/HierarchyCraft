@@ -1,4 +1,4 @@
-""" Module for handcrafted Behavior with HEBGraph in any HierarchyCraft environment. """
+"""Module for handcrafted Behavior with HEBGraph in any HierarchyCraft environment."""
 
 from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
@@ -22,7 +22,6 @@ if TYPE_CHECKING:
 
 
 class GetItem(Behavior):
-
     """Behavior for getting an item"""
 
     def __init__(
@@ -59,7 +58,6 @@ class GetItem(Behavior):
 
 
 class DropItem(Behavior):
-
     """Behavior for dropping an item"""
 
     def __init__(
@@ -96,7 +94,6 @@ class DropItem(Behavior):
 
 
 class PlaceItem(Behavior):
-
     """Behavior for getting an item in any of the given zones.
 
     If no zones are given, places in any of the zones were the item can be placed.
@@ -199,7 +196,6 @@ class PlaceItem(Behavior):
 
 
 class ReachZone(Behavior):
-
     """Behavior for going into a zone"""
 
     def __init__(
@@ -232,7 +228,6 @@ class ReachZone(Behavior):
 
 
 class AbleAndPerformTransformation(Behavior):
-
     """Behavior for abling then performing any transformation."""
 
     def __init__(

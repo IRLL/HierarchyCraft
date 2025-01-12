@@ -1,4 +1,4 @@
-""" # Recursive HierarchyCraft Environments
+"""# Recursive HierarchyCraft Environments
 
 The goal of the environment is to get the last item.
 But each item requires all the previous items,
@@ -29,7 +29,7 @@ from hcraft.world import world_from_transformations
 
 # gym is an optional dependency
 try:
-    import gym
+    import gymnasium as gym
 
     gym.register(
         id="RecursiveHcraft-v1",
@@ -41,7 +41,6 @@ except ImportError:
 
 
 class RecursiveHcraftEnv(HcraftEnv):
-
     """RecursiveHcraft Environment"""
 
     def __init__(self, n_items: int = 6, **kwargs):

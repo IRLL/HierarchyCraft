@@ -1,4 +1,4 @@
-""" Minecraft Recipes
+"""Minecraft Recipes
 
 All used Minecraft recipies.
 

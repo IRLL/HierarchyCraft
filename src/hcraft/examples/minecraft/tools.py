@@ -1,4 +1,4 @@
-""" Minecraft Tools
+"""Minecraft Tools
 
 All used minecraft tools
 

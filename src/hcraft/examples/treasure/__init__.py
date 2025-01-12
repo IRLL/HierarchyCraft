@@ -14,7 +14,7 @@ __all__ = ["TreasureEnv"]
 
 # gym is an optional dependency
 try:
-    import gym
+    import gymnasium as gym
 
     gym.register(
         id="Treasure-v1",

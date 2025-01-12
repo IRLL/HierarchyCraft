@@ -1,18 +1,9 @@
 import networkx as nx
-import pytest
 import pytest_check as check
 from hcraft.examples.light_recursive import LightRecursiveHcraftEnv
 
 from hcraft.examples.recursive import RecursiveHcraftEnv
 from tests.custom_checks import check_isomorphic
-
-
-def test_gym_make_recursive():
-    gym = pytest.importorskip("gym")
-    n_items = 10
-    env: RecursiveHcraftEnv = gym.make("RecursiveHcraft-v1", n_items=n_items)
-    check.equal(len(env.world.items), n_items)
-    check.equal(env.name, "RecursiveHcraft-I10")
 
 
 def test_recursive_requirements_graph():
@@ -38,30 +29,18 @@ def test_solve_recursive():
         2,  # 2 < 0 + 1
         0,  # 0
         1,  # 1
+        0,  # 0
         3,  # 3 < 0 + 1 + 2
     ]
 
     env = RecursiveHcraftEnv(n_items=n_items)
     env.reset()
     for action in actions:
-        observation, done, _reward, _info = env.step(action)
+        observation, _reward, terminated, _truncated, _info = env.step(action)
         # Should only see items because no zones
         check.equal(observation.shape, (n_items,))
 
-    check.is_true(done)
-
-
-def test_gym_make_light_recursive():
-    gym = pytest.importorskip("gym")
-    n_items = 10
-    n_required_previous = 3
-    env: LightRecursiveHcraftEnv = gym.make(
-        "LightRecursiveHcraft-v1",
-        n_items=n_items,
-        n_required_previous=n_required_previous,
-    )
-    check.equal(len(env.world.items), n_items)
-    check.equal(env.name, "LightRecursiveHcraft-K3-I10")
+    check.is_true(terminated)
 
 
 def test_light_recursive_requirements_graph():
@@ -105,6 +84,7 @@ def test_solve_light_recursive():
         3,  # 3 < 1 + 2
         0,  # 0
         1,  # 1
+        0,  # 0
         2,  # 2 < 0 + 1
         4,  # 4 < 2 + 3
     ]
@@ -115,8 +95,8 @@ def test_solve_light_recursive():
     )
     env.reset()
     for action in actions:
-        observation, done, _reward, _info = env.step(action)
+        observation, _reward, terminated, _truncated, _info = env.step(action)
         # Should only see items because no zones
         check.equal(observation.shape, (n_items,))
 
-    check.is_true(done)
+    check.is_true(terminated)

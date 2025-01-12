@@ -271,7 +271,7 @@ That's it for this small customized env if you want more, be sure to check Trans
 """
 
 import collections
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -293,7 +293,7 @@ if TYPE_CHECKING:
 
 # Gym is an optional dependency.
 try:
-    import gym
+    import gymnasium as gym
 
     DiscreteSpace = gym.spaces.Discrete
     BoxSpace = gym.spaces.Box
@@ -364,11 +364,6 @@ class HcraftEnv(Env):
         return self.current_step >= self.max_step
 
     @property
-    def terminated(self) -> bool:
-        """Whether the environment tasks are all done (if any)"""
-        return self.purpose.is_terminal(self.state)
-
-    @property
     def observation_space(self) -> Union[BoxSpace, TupleSpace]:
         """Observation space for the Agent."""
         obs_space = BoxSpace(
@@ -398,7 +393,9 @@ class HcraftEnv(Env):
         """Return boolean mask of valid actions."""
         return np.array([t.is_valid(self.state) for t in self.world.transformations])
 
-    def step(self, action: int):
+    def step(
+        self, action: Union[int, str, np.ndarray]
+    ) -> Tuple[np.ndarray, float, bool, bool, dict]:
         """Perform one step in the environment given the index of a wanted transformation.
 
         If the selected transformation can be performed, the state is updated and
@@ -407,6 +404,13 @@ class HcraftEnv(Env):
 
         """
 
+        if isinstance(action, np.ndarray):
+            if not action.size == 1:
+                raise TypeError(
+                    "Actions should be integers corresponding the a transformation index"
+                    f", got array with multiple elements:\n{action}."
+                )
+            action = action.flatten()[0]
         try:
             action = int(action)
         except (TypeError, ValueError) as e:
@@ -425,15 +429,20 @@ class HcraftEnv(Env):
         else:
             reward = self.invalid_reward
 
-        terminated = self.terminated
-        truncated = self.truncated
+        terminated = self.purpose.is_terminal(self.state)
 
         self.task_successes.update(self.episodes)
         self.terminal_successes.update(self.episodes)
 
         self.current_score += reward
         self.cumulated_score += reward
-        return self._step_output(reward, terminated, truncated)
+        return (
+            self.state.observation,
+            reward,
+            terminated,
+            self.truncated,
+            self.infos(),
+        )
 
     def render(self, mode: Optional[str] = None, **_kwargs) -> Union[str, np.ndarray]:
         """Render the observation of the agent in a format depending on `render_mode`."""
@@ -451,7 +460,7 @@ class HcraftEnv(Env):
         *,
         seed: Optional[int] = None,
         options: Optional[dict] = None,
-    ) -> np.ndarray:
+    ) -> Tuple[np.ndarray,]:
         """Resets the state of the environement.
 
         Returns:
@@ -472,7 +481,7 @@ class HcraftEnv(Env):
 
         self.state.reset()
         self.purpose.reset()
-        return self.state.observation
+        return self.state.observation, self.infos()
 
     def close(self):
         """Closes the environment."""
@@ -500,11 +509,13 @@ class HcraftEnv(Env):
             solving_behavior = env.solving_behavior(task)
 
             done = False
-            observation = env.reset()
+            observation, _info = env.reset()
             while not done:
                 action = solving_behavior(observation)
-                observation, _reward, done, _info = env.step(action)
+                observation, _reward, terminated, truncated, _info = env.step(action)
+                done = terminated or truncated
 
+            assert terminated  # Env is successfuly terminated
             assert task.is_terminated # Task is successfuly terminated
             ```
         """
@@ -531,28 +542,27 @@ class HcraftEnv(Env):
             hcraft_problem = env.planning_problem()
 
             done = False
-            _observation = env.reset()
+
+            _observation, _info = env.reset()
             while not done:
+                # Observations are not used when blindly following a plan
+                # But the state in required in order to replan if there is no plan left
                 action = hcraft_problem.action_from_plan(env.state)
-                _observation, _reward, done, _ = env.step(action)
+                _observation, _reward, terminated, truncated, _info = env.step(action)
+                done = terminated or truncated
             assert env.purpose.is_terminated # Purpose is achieved
             ```
         """
         return HcraftPlanningProblem(self.state, self.name, self.purpose, **kwargs)
 
-    def _step_output(self, reward: float, terminated: bool, truncated: bool):
+    def infos(self) -> dict:
         infos = {
             "action_is_legal": self.action_masks(),
             "score": self.current_score,
             "score_average": self.cumulated_score / self.episodes,
         }
         infos.update(self._tasks_infos())
-        return (
-            self.state.observation,
-            reward,
-            terminated or truncated,
-            infos,
-        )
+        return infos
 
     def _tasks_infos(self):
         infos = {}

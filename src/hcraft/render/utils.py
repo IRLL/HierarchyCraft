@@ -1,4 +1,4 @@
-""" Utilitaries functions for rendering of the HierarchyCraft environments """
+"""Utilitaries functions for rendering of the HierarchyCraft environments"""
 
 import logging
 import os

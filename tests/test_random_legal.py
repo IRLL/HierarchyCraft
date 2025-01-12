@@ -14,12 +14,13 @@ def test_random_legal_agent():
     world = classic_env()[1]
     env = HcraftEnv(world, max_step=10)
     done = False
-    observation = env.reset()
+    observation, _info = env.reset()
     total_reward = 0
     while not done:
         action_is_legal = env.action_masks()
         action = random_legal_agent(observation, action_is_legal)
-        _observation, reward, done, _info = env.step(action)
+        _observation, reward, terminated, truncated, _info = env.step(action)
+        done = terminated or truncated
         total_reward += reward
 
     check.greater_equal(total_reward, 0)
