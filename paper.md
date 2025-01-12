@@ -110,10 +110,10 @@ The arcade learning environment [@ALE] stands as a standard benchmark in reinfor
 HierarchyCraft aims to be a fruitful tool for investigating hierarchical reasoning, focusing on achieving the following four design goals.
 
 ### 1. Hierarchical by design
-The action space of HierarchyCraft environments consists of sub-tasks, referred to as _Transformations_, as opposed to detailed movements and controls. But each _Transformations_ has specific requirements to be valid (eg. have enought of an item, be in the right place), and these requirements may necessitate the execution of other _Transformations_ first, inherently creating a hierarchical structure in HierarchyCraft environments.
+The action space of HierarchyCraft environments consists of sub-tasks, referred to as *Transformations*, as opposed to detailed movements and controls. But each *Transformations* has specific requirements to be valid (eg. have enought of an item, be in the right place), and these requirements may necessitate the execution of other *Transformations* first, inherently creating a hierarchical structure in HierarchyCraft environments.
 
-This concept  is visually represented by the _Requirements graph_ depicting the hierarchical relationships within each HierarchyCraft environment.
-The _Requirements graph_ is directly constructed from the list of _Transformations_ composing the environement, as illustrated in \autoref{fig:TransformationToRequirements}.
+This concept  is visually represented by the *Requirements graph* depicting the hierarchical relationships within each HierarchyCraft environment.
+The *Requirements graph* is directly constructed from the list of *Transformations* composing the environement, as illustrated in \autoref{fig:TransformationToRequirements}.
 
 Requirements graphs should be viewed as a generalization of previously observed graphical representations from related works, including  \autoref{fig:CrafterRequirements} and \autoref{fig:MinigridHierarchies}.
 

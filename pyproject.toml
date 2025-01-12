@@ -29,6 +29,9 @@ gym = [
 gui = ["pygame >= 2.1.0", "pygame-menu >= 4.3.8"]
 planning = ["unified_planning[aries,enhsp] >= 1.1.0", "up-enhsp>=0.0.25"]
 htmlvis = ["pyvis<=0.3.1"]
+docs = [
+    "pdoc>=14.7.0",
+]
 
 [dependency-groups]
 dev = [

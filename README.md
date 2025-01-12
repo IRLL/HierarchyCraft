@@ -17,10 +17,10 @@ HierarchyCraft (hcraft for short) is a Python library designed to create arbitra
 
 In environments built with HierarchyCraft the agent (player) has an inventory and can navigate into abstract zones that themselves have inventories.
 
-The action space of HierarchyCraft environments consists of sub-tasks, referred to as _Transformations_, as opposed to detailed movements and controls. But each _Transformations_ has specific requirements to be valid (eg. have enought of an item, be in the right place), and these requirements may necessitate the execution of other _Transformations_ first, inherently creating a hierarchical structure in HierarchyCraft environments.
+The action space of HierarchyCraft environments consists of sub-tasks, referred to as *Transformations*, as opposed to detailed movements and controls. But each *Transformations* has specific requirements to be valid (eg. have enought of an item, be in the right place), and these requirements may necessitate the execution of other *Transformations* first, inherently creating a hierarchical structure in HierarchyCraft environments.
 
-This concept is visually represented by the _Requirements graph_ depicting the hierarchical relationships within each HierarchyCraft environment.
-The _Requirements graph_ is directly constructed from the list of _Transformations_ composing the environement.
+This concept is visually represented by the *Requirements graph* depicting the hierarchical relationships within each HierarchyCraft environment.
+The *Requirements graph* is directly constructed from the list of *Transformations* composing the environement.
 
 ![](docs/images/TransformationToRequirementsLarge.png)
 
@@ -37,7 +37,7 @@ See [`hcraft.state`](https://irll.github.io/HierarchyCraft/hcraft/state.html) fo
 
 ## Create your own tailored HierarchyCraft environments
 
-You can use HierarchyCraft to create various custom hierarchical environments from a list of customized _Transformations_.
+You can use HierarchyCraft to create various custom hierarchical environments from a list of customized *Transformations*.
 
 See [`hcraft.env`](https://irll.github.io/HierarchyCraft/hcraft/env.html) for a complete tutorial on creating custom environments.
 
