@@ -25,5 +25,4 @@ def test_hcraft_classic():
         "3_craft_plank(other_zone)",
         "4_craft_table(other_zone)",
     ]
-
-    assert str(expected_plan).replace("'", "") in repr(problem.plan)
+    assert expected_plan == [str(action) for action in problem.plan.actions]
