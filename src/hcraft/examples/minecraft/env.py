@@ -1,6 +1,6 @@
 # pylint: disable=arguments-differ, inconsistent-return-statements
 
-""" MineHcraft Environment
+"""MineHcraft Environment
 
 HierarchyCraft environment adapted to the Minecraft inventory
 
@@ -32,7 +32,6 @@ ALL_ITEMS = set(
 
 
 class MineHcraftEnv(HcraftEnv):
-
     """MineHcraft Environment: A minecraft-like HierarchyCraft Environment.
 
     Default purpose is None (sandbox).

@@ -1,4 +1,4 @@
-""" Module to define Action nodes for the HEBGraph of the HierarchyCraft environment. """
+"""Module to define Action nodes for the HEBGraph of the HierarchyCraft environment."""
 
 from typing import TYPE_CHECKING
 
@@ -13,7 +13,6 @@ if TYPE_CHECKING:
 
 
 class DoTransformation(Action):
-
     """Perform a transformation."""
 
     def __init__(self, transformation: "Transformation", env: "HcraftEnv") -> None:

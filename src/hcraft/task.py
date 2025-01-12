@@ -147,9 +147,9 @@ class PlaceItemTask(AchievementTask):
         else:
             zones_slots = np.array([world.slot_from_zone(self.zone)])
         zone_item_slot = world.zones_items.index(self.item_stack.item)
-        self._terminate_zones_items[
-            zones_slots, zone_item_slot
-        ] = self.item_stack.quantity
+        self._terminate_zones_items[zones_slots, zone_item_slot] = (
+            self.item_stack.quantity
+        )
 
     def _is_terminal(self, state: "HcraftState") -> bool:
         if self.zone is None:

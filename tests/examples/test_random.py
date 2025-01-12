@@ -1,4 +1,3 @@
-import gymnasium
 import pytest
 import pytest_check as check
 

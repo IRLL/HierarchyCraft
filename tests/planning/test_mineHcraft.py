@@ -1,4 +1,4 @@
-""" Module testing utils functions for hcraft behaviors. """
+"""Module testing utils functions for hcraft behaviors."""
 
 from pathlib import Path
 from typing import TYPE_CHECKING

@@ -1,10 +1,11 @@
-""" Minecraft Items
+"""Minecraft Items
 
 All used minecraft items.
 They are three kinds of items: Loots and McItems that can be found,
 and other items that can only be obtain through hcraft.
 
 """
+
 from dataclasses import dataclass
 from typing import List, Optional, Union
 

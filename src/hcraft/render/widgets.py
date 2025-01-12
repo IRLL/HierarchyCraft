@@ -1,4 +1,4 @@
-""" Widgets for rendering of the HierarchyCraft environments """
+"""Widgets for rendering of the HierarchyCraft environments"""
 
 from enum import Enum
 from typing import TYPE_CHECKING, Dict, List, Optional, Union

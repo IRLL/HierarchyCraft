@@ -1,6 +1,6 @@
 # pylint: disable=no-member
 
-""" Rendering of the HierarchyCraft environments """
+"""Rendering of the HierarchyCraft environments"""
 
 import os
 import sys

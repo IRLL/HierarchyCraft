@@ -1,1 +1,1 @@
-""" Render : Module for rendering HierarchyCraft environments. """
+"""Render : Module for rendering HierarchyCraft environments."""

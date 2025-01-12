@@ -1,4 +1,4 @@
-""" Minecraft Zones
+"""Minecraft Zones
 
 Abstract zones to simulate simply a Minecraft environment.
 

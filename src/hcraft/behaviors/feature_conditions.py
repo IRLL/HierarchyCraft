@@ -1,4 +1,4 @@
-""" Module to define FeatureCondition nodes for the HEBGraph of the HierarchyCraft environment. """
+"""Module to define FeatureCondition nodes for the HEBGraph of the HierarchyCraft environment."""
 
 from typing import TYPE_CHECKING, Optional
 
@@ -14,7 +14,6 @@ if TYPE_CHECKING:
 
 
 class HasStack(FeatureCondition):
-
     """FeatureCondition to check if player has an Item in a given quantity."""
 
     def __init__(self, env: "HcraftEnv", stack: Stack) -> None:
@@ -37,7 +36,6 @@ class HasStack(FeatureCondition):
 
 
 class HasLessStack(FeatureCondition):
-
     """FeatureCondition to check if player has an Item in less than a given quantity."""
 
     def __init__(self, env: "HcraftEnv", stack: Stack) -> None:
@@ -59,7 +57,6 @@ class HasLessStack(FeatureCondition):
 
 
 class IsInZone(FeatureCondition):
-
     """FeatureCondition to check if player is in a Zone."""
 
     def __init__(self, env: "HcraftEnv", zone: Zone) -> None:
@@ -82,7 +79,6 @@ class IsInZone(FeatureCondition):
 
 
 class HasZoneItem(FeatureCondition):
-
     """FeatureCondition to check if a Zone has the given property."""
 
     def __init__(

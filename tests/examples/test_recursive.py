@@ -1,5 +1,4 @@
 import networkx as nx
-import pytest
 import pytest_check as check
 from hcraft.examples.light_recursive import LightRecursiveHcraftEnv
 
