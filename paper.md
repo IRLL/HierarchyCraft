@@ -164,7 +164,7 @@ This not only saves computational time but also enables researchers to concentra
 
 ### 4. Compatible with multiple frameworks
 
-HierarchyCraft environments are directly compatible with both reinforcement learning through OpenAI Gym [@gym] and planning through the Unified Planning Framework [@UPF] (see \autoref{fig:HierarchyCraft-pipeline}).
+HierarchyCraft environments are directly compatible with both reinforcement learning through Gymnasium [@gymnasium] and planning through the Unified Planning Framework [@UPF] (see \autoref{fig:HierarchyCraft-pipeline}).
 This compatibility facilitates usage by both the reinforcement learning and planning communities.
 
 ![HierarchyCraft pipeline into different representations.\label{fig:HierarchyCraft-pipeline}](docs/images/HierarchyCraft_pipeline.png){ width=80% }
