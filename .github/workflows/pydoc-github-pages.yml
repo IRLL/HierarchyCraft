@@ -28,7 +28,7 @@ jobs:
         run: |
           uv run pdoc -d google -t docs/template --logo https://irll.net/irll-logo.png --logo-link https://irll.github.io/HierarchyCraft/hcraft.html -o docs/build --math --no-search hcraft
       - name: Upload static documentation artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v4
         with:
           path: docs/build
 
