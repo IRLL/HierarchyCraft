@@ -39,7 +39,7 @@ bibliography: paper.bib
 
 # Summary
 
-Hierarchical reasoning poses a fundamental challenge in the field of artificial intelligence [@botvinick2014model]. Existing methods may struggle when confronted with hierarchical tasks [@bacon2017option;@heess2016learning; @nachum2018data], yet despite the importance of understanding how the structure of an underlying hierarchy affects task difficulty, there is a lack of suitable environments or benchmarks to facilitate this exploration.
+Hierarchical reasoning poses a fundamental challenge in the field of artificial intelligence [@10.1098/rstb.2013.0480]. Existing methods may struggle when confronted with hierarchical tasks [@bacon2017option;@heess2016learning; @nachum2018data], yet despite the importance of understanding how the structure of an underlying hierarchy affects task difficulty, there is a lack of suitable environments or benchmarks to facilitate this exploration.
 
 We introduce **[HierarchyCraft](https://github.com/IRLL/HierarchyCraft)**, a software package that allows researchers to create custom environments based on their hierarchical structures, enabling the study of hierarchical reasoning.
 
@@ -66,12 +66,12 @@ To the best of our knowledge, no general frameworks currently exist for construc
 
 ### GridWorld
 
-GridWorld, a general class of 2D grid-based environments, is frequently utilised in hierarchical reinforcement learning research, notably within the options framework [@sutton1999between].
+GridWorld, a general class of 2D grid-based environments, is frequently utilised in hierarchical reinforcement learning research, notably within the options framework [@10.1016/s0004-3702(99)00052-1].
 
 ![Example of Minigrid environments hierarchical structures and their relationships. There are only a few possible subtasks and most of them are navigation tasks (in green).\label{fig:MinigridHierarchies}](docs/images/MinigridHierarchies.png){ width=100% }
 
 
-Minigrid [@minigrid] is a user-friendly Python library that not only implements a GridWorld engine but also expands its capabilities. This allows researchers to create more intricate scenarios by introducing additional rooms, objectives, or obstacles.
+Minigrid [@MinigridMiniworld23] is a user-friendly Python library that not only implements a GridWorld engine but also expands its capabilities. This allows researchers to create more intricate scenarios by introducing additional rooms, objectives, or obstacles.
 
 As illustrated in \autoref{fig:MinigridHierarchies}, GridWorld environments only exhibit **limited and similar hierarchical structures** that primarily focus on navigation tasks, making these hierarchies mostly sequential.
 
@@ -100,7 +100,7 @@ These omissions results in abrupt drops in success rates within the hierarchy, r
 
 
 ### Arcade Learning Environment (Atari)
-The arcade learning environment [@ALE] stands as a standard benchmark in reinforcement learning, encompassing over 55 Atari games. However, **only a few of these games, such as Montezuma’s Revenge and Pitfall, necessitate hierarchical reasoning**.
+The arcade learning environment [@10.5555/2832747.2832830] stands as a standard benchmark in reinforcement learning, encompassing over 55 Atari games. However, **only a few of these games, such as Montezuma’s Revenge and Pitfall, necessitate hierarchical reasoning**.
 
 Each Atari game has a **fixed hierarchy that cannot be modified** and agents **demand substantial computational resources** to extract relevant features from pixels or memory, significantly slowing down experiments.
 
