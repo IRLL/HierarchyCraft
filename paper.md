@@ -77,7 +77,7 @@ As illustrated in \autoref{fig:MinigridHierarchies}, GridWorld environments only
 
 ### Minecraft
 
-A good example of a hierarchical task is the collection of diamonds in the popular video game Minecraft, as showcased in the MineRL competition [@guss2021minerl2020], where hierarchical reinforcement learning agents have dominated the leaderboard[@milani2020minerl2019].
+A good example of a hierarchical task is the collection of diamonds in the popular video game Minecraft, as showcased in the MineRL competition [@guss2021minerl2020], where hierarchical reinforcement learning agents have dominated the leaderboard [@milani2020minerl2019].
 
 Due to sparse rewards, the difficulty of exploration, and long time horizons in this procedurally generated sandbox environment, DreamerV3 [@dreamerv3] recently became the first algorithm to successfully collect diamonds in Minecraft without prior training or knowledge.
 Unfortunately, DreamerV3 required training on an Nvidia V100 GPU for 17 days, gathering roughly 100 million environmental steps. Such **substantial computational resources are unavailable to many researchers**, impeding the overall progress of research on hierarchical reasoning.
@@ -128,7 +128,7 @@ The Abstraction and Reasoning Corpus (ARC) [@Chollet2019OnTM], is both hierarchi
 
 Much like Gridworld, ARC tasks require feature extraction from 2D grids, leveraging priors related to their spatial nature, which bias the nature of the tasks on that specific data structure.
 
-Additionaly ARC tasks do not emphasise long-term reasoning as they are relatively short compared to tasks within other benchmarks like Minecraft or even Gridworld; this makes underlying hierarchical structures shallow for each task and more wide that deep for the whole corpus.
+Additionaly ARC tasks do not emphasise long-term reasoning as they are relatively short compared to tasks within other benchmarks like Minecraft or even Gridworld; this makes underlying hierarchical structures shallow for each task and more wide than deep for the whole corpus.
 
 Partitioning those underlying hierarchical structures and classifying them relatively to the difficulty of finding a solution, independently of the solution's nature, is at the core of HierarchyCraft's motivation.
 
@@ -156,7 +156,7 @@ To showcase the range of environments possible within HierarchyCraft, multiple e
 
 
 ### 3. No feature extraction needed
-In contrast to benchmarks that yield grids, pixel arrays, text, or sound, HierarchyCraft directly provides a low-dimensional representation that does not require further features extraction, as depicted in \autoref{fig:HcraftState}.
+In contrast to benchmarks that yield grids, pixel arrays, text, or sound, HierarchyCraft directly provides a low-dimensional representation that does not require additional feature extraction, as depicted in \autoref{fig:HcraftState}.
 
 ![HierarchyCraft compact state representation.\label{fig:HcraftState}](docs/images/HierarchyCraftStateLarge.png){ width=80% }
 
