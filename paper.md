@@ -66,7 +66,7 @@ To the best of our knowledge, no general frameworks currently exist for construc
 
 ### GridWorld
 
-GridWorld, a general class of 2D grid-based environments, is frequently utilised in hierarchical reinforcement learning research, notably within the options framework [@10.1016/s0004-3702(99)00052-1].
+GridWorld, a general class of 2D grid-based environments, is frequently utilised in hierarchical reinforcement learning research, notably within the options framework [@10.1016/s0004-37029900052-1].
 
 ![Example of Minigrid environments hierarchical structures and their relationships. There are only a few possible subtasks and most of them are navigation tasks (in green).\label{fig:MinigridHierarchies}](docs/images/MinigridHierarchies.png){ width=100% }
 

@@ -1,9 +1,12 @@
-@misc{UPF,
-  title={Unified Planning Framework},
-  url={https://github.com/aiplan4eu/unified-planning},
-  publisher={GitHub},
-  journal={GitHub repository},
-  year={2023}
+@article{UPF,
+  title = {{Unified} {Planning}: Modeling, manipulating and solving {AI} planning problems in {Python}},
+  author = {Andrea Micheli and Arthur Bit-Monnot and Gabriele R{\"o}ger and Enrico Scala and Alessandro Valentini and Luca Framba and Alberto Rovetta and Alessandro Trapasso and Luigi Bonassi and Alfonso Emilio Gerevini and Luca Iocchi and Felix Ingrand and Uwe Köckemann and Fabio Patrizi and Alessandro Saetti and Ivan Serina and Sebastian Stock},
+  journal = {SoftwareX},
+  volume = {29},
+  pages = {102012},
+  year = {2025},
+  issn = {2352-7110},
+  doi = {10.1016/j.softx.2024.102012},
 }
 
 @inproceedings{hafner2022benchmarking,
@@ -16,24 +19,28 @@
 
 
 @article{10.1016/s0004-37029900052-1,
-  title={Between MDPs and semi-MDPs: A framework for temporal abstraction in reinforcement learning},
-  author={Sutton, Richard S and Precup, Doina and Singh, Satinder},
+  title={Between {MDPs} and semi-{MDPs}: A framework for temporal abstraction in reinforcement learning},
+  author={Sutton, Richard S. and Precup, Doina and Singh, Satinder},
   journal={Artificial intelligence},
   volume={112},
-  number={1-2},
+  number={1--2},
   pages={181--211},
   year={1999},
-  publisher={Elsevier}
+  doi={10.1016/S0004-3702(99)00052-1},
 }
 
 
 @inproceedings{MinigridMiniworld23,
   author       = {Maxime Chevalier{-}Boisvert and Bolun Dai and Mark Towers and Rodrigo Perez{-}Vicente and Lucas Willems and Salem Lahlou and Suman Pal and Pablo Samuel Castro and Jordan Terry},
-  title        = {Minigrid {\&} Miniworld: Modular {\&} Customizable Reinforcement Learning Environments for Goal-Oriented Tasks},
-  booktitle    = {Advances in Neural Information Processing Systems 36, New Orleans, LA, USA},
-  month        = {December},
+  editor = {A. Oh and T. Naumann and A. Globerson and K. Saenko and M. Hardt and S. Levine},
+  title        = {Minigrid {\&} {Miniworld}: Modular {\&} Customizable Reinforcement Learning Environments for Goal-Oriented Tasks},
+  booktitle    = {Advances in Neural Information Processing Systems},
+  isbn         = {978-1-71389-992-1},
+  pages        = {73383--73394},
+  publisher    = {Curran Associates, Inc.},
+  month        = dec,
   year         = {2023},
-  url          = {https://github.com/Farama-Foundation/Minigrid},
+  volume       = 36,
 }
 
 @article{kuttler2020nethack,
@@ -46,7 +53,7 @@
 }
 
 @InProceedings{milani2020minerl2019,
-  title = 	 {Retrospective Analysis of the 2019 MineRL Competition on Sample Efficient Reinforcement Learning},
+  title = 	 {Retrospective Analysis of the 2019 {MineRL} Competition on Sample Efficient Reinforcement Learning},
   author =       {Milani, Stephanie and Topin, Nicholay and Houghton, Brandon and Guss, William H. and Mohanty, Sharada P. and Nakata, Keisuke and Vinyals, Oriol and Kuno, Noboru Sean},
   booktitle = 	 {Proceedings of the NeurIPS 2019 Competition and Demonstration Track},
   pages = 	 {203--214},
@@ -54,8 +61,7 @@
   editor = 	 {Escalante, Hugo Jair and Hadsell, Raia},
   volume = 	 {123},
   series = 	 {Proceedings of Machine Learning Research},
-  month = 	 {08--14 Dec},
-  publisher =    {PMLR},
+  month = 	 dec,
   pdf = 	 {http://proceedings.mlr.press/v123/milani20a/milani20a.pdf},
   url = 	 {https://proceedings.mlr.press/v123/milani20a.html},
   abstract = 	 {To facilitate research in the direction of sample efficient reinforcement learning, we held the MineRL Competition on Sample Efficient Reinforcement Learning Using Human Priors at the Thirty-third Conference on Neural Information Processing Systems (NeurIPS 2019). The primary goal of this competition was to promote the development of algorithms that use human demonstrations alongside reinforcement learning to reduce the number of samples needed to solve complex, hierarchical, and sparse environments. We describe the competition, outlining the primary challenge, the competition design, and the resources that we provided to the participants. We provide an overview of the top solutions, each of which use deep reinforcement learning and/or imitation learning. We also discuss the impact of our organizational decisions on the competition and future directions for improvement.}
@@ -82,7 +88,7 @@
   journal      = {CoRR},
   volume       = {abs/2101.11071},
   year         = {2021},
-  url          = {https://arxiv.org/abs/2101.11071},
+  doi          = {10.48550/arXiv.2101.11071},
   eprinttype    = {arXiv},
   eprint       = {2101.11071},
   timestamp    = {Sun, 31 Jan 2021 17:23:50 +0100},
@@ -94,7 +100,8 @@
   title={Mastering Diverse Domains through World Models},
   author={Hafner, Danijar and Pasukonis, Jurgis and Ba, Jimmy and Lillicrap, Timothy},
   journal={arXiv preprint arXiv:2301.04104},
-  year={2023}
+  year={2023},
+  doi={10.48550/arXiv.2301.04104},
 }
 
 @inproceedings{procgen,
@@ -108,9 +115,9 @@
 
 @inproceedings{10.5555/2832747.2832830,
   author = {Bellemare, Marc G. and Naddaf, Yavar and Veness, Joel and Bowling, Michael},
-  title = {The arcade learning environment: an evaluation platform for general agents},
+  title = {The {Arcade} {Learning} {Environment}: an evaluation platform for general agents},
   year = {2015},
-  isbn = {9781577357384},
+  isbn = {978-1-57735-738-4},
   publisher = {AAAI Press},
   abstract = {In this extended abstract we introduce the Arcade Learning Environment (ALE): both a challenge problem and a platform and methodology for evaluating the development of general, domain-independent AI technology. ALE provides an interface to hundreds of Atari 2600 game environments, each one different, interesting, and designed to be a challenge for human players. ALE presents significant research challenges for reinforcement learning, model learning, model-based planning, imitation learning, transfer learning, and intrinsic motivation. Most importantly, it provides a rigorous testbed for evaluating and comparing approaches to these problems. We illustrate the promise of ALE by presenting a benchmark set of domain-independent agents designed using well-established AI techniques for both reinforcement learning and planning. In doing so, we also propose an evaluation methodology made possible by ALE, reporting empirical results on over 55 different games. We conclude with a brief update on the latest ALE developments. All of the software, including the benchmark agents, is publicly available.},
   booktitle = {Proceedings of the 24th International Conference on Artificial Intelligence},
@@ -157,28 +164,29 @@
 
 @article{gymnasium,
   title={Gymnasium: A Standard Interface for Reinforcement Learning Environments},
-  author={Towers, Mark and Kwiatkowski, Ariel and Terry, Jordan and Balis, John U and De Cola, Gianluca and Deleu, Tristan and Goul{\~a}o, Manuel and Kallinteris, Andreas and Krimmel, Markus and KG, Arjun and others},
+  author={Mark Towers and Ariel Kwiatkowski and Jordan Terry and John U. Balis and Gianluca De Cola and Tristan Deleu and Manuel Goulão and Andreas Kallinteris and Markus Krimmel and Arjun KG and Rodrigo Perez-Vicente and Andrea Pierré and Sander Schulhoff and Jun Jet Tai and Hannah Tan and Omar G. Younis},
   journal={arXiv preprint arXiv:2407.17032},
-  year={2024}
+  year={2024},
+  doi={10.48550/arXiv.2407.17032},
 }
 
-@article{PDDLgym,
-  publtype={informal},
+@inproceedings{PDDLgym,
   author={Tom Silver and Rohan Chitnis},
-  title={PDDLGym: Gym Environments from PDDL Problems},
+  title={{PDDLGym}: {Gym} Environments from {PDDL} Problems},
+  booktitle={Proceedings of the 1st Workshop on Bridging the Gap Between AI Planning and Reinforcement Learning},
+  editor={Alan Fern and Vicenç Gómez and Anders Jonsson and Michael Katz and Hector Palacios and Scott Sanner},
   year={2020},
-  cdate={1577836800000},
-  journal={CoRR},
-  volume={abs/2002.06432},
-  url={https://arxiv.org/abs/2002.06432}
+  pages={1--6},
 }
 
-
-@article{PDDL,
-  title={PDDL - The Planning Domain Definition Language},
-  author={Drew McDermott, },
-  journal={Artificial Intelligence Planning Systems, TR98003/DCS TR1165},
-  year={1998}
+@techreport{PDDL,
+  author       = {Malik Ghallab and Adele Howe and Craig Knoblock and Drew McDermott and Ashwin Ram and Manuela Veloso and Daniel Weld and David Wilkins},
+  title        = {{PDDL}~-- the {Planning} {Domain} {Definition} {Language}, Version 1.2},
+  institution  = {Yale Center for Computational Vision {and} Control},
+  year         = 1998,
+  type         = {Tech Report},
+  number       = {CVC TR-98-003{\slash}DCS TR-1165},
+  month        = oct,
 }
 
 @article{stable-baselines3,
@@ -193,10 +201,11 @@
 }
 
 @inproceedings{ANML,
-  title={The ANML Language},
+  title={The {ANML} Language},
   author={David E. Smith and Jeremy Frank and William Cushing},
-  year={2007},
-  url={https://api.semanticscholar.org/CorpusID:14116191}
+  year={2008},
+  booktitle={The {ICAPS}-08 Workshop on Knowledge Engineering for Planning and Scheduling},
+  month=sep,
 }
 
 
@@ -209,7 +218,7 @@
   editor = 	 {Kiela, Douwe and Ciccone, Marco and Caputo, Barbara},
   volume = 	 {176},
   series = 	 {Proceedings of Machine Learning Research},
-  month = 	 {06--14 Dec},
+  month = 	 dec,
   publisher =    {PMLR},
   pdf = 	 {https://proceedings.mlr.press/v176/hambro22a/hambro22a.pdf},
   url = 	 {https://proceedings.mlr.press/v176/hambro22a.html},
@@ -224,7 +233,8 @@
   number={1655},
   pages={20130480},
   year={2014},
-  publisher={The Royal Society}
+  publisher={The Royal Society},
+  doi={10.1098/rstb.2013.0480},
 }
 
 @inproceedings{bacon2017option,
@@ -243,17 +253,23 @@
 @inproceedings{heess2016learning,
   title={Learning continuous control policies by stochastic value gradients},
   author={Heess, Nicolas and Wayne, Greg and Silver, David and Lillicrap, Timothy and Erez, Tom and Tassa, Yuval},
-  booktitle={Advances in Neural Information Processing Systems (NeurIPS)},
-  volume={29},
+  editor = {C. Cortes and N. Lawrence and D. Lee and M. Sugiyama and R. Garnett},
+  booktitle={Advances in Neural Information Processing Systems},
+  publisher = {Curran Associates, Inc.},
+  volume={28},
   pages={2944--2952},
-  year={2016}
+  isbn = {978-1-5108-2502-4},
+  year={2015}
 }
 @inproceedings{nachum2018data,
   title={Data-efficient hierarchical reinforcement learning},
   author={Nachum, Ofir and Gu, Shixiang and Lee, Honglak and Levine, Sergey},
-  booktitle={Advances in Neural Information Processing Systems (NeurIPS)},
+  editor = {S. Bengio and H. Wallach and H. Larochelle and K. Grauman and N. Cesa-Bianchi and R. Garnett},
+  booktitle={Advances in Neural Information Processing Systems},
+  publisher = {Curran Associates, Inc.},
   volume={31},
   pages={3303--3313},
+  isbn={978-1-5108-8447-2},
   year={2018}
 }
 
@@ -263,5 +279,5 @@
   journal={ArXiv},
   year={2019},
   volume={abs/1911.01547},
-  url={https://api.semanticscholar.org/CorpusID:207870692}
+  doi={10.48550/arXiv.1911.01547},
 }
