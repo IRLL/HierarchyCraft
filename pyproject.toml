@@ -6,7 +6,7 @@ name = "hcraft"
 description = "Lightweight environments to study hierarchical reasoning"
 
 dynamic = ["version", "readme", "dependencies"]
-license = { text = "GNU General Public License v3 or later (GPLv3+)" }
+license = { text = "GNU General Public License v3 (GPLv3)" }
 requires-python = ">=3.8"
 authors = [
     { name = "Mathïs Fédérico" },
