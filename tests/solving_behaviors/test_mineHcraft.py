@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from matplotlib import pyplot as plt
 from hcraft.examples.minecraft.env import MineHcraftEnv
 from hcraft.task import Task
@@ -17,7 +19,7 @@ HARD_TASKS = [
 @pytest.mark.slow
 def test_solving_behaviors():
     """All tasks should be solved by their solving behavior."""
-    draw_call_graph = False
+    draw_call_graph = True
 
     if draw_call_graph:
         _fig, ax = plt.subplots()
@@ -29,7 +31,10 @@ def test_solving_behaviors():
     task = [t for t in tasks_left if t.name == "Place enchanting_table anywhere"][0]
     solving_behavior = env.solving_behavior(task)
     easy_tasks_left = [task]
+    call_path = Path("call_graph")
+    step = 0
     while not done and not env.purpose.terminated:
+        step += 1
         tasks_left = [t for t in tasks_left if not t.terminated]
         if task is None:
             easy_tasks_left = [t for t in tasks_left if t.name not in HARD_TASKS]
@@ -44,6 +49,7 @@ def test_solving_behaviors():
             plt.cla()
             solving_behavior.graph.call_graph.draw(ax)
             plt.show(block=False)
+            plt.savefig(call_path / f"{step}.png", figsize=(16, 9))
         observation, _reward, terminated, truncated, _info = env.step(action)
         done = terminated or truncated
         if task.terminated:

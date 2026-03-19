@@ -3,7 +3,10 @@
 [![Fury - PyPi stable version](https://badge.fury.io/py/hcraft.svg)](https://badge.fury.io/py/hcraft)
 [![PePy - Downloads](https://static.pepy.tech/badge/hcraft)](https://pepy.tech/project/hcraft)
 [![PePy - Downloads per week](https://static.pepy.tech/badge/hcraft/week)](https://pepy.tech/project/hcraft)
+
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.06468/status.svg)](https://doi.org/10.21105/joss.06468)
 [![Licence - GPLv3](https://img.shields.io/github/license/IRLL/HierarchyCraft?style=plastic)](https://www.gnu.org/licenses/)
+
 
 [![Codacy - grade](https://app.codacy.com/project/badge/Grade/b5010ccc46274c0eb1e3ae563934efdd)](https://www.codacy.com/gh/IRLL/HierarchyCraft/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=IRLL/HierarchyCraft&amp;utm_campaign=Badge_Grade)
 [![Codacy - coverage](https://app.codacy.com/project/badge/Coverage/b5010ccc46274c0eb1e3ae563934efdd)](https://www.codacy.com/gh/IRLL/HierarchyCraft/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=IRLL/HierarchyCraft&amp;utm_campaign=Badge_Coverage)
